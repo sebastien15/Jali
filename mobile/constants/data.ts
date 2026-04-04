@@ -1,0 +1,61 @@
+export const CITIES = [
+  "Kigali", "Musanze", "Huye", "Rubavu",
+  "Nyagatare", "Rwamagana", "Muhanga", "Rusizi",
+];
+
+export const BUSES = [
+  { id: 1, agency: "Volcano Express", from: "Kigali", to: "Musanze", dep: "06:00", arr: "08:30", price: 3500, seats: 14, rating: 4.8 },
+  { id: 2, agency: "Kigali Coach",    from: "Kigali", to: "Huye",    dep: "07:00", arr: "10:00", price: 4200, seats: 3,  rating: 4.6 },
+  { id: 3, agency: "RITCO",           from: "Kigali", to: "Rubavu",  dep: "08:00", arr: "11:00", price: 5000, seats: 20, rating: 4.7 },
+  { id: 4, agency: "Virunga Express", from: "Kigali", to: "Nyagatare", dep: "09:00", arr: "12:30", price: 4800, seats: 6, rating: 4.5 },
+  { id: 5, agency: "Horizon Express", from: "Kigali", to: "Musanze", dep: "10:30", arr: "13:00", price: 3200, seats: 11, rating: 4.9 },
+  { id: 6, agency: "Kigali Coach",    from: "Kigali", to: "Muhanga",  dep: "11:00", arr: "12:30", price: 2500, seats: 8,  rating: 4.6 },
+];
+
+export const CARS = [
+  { id: 1, name: "Toyota RAV4",   type: "SUV",     price: 65000, seats: 5, rating: 4.9, plate: "RAC 123A" },
+  { id: 2, name: "VW Polo",       type: "Sedan",   price: 38000, seats: 5, rating: 4.7, plate: "RAB 456B" },
+  { id: 3, name: "Toyota Hiace",  type: "Minivan", price: 85000, seats: 9, rating: 4.8, plate: "RAD 789C" },
+  { id: 4, name: "Suzuki Vitara", type: "SUV",     price: 52000, seats: 5, rating: 4.6, plate: "RAE 012D" },
+];
+
+export const PRIVATE = [
+  { id: 1, driver: "Jean Baptiste", from: "Kigali", to: "Musanze", dep: "06:30", price: 8000, seats: 2, rating: 4.9 },
+  { id: 2, driver: "Marie Claire",  from: "Kigali", to: "Huye",    dep: "07:00", price: 7500, seats: 1, rating: 4.8 },
+  { id: 3, driver: "Patrick N.",    from: "Kigali", to: "Rubavu",  dep: "08:00", price: 9000, seats: 3, rating: 4.7 },
+];
+
+export type TripStatus = "pending" | "confirmed" | "completed";
+export type TripType = "bus" | "rental" | "private";
+
+export interface Trip {
+  id: number;
+  type: TripType;
+  title: string;
+  sub: string;
+  price: number;
+  status: TripStatus;
+  ticketPhotoUrl?: string;
+}
+
+export const TRIPS: Trip[] = [
+  {
+    id: 1, type: "bus",
+    title: "Kigali → Musanze", sub: "Volcano Express · Apr 6, 06:00",
+    price: 3700, status: "confirmed",
+    ticketPhotoUrl: undefined, // admin uploads this
+  },
+  {
+    id: 2, type: "rental",
+    title: "Toyota RAV4", sub: "3 days · Apr 3–5",
+    price: 195000, status: "completed",
+  },
+  {
+    id: 3, type: "private",
+    title: "Kigali → Huye", sub: "Driver: Marie Claire · Mar 30",
+    price: 7500, status: "completed",
+  },
+];
+
+export const PAY_METHODS = ["MTN MoMo", "Airtel Money", "Card"] as const;
+export type PayMethod = typeof PAY_METHODS[number];
