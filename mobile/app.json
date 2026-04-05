@@ -17,9 +17,11 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.jali.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0055CC"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -29,6 +31,13 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2dd83387-a796-4ed0-841a-2093ecd11fcf"
+      }
+    },
+    "owner": "sebastien12"
   }
 }
