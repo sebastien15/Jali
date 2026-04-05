@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563763864352",
+    "project_id": "jali-8cad5",
+    "storage_bucket": "jali-8cad5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563763864352:android:fa9d97d1ddad2301502d45",
+        "android_client_info": {
+          "package_name": "com.jali.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGmRo6o2uljN2NmpqWXiJgcvbsez47Is0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
