@@ -82,9 +82,9 @@
 |---|---|---|
 | 1 | Sign in with Apple | iOS submission |
 | 2 | Location permission strings in app.json | Both stores |
-| 3 | Offline / no-internet screen | Both stores (bad review risk) |
+| 3 | ~~Offline / no-internet screen~~ | Done — animated banner in `_layout.tsx` |
 | 4 | Firebase Crashlytics | Both stores (crash during review = rejection) |
-| 5 | FCM push notification permission prompt | iOS (required before sending any push) |
+| 5 | ~~FCM push notification permission prompt~~ | Done — `usePushPermission` fires after login |
 | 6 | ~~Real support contact on Help & Support~~ | Done — WhatsApp link in profile |
 | 7 | Store assets (icons, screenshots, descriptions) | Submission |
 | 8 | Fill Data Safety / Nutrition Labels in consoles | Submission |
