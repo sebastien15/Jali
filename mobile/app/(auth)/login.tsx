@@ -1,22 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { router } from "expo-router";
 import {
   View, Text, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
 } from "react-native";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { auth } from "@/lib/firebase";
-import {
-  signInWithPhoneNumber,
-  GoogleAuthProvider,
-  signInWithCredential,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { C } from "@/constants/theme";
 
-WebBrowser.maybeCompleteAuthSession();
-
-const GOOGLE_WEB_CLIENT_ID =
-  "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com";
+GoogleSignin.configure({
+  webClientId: "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
+});
 
 export default function LoginScreen() {
   const [step, setStep]           = useState<"phone" | "otp">("phone");
@@ -26,45 +21,39 @@ export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmation, setConfirmation]   = useState<any>(null);
 
-  const otpRefs = Array.from({ length: 6 }, () => useRef<TextInput>(null));
+  const otpRef0 = useRef<TextInput>(null);
+  const otpRef1 = useRef<TextInput>(null);
+  const otpRef2 = useRef<TextInput>(null);
+  const otpRef3 = useRef<TextInput>(null);
+  const otpRef4 = useRef<TextInput>(null);
+  const otpRef5 = useRef<TextInput>(null);
+  const otpRefs = [otpRef0, otpRef1, otpRef2, otpRef3, otpRef4, otpRef5];
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    redirectUri: "https://auth.expo.io/@sebastien12/jali",
-  });
-
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      setGoogleLoading(true);
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .catch((e) => Alert.alert("Google sign-in failed", e.message))
-        .finally(() => setGoogleLoading(false));
-    } else if (response?.type === "error") {
-      Alert.alert("Google sign-in error", response.error?.message ?? "Unknown error");
+  async function signInWithGoogle() {
+    setGoogleLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+      const { data } = await GoogleSignin.signIn();
+      const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
+      await signInWithCredential(auth, credential);
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      Alert.alert("Google sign-in failed", e.message);
+    } finally {
+      setGoogleLoading(false);
     }
-  }, [response]);
+  }
 
   async function sendCode() {
     if (phone.length < 9) {
       Alert.alert("Enter a valid Rwandan number");
       return;
     }
-    setLoading(true);
-    try {
-      const fullPhone = `+250${phone.replace(/\s/g, "")}`;
-      // Mock verifier — works with Firebase test phone numbers (no reCAPTCHA WebView needed).
-      // Production phone auth will be handled by the Laravel backend via Firebase Admin SDK.
-      const mockVerifier = { type: "recaptcha", verify: async () => "" } as any;
-      const result = await signInWithPhoneNumber(auth, fullPhone, mockVerifier);
-      setConfirmation(result);
-      setStep("otp");
-    } catch (e: any) {
-      Alert.alert("Error sending code", e.message);
-    } finally {
-      setLoading(false);
-    }
+    // Phone OTP will be wired to the Laravel backend.
+    Alert.alert(
+      "Coming soon",
+      "Phone sign-in is not yet available. Use Google sign-in for now.",
+    );
   }
 
   async function verifyCode() {
@@ -144,8 +133,8 @@ export default function LoginScreen() {
 
             {/* Google sign-in */}
             <TouchableOpacity
-              onPress={() => promptAsync()}
-              disabled={!request || googleLoading}
+              onPress={signInWithGoogle}
+              disabled={googleLoading}
               style={{
                 backgroundColor: C.white, borderRadius: 16, paddingVertical: 16,
                 alignItems: "center", flexDirection: "row", justifyContent: "center",
