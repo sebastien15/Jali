@@ -29,6 +29,7 @@ export default function LoginScreen() {
   ];
 
   const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: "563763864352-90a5m3b776hv9t2g5aq9f3b04er1jcbm.apps.googleusercontent.com",
     webClientId: GOOGLE_WEB_CLIENT_ID,
   });
 
