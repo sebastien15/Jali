@@ -5,8 +5,13 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import { auth } from "@/lib/firebase";
-import { signInAnonymously, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
+import { auth, firebaseConfig } from "@/lib/firebase";
+import {
+  signInWithPhoneNumber,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "firebase/auth";
 import { C } from "@/constants/theme";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -15,22 +20,19 @@ const GOOGLE_WEB_CLIENT_ID =
   "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com";
 
 export default function LoginScreen() {
-  const [step, setStep]       = useState<"phone" | "otp">("phone");
-  const [phone, setPhone]     = useState("");
-  const [otp, setOtp]         = useState(["", "", "", ""]);
-  const [loading, setLoading] = useState(false);
+  const [step, setStep]           = useState<"phone" | "otp">("phone");
+  const [phone, setPhone]         = useState("");
+  const [otp, setOtp]             = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading]     = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [confirmation, setConfirmation]   = useState<any>(null);
 
-  const otpRefs = [
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-  ];
+  const recaptchaVerifier = useRef<FirebaseRecaptchaVerifierModal>(null);
+  const otpRefs = Array.from({ length: 6 }, () => useRef<TextInput>(null));
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "563763864352-90a5m3b776hv9t2g5aq9f3b04er1jcbm.apps.googleusercontent.com",
     webClientId: GOOGLE_WEB_CLIENT_ID,
+    redirectUri: "https://auth.expo.io/@sebastien12/jali",
   });
 
   useEffect(() => {
@@ -54,11 +56,11 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const fullPhone = `+250${phone.replace(/\s/g, "")}`;
-      // TODO: replace with expo-firebase-recaptcha for production phone auth
-      Alert.alert("Code sent to " + fullPhone, "Use 123456 in dev mode");
+      const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier.current!);
+      setConfirmation(result);
       setStep("otp");
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert("Error sending code", e.message);
     } finally {
       setLoading(false);
     }
@@ -66,13 +68,13 @@ export default function LoginScreen() {
 
   async function verifyCode() {
     const code = otp.join("");
-    if (code.length < 4) return;
+    if (code.length < 6) return;
     setLoading(true);
     try {
-      // TODO: replace with real Firebase phone credential once recaptcha is wired up
-      await signInAnonymously(auth);
+      await confirmation.confirm(code);
+      // onAuthStateChanged in index.tsx redirects to tabs
     } catch (e: any) {
-      Alert.alert("Sign-in error", e.message);
+      Alert.alert("Wrong code", e.message);
     } finally {
       setLoading(false);
     }
@@ -82,7 +84,7 @@ export default function LoginScreen() {
     const next = [...otp];
     next[idx] = val;
     setOtp(next);
-    if (val && idx < 3) otpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) otpRefs[idx + 1].current?.focus();
   }
 
   return (
@@ -90,6 +92,12 @@ export default function LoginScreen() {
       style={{ flex: 1, backgroundColor: C.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
+      <FirebaseRecaptchaVerifierModal
+        ref={recaptchaVerifier}
+        firebaseConfig={firebaseConfig}
+        attemptInvisibleVerification
+      />
+
       {/* Header */}
       <View style={{
         backgroundColor: C.blue, paddingTop: 72, paddingBottom: 36,
@@ -99,7 +107,7 @@ export default function LoginScreen() {
           Jali
         </Text>
         <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, marginTop: 4, fontWeight: "600" }}>
-          {step === "phone" ? "Enter your Rwandan number" : "Type the code we sent you"}
+          {step === "phone" ? "Enter your Rwandan number" : "Enter the 6-digit code we sent"}
         </Text>
       </View>
 
@@ -166,7 +174,8 @@ export default function LoginScreen() {
           </>
         ) : (
           <>
-            <View style={{ flexDirection: "row", gap: 12, justifyContent: "center" }}>
+            {/* 6-digit OTP */}
+            <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
               {otp.map((val, i) => (
                 <TextInput
                   key={i}
@@ -176,15 +185,15 @@ export default function LoginScreen() {
                   keyboardType="number-pad"
                   maxLength={1}
                   style={{
-                    width: 64, height: 64, textAlign: "center", fontSize: 30,
+                    width: 48, height: 60, textAlign: "center", fontSize: 26,
                     fontWeight: "900", borderWidth: 3, borderColor: C.blue,
-                    borderRadius: 16, color: C.blue, backgroundColor: C.white,
+                    borderRadius: 14, color: C.blue, backgroundColor: C.white,
                   }}
                 />
               ))}
             </View>
             <PrimaryBtn label="✓ Verify & Enter" color={C.green} onPress={verifyCode} loading={loading} />
-            <TouchableOpacity onPress={() => setStep("phone")}>
+            <TouchableOpacity onPress={() => { setStep("phone"); setOtp(["","","","","",""]); }}>
               <Text style={{ textAlign: "center", color: C.muted, fontSize: 13 }}>
                 ← Change number
               </Text>
