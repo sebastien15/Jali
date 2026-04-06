@@ -14,7 +14,12 @@
       "backgroundColor": "#0055CC"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jali.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Jali uses your location to calculate the service fee based on your distance to the nearest bus station.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Jali uses your location to calculate the service fee based on your distance to the nearest bus station."
+      }
     },
     "android": {
       "package": "com.jali.app",
@@ -24,7 +29,11 @@
         "backgroundColor": "#0055CC"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

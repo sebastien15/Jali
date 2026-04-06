@@ -1,5 +1,5 @@
 import {
-  View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, Switch,
+  View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, Switch, Linking, Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -11,6 +11,9 @@ import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 
 const APP_VERSION = "1.0.0";
+const SUPPORT_WHATSAPP = "https://wa.me/250700000000?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
+const PLAY_STORE_URL   = "market://details?id=com.jali.app";
+const APP_STORE_URL    = "https://apps.apple.com/app/jali/id0000000000"; // update when live
 
 type MenuItem = {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -112,14 +115,17 @@ export default function ProfileScreen() {
     {
       icon: "help-circle-outline",
       label: "Help & Support",
-      sub: "WhatsApp · Call",
-      onPress: () => {},
+      sub: "WhatsApp · Mon–Sat 8am–6pm",
+      onPress: () => Linking.openURL(SUPPORT_WHATSAPP),
     },
     {
       icon: "star-outline",
       label: "Rate Jali",
       sub: "Share your feedback",
-      onPress: () => {},
+      onPress: () => {
+        const url = Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL;
+        Linking.openURL(url);
+      },
     },
     {
       icon: "document-text-outline",
