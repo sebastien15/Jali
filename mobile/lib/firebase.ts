@@ -2,15 +2,13 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { initializeAuth, getAuth, inMemoryPersistence, Auth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Replace these values with your Firebase project config
-// from https://console.firebase.google.com → Project Settings → Your apps → Web app
 const firebaseConfig = {
-  apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-  authDomain:        "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket:     "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId:             "REPLACE_WITH_YOUR_APP_ID",
+  apiKey:            "AIzaSyC17heA77gvw5kFiB3Pj0Qt8CIeVU24eG4",
+  authDomain:        "jali-8cad5.firebaseapp.com",
+  projectId:         "jali-8cad5",
+  storageBucket:     "jali-8cad5.firebasestorage.app",
+  messagingSenderId: "563763864352",
+  appId:             "1:563763864352:web:4287b43247318adb502d45",
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

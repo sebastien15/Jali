@@ -12,7 +12,20 @@
           "package_name": "com.jali.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "563763864352-90a5m3b776hv9t2g5aq9f3b04er1jcbm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jali.app",
+            "certificate_hash": "e444afb3aa46d4e6b63852ec4c27b8bcec18ec43"
+          }
+        },
+        {
+          "client_id": "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCGmRo6o2uljN2NmpqWXiJgcvbsez47Is0"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

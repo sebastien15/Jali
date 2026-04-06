@@ -1,24 +1,49 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
 import { auth } from "@/lib/firebase";
-import { signInAnonymously } from "firebase/auth";
+import { signInAnonymously, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { C } from "@/constants/theme";
 
+WebBrowser.maybeCompleteAuthSession();
+
+const GOOGLE_WEB_CLIENT_ID =
+  "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com";
+
 export default function LoginScreen() {
-  const [step, setStep]         = useState<"phone" | "otp">("phone");
-  const [phone, setPhone]       = useState("");
-  const [otp, setOtp]           = useState(["", "", "", ""]);
-  const [loading, setLoading]   = useState(false);
-  const [verificationId, setVerificationId] = useState("");
+  const [step, setStep]       = useState<"phone" | "otp">("phone");
+  const [phone, setPhone]     = useState("");
+  const [otp, setOtp]         = useState(["", "", "", ""]);
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const otpRefs = [
     useRef<TextInput>(null),
     useRef<TextInput>(null),
     useRef<TextInput>(null),
     useRef<TextInput>(null),
   ];
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      setGoogleLoading(true);
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential)
+        .catch((e) => Alert.alert("Google sign-in failed", e.message))
+        .finally(() => setGoogleLoading(false));
+    } else if (response?.type === "error") {
+      Alert.alert("Google sign-in error", response.error?.message ?? "Unknown error");
+    }
+  }, [response]);
 
   async function sendCode() {
     if (phone.length < 9) {
@@ -27,12 +52,9 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      // Firebase phone auth via REST (works in Expo Go with test numbers)
-      // For production: use @firebase/auth with reCAPTCHA or expo-firebase-recaptcha
       const fullPhone = `+250${phone.replace(/\s/g, "")}`;
-      // Placeholder — wires up once firebase-recaptcha is configured
+      // TODO: replace with expo-firebase-recaptcha for production phone auth
       Alert.alert("Code sent to " + fullPhone, "Use 123456 in dev mode");
-      setVerificationId("dev-placeholder");
       setStep("otp");
     } catch (e: any) {
       Alert.alert("Error", e.message);
@@ -46,8 +68,7 @@ export default function LoginScreen() {
     if (code.length < 4) return;
     setLoading(true);
     try {
-      // DEV: sign in anonymously so auth guard redirects to tabs.
-      // Replace with real Firebase phone auth before production.
+      // TODO: replace with real Firebase phone credential once recaptcha is wired up
       await signInAnonymously(auth);
     } catch (e: any) {
       Alert.alert("Sign-in error", e.message);
@@ -73,9 +94,9 @@ export default function LoginScreen() {
         backgroundColor: C.blue, paddingTop: 72, paddingBottom: 36,
         paddingHorizontal: 28,
       }}>
-        <Text style={{
-          color: C.yellow, fontWeight: "900", fontSize: 36, letterSpacing: -1,
-        }}>Jali</Text>
+        <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 36, letterSpacing: -1 }}>
+          Jali
+        </Text>
         <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, marginTop: 4, fontWeight: "600" }}>
           {step === "phone" ? "Enter your Rwandan number" : "Type the code we sent you"}
         </Text>
@@ -85,6 +106,7 @@ export default function LoginScreen() {
       <View style={{ flex: 1, padding: 28, gap: 16 }}>
         {step === "phone" ? (
           <>
+            {/* Phone input */}
             <View style={{
               backgroundColor: C.white, borderRadius: 16, flexDirection: "row",
               alignItems: "center", borderWidth: 2.5, borderColor: C.blue, overflow: "hidden",
@@ -107,12 +129,39 @@ export default function LoginScreen() {
                 }}
               />
             </View>
-            <PrimaryBtn
-              label="Send Code →"
-              color={C.blue}
-              onPress={sendCode}
-              loading={loading}
-            />
+            <PrimaryBtn label="Send Code →" color={C.blue} onPress={sendCode} loading={loading} />
+
+            {/* Divider */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+              <Text style={{ color: C.muted, fontSize: 13 }}>or</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+            </View>
+
+            {/* Google sign-in */}
+            <TouchableOpacity
+              onPress={() => promptAsync()}
+              disabled={!request || googleLoading}
+              style={{
+                backgroundColor: C.white, borderRadius: 16, paddingVertical: 16,
+                alignItems: "center", flexDirection: "row", justifyContent: "center",
+                gap: 10, borderWidth: 2, borderColor: C.border,
+              }}
+            >
+              {googleLoading
+                ? <ActivityIndicator color={C.mid} />
+                : <>
+                    <Text style={{ fontSize: 20 }}>🌐</Text>
+                    <Text style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}>
+                      Continue with Google
+                    </Text>
+                  </>
+              }
+            </TouchableOpacity>
+
+            <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
+              Google sign-in is available for international travelers
+            </Text>
           </>
         ) : (
           <>
@@ -133,12 +182,7 @@ export default function LoginScreen() {
                 />
               ))}
             </View>
-            <PrimaryBtn
-              label="✓ Verify & Enter"
-              color={C.green}
-              onPress={verifyCode}
-              loading={loading}
-            />
+            <PrimaryBtn label="✓ Verify & Enter" color={C.green} onPress={verifyCode} loading={loading} />
             <TouchableOpacity onPress={() => setStep("phone")}>
               <Text style={{ textAlign: "center", color: C.muted, fontSize: 13 }}>
                 ← Change number
@@ -146,9 +190,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </>
         )}
-        <Text style={{ textAlign: "center", color: C.muted, fontSize: 13 }}>
-          For Rwandan nationals only 🇷🇼
-        </Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -161,14 +202,13 @@ function PrimaryBtn({ label, color, onPress, loading }: {
     <TouchableOpacity
       onPress={onPress}
       disabled={loading}
-      style={{
-        backgroundColor: color, borderRadius: 16,
-        paddingVertical: 18, alignItems: "center",
-      }}
+      style={{ backgroundColor: color, borderRadius: 16, paddingVertical: 18, alignItems: "center" }}
     >
       {loading
         ? <ActivityIndicator color="#fff" />
-        : <Text style={{ color: color === C.blue ? C.yellow : C.white, fontWeight: "900", fontSize: 17 }}>{label}</Text>
+        : <Text style={{ color: color === C.blue ? C.yellow : C.white, fontWeight: "900", fontSize: 17 }}>
+            {label}
+          </Text>
       }
     </TouchableOpacity>
   );
