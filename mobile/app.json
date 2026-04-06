@@ -40,7 +40,11 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      ["expo-notifications", {
+        "icon": "./assets/icon.png",
+        "color": "#0055CC"
+      }]
     ],
     "extra": {
       "router": {},
