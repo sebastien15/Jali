@@ -1,20 +1,23 @@
 import axios from "axios";
+import { auth } from "@/lib/firebase";
 
-// Replace with your Laravel backend URL when it's ready
-const API_BASE_URL = "http://localhost:8000/api";
+const DEV_URL  = "http://192.168.100.23:8000/api";
+const PROD_URL = "https://api.jali.rw/api";
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: __DEV__ ? DEV_URL : PROD_URL,
   headers: { "Content-Type": "application/json" },
+  timeout: 10000,
 });
 
-// Attach Firebase token to every request
-export function setAuthToken(token: string | null) {
-  if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common["Authorization"];
+// Automatically attach the Firebase ID token to every request
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
   }
-}
+  return config;
+});
 
 export default api;
