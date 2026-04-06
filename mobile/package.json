@@ -16,6 +16,7 @@
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "@react-native-google-signin/google-signin": "^14.0.1",
     "expo-auth-session": "~6.1.5",
     "expo-crypto": "~14.1.0",
     "expo-linking": "~8.0.11",
