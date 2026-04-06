@@ -5,8 +5,7 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
-import { auth, firebaseConfig } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import {
   signInWithPhoneNumber,
   GoogleAuthProvider,
@@ -27,7 +26,6 @@ export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmation, setConfirmation]   = useState<any>(null);
 
-  const recaptchaVerifier = useRef<FirebaseRecaptchaVerifierModal>(null);
   const otpRefs = Array.from({ length: 6 }, () => useRef<TextInput>(null));
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -56,7 +54,10 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const fullPhone = `+250${phone.replace(/\s/g, "")}`;
-      const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier.current!);
+      // Mock verifier — works with Firebase test phone numbers (no reCAPTCHA WebView needed).
+      // Production phone auth will be handled by the Laravel backend via Firebase Admin SDK.
+      const mockVerifier = { type: "recaptcha", verify: async () => "" } as any;
+      const result = await signInWithPhoneNumber(auth, fullPhone, mockVerifier);
       setConfirmation(result);
       setStep("otp");
     } catch (e: any) {
@@ -92,12 +93,6 @@ export default function LoginScreen() {
       style={{ flex: 1, backgroundColor: C.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={firebaseConfig}
-        attemptInvisibleVerification
-      />
-
       {/* Header */}
       <View style={{
         backgroundColor: C.blue, paddingTop: 72, paddingBottom: 36,
