@@ -5,6 +5,7 @@ import {
 import { C } from "@/constants/theme";
 import { PAY_METHODS, PayMethod } from "@/constants/data";
 import { useServiceFee } from "@/lib/useServiceFee";
+import api from "@/lib/api";
 
 interface SheetData {
   type: "bus" | "private" | "rental";
@@ -47,15 +48,31 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
 
   async function handleConfirm() {
     setLoading(true);
-    // TODO: POST to Laravel API to create booking
-    // await api.post("/bookings", { type, itemId: item.id, payMethod, days });
-    await new Promise(r => setTimeout(r, 1000)); // dev placeholder
-    setLoading(false);
-    Alert.alert(
-      "Booking Request Sent! ✓",
-      "Our team will arrange your ticket and notify you when it's ready.",
-      [{ text: "OK", onPress: onConfirm }],
-    );
+    try {
+      await api.post("/bookings", {
+        type,
+        reference_id: item.id,
+        price: isBus ? item.price : isPrivate ? item.price : item.price * days,
+        service_fee: effectiveFee,
+        payment_method: payMethod,
+        ...(isBus || isPrivate ? {
+          title: isBus ? `${item.agency} · ${item.from} → ${item.to}` : `${item.driver} · ${item.from} → ${item.to}`,
+          sub: isBus ? `Departs ${item.dep} · ${item.seats} seats` : `Departs ${item.dep}`,
+        } : {
+          title: item.name,
+          sub: `${item.type} · ${days} day${days > 1 ? "s" : ""}`,
+        }),
+      });
+      Alert.alert(
+        "Booking Request Sent! ✓",
+        "Our team will arrange your ticket and notify you when it's ready.",
+        [{ text: "OK", onPress: onConfirm }],
+      );
+    } catch (e: any) {
+      Alert.alert("Booking failed", e?.response?.data?.message ?? e.message ?? "Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

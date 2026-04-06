@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StatusBar, Image, Modal,
+  StatusBar, Image, Modal, ActivityIndicator, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C } from "@/constants/theme";
-import { TRIPS, TripStatus, TripType } from "@/constants/data";
+import { TripStatus, TripType } from "@/constants/data";
+import api from "@/lib/api";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -18,10 +19,27 @@ const STATUS_COLOR: Record<TripStatus, string> = {
 };
 
 export default function TripsScreen() {
-  const [filter, setFilter] = useState<"all" | TripStatus>("all");
+  const [filter, setFilter]   = useState<"all" | TripStatus>("all");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading]   = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const list = filter === "all" ? TRIPS : TRIPS.filter(t => t.status === filter);
+  const fetchBookings = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await api.get("/bookings");
+      setBookings(res.data);
+    } catch {
+      // silently fail — user sees empty state
+    } finally {
+      if (isRefresh) setRefreshing(false); else setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+
+  const list = filter === "all" ? bookings : bookings.filter((t: any) => t.status === filter);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -55,8 +73,13 @@ export default function TripsScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {list.length === 0 && (
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchBookings(true)} />}
+      >
+        {loading && <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />}
+
+        {!loading && list.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ fontSize: 40 }}>🗓️</Text>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14, marginTop: 8 }}>
@@ -65,7 +88,7 @@ export default function TripsScreen() {
           </View>
         )}
 
-        {list.map(trip => (
+        {!loading && list.map((trip: any) => (
           <View
             key={trip.id}
             style={{
@@ -105,9 +128,9 @@ export default function TripsScreen() {
             </View>
 
             {/* Ticket photo — shown when admin uploads it */}
-            {trip.ticketPhotoUrl ? (
+            {trip.ticket_photo_url ? (
               <TouchableOpacity
-                onPress={() => setPhotoUrl(trip.ticketPhotoUrl!)}
+                onPress={() => setPhotoUrl(trip.ticket_photo_url!)}
                 style={{
                   marginTop: 12, backgroundColor: C.blueLt, borderRadius: 12,
                   padding: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center",

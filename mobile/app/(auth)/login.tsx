@@ -8,6 +8,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { C } from "@/constants/theme";
+import api from "@/lib/api";
 
 GoogleSignin.configure({
   webClientId: "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
@@ -36,6 +37,8 @@ export default function LoginScreen() {
       const { data } = await GoogleSignin.signIn();
       const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
       await signInWithCredential(auth, credential);
+      // Register/sync user with Laravel backend
+      await api.post("/auth/login").catch(() => {});
       router.replace("/(tabs)");
     } catch (e: any) {
       Alert.alert("Google sign-in failed", e.message);

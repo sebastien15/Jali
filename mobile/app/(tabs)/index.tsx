@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StatusBar,
+  StatusBar, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { CITIES, BUSES, CARS, PRIVATE } from "@/constants/data";
+import { CITIES } from "@/constants/data";
 import { BusCard } from "@/components/BusCard";
 import { PrivateCard } from "@/components/PrivateCard";
 import { RentalCard } from "@/components/RentalCard";
 import { BookingSheet } from "@/components/BookingSheet";
 import { CityPicker } from "@/components/CityPicker";
+import api from "@/lib/api";
 
 type Mode = "bus" | "private" | "rental";
 
@@ -26,8 +27,29 @@ export default function HomeScreen() {
   const [rentalDays, setRD]     = useState(1);
   const [sheet, setSheet]       = useState<any>(null);
 
-  const buses   = BUSES.filter(b => b.from === from && (!to || b.to === to));
-  const private_ = PRIVATE.filter(p => p.from === from && (!to || p.to === to));
+  const [buses, setBuses]         = useState<any[]>([]);
+  const [cars, setCars]           = useState<any[]>([]);
+  const [privateSeats, setPrivate]= useState<any[]>([]);
+  const [loadingData, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.get("/buses", { params: { from, ...(to ? { to } : {}) } }),
+      api.get("/car-rentals"),
+      api.get("/private-seats", { params: { from, ...(to ? { to } : {}) } }),
+    ])
+      .then(([busRes, carRes, privateRes]) => {
+        setBuses(busRes.data);
+        setCars(carRes.data);
+        setPrivate(privateRes.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [from, to]);
+
+  const filteredBuses   = buses;
+  const filteredPrivate = privateSeats;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -121,19 +143,23 @@ export default function HomeScreen() {
 
       {/* ── Listings ── */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {mode === "bus" && (
+        {loadingData && (
+          <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />
+        )}
+
+        {!loadingData && mode === "bus" && (
           <>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
-              {buses.length} buses · {from}{to ? ` → ${to}` : " (all routes)"}
+              {filteredBuses.length} buses · {from}{to ? ` → ${to}` : " (all routes)"}
             </Text>
-            {buses.length === 0 && <EmptyState icon="🚌" msg="No buses for this route" />}
-            {buses.map(b => (
+            {filteredBuses.length === 0 && <EmptyState icon="🚌" msg="No buses for this route" />}
+            {filteredBuses.map(b => (
               <BusCard key={b.id} bus={b} onPress={() => setSheet({ type: "bus", item: b })} />
             ))}
           </>
         )}
 
-        {mode === "private" && (
+        {!loadingData && mode === "private" && (
           <>
             <View style={{
               backgroundColor: C.orange, borderRadius: 12, padding: 12,
@@ -145,20 +171,20 @@ export default function HomeScreen() {
               </Text>
             </View>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
-              {private_.length} private cars · {from}{to ? ` → ${to}` : " (all routes)"}
+              {filteredPrivate.length} private cars · {from}{to ? ` → ${to}` : " (all routes)"}
             </Text>
-            {private_.length === 0 && <EmptyState icon="💺" msg="No private cars for this route" />}
-            {private_.map(p => (
+            {filteredPrivate.length === 0 && <EmptyState icon="💺" msg="No private cars for this route" />}
+            {filteredPrivate.map(p => (
               <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p })} />
             ))}
           </>
         )}
 
-        {mode === "rental" && (
+        {!loadingData && mode === "rental" && (
           <>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark }}>
-                {CARS.length} cars in Kigali
+                {cars.length} cars in Kigali
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <TouchableOpacity
@@ -176,7 +202,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            {CARS.map(c => (
+            {cars.map(c => (
               <RentalCard
                 key={c.id} car={c} days={rentalDays}
                 onPress={() => setSheet({ type: "rental", item: c, days: rentalDays })}

@@ -36,6 +36,17 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: 1
 
+      - name: Bundle JS for Android
+        working-directory: mobile
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+
       - name: Make gradlew executable
         working-directory: mobile/android
         run: chmod +x gradlew
