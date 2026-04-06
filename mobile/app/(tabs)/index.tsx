@@ -4,6 +4,8 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { CITIES, BUSES, CARS, PRIVATE } from "@/constants/data";
 import { BusCard } from "@/components/BusCard";
@@ -38,12 +40,15 @@ export default function HomeScreen() {
             <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: "600" }}>Muraho 👋</Text>
             <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>Where to?</Text>
           </View>
-          <View style={{
-            backgroundColor: C.yellow, borderRadius: 50, width: 42, height: 42,
-            alignItems: "center", justifyContent: "center",
-          }}>
-            <Text style={{ fontSize: 18 }}>👤</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            style={{
+              backgroundColor: C.yellow, borderRadius: 50, width: 42, height: 42,
+              alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <Ionicons name="person" size={20} color={C.dark} />
+          </TouchableOpacity>
         </View>
 
         {/* From / To */}
