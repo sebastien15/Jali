@@ -4,22 +4,21 @@ import { View, ActivityIndicator } from "react-native";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
-
-const DEV_SKIP_AUTH = false;
+import { isDev } from "@/lib/env";
 
 export default function Index() {
-  const [user, setUser]       = useState<User | null | undefined>(undefined);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    if (DEV_SKIP_AUTH) return;
+    if (isDev) return;
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return unsub;
   }, []);
 
-  // DEV: skip auth entirely
-  if (DEV_SKIP_AUTH) return <Redirect href="/(tabs)" />;
+  // dev mode — skip auth, go straight to app
+  if (isDev) return <Redirect href="/(tabs)" />;
 
-  // Loading — waiting for Firebase to resolve
+  // waiting for Firebase to resolve
   if (user === undefined) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.blue }}>

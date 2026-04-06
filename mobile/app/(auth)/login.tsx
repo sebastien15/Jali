@@ -9,6 +9,7 @@ import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import { isDev } from "@/lib/env";
 
 GoogleSignin.configure({
   webClientId: "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
@@ -31,6 +32,11 @@ export default function LoginScreen() {
   const otpRefs = [otpRef0, otpRef1, otpRef2, otpRef3, otpRef4, otpRef5];
 
   async function signInWithGoogle() {
+    // In dev mode skip Firebase — native libs don't work in Expo Go
+    if (isDev) {
+      router.replace("/(tabs)");
+      return;
+    }
     setGoogleLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
@@ -38,7 +44,13 @@ export default function LoginScreen() {
       const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
       await signInWithCredential(auth, credential);
       // Register/sync user with Laravel backend
-      await api.post("/auth/login").catch(() => {});
+      try {
+        await api.post("/auth/login");
+      } catch (err: any) {
+        // Still redirect to tabs — Firebase auth succeeded
+        // Backend will be retried on next API call
+        console.warn("Backend sync failed, but Firebase auth succeeded:", err?.response?.data?.message);
+      }
       router.replace("/(tabs)");
     } catch (e: any) {
       Alert.alert("Google sign-in failed", e.message);

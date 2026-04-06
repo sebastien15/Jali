@@ -7,13 +7,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { CITIES } from "@/constants/data";
+import { CITIES, BUSES, CARS, PRIVATE } from "@/constants/data";
 import { BusCard } from "@/components/BusCard";
 import { PrivateCard } from "@/components/PrivateCard";
 import { RentalCard } from "@/components/RentalCard";
 import { BookingSheet } from "@/components/BookingSheet";
 import { CityPicker } from "@/components/CityPicker";
 import api from "@/lib/api";
+import { useMocks } from "@/lib/env";
 
 type Mode = "bus" | "private" | "rental";
 
@@ -31,22 +32,34 @@ export default function HomeScreen() {
   const [cars, setCars]           = useState<any[]>([]);
   const [privateSeats, setPrivate]= useState<any[]>([]);
   const [loadingData, setLoading] = useState(false);
+  const [error, setError]         = useState<string | null>(null);
 
   useEffect(() => {
+    if (useMocks) {
+      const filtered = BUSES.filter(b => b.from === from && (!to || b.to === to));
+      setBuses(filtered);
+      setCars(CARS);
+      setPrivate(PRIVATE.filter(p => p.from === from && (!to || p.to === to)));
+      return;
+    }
     setLoading(true);
+    setError(null);
     Promise.all([
-      api.get("/buses", { params: { from, ...(to ? { to } : {}) } }),
+      api.get("/buses", { params: { from, ...(to ? { to } : {}), date } }),
       api.get("/car-rentals"),
-      api.get("/private-seats", { params: { from, ...(to ? { to } : {}) } }),
+      api.get("/private-seats", { params: { from, ...(to ? { to } : {}), date } }),
     ])
       .then(([busRes, carRes, privateRes]) => {
         setBuses(busRes.data);
         setCars(carRes.data);
         setPrivate(privateRes.data);
       })
-      .catch(() => {})
+      .catch((err) => {
+        const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load data. Check your connection.";
+        setError(msg);
+      })
       .finally(() => setLoading(false));
-  }, [from, to]);
+  }, [from, to, date]);
 
   const filteredBuses   = buses;
   const filteredPrivate = privateSeats;
@@ -147,6 +160,45 @@ export default function HomeScreen() {
           <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />
         )}
 
+        {error && !loadingData && (
+          <View style={{ alignItems: "center", paddingVertical: 40 }}>
+            <Text style={{ fontSize: 40 }}>⚠️</Text>
+            <Text style={{ color: C.orange, fontWeight: "700", fontSize: 14, marginTop: 8, textAlign: "center" }}>
+              {error}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setLoading(true);
+                setError(null);
+                Promise.all([
+                  api.get("/buses", { params: { from, ...(to ? { to } : {}), date } }),
+                  api.get("/car-rentals"),
+                  api.get("/private-seats", { params: { from, ...(to ? { to } : {}), date } }),
+                ])
+                  .then(([busRes, carRes, privateRes]) => {
+                    setBuses(busRes.data);
+                    setCars(carRes.data);
+                    setPrivate(privateRes.data);
+                  })
+                  .catch((err) => {
+                    const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load data. Check your connection.";
+                    setError(msg);
+                    setBuses([]);
+                    setCars([]);
+                    setPrivate([]);
+                  })
+                  .finally(() => setLoading(false));
+              }}
+              style={{
+                marginTop: 16, backgroundColor: C.blue, borderRadius: 12,
+                paddingHorizontal: 24, paddingVertical: 12,
+              }}
+            >
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {!loadingData && mode === "bus" && (
           <>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
@@ -154,7 +206,7 @@ export default function HomeScreen() {
             </Text>
             {filteredBuses.length === 0 && <EmptyState icon="🚌" msg="No buses for this route" />}
             {filteredBuses.map(b => (
-              <BusCard key={b.id} bus={b} onPress={() => setSheet({ type: "bus", item: b })} />
+              <BusCard key={b.id} bus={b} onPress={() => setSheet({ type: "bus", item: b, travelDate: date })} />
             ))}
           </>
         )}
@@ -175,7 +227,7 @@ export default function HomeScreen() {
             </Text>
             {filteredPrivate.length === 0 && <EmptyState icon="💺" msg="No private cars for this route" />}
             {filteredPrivate.map(p => (
-              <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p })} />
+              <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p, travelDate: date })} />
             ))}
           </>
         )}
@@ -205,7 +257,7 @@ export default function HomeScreen() {
             {cars.map(c => (
               <RentalCard
                 key={c.id} car={c} days={rentalDays}
-                onPress={() => setSheet({ type: "rental", item: c, days: rentalDays })}
+                onPress={() => setSheet({ type: "rental", item: c, days: rentalDays, travelDate: date })}
               />
             ))}
           </>

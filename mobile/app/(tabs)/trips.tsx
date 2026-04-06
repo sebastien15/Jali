@@ -5,8 +5,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C } from "@/constants/theme";
-import { TripStatus, TripType } from "@/constants/data";
+import { TripStatus, TripType, TRIPS } from "@/constants/data";
 import api from "@/lib/api";
+import { useMocks } from "@/lib/env";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -24,14 +25,22 @@ export default function TripsScreen() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading]   = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError]       = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (isRefresh = false) => {
+    if (useMocks) {
+      setBookings(TRIPS as any[]);
+      return;
+    }
     if (isRefresh) setRefreshing(true); else setLoading(true);
+    setError(null);
     try {
       const res = await api.get("/bookings");
       setBookings(res.data);
-    } catch {
-      // silently fail — user sees empty state
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load trips";
+      setError(msg);
+      setBookings([]);
     } finally {
       if (isRefresh) setRefreshing(false); else setLoading(false);
     }
@@ -79,7 +88,25 @@ export default function TripsScreen() {
       >
         {loading && <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />}
 
-        {!loading && list.length === 0 && (
+        {error && !loading && (
+          <View style={{ alignItems: "center", paddingVertical: 40 }}>
+            <Text style={{ fontSize: 40 }}>⚠️</Text>
+            <Text style={{ color: C.orange, fontWeight: "700", fontSize: 14, marginTop: 8, textAlign: "center" }}>
+              {error}
+            </Text>
+            <TouchableOpacity
+              onPress={() => fetchBookings()}
+              style={{
+                marginTop: 16, backgroundColor: C.blue, borderRadius: 12,
+                paddingHorizontal: 24, paddingVertical: 12,
+              }}
+            >
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!loading && !error && list.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ fontSize: 40 }}>🗓️</Text>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14, marginTop: 8 }}>

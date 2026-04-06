@@ -59,3 +59,39 @@ export const TRIPS: Trip[] = [
 
 export const PAY_METHODS = ["MTN MoMo", "Airtel Money", "Card"] as const;
 export type PayMethod = typeof PAY_METHODS[number];
+
+// ── Driver mock data ──────────────────────────────────────────────
+export interface DriverTrip {
+  id: number;
+  from: string;
+  to: string;
+  dep: string;
+  pax: number;
+  earning: number; // driver's cut (price, not service fee)
+  status: "upcoming" | "completed" | "cancelled";
+  date: string;
+}
+
+export interface DriverStats {
+  todayEarnings: number;
+  todayTrips: number;
+  rating: number;
+  weekEarnings: number;
+  weekTrips: number;
+}
+
+export const MOCK_DRIVER_STATS: DriverStats = {
+  todayEarnings: 47500,
+  todayTrips: 8,
+  rating: 4.92,
+  weekEarnings: 312000,
+  weekTrips: 41,
+};
+
+export const MOCK_DRIVER_TRIPS: DriverTrip[] = [
+  { id: 1, from: "Nyabugogo", to: "Musanze",   dep: "06:30", pax: 2, earning: 16000, status: "upcoming",   date: "Today" },
+  { id: 2, from: "Remera",    to: "Huye",       dep: "07:00", pax: 3, earning: 22500, status: "upcoming",   date: "Today" },
+  { id: 3, from: "Kigali",    to: "Rubavu",     dep: "08:00", pax: 1, earning: 15000, status: "completed",  date: "Today" },
+  { id: 4, from: "Kigali",    to: "Nyagatare",  dep: "09:00", pax: 2, earning: 19200, status: "completed",  date: "Yesterday" },
+  { id: 5, from: "Kigali",    to: "Musanze",    dep: "10:30", pax: 3, earning: 12800, status: "completed",  date: "Yesterday" },
+];
