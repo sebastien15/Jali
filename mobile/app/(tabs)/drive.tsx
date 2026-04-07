@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, StatusBar,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -18,8 +18,26 @@ import api from "@/lib/api";
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 
 export default function DriveScreen() {
-  const { driverType } = useDriverMode();
+  const { driverType, setDriverType } = useDriverMode();
   const isRental = driverType === "rental";
+
+  function handleChangeType() {
+    Alert.alert(
+      "Change Earning Mode",
+      "How would you like to earn with Jali?",
+      [
+        {
+          text: "Private Seat Driver",
+          onPress: () => setDriverType("private"),
+        },
+        {
+          text: "Fleet / Car Rental Owner",
+          onPress: () => setDriverType("rental"),
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+    );
+  }
 
   const [online, setOnline]           = useState(false);
   const [activeZones, setActiveZones] = useState<number[]>([0, 1]);
@@ -120,6 +138,29 @@ export default function DriveScreen() {
             ))}
           </View>
         )}
+      </View>
+
+      {/* Driver type banner */}
+      <View style={{
+        backgroundColor: isRental ? C.blueLt : C.tealLt,
+        paddingHorizontal: 16, paddingVertical: 10,
+        flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Ionicons
+            name={isRental ? "car-sport-outline" : "people-outline"}
+            size={16}
+            color={isRental ? C.blue : C.teal}
+          />
+          <Text style={{ fontSize: 13, fontWeight: "700", color: isRental ? C.blue : C.teal }}>
+            Earning as: {isRental ? "Fleet / Car Rental Owner" : "Private Seat Driver"}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={handleChangeType}>
+          <Text style={{ fontSize: 12, fontWeight: "800", color: C.mid, textDecorationLine: "underline" }}>
+            Change
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
