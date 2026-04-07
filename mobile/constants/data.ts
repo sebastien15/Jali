@@ -3,6 +3,24 @@ export const CITIES = [
   "Nyagatare", "Rwamagana", "Muhanga", "Rusizi",
 ];
 
+export const BUS_STATIONS: Record<string, string[]> = {
+  "Kigali":    ["Nyabugogo Terminal", "Downtown Kigali", "Remera Stage", "Sonatubes/Gikondo", "Kimironko Stage"],
+  "Musanze":   ["Musanze Bus Terminal", "Musanze Town Center"],
+  "Huye":      ["Huye Bus Terminal", "Huye Town Center"],
+  "Rubavu":    ["Rubavu/Gisenyi Terminal", "Rubavu Town Center"],
+  "Nyagatare": ["Nyagatare Bus Terminal"],
+  "Rwamagana": ["Rwamagana Bus Station"],
+  "Muhanga":   ["Muhanga Bus Terminal"],
+  "Rusizi":    ["Rusizi Bus Terminal", "Kamembe Town"],
+};
+
+export const CAR_AMENITIES = [
+  "AC", "Music System", "USB Charging", "12V Socket",
+  "WiFi Hotspot", "Large Boot", "Roof Rack", "Baby Seat",
+  "Pet Friendly", "Luggage Trailer", "Reclining Seats", "Tinted Windows",
+] as const;
+export type CarAmenity = typeof CAR_AMENITIES[number];
+
 export const BUSES = [
   { id: 1, agency: "Volcano Express", from: "Kigali", to: "Musanze", dep: "06:00", arr: "08:30", price: 3500, seats: 14, rating: 4.8 },
   { id: 2, agency: "Kigali Coach",    from: "Kigali", to: "Huye",    dep: "07:00", arr: "10:00", price: 4200, seats: 3,  rating: 4.6 },
@@ -108,12 +126,14 @@ export interface DriverCar {
   status: "available" | "rented" | "maintenance";
   zones: string[];
   notes: string;
+  amenities: CarAmenity[];
+  photos: { front?: string; side?: string; interior?: string; luggage?: string };
 }
 
 export const MOCK_DRIVER_CARS: DriverCar[] = [
-  { id: 1, name: "Toyota RAV4",  type: "SUV",    plate: "RAC 001A", seats: 5, priceDay: 65000, caution: 50000, status: "available",   zones: ["Kigali CBD", "Remera"],         notes: "AC, music system" },
-  { id: 2, name: "VW Polo",      type: "Sedan",  plate: "RAB 002B", seats: 5, priceDay: 38000, caution: 30000, status: "rented",      zones: ["Kigali CBD"],                   notes: "" },
-  { id: 3, name: "Toyota Hiace", type: "Minivan",plate: "RAD 003C", seats: 9, priceDay: 85000, caution: 70000, status: "maintenance", zones: ["Kigali CBD", "Kimironko"],     notes: "Service due Apr 10" },
+  { id: 1, name: "Toyota RAV4",  type: "SUV",     plate: "RAC 001A", seats: 5, priceDay: 65000, caution: 50000, status: "available",   zones: ["Kigali CBD", "Remera"],     notes: "AC, music system", amenities: ["AC", "Music System", "USB Charging", "Large Boot"], photos: {} },
+  { id: 2, name: "VW Polo",      type: "Sedan",   plate: "RAB 002B", seats: 5, priceDay: 38000, caution: 30000, status: "rented",      zones: ["Kigali CBD"],               notes: "",                 amenities: ["AC", "USB Charging"], photos: {} },
+  { id: 3, name: "Toyota Hiace", type: "Minivan", plate: "RAD 003C", seats: 9, priceDay: 85000, caution: 70000, status: "maintenance", zones: ["Kigali CBD", "Kimironko"], notes: "Service due Apr 10", amenities: ["AC", "Music System", "Large Boot", "Reclining Seats"], photos: {} },
 ];
 
 // ── Private driver listing mock data ─────────────────────────────
@@ -121,15 +141,23 @@ export interface DriverListing {
   id: number;
   from: string;
   to: string;
+  pickupStation: string;
+  dropLocation: string;
   date: string;
   dep: string;
   seats: number;
   price: number;
   notes: string;
   active: boolean;
+  amenities: CarAmenity[];
+  groupDiscount: boolean;
+  groupMinSize: number;
+  groupDiscountPct: number;
+  allowCustomPickup: boolean;
+  customPickupFee: number;
 }
 
 export const MOCK_DRIVER_LISTINGS: DriverListing[] = [
-  { id: 1, from: "Kigali", to: "Musanze",  date: "Apr 7",  dep: "06:30", seats: 3, price: 8000,  notes: "AC available", active: true },
-  { id: 2, from: "Kigali", to: "Huye",     date: "Apr 8",  dep: "07:00", seats: 2, price: 7500,  notes: "",             active: true },
+  { id: 1, from: "Kigali", to: "Musanze",  pickupStation: "Nyabugogo Terminal", dropLocation: "Musanze Town Center", date: "Today",  dep: "06:30", seats: 3, price: 8000, notes: "AC available", active: true,  amenities: ["AC", "USB Charging"], groupDiscount: false, groupMinSize: 3, groupDiscountPct: 10, allowCustomPickup: false, customPickupFee: 0 },
+  { id: 2, from: "Kigali", to: "Huye",     pickupStation: "Nyabugogo Terminal", dropLocation: "",                   date: "Tomorrow", dep: "07:00", seats: 2, price: 7500, notes: "",            active: true,  amenities: ["AC"], groupDiscount: false, groupMinSize: 3, groupDiscountPct: 10, allowCustomPickup: false, customPickupFee: 0 },
 ];

@@ -1,19 +1,29 @@
 import { useState } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StatusBar, Alert, ActivityIndicator,
+  StatusBar, Alert, ActivityIndicator, Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { C } from "@/constants/theme";
 import { useDriverMode, DriverType } from "@/lib/DriverModeContext";
 import { useMocks } from "@/lib/env";
 import { auth } from "@/lib/firebase";
+import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
 import api from "@/lib/api";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 const CAR_TYPES = ["Sedan", "SUV", "Minivan", "Pickup"] as const;
+
+type PhotoSlot = "front" | "side" | "interior" | "luggage";
+const PHOTO_SLOTS: { key: PhotoSlot; label: string; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
+  { key: "front",    label: "Front View",     icon: "car-outline" },
+  { key: "side",     label: "Side View",      icon: "car-sport-outline" },
+  { key: "interior", label: "Interior",       icon: "grid-outline" },
+  { key: "luggage",  label: "Luggage Space",  icon: "briefcase-outline" },
+];
 
 export default function DriverSetupScreen() {
   const { driverType } = useDriverMode();
@@ -31,9 +41,34 @@ export default function DriverSetupScreen() {
   const [insExpiry, setInsExpiry]   = useState("");
   const [zones, setZones]           = useState<number[]>([0]);
   const [docsUrl, setDocsUrl]       = useState("");
+  const [amenities, setAmenities]   = useState<CarAmenity[]>([]);
+  const [photos, setPhotos]         = useState<Record<PhotoSlot, string | null>>({
+    front: null, side: null, interior: null, luggage: null,
+  });
 
   function toggleZone(i: number) {
     setZones(z => z.includes(i) ? z.filter(x => x !== i) : [...z, i]);
+  }
+
+  function toggleAmenity(a: CarAmenity) {
+    setAmenities(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+  }
+
+  async function pickPhoto(slot: PhotoSlot) {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Please allow access to your photo library.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setPhotos(p => ({ ...p, [slot]: result.assets[0].uri }));
+    }
   }
 
   async function handleSave() {
@@ -55,6 +90,7 @@ export default function DriverSetupScreen() {
           insurance_expiry: insExpiry,
           allowed_zones: zones.map(i => ZONES[i]),
           docs_url: docsUrl,
+          amenities,
         });
       } else {
         await new Promise(r => setTimeout(r, 600));
@@ -192,6 +228,78 @@ export default function DriverSetupScreen() {
             </Field>
           </>
         )}
+
+        {/* Section: Car Amenities */}
+        <SectionHeader label="What's in Your Car" icon="sparkles-outline" />
+        <Text style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>
+          Passengers will see these when browsing your listing
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 }}>
+          {CAR_AMENITIES.map(a => {
+            const on = amenities.includes(a);
+            return (
+              <TouchableOpacity
+                key={a} onPress={() => toggleAmenity(a)}
+                style={{
+                  paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10,
+                  backgroundColor: on ? C.teal : C.bg,
+                  borderWidth: on ? 0 : 2, borderColor: C.border,
+                }}
+              >
+                <Text style={{ color: on ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
+                  {on ? "✓ " : ""}{a}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Section: Car Photos */}
+        <SectionHeader label="Car Photos" icon="camera-outline" />
+        <Text style={{ color: C.muted, fontSize: 12, marginBottom: 12 }}>
+          Add up to 4 photos so passengers know what to expect
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
+          {PHOTO_SLOTS.map(slot => {
+            const uri = photos[slot.key];
+            return (
+              <TouchableOpacity
+                key={slot.key}
+                onPress={() => pickPhoto(slot.key)}
+                style={{
+                  width: "47%", aspectRatio: 4 / 3, borderRadius: 14,
+                  backgroundColor: uri ? "transparent" : C.white,
+                  borderWidth: uri ? 0 : 2, borderColor: C.border,
+                  borderStyle: uri ? undefined : "dashed",
+                  overflow: "hidden",
+                  alignItems: "center", justifyContent: "center",
+                }}
+              >
+                {uri ? (
+                  <>
+                    <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                    <View style={{
+                      position: "absolute", bottom: 0, left: 0, right: 0,
+                      backgroundColor: "rgba(0,0,0,0.45)", paddingVertical: 5, alignItems: "center",
+                      flexDirection: "row", justifyContent: "center", gap: 4,
+                    }}>
+                      <Ionicons name="pencil" size={11} color={C.white} />
+                      <Text style={{ color: C.white, fontSize: 11, fontWeight: "700" }}>{slot.label}</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name={slot.icon} size={26} color={C.border} />
+                    <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginTop: 6 }}>
+                      {slot.label}
+                    </Text>
+                    <Text style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>Tap to add</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         {/* Section: Operations */}
         <SectionHeader label="Operations" icon="map-outline" />
