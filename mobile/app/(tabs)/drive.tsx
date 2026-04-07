@@ -4,10 +4,13 @@ import {
   ActivityIndicator, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { useMocks } from "@/lib/env";
+import { useDriverMode } from "@/lib/DriverModeContext";
 import {
-  MOCK_DRIVER_STATS, MOCK_DRIVER_TRIPS,
+  MOCK_DRIVER_STATS, MOCK_DRIVER_TRIPS, MOCK_DRIVER_CARS, MOCK_DRIVER_LISTINGS,
   DriverStats, DriverTrip,
 } from "@/constants/data";
 import api from "@/lib/api";
@@ -15,6 +18,9 @@ import api from "@/lib/api";
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 
 export default function DriveScreen() {
+  const { driverType } = useDriverMode();
+  const isRental = driverType === "rental";
+
   const [online, setOnline]           = useState(false);
   const [activeZones, setActiveZones] = useState<number[]>([0, 1]);
   const [tab, setTab]                 = useState<"upcoming" | "history">("upcoming");
@@ -70,17 +76,28 @@ export default function DriveScreen() {
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: "600" }}>Driver Mode</Text>
             <Text style={{ color: C.white, fontWeight: "900", fontSize: 24 }}>Dashboard</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => setOnline(o => !o)}
-            style={{
-              backgroundColor: online ? C.green : "rgba(255,255,255,0.2)",
-              borderRadius: 14, paddingHorizontal: 18, paddingVertical: 10,
-            }}
-          >
-            <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
-              {online ? "🟢 Online" : "⚫ Offline"}
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+            <TouchableOpacity
+              onPress={() => setOnline(o => !o)}
+              style={{
+                backgroundColor: online ? C.green : "rgba(255,255,255,0.2)",
+                borderRadius: 14, paddingHorizontal: 18, paddingVertical: 10,
+              }}
+            >
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
+                {online ? "🟢 Online" : "⚫ Offline"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push("/driver/setup")}
+              style={{
+                backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 12,
+                width: 40, height: 40, alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <Ionicons name="settings-outline" size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Stats row */}
@@ -89,7 +106,7 @@ export default function DriveScreen() {
         ) : (
           <View style={{ flexDirection: "row", gap: 10 }}>
             {[
-              { v: stats ? `${stats.todayEarnings.toLocaleString()}`, l: "Today RWF" },
+              { v: stats ? stats.todayEarnings.toLocaleString() : "—", l: "Today RWF" },
               { v: `${stats?.todayTrips ?? 0}`,                       l: "Trips today" },
               { v: `${stats?.rating ?? "—"}`,                         l: "Rating ⭐" },
             ].map((e, i) => (
@@ -125,6 +142,82 @@ export default function DriveScreen() {
               <Text style={{ color: C.mid, fontSize: 12, fontWeight: "600" }}>Trips</Text>
               <Text style={{ color: C.teal, fontWeight: "900", fontSize: 20 }}>{stats.weekTrips}</Text>
             </View>
+          </View>
+        )}
+
+        {/* Role-specific action card */}
+        {isRental ? (
+          <TouchableOpacity
+            onPress={() => router.push("/driver/fleet")}
+            style={{
+              backgroundColor: C.white, borderRadius: 16, padding: 16, marginBottom: 20,
+              flexDirection: "row", alignItems: "center", gap: 14,
+              shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6,
+              shadowOffset: { width: 0, height: 2 }, elevation: 2,
+              borderLeftWidth: 4, borderLeftColor: C.teal,
+            }}
+          >
+            <View style={{
+              backgroundColor: C.tealLt, borderRadius: 12,
+              width: 44, height: 44, alignItems: "center", justifyContent: "center",
+            }}>
+              <Ionicons name="car-sport" size={22} color={C.teal} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: "800", fontSize: 15, color: C.dark }}>
+                My Fleet ({MOCK_DRIVER_CARS.length} cars)
+              </Text>
+              <Text style={{ color: C.mid, fontSize: 12, marginTop: 2 }}>
+                {MOCK_DRIVER_CARS.filter(c => c.status === "available").length} available ·{" "}
+                {MOCK_DRIVER_CARS.filter(c => c.status === "rented").length} rented
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.muted} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ marginBottom: 20 }}>
+            <TouchableOpacity
+              onPress={() => router.push("/driver/listing")}
+              style={{
+                backgroundColor: C.teal, borderRadius: 14, padding: 14,
+                flexDirection: "row", alignItems: "center", justifyContent: "center",
+                gap: 8, marginBottom: 12,
+              }}
+            >
+              <Ionicons name="add-circle-outline" size={20} color={C.white} />
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 15 }}>New Trip Listing</Text>
+            </TouchableOpacity>
+
+            {MOCK_DRIVER_LISTINGS.map(l => (
+              <TouchableOpacity
+                key={l.id}
+                onPress={() => router.push({ pathname: "/driver/listing", params: { id: String(l.id) } })}
+                style={{
+                  backgroundColor: C.white, borderRadius: 14, padding: 14, marginBottom: 8,
+                  flexDirection: "row", alignItems: "center", gap: 12,
+                  shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4,
+                  shadowOffset: { width: 0, height: 1 }, elevation: 1,
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: "800", fontSize: 14, color: C.dark }}>
+                    {l.from} → {l.to}
+                  </Text>
+                  <Text style={{ color: C.mid, fontSize: 12, marginTop: 2 }}>
+                    {l.date} · {l.dep} · {l.seats} seats · {l.price.toLocaleString()} RWF
+                  </Text>
+                </View>
+                <View style={{
+                  backgroundColor: l.active ? C.greenLt : C.bg,
+                  borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+                }}>
+                  <Text style={{ color: l.active ? C.green : C.muted, fontWeight: "700", fontSize: 11 }}>
+                    {l.active ? "Active" : "Paused"}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={C.muted} />
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 

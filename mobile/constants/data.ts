@@ -95,3 +95,41 @@ export const MOCK_DRIVER_TRIPS: DriverTrip[] = [
   { id: 4, from: "Kigali",    to: "Nyagatare",  dep: "09:00", pax: 2, earning: 19200, status: "completed",  date: "Yesterday" },
   { id: 5, from: "Kigali",    to: "Musanze",    dep: "10:30", pax: 3, earning: 12800, status: "completed",  date: "Yesterday" },
 ];
+
+// ── Car rental owner mock data ────────────────────────────────────
+export interface DriverCar {
+  id: number;
+  name: string;
+  type: "Sedan" | "SUV" | "Minivan" | "Pickup";
+  plate: string;
+  seats: number;
+  priceDay: number;
+  caution: number;
+  status: "available" | "rented" | "maintenance";
+  zones: string[];
+  notes: string;
+}
+
+export const MOCK_DRIVER_CARS: DriverCar[] = [
+  { id: 1, name: "Toyota RAV4",  type: "SUV",    plate: "RAC 001A", seats: 5, priceDay: 65000, caution: 50000, status: "available",   zones: ["Kigali CBD", "Remera"],         notes: "AC, music system" },
+  { id: 2, name: "VW Polo",      type: "Sedan",  plate: "RAB 002B", seats: 5, priceDay: 38000, caution: 30000, status: "rented",      zones: ["Kigali CBD"],                   notes: "" },
+  { id: 3, name: "Toyota Hiace", type: "Minivan",plate: "RAD 003C", seats: 9, priceDay: 85000, caution: 70000, status: "maintenance", zones: ["Kigali CBD", "Kimironko"],     notes: "Service due Apr 10" },
+];
+
+// ── Private driver listing mock data ─────────────────────────────
+export interface DriverListing {
+  id: number;
+  from: string;
+  to: string;
+  date: string;
+  dep: string;
+  seats: number;
+  price: number;
+  notes: string;
+  active: boolean;
+}
+
+export const MOCK_DRIVER_LISTINGS: DriverListing[] = [
+  { id: 1, from: "Kigali", to: "Musanze",  date: "Apr 7",  dep: "06:30", seats: 3, price: 8000,  notes: "AC available", active: true },
+  { id: 2, from: "Kigali", to: "Huye",     date: "Apr 8",  dep: "07:00", seats: 2, price: 7500,  notes: "",             active: true },
+];

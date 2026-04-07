@@ -56,6 +56,7 @@ function TabsNavigator() {
       <Tabs.Screen
         name="index"
         options={{
+          tabBarLabel: "Home",
           tabBarIcon: ({ focused }) => (
             <TabIcon icon="flash-outline" iconFocused="flash" focused={focused} />
           ),

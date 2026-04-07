@@ -6,12 +6,12 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { auth } from "@/lib/firebase";
 import { signOut, deleteUser } from "firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { GoogleSignin } from "@/lib/native/google-signin";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 
 const APP_VERSION = "1.0.0";
-const SUPPORT_WHATSAPP = "https://wa.me/250700000000?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
+const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
 const PLAY_STORE_URL   = "market://details?id=com.jali.app";
 const APP_STORE_URL    = "https://apps.apple.com/app/jali/id0000000000"; // update when live
 
@@ -23,11 +23,37 @@ type MenuItem = {
 };
 
 export default function ProfileScreen() {
-  const { driverMode, setDriverMode } = useDriverMode();
+  const { driverMode, setDriverMode, driverType, setDriverType } = useDriverMode();
 
   function handleDriverToggle(value: boolean) {
-    setDriverMode(value);
-    if (value) router.push("/(tabs)/drive");
+    if (!value) {
+      setDriverMode(false);
+      return;
+    }
+    // Ask which role before enabling
+    Alert.alert(
+      "Driver Mode",
+      "How would you like to earn with Jali?",
+      [
+        {
+          text: "I offer private seat trips",
+          onPress: () => {
+            setDriverType("private");
+            setDriverMode(true);
+            router.push("/(tabs)/drive");
+          },
+        },
+        {
+          text: "I own rental cars",
+          onPress: () => {
+            setDriverType("rental");
+            setDriverMode(true);
+            router.push("/(tabs)/drive");
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+    );
   }
 
   async function handleLogout() {
@@ -211,7 +237,9 @@ export default function ProfileScreen() {
               Driver Mode
             </Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-              {driverMode ? "You are live — accepting rides" : "Switch to drive and earn"}
+              {driverMode
+                ? driverType === "rental" ? "Fleet owner — managing cars" : "Private driver — offering trips"
+                : "Switch to drive and earn"}
             </Text>
           </View>
           <Switch

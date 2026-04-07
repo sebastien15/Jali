@@ -13,6 +13,9 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="legal/[doc]" options={{ presentation: "modal", headerShown: false }} />
+          <Stack.Screen name="driver/setup" options={{ presentation: "card", headerShown: false }} />
+          <Stack.Screen name="driver/fleet" options={{ presentation: "card", headerShown: false }} />
+          <Stack.Screen name="driver/listing" options={{ presentation: "card", headerShown: false }} />
         </Stack>
         <OfflineBanner />
       </View>
