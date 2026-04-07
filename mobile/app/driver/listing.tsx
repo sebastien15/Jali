@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StatusBar, Alert, ActivityIndicator, Switch, Modal,
+  StatusBar, Alert, ActivityIndicator, Switch, Modal, Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { C } from "@/constants/theme";
 import { useMocks } from "@/lib/env";
 import {
@@ -17,25 +18,21 @@ import api from "@/lib/api";
 
 const DISCOUNT_PCTS = [5, 10, 15, 20];
 
-function getUpcomingDates(): string[] {
+function formatDate(d: Date): string {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const result = ["Today", "Tomorrow"];
-  const now = new Date();
-  for (let i = 2; i < 14; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
-    result.push(`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`);
-  }
-  return result;
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function parseDateString(s: string): Date {
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? new Date() : d;
 }
 
 export default function ListingScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id ? parseInt(params.id) : null;
   const existing = editId ? MOCK_DRIVER_LISTINGS.find(l => l.id === editId) : null;
-
-  const DATES = useMemo(() => getUpcomingDates(), []);
 
   // Route
   const [from, setFrom]                   = useState(existing?.from ?? "Kigali");
@@ -45,12 +42,13 @@ export default function ListingScreen() {
   const [cityPicker, setCityPicker]       = useState<"from" | "to" | null>(null);
 
   // Schedule
-  const [date, setDate]         = useState(existing?.date ?? "Today");
-  const [hour, setHour]         = useState(existing?.dep ? existing.dep.split(":")[0] : "07");
-  const [minute, setMinute]     = useState(existing?.dep ? existing.dep.split(":")[1] : "00");
+  const [date, setDate]               = useState<Date>(existing?.date ? parseDateString(existing.date) : new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [hour, setHour]               = useState(existing?.dep ? existing.dep.split(":")[0] : "07");
+  const [minute, setMinute]           = useState(existing?.dep ? existing.dep.split(":")[1] : "00");
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [pendingHour, setPendingHour]   = useState(hour);
-  const [pendingMinute, setPendingMinute] = useState(minute);
+  const [pendingHour, setPendingHour]       = useState(hour);
+  const [pendingMinute, setPendingMinute]   = useState(minute);
 
   // Capacity & pricing
   const [seats, setSeats]   = useState(String(existing?.seats ?? 3));
@@ -100,7 +98,7 @@ export default function ListingScreen() {
     setSaving(true);
     try {
       const payload: Omit<DriverListing, "id" | "active"> = {
-        from, to, pickupStation, dropLocation, date, dep,
+        from, to, pickupStation, dropLocation, date: formatDate(date), dep,
         seats: parseInt(seats), price: parseInt(price), notes,
         amenities, groupDiscount, groupMinSize, groupDiscountPct,
         allowCustomPickup, customPickupFee: allowCustomPickup ? parseInt(customPickupFee) || 0 : 0,
@@ -242,25 +240,40 @@ export default function ListingScreen() {
         <SectionHeader label="Schedule" icon="time-outline" />
 
         <Label>Departure Date</Label>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-          <View style={{ flexDirection: "row", gap: 8, paddingRight: 8 }}>
-            {DATES.map(d => (
-              <TouchableOpacity
-                key={d}
-                onPress={() => setDate(d)}
-                style={{
-                  paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12,
-                  backgroundColor: date === d ? C.teal : C.white,
-                  borderWidth: date === d ? 0 : 1.5, borderColor: C.border,
-                }}
-              >
-                <Text style={{ color: date === d ? C.white : C.mid, fontWeight: "700", fontSize: 13 }}>
-                  {d}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={[rowInput, { marginBottom: 14 }]}
+        >
+          <Ionicons name="calendar-outline" size={16} color={C.mid} style={{ marginRight: 8 }} />
+          <Text style={{ color: C.dark, fontWeight: "700", fontSize: 15, flex: 1 }}>
+            {formatDate(date)}
+          </Text>
+          <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>Change</Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            minimumDate={new Date()}
+            onChange={(_, selected) => {
+              setShowDatePicker(Platform.OS === "ios");
+              if (selected) setDate(selected);
+            }}
+          />
+        )}
+        {showDatePicker && Platform.OS === "ios" && (
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(false)}
+            style={{
+              backgroundColor: C.teal, borderRadius: 12, paddingVertical: 12,
+              alignItems: "center", marginBottom: 14,
+            }}
+          >
+            <Text style={{ color: C.white, fontWeight: "800" }}>Confirm Date</Text>
+          </TouchableOpacity>
+        )}
 
         <Label>Departure Time</Label>
         <TouchableOpacity
