@@ -45,6 +45,16 @@ jobs:
           key: gradle-${{ hashFiles('mobile/package-lock.json') }}
           restore-keys: gradle-
 
+      - name: Set up release keystore
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > mobile/android/app/release.keystore
+          cat >> mobile/android/gradle.properties <<EOF
+          RELEASE_STORE_FILE=release.keystore
+          RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}
+          RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+          EOF
+
       - name: Make gradlew executable
         working-directory: mobile/android
         run: chmod +x gradlew
