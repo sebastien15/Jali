@@ -26,15 +26,6 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
-
       - name: Install dependencies
         working-directory: mobile
         run: npm ci --legacy-peer-deps
@@ -44,6 +35,15 @@ jobs:
         run: npx expo prebuild --platform android --clean
         env:
           EXPO_NO_TELEMETRY: 1
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: gradle-
 
       - name: Make gradlew executable
         working-directory: mobile/android
