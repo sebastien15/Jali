@@ -53,19 +53,14 @@ jobs:
           EXPO_NO_TELEMETRY: 1
 
       - name: Set up release keystore and limit ABI to arm64-v8a
-        # arm64-v8a covers all modern Android phones (Samsung S-series, Pixel, etc.)
-        # For Play Store distribution, change to: arm64-v8a,armeabi-v7a,x86_64
-        # For maximum compatibility (all devices), use: arm64-v8a,armeabi-v7a,x86,x86_64
-        # See: BUILDING.md for full ABI reference
+        # Expo prebuild generates a release signing config that defaults to debug.keystore
+        # with standard Android debug credentials (alias=androiddebugkey, password=android).
+        # Writing our keystore AS debug.keystore ensures it is always picked up — no
+        # build.gradle patching needed. The SHA-1 of this file must match Firebase Console.
+        # arm64-v8a covers all modern Android phones — see BUILDING.md for ABI reference.
         run: |
-          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > mobile/android/app/release.keystore
-          cat >> mobile/android/gradle.properties <<EOF
-          RELEASE_STORE_FILE=release.keystore
-          RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}
-          RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
-          RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
-          reactNativeArchitectures=arm64-v8a
-          EOF
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > mobile/android/app/debug.keystore
+          echo "reactNativeArchitectures=arm64-v8a" >> mobile/android/gradle.properties
 
       - name: Make gradlew executable
         working-directory: mobile/android
