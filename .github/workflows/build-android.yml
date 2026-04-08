@@ -26,6 +26,22 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: gradle-
+
+      - name: Cache Metro bundler
+        uses: actions/cache@v4
+        with:
+          path: mobile/node_modules/.cache
+          key: metro-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: metro-
+
       - name: Install dependencies
         working-directory: mobile
         run: npm ci --legacy-peer-deps
@@ -36,16 +52,7 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: 1
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('mobile/package-lock.json') }}
-          restore-keys: gradle-
-
-      - name: Set up release keystore
+      - name: Set up release keystore and limit ABI to arm64-v8a
         run: |
           echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > mobile/android/app/release.keystore
           cat >> mobile/android/gradle.properties <<EOF
@@ -53,6 +60,7 @@ jobs:
           RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}
           RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
           RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+          reactNativeArchitectures=arm64-v8a
           EOF
 
       - name: Make gradlew executable
