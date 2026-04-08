@@ -4,11 +4,12 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import { isProd } from "@/lib/env";
 
-const DEV_URL  = "http://192.168.100.23:8000/api";
+const DEV_URL  = "http://192.168.1.65:8000/api";
 const PROD_URL = "https://api.jali.rw/api";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? (isProd ? PROD_URL : DEV_URL);
 
 const api = axios.create({
-  baseURL: isProd ? PROD_URL : DEV_URL,
+  baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 });
