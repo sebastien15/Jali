@@ -41,10 +41,14 @@
     "plugins": [
       "expo-router",
       "@react-native-google-signin/google-signin",
-      ["expo-notifications", {
-        "icon": "./assets/icon.png",
-        "color": "#0055CC"
-      }]
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0055CC"
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},

@@ -19,6 +19,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'create-private-seats' => 'Create private seat listings',
             'view-own-earnings' => 'View own earnings',
             'view-analytics' => 'View analytics dashboard',
+            'manage-buses' => 'Create, edit and delete bus routes',
             'manage-users' => 'Manage users',
             'manage-admins' => 'Manage admin assignments',
             'view-station-analytics' => 'View station-specific analytics',
@@ -53,7 +54,10 @@ class RolesAndPermissionsSeeder extends Seeder
         $superadmin->permissions()->sync(Permission::all());
 
         $admin->permissions()->sync(
-            Permission::whereIn('name', ['upload-tickets', 'confirm-bookings', 'view-station-analytics'])->get()
+            Permission::whereIn('name', [
+                'upload-tickets', 'confirm-bookings', 'manage-buses',
+                'view-analytics', 'view-station-analytics',
+            ])->get()
         );
 
         $user->permissions()->sync(

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php *)",
+      "Bash(psql *)",
+      "Bash(sleep *)",
+      "Bash(curl *)",
+      "Bash(pkill *)",
+      "Bash(rm *)",
+      "Bash(open *)",
+      "Bash(npm install *)",
+      "Bash(mkdir *)",
+      "Bash(git commit *)"
+    ]
+  },
+  "$version": 3
+}

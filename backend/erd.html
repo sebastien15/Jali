@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jali Database ERD - Complete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .section-title {
+            text-align: center;
+            color: #667eea;
+            margin: 30px 0 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .erd {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .table {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 260px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 14px;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .table-body { padding: 0; }
+        .column {
+            padding: 8px 14px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .column:last-child { border-bottom: none; }
+        .column:hover { background: #f5f5f5; }
+        .col-name { font-weight: 500; color: #333; }
+        .col-type { color: #888; font-size: 11px; font-family: monospace; }
+        .pk {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #856404;
+            margin-left: 6px;
+        }
+        .fk {
+            background: #d1ecf1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #0c5460;
+            margin-left: 6px;
+        }
+        .nullable { color: #aaa; font-size: 10px; }
+        .relationships {
+            margin-top: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .relationships h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .rel-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .rel-item {
+            background: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 12px;
+            color: #555;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .rel-item strong { color: #333; }
+        .legend {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+        .legend-box { width: 20px; height: 20px; border-radius: 4px; }
+        .legend-pk { background: #fff3cd; border: 1px solid #ffc107; }
+        .legend-fk { background: #d1ecf1; border: 1px solid #17a2b8; }
+        .revenue-box {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .revenue-box h3 { margin-bottom: 15px; }
+        .revenue-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .revenue-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .revenue-item strong { display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Jali Database Schema</h1>
+        <p class="subtitle">9 Tables — Roles & Permissions + Analytics + Admin Stations</p>
+        
+        <div class="section-title">🔐 Authentication & Authorization</div>
+        <div class="erd">
+            <!-- Users Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">👤</span> users</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">firebase_uid</span><span class="col-type">string UNIQUE</span></div>
+                    <div class="column"><span class="col-name">name</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">phone <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">email <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">fcm_token <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                </div>
+            </div>
+
+            <!-- Roles Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🎭</span> roles</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">name</span><span class="col-type">string UNIQUE</span></div>
+                    <div class="column"><span class="col-name">description <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                </div>
+            </div>
+
+            <!-- Permissions Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🔑</span> permissions</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">name</span><span class="col-type">string UNIQUE</span></div>
+                    <div class="column"><span class="col-name">description <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                </div>
+            </div>
+
+            <!-- User Roles Pivot -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🔗</span> user_roles</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">user_id <span class="fk">FK</span></span><span class="col-type">bigint → users</span></div>
+                    <div class="column"><span class="col-name">role_id <span class="fk">FK</span></span><span class="col-type">bigint → roles</span></div>
+                </div>
+            </div>
+
+            <!-- Role Permissions Pivot -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🔗</span> role_permissions</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">role_id <span class="fk">FK</span></span><span class="col-type">bigint → roles</span></div>
+                    <div class="column"><span class="col-name">permission_id <span class="fk">FK</span></span><span class="col-type">bigint → permissions</span></div>
+                </div>
+            </div>
+
+            <!-- Admin Stations -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🏢</span> admin_stations</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">user_id <span class="fk">FK</span></span><span class="col-type">bigint UNIQUE → users</span></div>
+                    <div class="column"><span class="col-name">city</span><span class="col-type">string</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">🚗 Transportation & Bookings</div>
+        <div class="erd">
+            <!-- Buses Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🚌</span> buses</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">agency</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">from</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">to</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">dep</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">arr</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">price</span><span class="col-type">integer (RWF)</span></div>
+                    <div class="column"><span class="col-name">seats</span><span class="col-type">integer</span></div>
+                    <div class="column"><span class="col-name">rating</span><span class="col-type">decimal(2,1)</span></div>
+                    <div class="column"><span class="col-name">active</span><span class="col-type">boolean</span></div>
+                </div>
+            </div>
+
+            <!-- Car Rentals Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🚗</span> car_rentals</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">name</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">type</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">price</span><span class="col-type">integer (RWF/day)</span></div>
+                    <div class="column"><span class="col-name">seats</span><span class="col-type">integer</span></div>
+                    <div class="column"><span class="col-name">plate</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">rating</span><span class="col-type">decimal(2,1)</span></div>
+                    <div class="column"><span class="col-name">active</span><span class="col-type">boolean</span></div>
+                </div>
+            </div>
+
+            <!-- Private Seats Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🚙</span> private_seats</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">driver</span><span class="col-type">string (name)</span></div>
+                    <div class="column"><span class="col-name">from</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">to</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">dep</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">price</span><span class="col-type">integer (RWF)</span></div>
+                    <div class="column"><span class="col-name">seats</span><span class="col-type">integer</span></div>
+                    <div class="column"><span class="col-name">rating</span><span class="col-type">decimal(2,1)</span></div>
+                </div>
+            </div>
+
+            <!-- Bookings Table -->
+            <div class="table">
+                <div class="table-header"><span class="icon">🎫</span> bookings</div>
+                <div class="table-body">
+                    <div class="column"><span class="col-name">id <span class="pk">PK</span></span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">user_id <span class="fk">FK</span></span><span class="col-type">bigint → users</span></div>
+                    <div class="column"><span class="col-name">type</span><span class="col-type">string (bus/private/rental)</span></div>
+                    <div class="column"><span class="col-name">reference_id</span><span class="col-type">bigint</span></div>
+                    <div class="column"><span class="col-name">title</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">sub</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">price</span><span class="col-type">integer (RWF)</span></div>
+                    <div class="column"><span class="col-name">service_fee</span><span class="col-type">integer (RWF)</span></div>
+                    <div class="column"><span class="col-name">status</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">ticket_photo_url <span class="nullable">null</span></span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">payment_method</span><span class="col-type">string</span></div>
+                    <div class="column"><span class="col-name">paid_at <span class="nullable">null</span></span><span class="col-type">timestamp</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Breakdown -->
+        <div class="revenue-box">
+            <h3>💰 Revenue Breakdown (per booking)</h3>
+            <div class="revenue-flow">
+                <div class="revenue-item">
+                    <strong>User Pays</strong>
+                    price + service_fee
+                </div>
+                <div class="revenue-item">
+                    <strong>Service Provider Gets</strong>
+                    price (bus/driver/rental)
+                </div>
+                <div class="revenue-item">
+                    <strong>Jali Platform Gets</strong>
+                    service_fee ÷ 2
+                </div>
+                <div class="revenue-item">
+                    <strong>Admin Station Gets</strong>
+                    service_fee ÷ 2
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships Section -->
+        <div class="relationships">
+            <h3>🔗 Relationships</h3>
+            <div class="rel-grid">
+                <div class="rel-item"><strong>users</strong> ↔ <strong>roles</strong> (M:N via user_roles)<br><small>A user can have multiple roles</small></div>
+                <div class="rel-item"><strong>roles</strong> ↔ <strong>permissions</strong> (M:N via role_permissions)<br><small>Each role has multiple permissions</small></div>
+                <div class="rel-item"><strong>users</strong> 1 → 1 <strong>admin_stations</strong><br><small>One admin per bus station</small></div>
+                <div class="rel-item"><strong>users</strong> 1 → ∞ <strong>bookings</strong><br><small>A user can have many bookings</small></div>
+                <div class="rel-item"><strong>bookings.reference_id</strong> → <strong>buses.id</strong> | <strong>car_rentals.id</strong> | <strong>private_seats.id</strong><br><small>References the booked item</small></div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><div class="legend-box legend-pk"></div><span>Primary Key (PK)</span></div>
+            <div class="legend-item"><div class="legend-box legend-fk"></div><span>Foreign Key (FK)</span></div>
+            <div class="legend-item"><span>🔒 = Not nullable</span></div>
+            <div class="legend-item"><span>🔓 = Nullable</span></div>
+        </div>
+    </div>
+</body>
+</html>

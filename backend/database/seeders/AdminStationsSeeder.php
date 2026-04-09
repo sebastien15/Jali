@@ -10,30 +10,22 @@ class AdminStationsSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get admin users by their firebase_uid patterns
-        $adminKigali = User::where('firebase_uid', 'admin_kigali_uid')->first();
-        $adminMusanze = User::where('firebase_uid', 'admin_musanze_uid')->first();
-        $adminHuye = User::where('firebase_uid', 'admin_huye_uid')->first();
+        // AdminSeeder already creates stations for seeded admin users.
+        // This seeder exists as a safety fallback using email lookups.
+        $assignments = [
+            'admin.kigali@jali.rw'  => 'Kigali',
+            'admin.musanze@jali.rw' => 'Musanze',
+            'admin.huye@jali.rw'    => 'Huye',
+        ];
 
-        if ($adminKigali) {
-            AdminStation::create([
-                'user_id' => $adminKigali->id,
-                'city' => 'Kigali',
-            ]);
-        }
-
-        if ($adminMusanze) {
-            AdminStation::create([
-                'user_id' => $adminMusanze->id,
-                'city' => 'Musanze',
-            ]);
-        }
-
-        if ($adminHuye) {
-            AdminStation::create([
-                'user_id' => $adminHuye->id,
-                'city' => 'Huye',
-            ]);
+        foreach ($assignments as $email => $city) {
+            $admin = User::where('email', $email)->first();
+            if ($admin) {
+                AdminStation::firstOrCreate(
+                    ['user_id' => $admin->id],
+                    ['city' => $city]
+                );
+            }
         }
     }
 }

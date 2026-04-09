@@ -51,6 +51,7 @@ class BookingController extends Controller
             'payment_method' => 'required|string',
             'title'          => 'nullable|string',
             'sub'            => 'nullable|string',
+            'travel_date'    => 'nullable|string',
         ]);
 
         $type    = $validated['type'];

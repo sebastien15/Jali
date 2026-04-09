@@ -2,7 +2,7 @@ import axios from "axios";
 import { auth } from "@/lib/firebase";
 import { Alert } from "react-native";
 import { router } from "expo-router";
-import { isProd } from "@/lib/env";
+import { isProd, isTest } from "@/lib/env";
 
 const DEV_URL  = "http://192.168.1.65:8000/api";
 const PROD_URL = "https://api.jali.rw/api";
@@ -28,8 +28,8 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid — redirect to login
+    if (error.response?.status === 401 && !isTest) {
+      // Token expired or invalid — redirect to login (skip in test mode)
       router.replace("/(auth)/login");
     } else if (error.response?.status === 403) {
       Alert.alert("Access Denied", "You don't have permission for this action.");

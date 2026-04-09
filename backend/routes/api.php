@@ -9,17 +9,19 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PrivateSeatController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Admin\AdminBusController;
+use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\AdminStationController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 // Public — no auth needed
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/buses', [BusController::class, 'index']);
+Route::get('/car-rentals', [CarRentalController::class, 'index']);
+Route::get('/private-seats', [PrivateSeatController::class, 'index']);
 
 // Protected — requires Firebase ID token
 Route::middleware('firebase.auth')->group(function () {
-
-    // Public listings
-    Route::get('/buses', [BusController::class, 'index']);
-    Route::get('/car-rentals', [CarRentalController::class, 'index']);
-    Route::get('/private-seats', [PrivateSeatController::class, 'index']);
 
     // Bookings
     Route::get('/bookings', [BookingController::class, 'index']);
@@ -54,5 +56,31 @@ Route::middleware('firebase.auth')->group(function () {
         Route::get('/analytics/revenue',  [AnalyticsController::class, 'revenue']);
         Route::get('/analytics/bookings', [AnalyticsController::class, 'bookings']);
         Route::get('/analytics/stations', [AnalyticsController::class, 'stations']);
+    });
+
+    // Admin panel — role-gated management endpoints
+    Route::prefix('admin')->group(function () {
+
+        Route::middleware('permission:manage-buses')->group(function () {
+            Route::get('/buses',           [AdminBusController::class, 'index']);
+            Route::post('/buses',          [AdminBusController::class, 'store']);
+            Route::patch('/buses/{id}',    [AdminBusController::class, 'update']);
+            Route::delete('/buses/{id}',   [AdminBusController::class, 'destroy']);
+        });
+
+        Route::middleware('permission:confirm-bookings')->group(function () {
+            Route::get('/bookings',        [AdminBookingController::class, 'index']);
+            Route::patch('/bookings/{id}', [AdminBookingController::class, 'update']);
+        });
+
+        Route::middleware('permission:manage-admins')->group(function () {
+            Route::get('/stations',        [AdminStationController::class, 'index']);
+            Route::patch('/stations/{id}', [AdminStationController::class, 'update']);
+        });
+
+        Route::middleware('permission:manage-users')->group(function () {
+            Route::get('/users',           [AdminUserController::class, 'index']);
+            Route::patch('/users/{id}',    [AdminUserController::class, 'update']);
+        });
     });
 });

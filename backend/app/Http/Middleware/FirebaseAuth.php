@@ -29,23 +29,35 @@ class FirebaseAuth
 
             $auth = $factory->createAuth();
             $verified = $auth->verifyIdToken($token);
-            $uid = $verified->claims()->get('sub');
+            $uid      = $verified->claims()->get('sub');
+            $email    = $verified->claims()->get('email');
+            $name     = $verified->claims()->get('name') ?? 'User';
 
-            // Find or create user in PostgreSQL
-            $user = User::firstOrCreate(
-                ['firebase_uid' => $uid],
-                [
-                    'name' => $verified->claims()->get('name') ?? 'User',
-                    'email' => $verified->claims()->get('email') ?? null,
-                ]
-            );
+            // 1. Try to find by firebase_uid (normal path)
+            $user = User::with('roles')->where('firebase_uid', $uid)->first();
 
-            // Assign default 'user' role to newly created users
-            if ($user->wasRecentlyCreated) {
+            // 2. First-time admin login: pre-seeded user has no firebase_uid yet — link by email
+            if (!$user && $email) {
+                $preSeeded = User::where('email', $email)->whereNull('firebase_uid')->first();
+                if ($preSeeded) {
+                    $preSeeded->update(['firebase_uid' => $uid]);
+                    $preSeeded->load('roles');
+                    $user = $preSeeded;
+                }
+            }
+
+            // 3. Brand-new regular user — create and assign default role
+            if (!$user) {
+                $user = User::create([
+                    'firebase_uid' => $uid,
+                    'name'         => $name,
+                    'email'        => $email,
+                ]);
                 $userRole = Role::where('name', 'user')->first();
                 if ($userRole) {
                     $user->roles()->attach($userRole);
                 }
+                $user->load('roles');
             }
 
             $request->merge(['auth_user' => $user]);

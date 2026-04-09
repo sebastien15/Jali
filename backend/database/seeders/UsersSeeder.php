@@ -10,46 +10,10 @@ class UsersSeeder extends Seeder
 {
     public function run(): void
     {
-        $superadminRole = Role::where('name', 'superadmin')->first();
-        $adminRole = Role::where('name', 'admin')->first();
         $userRole = Role::where('name', 'user')->first();
         $driverRole = Role::where('name', 'driver')->first();
 
-        // Superadmin
-        $superadmin = User::create([
-            'firebase_uid' => 'superadmin_firebase_uid',
-            'name' => 'Jean Baptiste',
-            'email' => 'superadmin@jali.rw',
-            'phone' => '+250788451691',
-        ]);
-        $superadmin->roles()->attach($superadminRole);
-
-        // Admin - Kigali
-        $adminKigali = User::create([
-            'firebase_uid' => 'admin_kigali_uid',
-            'name' => 'Marie Claire',
-            'email' => 'admin.kigali@jali.rw',
-            'phone' => '+250788123456',
-        ]);
-        $adminKigali->roles()->attach($adminRole);
-
-        // Admin - Musanze
-        $adminMusanze = User::create([
-            'firebase_uid' => 'admin_musanze_uid',
-            'name' => 'Patrick Habimana',
-            'email' => 'admin.musanze@jali.rw',
-            'phone' => '+250788234567',
-        ]);
-        $adminMusanze->roles()->attach($adminRole);
-
-        // Admin - Huye
-        $adminHuye = User::create([
-            'firebase_uid' => 'admin_huye_uid',
-            'name' => 'Alice Mukamana',
-            'email' => 'admin.huye@jali.rw',
-            'phone' => '+250788345678',
-        ]);
-        $adminHuye->roles()->attach($adminRole);
+        // Admin users are seeded separately in AdminSeeder
 
         // Regular users (passengers)
         $users = [

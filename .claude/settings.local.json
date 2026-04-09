@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(eas build:*)",
+      "Bash(eas build:view e8e93c72-daed-4be0-b318-6191b50a66ab)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

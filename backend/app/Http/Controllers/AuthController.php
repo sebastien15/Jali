@@ -24,21 +24,34 @@ class AuthController extends Controller
             $verified = $auth->verifyIdToken($token);
             $uid = $verified->claims()->get('sub');
 
-            // Find or create user
-            $user = User::firstOrCreate(
-                ['firebase_uid' => $uid],
-                [
-                    'name' => $verified->claims()->get('name') ?? 'User',
-                    'email' => $verified->claims()->get('email') ?? null,
-                ]
-            );
+            $email = $verified->claims()->get('email');
+            $name  = $verified->claims()->get('name') ?? 'User';
 
-            // Assign default 'user' role to newly registered users
-            if ($user->wasRecentlyCreated) {
+            // Try by firebase_uid first
+            $user = User::with('roles')->where('firebase_uid', $uid)->first();
+
+            // First-time admin login: pre-seeded user has no firebase_uid — link by email
+            if (!$user && $email) {
+                $preSeeded = User::where('email', $email)->whereNull('firebase_uid')->first();
+                if ($preSeeded) {
+                    $preSeeded->update(['firebase_uid' => $uid]);
+                    $preSeeded->load('roles');
+                    $user = $preSeeded;
+                }
+            }
+
+            // Brand-new regular user
+            if (!$user) {
+                $user = User::create([
+                    'firebase_uid' => $uid,
+                    'name'         => $name,
+                    'email'        => $email,
+                ]);
                 $userRole = Role::where('name', 'user')->first();
                 if ($userRole) {
                     $user->roles()->attach($userRole);
                 }
+                $user->load('roles');
             }
 
             // Update FCM token if provided
@@ -46,14 +59,11 @@ class AuthController extends Controller
                 $user->update(['fcm_token' => $request->fcm_token]);
             }
 
-            // Load pending bookings
-            $user->load(['bookings' => function ($query) {
-                $query->where('status', 'pending');
-            }]);
-
             return response()->json([
-                'user' => $user,
-                'message' => $user->wasRecentlyCreated ? 'User registered' : 'User logged in',
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name'),
+                ]),
+                'message' => 'OK',
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Unauthorized', 'message' => 'Invalid token'], 401);
