@@ -46,6 +46,10 @@ jobs:
         working-directory: mobile
         run: npm ci --legacy-peer-deps
 
+      - name: Set API URL for build
+        working-directory: mobile
+        run: cp .env.production .env
+
       - name: Expo prebuild (generate Android project)
         working-directory: mobile
         run: npx expo prebuild --platform android --clean
