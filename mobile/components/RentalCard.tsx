@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import type { CARS } from "@/constants/data";
 
@@ -11,6 +12,7 @@ const CAR_ICONS: Record<string, string> = {
 };
 
 export function RentalCard({ car, days, onPress }: Props) {
+  const { t } = useTranslation();
   const total = car.price * days;
   return (
     <TouchableOpacity
@@ -35,7 +37,7 @@ export function RentalCard({ car, days, onPress }: Props) {
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <Text style={{ color: C.green, fontWeight: "900", fontSize: 17 }}>{total.toLocaleString()}</Text>
-          <Text style={{ color: C.muted, fontSize: 11, fontWeight: "600" }}>RWF / {days}d</Text>
+          <Text style={{ color: C.muted, fontSize: 11, fontWeight: "600" }}>{t('components.rentalCard.rwfPerDay', { days })}</Text>
         </View>
       </View>
 
@@ -44,7 +46,7 @@ export function RentalCard({ car, days, onPress }: Props) {
         alignItems: "center",
       }}>
         <Text style={{ color: C.white, fontWeight: "900", fontSize: 15 }}>
-          Rent for {days} Day{days > 1 ? "s" : ""} — {total.toLocaleString()} RWF →
+          {t('components.rentalCard.rentFor')} {days} {t('components.rentalCard.days')}{days > 1 ? 's' : ''} — {total.toLocaleString()} RWF →
         </Text>
       </View>
     </TouchableOpacity>

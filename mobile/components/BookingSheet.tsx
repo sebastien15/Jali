@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   View, Text, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { PAY_METHODS, PayMethod } from "@/constants/data";
 import { useServiceFee } from "@/lib/useServiceFee";
@@ -11,6 +12,7 @@ interface SheetData {
   type: "bus" | "private" | "rental";
   item: any;
   days?: number;
+  travelDate?: string;
 }
 
 interface Props {
@@ -20,7 +22,8 @@ interface Props {
 }
 
 export function BookingSheet({ data, onClose, onConfirm }: Props) {
-  const { type, item, days = 1 } = data;
+  const { t } = useTranslation();
+  const { type, item, days = 1, travelDate } = data;
   const [payMethod, setPayMethod] = useState<PayMethod>("MTN MoMo");
   const [loading, setLoading] = useState(false);
 
@@ -55,6 +58,7 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
         price: isBus ? item.price : isPrivate ? item.price : item.price * days,
         service_fee: effectiveFee,
         payment_method: payMethod,
+        ...(travelDate ? { travel_date: travelDate } : {}),
         ...(isBus || isPrivate ? {
           title: isBus ? `${item.agency} · ${item.from} → ${item.to}` : `${item.driver} · ${item.from} → ${item.to}`,
           sub: isBus ? `Departs ${item.dep} · ${item.seats} seats` : `Departs ${item.dep}`,
@@ -64,12 +68,12 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
         }),
       });
       Alert.alert(
-        "Booking Request Sent! ✓",
-        "Our team will arrange your ticket and notify you when it's ready.",
-        [{ text: "OK", onPress: onConfirm }],
+        t('components.bookingSheet.bookingSent'),
+        t('components.bookingSheet.bookingSentDesc'),
+        [{ text: t('common.ok'), onPress: onConfirm }],
       );
     } catch (e: any) {
-      Alert.alert("Booking failed", e?.response?.data?.message ?? e.message ?? "Please try again.");
+      Alert.alert(t('components.bookingSheet.bookingFailed'), e?.response?.data?.message ?? e.message ?? t('components.bookingSheet.tryAgain'));
     } finally {
       setLoading(false);
     }
@@ -124,13 +128,13 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
                 flexDirection: "row", gap: 8, alignItems: "center",
               }}>
                 <Text style={{ color: C.orange, fontWeight: "700", fontSize: 13 }}>
-                  ⚠️ No refund if late — car leaves on time
+                  ⚠️ {t('components.bookingSheet.noRefundWarning')}
                 </Text>
               </View>
             )}
 
-            {isBus && <PriceLine label="Ticket" value={item.price} />}
-            {isPrivate && <PriceLine label="Seat fee" value={item.price} />}
+            {isBus && <PriceLine label={t('components.bookingSheet.ticket')} value={item.price} />}
+            {isPrivate && <PriceLine label={t('components.bookingSheet.seatFee')} value={item.price} />}
             {isRental && (
               <PriceLine label={`${item.price.toLocaleString()} RWF/day × ${days}`} value={item.price * days} />
             )}
@@ -148,7 +152,7 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
             <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginVertical: 12 }} />
 
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Text style={{ fontWeight: "900", fontSize: 16, color: C.dark }}>Total</Text>
+              <Text style={{ fontWeight: "900", fontSize: 16, color: C.dark }}>{t('components.bookingSheet.total')}</Text>
               <Text style={{ fontWeight: "900", fontSize: 24, color }}>
                 {total.toLocaleString()} RWF
               </Text>

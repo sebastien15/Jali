@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View, Text, ScrollView, TouchableOpacity,
   StatusBar, Image, Modal, ActivityIndicator, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C } from "@/constants/theme";
-import { TripStatus, TripType, TRIPS } from "@/constants/data";
+import { TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
-import { useMocks } from "@/lib/env";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -20,6 +20,7 @@ const STATUS_COLOR: Record<TripStatus, string> = {
 };
 
 export default function TripsScreen() {
+  const { t } = useTranslation();
   const [filter, setFilter]   = useState<"all" | TripStatus>("all");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -28,10 +29,6 @@ export default function TripsScreen() {
   const [error, setError]       = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (isRefresh = false) => {
-    if (useMocks) {
-      setBookings(TRIPS as any[]);
-      return;
-    }
     if (isRefresh) setRefreshing(true); else setLoading(true);
     setError(null);
     try {
@@ -57,7 +54,7 @@ export default function TripsScreen() {
       {/* Header */}
       <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
         <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 26, marginBottom: 12 }}>
-          My Trips 🗓️
+          {t('trips.myTrips')} 🗓️
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
@@ -74,7 +71,7 @@ export default function TripsScreen() {
                   color: filter === f ? C.dark : C.white,
                   fontWeight: "800", fontSize: 13, textTransform: "capitalize",
                 }}>
-                  {f}
+                  {f === "all" ? t('trips.filterAll') : f === "pending" ? t('trips.filterPending') : f === "confirmed" ? t('trips.filterConfirmed') : t('trips.filterCompleted')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -101,7 +98,7 @@ export default function TripsScreen() {
                 paddingHorizontal: 24, paddingVertical: 12,
               }}
             >
-              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>Retry</Text>
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>{t('trips.retry')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -110,7 +107,7 @@ export default function TripsScreen() {
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ fontSize: 40 }}>🗓️</Text>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14, marginTop: 8 }}>
-              No trips here yet
+              {t('trips.noTripsYet')}
             </Text>
           </View>
         )}
@@ -165,15 +162,15 @@ export default function TripsScreen() {
               >
                 <View>
                   <Text style={{ color: C.blue, fontWeight: "700", fontSize: 13 }}>
-                    📸 Ticket Photo Ready
+                    📸 {t('trips.ticketPhotoReady')}
                   </Text>
-                  <Text style={{ color: C.mid, fontSize: 12 }}>Tap to view · Show at station</Text>
+                  <Text style={{ color: C.mid, fontSize: 12 }}>{t('trips.tapToView')} · {t('trips.showAtStation')}</Text>
                 </View>
                 <View style={{
                   backgroundColor: C.blue, borderRadius: 10,
                   paddingHorizontal: 14, paddingVertical: 8,
                 }}>
-                  <Text style={{ color: C.white, fontWeight: "700", fontSize: 13 }}>View</Text>
+                  <Text style={{ color: C.white, fontWeight: "700", fontSize: 13 }}>{t('trips.view')}</Text>
                 </View>
               </TouchableOpacity>
             ) : trip.status === "pending" ? (
@@ -181,7 +178,7 @@ export default function TripsScreen() {
                 marginTop: 12, backgroundColor: C.orangeLt, borderRadius: 12, padding: 12,
               }}>
                 <Text style={{ color: C.orange, fontWeight: "700", fontSize: 13 }}>
-                  ⏳ Awaiting confirmation — admin is arranging your ticket
+                  ⏳ {t('trips.awaitingConfirmation')}
                 </Text>
               </View>
             ) : null}
@@ -209,7 +206,7 @@ export default function TripsScreen() {
               borderRadius: 12, paddingHorizontal: 32, paddingVertical: 12,
             }}
           >
-            <Text style={{ fontWeight: "800", color: C.dark, fontSize: 15 }}>Close</Text>
+            <Text style={{ fontWeight: "800", color: C.dark, fontSize: 15 }}>{t('trips.close')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>

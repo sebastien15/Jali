@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import type { PRIVATE } from "@/constants/data";
 
@@ -7,6 +8,7 @@ type PrivateItem = typeof PRIVATE[number];
 interface Props { item: PrivateItem; onPress: () => void; }
 
 export function PrivateCard({ item, onPress }: Props) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -23,7 +25,7 @@ export function PrivateCard({ item, onPress }: Props) {
             {item.from} → {item.to} · {item.dep}
           </Text>
           <Text style={{ color: C.muted, fontSize: 12 }}>
-            {item.seats} seat{item.seats > 1 ? "s" : ""} left · ⭐ {item.rating}
+            {item.seats} {t('components.privateCard.seatsLeft')} · ⭐ {item.rating}
           </Text>
         </View>
         <View style={{ backgroundColor: C.orangeLt, borderRadius: 12, padding: 8, alignItems: "center" }}>
@@ -37,7 +39,7 @@ export function PrivateCard({ item, onPress }: Props) {
         alignItems: "center",
       }}>
         <Text style={{ color: C.white, fontWeight: "900", fontSize: 15 }}>
-          Book Seat — Pay Upfront →
+          {t('components.privateCard.bookSeat')} →
         </Text>
       </View>
     </TouchableOpacity>

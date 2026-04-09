@@ -4,6 +4,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
 import { signOut, deleteUser } from "firebase/auth";
 import { GoogleSignin } from "@/lib/native/google-signin";
@@ -23,6 +24,7 @@ type MenuItem = {
 };
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { driverMode, setDriverMode, driverType, setDriverType } = useDriverMode();
 
   function handleDriverToggle(value: boolean) {
@@ -32,11 +34,11 @@ export default function ProfileScreen() {
     }
     // Ask which role before enabling
     Alert.alert(
-      "Driver Mode",
-      "How would you like to earn with Jali?",
+      t('profile.driverMode'),
+      t('profile.driverModeQuestion'),
       [
         {
-          text: "I offer private seat trips",
+          text: t('profile.privateSeatTrips'),
           onPress: () => {
             setDriverType("private");
             setDriverMode(true);
@@ -44,30 +46,30 @@ export default function ProfileScreen() {
           },
         },
         {
-          text: "I own rental cars",
+          text: t('profile.ownRentalCars'),
           onPress: () => {
             setDriverType("rental");
             setDriverMode(true);
             router.push("/(tabs)/drive");
           },
         },
-        { text: "Cancel", style: "cancel" },
+        { text: t('profile.cancel'), style: "cancel" },
       ],
     );
   }
 
   async function handleLogout() {
-    Alert.alert("Log out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
+      { text: t('profile.cancel'), style: "cancel" },
       {
-        text: "Log out", style: "destructive",
+        text: t('profile.logout'), style: "destructive",
         onPress: async () => {
           try {
             await GoogleSignin.signOut().catch(() => {});
             await signOut(auth);
             router.replace("/(auth)/login");
           } catch (e: any) {
-            Alert.alert("Error", e.message);
+            Alert.alert(t('profile.error'), e.message);
           }
         },
       },
@@ -76,20 +78,20 @@ export default function ProfileScreen() {
 
   async function handleDeleteAccount() {
     Alert.alert(
-      "Delete Account",
-      "This will permanently delete your account and all your data. This cannot be undone.",
+      t('profile.deleteAccount'),
+      t('profile.deleteAccountWarning'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('profile.cancel'), style: "cancel" },
         {
-          text: "Delete", style: "destructive",
+          text: t('profile.delete'), style: "destructive",
           onPress: () => {
             Alert.alert(
-              "Are you absolutely sure?",
-              "Your bookings, history, and profile will be permanently removed.",
+              t('profile.areYouSure'),
+              t('profile.deleteAccountDetails'),
               [
-                { text: "No, keep my account", style: "cancel" },
+                { text: t('profile.keepAccount'), style: "cancel" },
                 {
-                  text: "Yes, delete everything", style: "destructive",
+                  text: t('profile.deleteEverything'), style: "destructive",
                   onPress: async () => {
                     try {
                       const user = auth.currentUser;
@@ -102,11 +104,11 @@ export default function ProfileScreen() {
                       // Firebase requires recent sign-in for deletion
                       if (e.code === "auth/requires-recent-login") {
                         Alert.alert(
-                          "Please sign in again",
-                          "For security, please log out and log back in before deleting your account.",
+                          t('profile.pleaseSignInAgain'),
+                          t('profile.signInAgainDetails'),
                         );
                       } else {
-                        Alert.alert("Error", e.message);
+                        Alert.alert(t('profile.error'), e.message);
                       }
                     }
                   },
@@ -122,32 +124,32 @@ export default function ProfileScreen() {
   const MENU: MenuItem[] = [
     {
       icon: "card-outline",
-      label: "Payment Methods",
-      sub: "MoMo, Airtel, Card",
+      label: t('profile.paymentMethods'),
+      sub: t('profile.paymentSub'),
       onPress: () => {},
     },
     {
       icon: "notifications-outline",
-      label: "Notifications",
-      sub: "Manage alerts",
+      label: t('profile.notifications'),
+      sub: t('profile.notificationsSub'),
       onPress: () => {},
     },
     {
       icon: "language-outline",
-      label: "Language",
-      sub: "Kinyarwanda / English",
+      label: t('profile.language'),
+      sub: t('profile.languageSub'),
       onPress: () => {},
     },
     {
       icon: "help-circle-outline",
-      label: "Help & Support",
-      sub: "WhatsApp · Mon–Sat 8am–6pm",
+      label: t('profile.helpSupport'),
+      sub: t('profile.helpSub'),
       onPress: () => Linking.openURL(SUPPORT_WHATSAPP),
     },
     {
       icon: "star-outline",
-      label: "Rate Jali",
-      sub: "Share your feedback",
+      label: t('profile.rateJali'),
+      sub: t('profile.rateSub'),
       onPress: () => {
         const url = Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL;
         Linking.openURL(url);
@@ -155,28 +157,28 @@ export default function ProfileScreen() {
     },
     {
       icon: "document-text-outline",
-      label: "FAQ",
-      sub: "Common questions answered",
+      label: t('profile.faq'),
+      sub: t('profile.faqSub'),
       onPress: () => router.push("/legal/faq"),
     },
     {
       icon: "shield-checkmark-outline",
-      label: "Privacy Policy",
-      sub: "How we handle your data",
+      label: t('profile.privacyPolicy'),
+      sub: t('profile.privacySub'),
       onPress: () => router.push("/legal/privacy"),
     },
     {
       icon: "reader-outline",
-      label: "Terms & Conditions",
-      sub: "Rules of using Jali",
+      label: t('profile.termsConditions'),
+      sub: t('profile.termsSub'),
       onPress: () => router.push("/legal/terms"),
     },
     {
       icon: "information-circle-outline",
-      label: "About Jali",
-      sub: `Version ${APP_VERSION}`,
+      label: t('profile.aboutJali'),
+      sub: `${t('profile.version')} ${APP_VERSION}`,
       onPress: () =>
-        Alert.alert("Jali", `Version ${APP_VERSION}\nRwandan transport booking.\n\nMade with ❤️ in Kigali.`),
+        Alert.alert("Jali", `${t('profile.version')} ${APP_VERSION}\n${t('profile.aboutDetails')}`),
     },
   ];
 
@@ -204,7 +206,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={{ flexDirection: "row", gap: 10 }}>
-          {[{ v: "0", l: "Trips" }, { v: "—", l: "Rating" }, { v: "0", l: "Pending" }].map((s, i) => (
+          {[{ v: "0", l: t('profile.trips') }, { v: "—", l: t('profile.rating') }, { v: "0", l: t('profile.pending') }].map((s, i) => (
             <View key={i} style={{
               flex: 1, backgroundColor: "rgba(255,255,255,0.15)",
               borderRadius: 12, paddingVertical: 10, alignItems: "center",
@@ -234,12 +236,12 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontWeight: "800", fontSize: 15, color: driverMode ? C.teal : C.dark }}>
-              Driver Mode
+              {t('profile.driverMode')}
             </Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
               {driverMode
-                ? driverType === "rental" ? "Fleet owner — managing cars" : "Private driver — offering trips"
-                : "Switch to drive and earn"}
+                ? driverType === "rental" ? t('profile.fleetOwner') : t('profile.privateDriver')
+                : t('profile.switchToDrive')}
             </Text>
           </View>
           <Switch
@@ -286,7 +288,7 @@ export default function ProfileScreen() {
           }}
         >
           <Ionicons name="log-out-outline" size={18} color="#DC2626" />
-          <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>Log Out</Text>
+          <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>{t('profile.logOut')}</Text>
         </TouchableOpacity>
 
         {/* Delete Account */}
@@ -295,7 +297,7 @@ export default function ProfileScreen() {
           style={{ paddingVertical: 16, alignItems: "center", marginTop: 4 }}
         >
           <Text style={{ color: C.muted, fontSize: 13, textDecorationLine: "underline" }}>
-            Delete my account
+            {t('profile.deleteMyAccount')}
           </Text>
         </TouchableOpacity>
 

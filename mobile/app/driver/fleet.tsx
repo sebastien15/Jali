@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StatusBar, Alert, ActivityIndicator, Modal, KeyboardAvoidingView, Platform,
@@ -7,8 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { useMocks } from "@/lib/env";
-import { MOCK_DRIVER_CARS, DriverCar } from "@/constants/data";
+import { DriverCar } from "@/constants/data";
 import api from "@/lib/api";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
@@ -23,8 +22,12 @@ const STATUS_META: Record<CarStatus, { label: string; color: string; bg: string 
 };
 
 export default function FleetScreen() {
-  const [cars, setCars]           = useState<DriverCar[]>(MOCK_DRIVER_CARS);
+  const [cars, setCars]           = useState<DriverCar[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.get("/driver/cars").then(r => setCars(r.data)).catch(() => setCars([]));
+  }, []);
   const [saving, setSaving]       = useState<number | null>(null); // car id being saved
   const [showAdd, setShowAdd]     = useState(false);
 
@@ -43,11 +46,7 @@ export default function FleetScreen() {
     const patch = { ...car, ...edits[car.id] };
     setSaving(car.id);
     try {
-      if (!useMocks) {
-        await api.patch(`/driver/cars/${car.id}`, patch);
-      } else {
-        await new Promise(r => setTimeout(r, 500));
-      }
+      await api.patch(`/driver/cars/${car.id}`, patch);
       setCars(cs => cs.map(c => c.id === car.id ? { ...c, ...patch } : c));
       setEdits(e => { const n = { ...e }; delete n[car.id]; return n; });
       setExpandedId(null);
@@ -68,8 +67,7 @@ export default function FleetScreen() {
           text: "Remove", style: "destructive",
           onPress: async () => {
             try {
-              if (!useMocks) await api.delete(`/driver/cars/${car.id}`);
-              else await new Promise(r => setTimeout(r, 400));
+              await api.delete(`/driver/cars/${car.id}`);
               setCars(cs => cs.filter(c => c.id !== car.id));
             } catch {
               Alert.alert("Error", "Could not remove car.");
@@ -321,8 +319,7 @@ function AddCarSheet({ visible, onClose, onAdd }: {
     }
     setSaving(true);
     try {
-      const newCar: DriverCar = {
-        id: Date.now(),
+      const newCar = {
         name: name.trim(),
         type,
         plate: plate.trim().toUpperCase(),
@@ -332,14 +329,11 @@ function AddCarSheet({ visible, onClose, onAdd }: {
         status: "available",
         zones: ["Kigali CBD"],
         notes: "",
+        amenities: [],
+        photos: {},
       };
-      if (!useMocks) {
-        const res = await api.post("/driver/cars", newCar);
-        onAdd({ ...newCar, id: res.data.id });
-      } else {
-        await new Promise(r => setTimeout(r, 500));
-        onAdd(newCar);
-      }
+      const res = await api.post("/driver/cars", newCar);
+      onAdd({ ...newCar, id: res.data.id } as DriverCar);
       // Reset
       setName(""); setPlate(""); setPriceDay(""); setCaution("");
       setType("Sedan"); setSeats("5");

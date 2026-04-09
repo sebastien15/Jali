@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StatusBar, Alert, ActivityIndicator, Switch, Modal, Platform,
@@ -7,12 +7,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { C } from "@/constants/theme";
-import { useMocks } from "@/lib/env";
+import { isDev, isTest } from "@/lib/env";
+
+// DateTimePicker is a native community module — not available in Expo Go.
+// Lazy-require it so dev/test (Expo Go) mode never loads the native binary.
+const DateTimePicker = (isDev || isTest)
+  ? null
+  : (require("@react-native-community/datetimepicker").default as React.ComponentType<any>);
 import {
-  CITIES, BUS_STATIONS, CAR_AMENITIES, CarAmenity,
-  MOCK_DRIVER_LISTINGS, DriverListing,
+  CITIES, BUS_STATIONS, CAR_AMENITIES, CarAmenity, DriverListing,
 } from "@/constants/data";
 import api from "@/lib/api";
 
@@ -32,44 +36,68 @@ function parseDateString(s: string): Date {
 export default function ListingScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id ? parseInt(params.id) : null;
-  const existing = editId ? MOCK_DRIVER_LISTINGS.find(l => l.id === editId) : null;
 
   // Route
-  const [from, setFrom]                   = useState(existing?.from ?? "Kigali");
-  const [to, setTo]                       = useState(existing?.to ?? "");
-  const [pickupStation, setPickupStation] = useState(existing?.pickupStation ?? "");
-  const [dropLocation, setDropLocation]   = useState(existing?.dropLocation ?? "");
+  const [from, setFrom]                   = useState("Kigali");
+  const [to, setTo]                       = useState("");
+  const [pickupStation, setPickupStation] = useState("");
+  const [dropLocation, setDropLocation]   = useState("");
   const [cityPicker, setCityPicker]       = useState<"from" | "to" | null>(null);
 
   // Schedule
-  const [date, setDate]               = useState<Date>(existing?.date ? parseDateString(existing.date) : new Date());
+  const [date, setDate]               = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [hour, setHour]               = useState(existing?.dep ? existing.dep.split(":")[0] : "07");
-  const [minute, setMinute]           = useState(existing?.dep ? existing.dep.split(":")[1] : "00");
+  const [hour, setHour]               = useState("07");
+  const [minute, setMinute]           = useState("00");
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [pendingHour, setPendingHour]       = useState(hour);
-  const [pendingMinute, setPendingMinute]   = useState(minute);
+  const [pendingHour, setPendingHour]       = useState("07");
+  const [pendingMinute, setPendingMinute]   = useState("00");
 
   // Capacity & pricing
-  const [seats, setSeats]   = useState(String(existing?.seats ?? 3));
-  const [price, setPrice]   = useState(String(existing?.price ?? ""));
+  const [seats, setSeats]   = useState("3");
+  const [price, setPrice]   = useState("");
 
   // Amenities
-  const [amenities, setAmenities] = useState<CarAmenity[]>(existing?.amenities ?? []);
+  const [amenities, setAmenities] = useState<CarAmenity[]>([]);
 
   // Group discount
-  const [groupDiscount, setGroupDiscount]       = useState(existing?.groupDiscount ?? false);
-  const [groupMinSize, setGroupMinSize]         = useState(existing?.groupMinSize ?? 3);
-  const [groupDiscountPct, setGroupDiscountPct] = useState(existing?.groupDiscountPct ?? 10);
+  const [groupDiscount, setGroupDiscount]       = useState(false);
+  const [groupMinSize, setGroupMinSize]         = useState(3);
+  const [groupDiscountPct, setGroupDiscountPct] = useState(10);
 
   // Custom pickup
-  const [allowCustomPickup, setAllowCustomPickup] = useState(existing?.allowCustomPickup ?? false);
-  const [customPickupFee, setCustomPickupFee]     = useState(String(existing?.customPickupFee ?? ""));
+  const [allowCustomPickup, setAllowCustomPickup] = useState(false);
+  const [customPickupFee, setCustomPickupFee]     = useState("");
 
   // Notes
-  const [notes, setNotes] = useState(existing?.notes ?? "");
-
+  const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Load existing listing when editing — from API in test/prod, from mocks in dev
+  useEffect(() => {
+    if (!editId) return;
+    function apply(l: DriverListing) {
+      setFrom(l.from);
+      setTo(l.to);
+      setPickupStation(l.pickupStation);
+      setDropLocation(l.dropLocation);
+      if (l.date) setDate(parseDateString(l.date));
+      if (l.dep) {
+        const [h, m] = l.dep.split(":");
+        setHour(h); setMinute(m); setPendingHour(h); setPendingMinute(m);
+      }
+      setSeats(String(l.seats));
+      setPrice(String(l.price));
+      setAmenities(l.amenities ?? []);
+      setGroupDiscount(l.groupDiscount ?? false);
+      setGroupMinSize(l.groupMinSize ?? 3);
+      setGroupDiscountPct(l.groupDiscountPct ?? 10);
+      setAllowCustomPickup(l.allowCustomPickup ?? false);
+      setCustomPickupFee(String(l.customPickupFee ?? ""));
+      setNotes(l.notes ?? "");
+    }
+    api.get(`/driver/listings/${editId}`).then(r => apply(r.data)).catch(() => {});
+  }, [editId]);
 
   const stations = BUS_STATIONS[from] ?? [];
   const dep = `${hour}:${minute}`;
@@ -103,12 +131,8 @@ export default function ListingScreen() {
         amenities, groupDiscount, groupMinSize, groupDiscountPct,
         allowCustomPickup, customPickupFee: allowCustomPickup ? parseInt(customPickupFee) || 0 : 0,
       };
-      if (!useMocks) {
-        if (editId) await api.patch(`/driver/listings/${editId}`, payload);
-        else await api.post("/driver/listings", payload);
-      } else {
-        await new Promise(r => setTimeout(r, 500));
-      }
+      if (editId) await api.patch(`/driver/listings/${editId}`, payload);
+      else await api.post("/driver/listings", payload);
       Alert.alert(
         editId ? "Updated ✓" : "Listed ✓",
         editId ? "Your listing has been updated." : "Your trip is now listed for passengers to book.",
@@ -128,8 +152,7 @@ export default function ListingScreen() {
         text: "Delete", style: "destructive",
         onPress: async () => {
           try {
-            if (!useMocks) await api.delete(`/driver/listings/${editId}`);
-            else await new Promise(r => setTimeout(r, 400));
+            await api.delete(`/driver/listings/${editId}`);
             router.back();
           } catch {
             Alert.alert("Error", "Could not delete listing.");
@@ -252,18 +275,35 @@ export default function ListingScreen() {
         </TouchableOpacity>
 
         {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            minimumDate={new Date()}
-            onChange={(_, selected) => {
-              setShowDatePicker(Platform.OS === "ios");
-              if (selected) setDate(selected);
-            }}
-          />
+          (isDev || isTest) ? (
+            // Expo Go fallback — plain text input
+            <TextInput
+              value={formatDate(date)}
+              onChangeText={(v) => {
+                const parsed = new Date(v);
+                if (!isNaN(parsed.getTime())) setDate(parsed);
+              }}
+              placeholder="e.g. 2026-04-15"
+              style={[inputStyle, { marginBottom: 14 }]}
+              onBlur={() => setShowDatePicker(false)}
+              autoFocus
+            />
+          ) : (
+            DateTimePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                minimumDate={new Date()}
+                onChange={(_, selected) => {
+                  setShowDatePicker(Platform.OS === "ios");
+                  if (selected) setDate(selected);
+                }}
+              />
+            )
+          )
         )}
-        {showDatePicker && Platform.OS === "ios" && (
+        {showDatePicker && !isDev && Platform.OS === "ios" && (
           <TouchableOpacity
             onPress={() => setShowDatePicker(false)}
             style={{

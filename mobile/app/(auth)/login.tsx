@@ -1,9 +1,16 @@
 import { useState, useRef } from "react";
 import { router } from "expo-router";
 import {
-  View, Text, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
@@ -12,12 +19,13 @@ import api from "@/lib/api";
 import { isDev } from "@/lib/env";
 
 export default function LoginScreen() {
-  const [step, setStep]           = useState<"phone" | "otp">("phone");
-  const [phone, setPhone]         = useState("");
-  const [otp, setOtp]             = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading]     = useState(false);
+  const { t } = useTranslation();
+  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [confirmation, setConfirmation]   = useState<any>(null);
+  const [confirmation, setConfirmation] = useState<any>(null);
 
   const otpRef0 = useRef<TextInput>(null);
   const otpRef1 = useRef<TextInput>(null);
@@ -36,7 +44,8 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     try {
       GoogleSignin.configure({
-        webClientId: "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
+        webClientId:
+          "563763864352-oi6rut9aru8t4q7q922f2lpim4usfj0m.apps.googleusercontent.com",
       });
       await GoogleSignin.hasPlayServices();
       const { data } = await GoogleSignin.signIn();
@@ -48,11 +57,14 @@ export default function LoginScreen() {
       } catch (err: any) {
         // Still redirect to tabs — Firebase auth succeeded
         // Backend will be retried on next API call
-        console.warn("Backend sync failed, but Firebase auth succeeded:", err?.response?.data?.message);
+        console.warn(
+          "Backend sync failed, but Firebase auth succeeded:",
+          err?.response?.data?.message,
+        );
       }
       router.replace("/(tabs)");
     } catch (e: any) {
-      Alert.alert("Google sign-in failed", e.message);
+      Alert.alert(t("login.googleSignInFailed"), e.message);
     } finally {
       setGoogleLoading(false);
     }
@@ -60,14 +72,11 @@ export default function LoginScreen() {
 
   async function sendCode() {
     if (phone.length < 9) {
-      Alert.alert("Enter a valid Rwandan number");
+      Alert.alert(t("login.validPhoneRequired"));
       return;
     }
     // Phone OTP will be wired to the Laravel backend.
-    Alert.alert(
-      "Coming soon",
-      "Phone sign-in is not yet available. Use Google sign-in for now.",
-    );
+    Alert.alert(t("login.comingSoon"), t("login.phoneNotAvailable"));
   }
 
   async function verifyCode() {
@@ -78,7 +87,7 @@ export default function LoginScreen() {
       await confirmation.confirm(code);
       // onAuthStateChanged in index.tsx redirects to tabs
     } catch (e: any) {
-      Alert.alert("Wrong code", e.message);
+      Alert.alert(t("login.wrongCode"), e.message);
     } finally {
       setLoading(false);
     }
@@ -97,15 +106,33 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       {/* Header */}
-      <View style={{
-        backgroundColor: C.blue, paddingTop: 72, paddingBottom: 36,
-        paddingHorizontal: 28,
-      }}>
-        <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 36, letterSpacing: -1 }}>
+      <View
+        style={{
+          backgroundColor: C.blue,
+          paddingTop: 72,
+          paddingBottom: 36,
+          paddingHorizontal: 28,
+        }}
+      >
+        <Text
+          style={{
+            color: C.yellow,
+            fontWeight: "900",
+            fontSize: 36,
+            letterSpacing: -1,
+          }}
+        >
           Jali
         </Text>
-        <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, marginTop: 4, fontWeight: "600" }}>
-          {step === "phone" ? "Enter your Rwandan number" : "Enter the 6-digit code we sent"}
+        <Text
+          style={{
+            color: "rgba(255,255,255,0.75)",
+            fontSize: 15,
+            marginTop: 4,
+            fontWeight: "600",
+          }}
+        >
+          {step === "phone" ? t("login.enterPhone") : t("login.enterCode")}
         </Text>
       </View>
 
@@ -114,15 +141,28 @@ export default function LoginScreen() {
         {step === "phone" ? (
           <>
             {/* Phone input */}
-            <View style={{
-              backgroundColor: C.white, borderRadius: 16, flexDirection: "row",
-              alignItems: "center", borderWidth: 2.5, borderColor: C.blue, overflow: "hidden",
-            }}>
-              <View style={{
-                paddingHorizontal: 14, borderRightWidth: 2, borderRightColor: C.border,
-                paddingVertical: 18,
-              }}>
-                <Text style={{ fontWeight: "700", color: C.mid, fontSize: 15 }}>🇷🇼 +250</Text>
+            <View
+              style={{
+                backgroundColor: C.white,
+                borderRadius: 16,
+                flexDirection: "row",
+                alignItems: "center",
+                borderWidth: 2.5,
+                borderColor: C.blue,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 14,
+                  borderRightWidth: 2,
+                  borderRightColor: C.border,
+                  paddingVertical: 18,
+                }}
+              >
+                <Text style={{ fontWeight: "700", color: C.mid, fontSize: 15 }}>
+                  🇷🇼 +250
+                </Text>
               </View>
               <TextInput
                 value={phone}
@@ -131,17 +171,35 @@ export default function LoginScreen() {
                 keyboardType="phone-pad"
                 maxLength={12}
                 style={{
-                  flex: 1, fontSize: 18, fontWeight: "800", color: C.dark,
-                  paddingHorizontal: 16, paddingVertical: 18,
+                  flex: 1,
+                  fontSize: 18,
+                  fontWeight: "800",
+                  color: C.dark,
+                  paddingHorizontal: 16,
+                  paddingVertical: 18,
                 }}
               />
             </View>
-            <PrimaryBtn label="Send Code →" color={C.blue} onPress={sendCode} loading={loading} />
+            <PrimaryBtn
+              label={t("login.sendCode")}
+              color={C.blue}
+              onPress={sendCode}
+              loading={loading}
+            />
 
             {/* Divider */}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                marginVertical: 4,
+              }}
+            >
               <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
-              <Text style={{ color: C.muted, fontSize: 13 }}>or</Text>
+              <Text style={{ color: C.muted, fontSize: 13 }}>
+                {t("login.or")}
+              </Text>
               <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
             </View>
 
@@ -150,30 +208,52 @@ export default function LoginScreen() {
               onPress={signInWithGoogle}
               disabled={googleLoading}
               style={{
-                backgroundColor: C.white, borderRadius: 16, paddingVertical: 16,
-                alignItems: "center", flexDirection: "row", justifyContent: "center",
-                gap: 10, borderWidth: 2, borderColor: C.border,
+                backgroundColor: C.white,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 10,
+                borderWidth: 2,
+                borderColor: C.border,
               }}
             >
-              {googleLoading
-                ? <ActivityIndicator color={C.mid} />
-                : <>
-                    <Text style={{ fontSize: 20 }}>🌐</Text>
-                    <Text style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}>
-                      Continue with Google
-                    </Text>
-                  </>
-              }
+              {googleLoading ? (
+                <ActivityIndicator color={C.mid} />
+              ) : (
+                <>
+                  <Text style={{ fontSize: 20 }}>🌐</Text>
+                  <Text
+                    style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}
+                  >
+                    {t("login.continueWithGoogle")}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
-              Google sign-in is available for international travelers
+              {t("login.googleAvailable")}
             </Text>
+
+            {/* Admin portal link */}
+            <TouchableOpacity
+              onPress={() => router.push("/(admin)/login")}
+              style={{ marginTop: 8, alignItems: "center" }}
+            >
+              <Text style={{ color: C.muted, fontSize: 12 }}>
+                Admin?{" "}
+                <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
+              </Text>
+            </TouchableOpacity>
           </>
         ) : (
           <>
             {/* 6-digit OTP */}
-            <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
+            <View
+              style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}
+            >
               {otp.map((val, i) => (
                 <TextInput
                   key={i}
@@ -183,16 +263,35 @@ export default function LoginScreen() {
                   keyboardType="number-pad"
                   maxLength={1}
                   style={{
-                    width: 48, height: 60, textAlign: "center", fontSize: 26,
-                    fontWeight: "900", borderWidth: 3, borderColor: C.blue,
-                    borderRadius: 14, color: C.blue, backgroundColor: C.white,
+                    width: 48,
+                    height: 60,
+                    textAlign: "center",
+                    fontSize: 26,
+                    fontWeight: "900",
+                    borderWidth: 3,
+                    borderColor: C.blue,
+                    borderRadius: 14,
+                    color: C.blue,
+                    backgroundColor: C.white,
                   }}
                 />
               ))}
             </View>
-            <PrimaryBtn label="✓ Verify & Enter" color={C.green} onPress={verifyCode} loading={loading} />
-            <TouchableOpacity onPress={() => { setStep("phone"); setOtp(["","","","","",""]); }}>
-              <Text style={{ textAlign: "center", color: C.muted, fontSize: 13 }}>
+            <PrimaryBtn
+              label="✓ Verify & Enter"
+              color={C.green}
+              onPress={verifyCode}
+              loading={loading}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setStep("phone");
+                setOtp(["", "", "", "", "", ""]);
+              }}
+            >
+              <Text
+                style={{ textAlign: "center", color: C.muted, fontSize: 13 }}
+              >
                 ← Change number
               </Text>
             </TouchableOpacity>
@@ -203,21 +302,41 @@ export default function LoginScreen() {
   );
 }
 
-function PrimaryBtn({ label, color, onPress, loading }: {
-  label: string; color: string; onPress: () => void; loading?: boolean;
+function PrimaryBtn({
+  label,
+  color,
+  onPress,
+  loading,
+}: {
+  label: string;
+  color: string;
+  onPress: () => void;
+  loading?: boolean;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={loading}
-      style={{ backgroundColor: color, borderRadius: 16, paddingVertical: 18, alignItems: "center" }}
+      style={{
+        backgroundColor: color,
+        borderRadius: 16,
+        paddingVertical: 18,
+        alignItems: "center",
+      }}
     >
-      {loading
-        ? <ActivityIndicator color="#fff" />
-        : <Text style={{ color: color === C.blue ? C.yellow : C.white, fontWeight: "900", fontSize: 17 }}>
-            {label}
-          </Text>
-      }
+      {loading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <Text
+          style={{
+            color: color === C.blue ? C.yellow : C.white,
+            fontWeight: "900",
+            fontSize: 17,
+          }}
+        >
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }

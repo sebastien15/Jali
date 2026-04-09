@@ -1,0 +1,426 @@
+{
+  "home": {
+    "greeting": "Muraho 👋",
+    "whereTo": "Où allez-vous ?",
+    "from": "De",
+    "toAny": "Vers (toute)",
+    "dateToday": "Aujourd'hui",
+    "dateTomorrow": "Demain",
+    "modeBus": "Bus",
+    "modePrivate": "Place privée",
+    "modeRental": "Location de voiture",
+    "noBusesRoute": "Pas de bus pour cet itinéraire",
+    "noPrivateCarsRoute": "Pas de voitures privées pour cet itinéraire",
+    "retry": "Réessayer",
+    "buses": "bus",
+    "privateCars": "voitures privées",
+    "carsInCity": "voitures à Kigali",
+    "upfrontFeeWarning": "Frais à l'avance — aucun remboursement si vous êtes en retard",
+    "allRoutes": "(tous les itinéraires)",
+    "loading": "Chargement..."
+  },
+  "profile": {
+    "driverMode": "Mode Conducteur",
+    "driverModeQuestion": "Comment souhaitez-vous gagner avec Jali ?",
+    "privateSeatTrips": "J'offre des trajets en places privées",
+    "ownRentalCars": "Je possède des voitures de location",
+    "cancel": "Annuler",
+    "logout": "Se déconnecter",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
+    "deleteAccount": "Supprimer le compte",
+    "deleteAccountWarning": "Cela supprimera définitivement votre compte et toutes vos données. Cela ne peut pas être annulé.",
+    "areYouSure": "Êtes-vous absolument sûr ?",
+    "deleteAccountDetails": "Vos réservations, historique et profil seront définitivement supprimés.",
+    "keepAccount": "Non, garder mon compte",
+    "deleteEverything": "Oui, supprimer tout",
+    "pleaseSignInAgain": "Veuillez vous reconnecter",
+    "signInAgainDetails": "Pour des raisons de sécurité, veuillez vous déconnecter et vous reconnecter avant de supprimer votre compte.",
+    "paymentMethods": "Modes de paiement",
+    "paymentSub": "MoMo, Airtel, Carte",
+    "notifications": "Notifications",
+    "notificationsSub": "Gérer les alertes",
+    "language": "Langue",
+    "languageSub": "Kinyarwanda / Français",
+    "helpSupport": "Aide & Support",
+    "helpSub": "WhatsApp · Lun–Sam 8h–18h",
+    "rateJali": "Noter Jali",
+    "rateSub": "Partagez votre avis",
+    "faq": "FAQ",
+    "faqSub": "Questions fréquentes",
+    "privacyPolicy": "Politique de confidentialité",
+    "privacySub": "Comment nous gérons vos données",
+    "termsConditions": "Termes & Conditions",
+    "termsSub": "Règles d'utilisation de Jali",
+    "aboutJali": "À propos de Jali",
+    "version": "Version",
+    "aboutDetails": "Réservation de transport rwandais.\n\nFait avec ❤️ à Kigali.",
+    "trips": "Trajets",
+    "rating": "Note",
+    "pending": "En attente",
+    "switchToDrive": "Activez le mode conducteur pour gagner",
+    "fleetOwner": "Propriétaire de flotte — gestion de voitures",
+    "privateDriver": "Conducteur privé — offre de trajets",
+    "logOut": "Se déconnecter",
+    "deleteMyAccount": "Supprimer mon compte",
+    "error": "Erreur"
+  },
+  "drive": {
+    "driverMode": "Mode Conducteur",
+    "dashboard": "Tableau de bord",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "todayRwf": "Aujourd'hui RWF",
+    "tripsToday": "Trajets aujourd'hui",
+    "rating": "Note",
+    "changeEarningMode": "Changer le mode de revenu",
+    "earningQuestion": "Comment souhaitez-vous gagner avec Jali ?",
+    "privateSeatDriver": "Conducteur de places privées",
+    "fleetOwner": "Propriétaire de flotte / Location de voitures",
+    "earningAs": "Revenu en tant que :",
+    "change": "Changer",
+    "thisWeek": "Cette semaine",
+    "trips": "Trajets",
+    "myFleet": "Ma flotte",
+    "available": "disponible",
+    "rented": "loué",
+    "newTripListing": "Nouveau trajet",
+    "active": "Actif",
+    "paused": "En pause",
+    "myPickupZones": "Mes zones de prise en charge",
+    "upcoming": "À venir",
+    "history": "Historique",
+    "upcomingCount": "À venir ({{count}})",
+    "historyCount": "Historique ({{count}})",
+    "noUpcomingRides": "Pas de trajets à venir",
+    "noTripHistory": "Pas d'historique de trajets",
+    "pax": "passagers"
+  },
+  "trips": {
+    "myTrips": "Mes trajets",
+    "filterAll": "tous",
+    "filterPending": "en attente",
+    "filterConfirmed": "confirmés",
+    "filterCompleted": "terminés",
+    "retry": "Réessayer",
+    "noTripsYet": "Pas encore de trajets ici",
+    "ticketPhotoReady": "Photo du billet prête",
+    "tapToView": "Appuyez pour voir",
+    "showAtStation": "À montrer à la gare",
+    "view": "Voir",
+    "awaitingConfirmation": "En attente de confirmation — l'admin organise votre billet",
+    "close": "Fermer"
+  },
+  "login": {
+    "enterPhone": "Entrez votre numéro rwandais",
+    "enterCode": "Entrez le code à 6 chiffres que nous avons envoyé",
+    "sendCode": "Envoyer le code",
+    "verifyEnter": "Vérifier & Entrer",
+    "validPhoneRequired": "Entrez un numéro rwandais valide",
+    "comingSoon": "Bientôt disponible",
+    "phoneNotAvailable": "La connexion par téléphone n'est pas encore disponible. Utilisez Google pour le moment.",
+    "or": "ou",
+    "continueWithGoogle": "Continuer avec Google",
+    "googleAvailable": "La connexion Google est disponible pour les voyageurs internationaux",
+    "wrongCode": "Code incorrect",
+    "changeNumber": "Changer de numéro",
+    "googleSignInFailed": "Échec de la connexion Google"
+  },
+  "listing": {
+    "privateDriver": "Conducteur privé",
+    "newTripListing": "Nouveau trajet",
+    "editListing": "Modifier le trajet",
+    "route": "Itinéraire",
+    "schedule": "Horaire",
+    "capacityPricing": "Capacité & Prix",
+    "available": "Ce qui est disponible sur ce trajet",
+    "groupDiscount": "Réduction de groupe",
+    "doorPickup": "Prise en charge à domicile",
+    "notes": "Notes",
+    "from": "De",
+    "to": "Vers",
+    "pickupPoint": "Point de prise en charge",
+    "dropOffArea": "Zone de dépôt (facultatif)",
+    "departureDate": "Date de départ",
+    "departureTime": "Heure de départ",
+    "change": "Changer",
+    "confirmDate": "Confirmer la date",
+    "availableSeats": "Places disponibles",
+    "pricePerSeat": "Prix par place (RWF)",
+    "amenitiesHint": "Faites savoir aux passagers ce qu'il y a dans votre voiture",
+    "offerGroupDiscount": "Offrir une réduction de groupe",
+    "groupDiscountDesc": "Réduire le prix lorsque plusieurs places sont réservées ensemble",
+    "minGroupSize": "Taille minimale du groupe",
+    "discountPercentage": "Pourcentage de réduction",
+    "offerDoorPickup": "Offrir la prise en charge à domicile",
+    "doorPickupDesc": "Prendre les passagers à leur emplacement (frais supplémentaires)",
+    "extraFee": "Frais supplémentaires pour la prise en charge (RWF)",
+    "extraFeeDesc": "Cela sera ajouté au prix de la place",
+    "updateListing": "Mettre à jour",
+    "publishListing": "Publier le trajet",
+    "deleteListing": "Supprimer ce trajet",
+    "required": "Requis",
+    "selectDestination": "Veuillez sélectionner la destination et le point de prise en charge.",
+    "enterPrice": "Veuillez entrer un prix par place.",
+    "error": "Erreur",
+    "saveListingError": "Impossible de sauvegarder le trajet.",
+    "deleteListingTitle": "Supprimer le trajet",
+    "deleteListingConfirm": "Supprimer ce trajet ?",
+    "confirmTime": "Confirmer — {{time}}",
+    "listingUpdated": "Mis à jour",
+    "listingPublished": "Publié",
+    "listingUpdatedDesc": "Votre trajet a été mis à jour.",
+    "listingPublishedDesc": "Votre trajet est maintenant disponible pour les passagers.",
+    "selectDestination": "Sélectionner la destination",
+    "groupPrice": "Prix de groupe : {{price}} RWF/place"
+  },
+  "driverSetup": {
+    "fleetOwner": "Propriétaire de flotte",
+    "privateDriver": "Conducteur privé",
+    "mySetup": "Ma configuration",
+    "myProfile": "Mon profil",
+    "myVehicle": "Mon véhicule",
+    "whatsInYourCar": "Ce qu'il y a dans votre voiture",
+    "carPhotos": "Photos de la voiture",
+    "operations": "Opérations",
+    "displayName": "Nom affiché",
+    "phoneNumber": "Numéro de téléphone",
+    "carModel": "Modèle de voiture",
+    "plateNumber": "Numéro de plaque",
+    "carType": "Type de voiture",
+    "numberOfSeats": "Nombre de places",
+    "pricePerDay": "Prix par jour (RWF)",
+    "cautionDeposit": "Caution / Dépôt (RWF)",
+    "amenitiesHint": "Les passagers verront cela lors de la consultation de votre annonce",
+    "photosHint": "Ajoutez jusqu'à 4 photos pour que les passagers sachent à quoi s'attendre",
+    "frontView": "Vue de face",
+    "sideView": "Vue de côté",
+    "interior": "Intérieur",
+    "luggageSpace": "Espace bagages",
+    "tapToAdd": "Appuyez pour ajouter",
+    "allowedZones": "Zones autorisées",
+    "insuranceExpiry": "Expiration de l'assurance",
+    "docsUrl": "T&Cs / URL du document d'assurance",
+    "docsUrlHint": "Téléchargez le document sur Firebase Storage et collez l'URL ici",
+    "saveChanges": "Sauvegarder",
+    "saved": "Sauvegardé",
+    "profileUpdated": "Votre profil a été mis à jour.",
+    "error": "Erreur",
+    "saveError": "Impossible de sauvegarder. Veuillez réessayer.",
+    "required": "Requis",
+    "fillCarDetails": "Veuillez remplir le modèle de voiture et le numéro de plaque.",
+    "permissionNeeded": "Permission requise",
+    "photoPermission": "Veuillez autoriser l'accès à votre bibliothèque de photos.",
+    "yourName": "Votre nom",
+    "carTypeSedan": "Berline",
+    "carTypeSuv": "SUV",
+    "carTypeMinivan": "Minivan",
+    "carTypePickup": "Pickup"
+  },
+  "fleet": {
+    "fleetOwner": "Propriétaire de flotte",
+    "myFleet": "Ma flotte",
+    "addCar": "Ajouter voiture",
+    "noCarsYet": "Pas encore de voitures — ajoutez votre première !",
+    "status": "Statut",
+    "available": "Disponible",
+    "rented": "Loué",
+    "maintenance": "Maintenance",
+    "pricePerDay": "Prix par jour (RWF)",
+    "cautionDeposit": "Caution / Dépôt (RWF)",
+    "allowedZones": "Zones autorisées",
+    "notesForRenter": "Notes pour le locataire",
+    "remove": "Retirer",
+    "saveChanges": "Sauvegarder",
+    "addNewCar": "Ajouter une nouvelle voiture",
+    "carNameModel": "Nom / Modèle de la voiture",
+    "carType": "Type de voiture",
+    "plateNumber": "Numéro de plaque",
+    "numberOfSeats": "Nombre de places",
+    "pricePerDayRwf": "Prix par jour (RWF)",
+    "cautionDepositRwf": "Caution / Dépôt (RWF)",
+    "required": "Requis",
+    "fillCarName": "Veuillez remplir le nom, la plaque et le prix/jour.",
+    "error": "Erreur",
+    "addCarError": "Impossible d'ajouter la voiture.",
+    "removeCar": "Retirer la voiture",
+    "removeCarConfirm": "Retirer {{name}} ({{plate}}) de votre flotte ?",
+    "removeCarError": "Impossible de retirer la voiture.",
+    "addToFleet": "Ajouter à la flotte"
+  },
+  "legal": {
+    "faq": {
+      "title": "FAQ",
+      "howToBook": {
+        "heading": "Comment réserver un bus ?",
+        "body": "Ouvrez l'onglet Accueil, sélectionnez votre ville de départ, votre destination et votre date de voyage. Choisissez un bus dans la liste et appuyez sur Réserver. Un admin confirmera votre réservation et téléchargera la photo de votre billet dans quelques heures."
+      },
+      "serviceFee": {
+        "heading": "Comment fonctionnent les frais de service ?",
+        "body": "Jali facture des frais de service de 300 à 500 RWF par réservation en fonction de votre distance jusqu'à la gare la plus proche. Ces frais couvrent nos coûts opérationnels et sont affichés clairement avant de confirmer le paiement."
+      },
+      "receiveTicket": {
+        "heading": "Quand recevrai-je mon billet ?",
+        "body": "Après votre réservation, notre équipe contacte manuellement l'agence de bus et obtient un billet physique. Nous photographions le billet et le téléchargeons sur votre réservation — généralement en 2 à 4 heures. Vous recevrez une notification push quand il sera prêt."
+      },
+      "cancelBooking": {
+        "heading": "Puis-je annuler ma réservation ?",
+        "body": "Les réservations de bus peuvent être annulées jusqu'à 24 heures avant le départ pour un remboursement. Les réservations de places privées ne sont pas remboursables — le conducteur réserve la place à l'avance. Les annulations de location de voitures dépendent de la période de location restante."
+      },
+      "paymentMethods": {
+        "heading": "Quels modes de paiement sont acceptés ?",
+        "body": "Nous acceptons actuellement MTN Mobile Money, Airtel Money et la carte bancaire. L'intégration de paiement sera disponible dans une future mise à jour. Les réservations sont actuellement confirmées après vérification manuelle du paiement."
+      },
+      "becomeDriver": {
+        "heading": "Comment devenir conducteur ?",
+        "body": "Allez dans Profil et activez le mode Conducteur. Vous pourrez offrir des places privées sur vos trajets réguliers et gagner de l'argent avec les passagers. Les détails de votre véhicule et votre zone peuvent être définis dans le tableau de bord du conducteur."
+      },
+      "contactSupport": {
+        "heading": "Comment contacter le support ?",
+        "body": "Appuyez sur Aide & Support dans votre Profil. Vous pouvez nous joindre via WhatsApp ou appeler pendant les heures d'ouverture (8h–18h, lundi–samedi). Nous visons à répondre dans l'heure."
+      },
+      "outsideKigali": {
+        "heading": "Jali est-il disponible hors de Kigali ?",
+        "body": "Oui. Jali couvre les itinéraires entre Kigali, Musanze, Huye, Rubavu, Nyagatare, Rwamagana, Muhanga et Rusizi. D'autres villes seront ajoutées en fonction de la demande."
+      }
+    },
+    "terms": {
+      "title": "Termes & Conditions",
+      "acceptance": {
+        "heading": "1. Acceptation",
+        "body": "En utilisant Jali, vous acceptez ces Termes. Si vous n'êtes pas d'accord, veuillez ne pas utiliser l'application. Ces termes s'appliquent à tous les utilisateurs, y compris les passagers, les conducteurs et les administrateurs."
+      },
+      "eligibility": {
+        "heading": "2. Éligibilité",
+        "body": "Vous devez avoir au moins 18 ans pour utiliser Jali. En créant un compte, vous confirmez que vous remplissez cette condition."
+      },
+      "bookings": {
+        "heading": "3. Réservations",
+        "body": "Jali agit comme intermédiaire de réservation. Nous organisons manuellement le transport en votre nom par l'intermédiaire d'agences partenaires et de conducteurs indépendants. La confirmation est soumise à la disponibilité."
+      },
+      "serviceFee": {
+        "heading": "4. Frais de service",
+        "body": "Des frais de service non remboursables de 300 à 500 RWF sont facturés par réservation. Ces frais couvrent les coûts de la plateforme et sont communiqués avant le paiement."
+      },
+      "cancellations": {
+        "heading": "5. Annulations & Remboursements",
+        "body": "Les réservations de bus annulées plus de 24 heures avant le départ sont éligibles pour un remboursement du prix du billet (frais de service exclus). Les réservations de places privées ne sont pas remboursables une fois confirmées. Les locations de voitures ne sont pas remboursables dans les 12 heures suivant le début de la location."
+      },
+      "driverResponsibilities": {
+        "heading": "6. Responsabilités du conducteur",
+        "body": "Les conducteurs qui offrent des places privées via Jali sont des opérateurs indépendants. Ils sont responsables de l'état de leur véhicule, de l'assurance et de la conformité aux réglementations de transport rwandaises."
+      },
+      "prohibitedUse": {
+        "heading": "7. Utilisation interdite",
+        "body": "Vous ne devez pas utiliser Jali à des fins illégales, pour harceler d'autres utilisateurs, soumettre de fausses réservations ou tenter d'accéder au compte d'un autre utilisateur."
+      },
+      "limitationOfLiability": {
+        "heading": "8. Limitation de responsabilité",
+        "body": "Jali n'est pas responsable des retards, annulations ou incidents causés par des opérateurs de transport tiers. Nous facilitons les réservations mais n'exploitons pas les véhicules."
+      },
+      "changesToTerms": {
+        "heading": "9. Modifications des Termes",
+        "body": "Nous pouvons mettre à jour ces Termes à tout moment. L'utilisation continue de l'application après les modifications constitue une acceptation. Nous vous informerons des modifications importantes via une notification push."
+      },
+      "governingLaw": {
+        "heading": "10. Loi applicable",
+        "body": "Ces Termes sont régis par les lois de la République du Rwanda."
+      }
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "whatWeCollect": {
+        "heading": "Ce que nous collectons",
+        "body": "Nous collectons votre numéro de téléphone ou l'e-mail de votre compte Google (pour la connexion), votre nom, votre localisation approximative (pour calculer les frais de service), votre historique de réservation et le jeton de notification push de votre appareil (pour vous envoyer des mises à jour de réservation)."
+      },
+      "howWeUse": {
+        "heading": "Comment nous utilisons vos données",
+        "body": "Vos données sont utilisées pour : traiter et gérer vos réservations, calculer les frais de service basés sur la distance, envoyer des notifications push concernant vos réservations et améliorer le service Jali. Nous ne vendons pas vos données à des tiers."
+      },
+      "location": {
+        "heading": "Localisation",
+        "body": "Jali demande votre localisation uniquement pour estimer les frais de service en fonction de votre distance jusqu'à la gare la plus proche. La localisation n'est pas stockée sur nos serveurs et n'est pas partagée avec des tiers."
+      },
+      "firebase": {
+        "heading": "Firebase",
+        "body": "Jali utilise Google Firebase pour l'authentification et les notifications push. Firebase peut traiter votre numéro de téléphone ou votre adresse e-mail sur les serveurs de Google. Voir la politique de confidentialité de Google pour plus de détails."
+      },
+      "dataStorage": {
+        "heading": "Stockage des données",
+        "body": "Les données de votre compte et les enregistrements de réservation sont stockés sur nos serveurs sécurisés hébergés dans l'Union européenne (Hetzner). Les photos de billets sont stockées dans Google Firebase Storage."
+      },
+      "dataRetention": {
+        "heading": "Conservation des données",
+        "body": "Vos données sont conservées tant que votre compte existe. Lorsque vous supprimez votre compte, vos informations personnelles sont définitivement supprimées dans les 30 jours. Les enregistrements de réservation anonymisés peuvent être conservés à des fins statistiques."
+      },
+      "yourRights": {
+        "heading": "Vos droits",
+        "body": "Vous avez le droit d'accéder, de corriger ou de supprimer vos données personnelles à tout moment. Vous pouvez supprimer votre compte directement dans l'application sous Profil → Supprimer le compte. Pour d'autres demandes, contactez-nous à privacy@jali.rw."
+      },
+      "children": {
+        "heading": "Enfants",
+        "body": "Jali n'est pas destiné aux utilisateurs de moins de 18 ans. Nous ne collectons pas sciemment de données auprès de mineurs."
+      },
+      "contact": {
+        "heading": "Contact",
+        "body": "Pour toute question relative à la confidentialité, contactez-nous à privacy@jali.rw ou écrivez à : Jali, Kigali, Rwanda."
+      },
+      "lastUpdated": {
+        "heading": "Dernière mise à jour",
+        "body": "Cette politique a été mise à jour pour la dernière fois le 6 avril 2026."
+      }
+    }
+  },
+  "components": {
+    "busCard": {
+      "seatsLeft": "places restantes",
+      "bookNow": "Réserver maintenant"
+    },
+    "rentalCard": {
+      "rentFor": "Louer pour",
+      "days": "Jour",
+      "rwfPerDay": "RWF / {{days}}j"
+    },
+    "privateCard": {
+      "seatsLeft": "place(s) restante(s)",
+      "bookSeat": "Réserver une place — Payer d'avance"
+    },
+    "bookingSheet": {
+      "ticket": "Billet",
+      "seatFee": "Frais de place",
+      "serviceFee": "Frais de service",
+      "total": "Total",
+      "payWith": "PAYER AVEC",
+      "sendingRequest": "Envoi de la demande...",
+      "requestBooking": "Demander la réservation via {{method}}",
+      "bookingSent": "Demande de réservation envoyée !",
+      "bookingSentDesc": "Notre équipe organisera votre billet et vous informera quand il sera prêt.",
+      "bookingFailed": "Échec de la réservation",
+      "tryAgain": "Veuillez réessayer.",
+      "noRefundWarning": "Aucun remboursement si en retard — la voiture part à l'heure",
+      "detectingLocation": "Détection de votre localisation...",
+      "enableLocation": "Activez la localisation pour des frais précis",
+      "kmFromStation": "{{km}} km de la gare de {{city}}"
+    },
+    "cityPicker": {
+      "selectCity": "Sélectionner la ville",
+      "searchCity": "Rechercher une ville...",
+      "tapToChange": "appuyez pour changer",
+      "selectCityPlaceholder": "sélectionner la ville",
+      "cancel": "Annuler"
+    },
+    "offlineBanner": {
+      "noConnection": "Pas de connexion Internet",
+      "checkNetwork": "Vérifiez votre réseau"
+    }
+  },
+  "common": {
+    "ok": "OK",
+    "yes": "Oui",
+    "no": "Non",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "change": "Changer"
+  }
+}

@@ -1,0 +1,426 @@
+{
+  "home": {
+    "greeting": "Muraho 👋",
+    "whereTo": "Unaenda wapi?",
+    "from": "Kutoka",
+    "toAny": "Kwenda (yoyote)",
+    "dateToday": "Leo",
+    "dateTomorrow": "Kesho",
+    "modeBus": "Basi",
+    "modePrivate": "Kiti Binafsi",
+    "modeRental": "Kukodisha Gari",
+    "noBusesRoute": "Hakuna mabasi kwa njia hii",
+    "noPrivateCarsRoute": "Hakuna magari binafsi kwa njia hii",
+    "retry": "Jaribu tena",
+    "buses": "mabasi",
+    "privateCars": "magari binafsi",
+    "carsInCity": "magari huko Kigali",
+    "upfrontFeeWarning": "Ada ya mapema -- hakuna marejesho ukiwa na uchevu",
+    "allRoutes": "(njia zote)",
+    "loading": "Inapakia..."
+  },
+  "profile": {
+    "driverMode": "Hali ya Dereva",
+    "driverModeQuestion": "Unataka kupata vipato gani na Jali?",
+    "privateSeatTrips": "Ninatoa safari za kiti binafsi",
+    "ownRentalCars": "Nina magari ya kukodisha",
+    "cancel": "Ghairi",
+    "logout": "Ondoka",
+    "logoutConfirm": "Una uhakika unataka kutoka?",
+    "deleteAccount": "Futa Akaunti",
+    "deleteAccountWarning": "Hii itafuta akaunti yako na data yako yote. Hauwezi kuirudisha.",
+    "areYouSure": "Una uhakika kabisa?",
+    "deleteAccountDetails": "Maagizo yako, historia, na profaili zitafutwa kabisa.",
+    "keepAccount": "Hapana, nishike akaunti yangu",
+    "deleteEverything": "Ndiyo, futa yote",
+    "pleaseSignInAgain": "Tafadhali ingia tena",
+    "signInAgainDetails": "Kwa usalama, tafadhali toka na uingie tena kabla ya kufuta akaunti yako.",
+    "paymentMethods": "Njia za Malipo",
+    "paymentSub": "MoMo, Airtel, Kadi",
+    "notifications": "Arifa",
+    "notificationsSub": "Simamia arifa",
+    "language": "Lugha",
+    "languageSub": "Kinyarwanda / Kiswahili",
+    "helpSupport": "Msaada & Usaidizi",
+    "helpSub": "WhatsApp · Jumatatu-Jumamosi 8am-6pm",
+    "rateJali": "Tathmini Jali",
+    "rateSub": "Shiriki maoni yako",
+    "faq": "Maswali",
+    "faqSub": "Maswali yanayoulizwa mara kwa mara",
+    "privacyPolicy": "Sera ya Faragha",
+    "privacySub": "Jinsi tunavyoshughulikia data yako",
+    "termsConditions": "Masharti & Vigezo",
+    "termsSub": "Sheria za kutumia Jali",
+    "aboutJali": "Kuhusu Jali",
+    "version": "Toleo",
+    "aboutDetails": "Utembezi wa usafiri wa Rwanda.\n\nImetengenezwa kwa ❤️ huko Kigali.",
+    "trips": "Safari",
+    "rating": "Tathmini",
+    "pending": "Inasubiri",
+    "switchToDrive": "Badilisha ku dereva upate",
+    "fleetOwner": "Mmiliki wa floti -- anasimamia magari",
+    "privateDriver": "Dereva binafsi -- anatoa safari",
+    "logOut": "Ondoka",
+    "deleteMyAccount": "Futa akaunti yangu",
+    "error": "Hitilafu"
+  },
+  "drive": {
+    "driverMode": "Hali ya Dereva",
+    "dashboard": "Dashibodi",
+    "online": "Mtandaoni",
+    "offline": "Nje ya mtandao",
+    "todayRwf": "Leo RWF",
+    "tripsToday": "Safari leo",
+    "rating": "Tathmini",
+    "changeEarningMode": "Badilisha Njia ya Mapato",
+    "earningQuestion": "Unataka kupata vipato gani na Jali?",
+    "privateSeatDriver": "Dereva wa Kiti Binafsi",
+    "fleetOwner": "Mmiliki wa Floti / Kukodisha Magari",
+    "earningAs": "Unapata kama:",
+    "change": "Badilisha",
+    "thisWeek": "Wiki hii",
+    "trips": "Safari",
+    "myFleet": "Floti Yangu",
+    "available": "inapatikana",
+    "rented": "imekodishwa",
+    "newTripListing": "Safari Mpya",
+    "active": "Inatumika",
+    "paused": "Imesimama",
+    "myPickupZones": "Eneo Zangu za Kupanda",
+    "upcoming": "Inayokuja",
+    "history": "Historia",
+    "upcomingCount": "Inayokuja ({{count}})",
+    "historyCount": "Historia ({{count}})",
+    "noUpcomingRides": "Hakuna safari zinazokuja",
+    "noTripHistory": "Hakuna historia ya safari bado",
+    "pax": "abiria"
+  },
+  "trips": {
+    "myTrips": "Safari Zangu",
+    "filterAll": "zote",
+    "filterPending": "zinazosubiri",
+    "filterConfirmed": "zilizothibitishwa",
+    "filterCompleted": "zilizokamilika",
+    "retry": "Jaribu tena",
+    "noTripsYet": "Hakuna safari hapa bado",
+    "ticketPhotoReady": "Picha ya Tikiti Tayari",
+    "tapToView": "Bonyeza kuona",
+    "showAtStation": "Onyesha kwenye stesheni",
+    "view": "Angalia",
+    "awaitingConfirmation": "Inasubiri uthibitisho -- admin inatengeneza tikiti yako",
+    "close": "Funga"
+  },
+  "login": {
+    "enterPhone": "Weka nambari yako ya Rwanda",
+    "enterCode": "Weka nambari ya tarakimu 6 tuliyo tuma",
+    "sendCode": "Tuma Code",
+    "verifyEnter": "Thibitisha & Ingia",
+    "validPhoneRequired": "Weka nambari halali ya Rwanda",
+    "comingSoon": "Inakuja hivi karibuni",
+    "phoneNotAvailable": "Kuingia kwa simu bado hakupatikani. Tumia Google kwa sasa.",
+    "or": "au",
+    "continueWithGoogle": "Endelea na Google",
+    "googleAvailable": "Kuingia kwa Google kunapatikana kwa wasafiri wa kimataifa",
+    "wrongCode": "Code si sahihi",
+    "changeNumber": "Badilisha nambari",
+    "googleSignInFailed": "Kuingia kwa Google kumeshindikana"
+  },
+  "listing": {
+    "privateDriver": "Dereva Binafsi",
+    "newTripListing": "Safari Mpya",
+    "editListing": "Hariri Safari",
+    "route": "Njia",
+    "schedule": "Ratiba",
+    "capacityPricing": "Uwezo & Bei",
+    "available": "Kinachopatikana kwenye Safari Hii",
+    "groupDiscount": "Punguzo la Kikundi",
+    "doorPickup": "Kuchukua Mlango",
+    "notes": "Maelezo",
+    "from": "Kutoka",
+    "to": "Kwenda",
+    "pickupPoint": "Mahali pa Kupanda",
+    "dropOffArea": "Eneo la Kushuka (hiari)",
+    "departureDate": "Tarehe ya Kuondoka",
+    "departureTime": "Muda wa Kuondoka",
+    "change": "Badilisha",
+    "confirmDate": "Thibitisha Tarehe",
+    "availableSeats": "Viti Vinavyopatikana",
+    "pricePerSeat": "Bei kwa Kiti (RWF)",
+    "amenitiesHint": "Waarifu abiria walicho ndani ya gari lako",
+    "offerGroupDiscount": "Toa punguzo la kikundi",
+    "groupDiscountDesc": "Punguza bei wakati viti vingi vimeteminiwa pamoja",
+    "minGroupSize": "Ukubwa mdogo wa kikundi",
+    "discountPercentage": "Asilimia ya punguzo",
+    "offerDoorPickup": "Toa kuchukua mlango",
+    "doorPickupDesc": "Chukua abiria mahali walipo (ada ya ziada)",
+    "extraFee": "Ada ya ziada ya kuchukua mlango (RWF)",
+    "extraFeeDesc": "Hii itaongezwa juu ya bei ya kiti",
+    "updateListing": "Sasisha Orodha",
+    "publishListing": "Chapisha Orodha",
+    "deleteListing": "Futa safari hii",
+    "required": "Inahitajika",
+    "selectDestination": "Tafadhali chagua marudio na mahali pa kupanda.",
+    "enterPrice": "Tafadhali weka bei kwa kiti.",
+    "error": "Hitilafu",
+    "saveListingError": "Haikuweza kuhifadhi orodha.",
+    "deleteListingTitle": "Futa Orodha",
+    "deleteListingConfirm": "Ondoa safari hii?",
+    "confirmTime": "Thibitisha — {{time}}",
+    "listingUpdated": "Imesasishwa",
+    "listingPublished": "Imechapishwa",
+    "listingUpdatedDesc": "Orodha yako imesasishwa.",
+    "listingPublishedDesc": "Safari yako sasa imechapishwa kwa abiria kutemini.",
+    "selectDestination": "Chagua marudio",
+    "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti"
+  },
+  "driverSetup": {
+    "fleetOwner": "Mmiliki wa Floti",
+    "privateDriver": "Dereva Binafsi",
+    "mySetup": "Mipangilio Yangu",
+    "myProfile": "Profaili Yangu",
+    "myVehicle": "Gari Langu",
+    "whatsInYourCar": "Kilicho Ndani ya Gari Lako",
+    "carPhotos": "Picha za Gari",
+    "operations": "Shughuli",
+    "displayName": "Jina Linaoonekana",
+    "phoneNumber": "Nambari ya Simu",
+    "carModel": "Modeli ya Gari",
+    "plateNumber": "Nambari ya Usajili",
+    "carType": "Aina ya Gari",
+    "numberOfSeats": "Idadi ya Viti",
+    "pricePerDay": "Bei kwa Siku (RWF)",
+    "cautionDeposit": "Amana / Deposit (RWF)",
+    "amenitiesHint": "Abiria wataona hii wakati wanatazama orodha yako",
+    "photosHint": "Ongeza hadi picha 4 ili abiria wajue kitarajiwe",
+    "frontView": "Mwonekano wa Mbele",
+    "sideView": "Mwonekano wa Pembeni",
+    "interior": "Ndani",
+    "luggageSpace": "Nafasi ya Mizigo",
+    "tapToAdd": "Bonyeza kuongeza",
+    "allowedZones": "Eneo Zinazoruhusiwa",
+    "insuranceExpiry": "Mwisho wa Bima",
+    "docsUrl": "Masharti / URL ya Hati ya Bima",
+    "docsUrlHint": "Pakia hati kwenye Firebase Storage na ubandike URL hapa",
+    "saveChanges": "Hifadhi Mabadiliko",
+    "saved": "Imehifadhiwa",
+    "profileUpdated": "Profaili yako imesasishwa.",
+    "error": "Hitilafu",
+    "saveError": "Haikuweza kuhifadhi. Tafadhali jaribu tena.",
+    "required": "Inahitajika",
+    "fillCarDetails": "Tafadhali jaza modeli ya gari na nambari ya usajili.",
+    "permissionNeeded": "Ruhusa inahitajika",
+    "photoPermission": "Tafadhali ruhusu upatikanaji wa maktaba yako ya picha.",
+    "yourName": "Jina lako",
+    "carTypeSedan": "Sedan",
+    "carTypeSuv": "SUV",
+    "carTypeMinivan": "Minivan",
+    "carTypePickup": "Pickup"
+  },
+  "fleet": {
+    "fleetOwner": "Mmiliki wa Floti",
+    "myFleet": "Floti Yangu",
+    "addCar": "Ongeza Gari",
+    "noCarsYet": "Hakuna magari bado — ongeza la kwanza!",
+    "status": "Hali",
+    "available": "Inapatikana",
+    "rented": "Imekodishwa",
+    "maintenance": "Matengenezo",
+    "pricePerDay": "Bei kwa Siku (RWF)",
+    "cautionDeposit": "Amana / Deposit (RWF)",
+    "allowedZones": "Eneo Zinazoruhusiwa",
+    "notesForRenter": "Maelezo kwa Mkodishi",
+    "remove": "Ondoa",
+    "saveChanges": "Hifadhi Mabadiliko",
+    "addNewCar": "Ongeza Gari Jipya",
+    "carNameModel": "Jina / Modeli ya Gari",
+    "carType": "Aina ya Gari",
+    "plateNumber": "Nambari ya Usajili",
+    "numberOfSeats": "Idadi ya Viti",
+    "pricePerDayRwf": "Bei kwa Siku (RWF)",
+    "cautionDepositRwf": "Amana / Deposit (RWF)",
+    "required": "Inahitajika",
+    "fillCarName": "Tafadhali jaza jina la gari, usajili, na bei/siku.",
+    "error": "Hitilafu",
+    "addCarError": "Haikuweza kuongeza gari.",
+    "removeCar": "Ondoa Gari",
+    "removeCarConfirm": "Ondoa {{name}} ({{plate}}) kutoka floti yako?",
+    "removeCarError": "Haikuweza kuondoa gari.",
+    "addToFleet": "Ongeza kwenye Floti"
+  },
+  "legal": {
+    "faq": {
+      "title": "Maswali",
+      "howToBook": {
+        "heading": "Ninawezaje kutemini basi?",
+        "body": "Fungua kipengele cha Nyumba, chagua mji wako wa kuondoka, marudio, na tarehe ya safari. Chagua basi kutoka kwenye orodha na ubonyeze Temini. Admin itathibitisha uteminishaji wako na kupakia picha ya tikiti yako ndani ya masaa machache."
+      },
+      "serviceFee": {
+        "heading": "Ada ya huduma inafanyaje kazi?",
+        "body": "Jali inatoa ada ndogo ya huduma ya 300-500 RWF kwa kila uteminishaji kulingana na umbali wako kutoka stesheni ya basi iliyo karibu. Ada hii inafunika gharama zetu za uendeshaji na inaonyeshwa wazi kabla ya kuthibitisha malipo."
+      },
+      "receiveTicket": {
+        "heading": "Nitapokea tikiti yangu lini?",
+        "body": "Baada ya kutemini, timu yetu huwasiliana na wakala wa basi na kupata tikiti halisi. Tunapiga picha ya tikiti na kuipakia kwenye uteminishaji wako — kawaida ndani ya masaa 2-4. Utapokea arifa wakati iko tayari."
+      },
+      "cancelBooking": {
+        "heading": "Ninaweza kughairi uteminishaji wangu?",
+        "body": "Uteminishaji wa basi unaweza kughairiwa hadi masaa 24 kabla ya kuondoka kwa marejesho. Uteminishaji wa kiti binafsi haurejeshwi — dereva huhifadhi kiti mapema. Ughairi wa kukodisha magari unategemea muda uliobaki."
+      },
+      "paymentMethods": {
+        "heading": "Ni njia gani za malipo zinazopatikana?",
+        "body": "Kwa sasa tunasaidia MTN Mobile Money, Airtel Money, na kadi ya benki. Muunganisho wa malipo utapatikana katika sasisho lijalo. Uteminishaji unathibitishwa baada ya uthibitisho wa malipo kwa mkono."
+      },
+      "becomeDriver": {
+        "heading": "Ninawezaje kuwa dereva?",
+        "body": "Nenda kwenye Profaili na uwashe Hali ya Dereva. Utaweza kutoa viti binafsi kwenye njia zako za kawaida na kupata pesa kutoka kwa abiria. Maelezo ya gari lako na eneo zinaweza kuwekwa kwenye Dashibodi ya Dereva."
+      },
+      "contactSupport": {
+        "heading": "Ninawezaje kuwasiliana na usaidizi?",
+        "body": "Bonyeza Msaada & Usaidizi kwenye Profaili yako. Unaweza kuwasiliana nasi kupitia WhatsApp au kupiga simu wakati wa masaa ya kazi (8am-6pm, Jumatatu-Jumamosi). Tunalenga kujibu ndani ya saa 1."
+      },
+      "outsideKigali": {
+        "heading": "Je, Jali inapatikana nje ya Kigali?",
+        "body": "Ndiyo. Jali inafunika njia kati ya Kigali, Musanze, Huye, Rubavu, Nyagatare, Rwamagana, Muhanga, na Rusizi. Maji zaidi yataongezwa kulingana na mahitaji."
+      }
+    },
+    "terms": {
+      "title": "Masharti & Vigezo",
+      "acceptance": {
+        "heading": "1. Kukubali",
+        "body": "Kwa kutumia Jali, unakubali Masharti haya. Ukiwa hukubali, tafadhali usitumie programu. Masharti haya yanatumika kwa watumiaji wakiwemo abiria, madereva, na wasimamizi."
+      },
+      "eligibility": {
+        "heading": "2. Ufaa",
+        "body": "Lazima uwe na umri wa miaka 18 angalau ili kutumia Jali. Kwa kufungua akaunti unathibitisha kwamba unatimiza mahitaji haya."
+      },
+      "bookings": {
+        "heading": "3. Uteminishaji",
+        "body": "Jali hufanya kama mpatanishaji wa uteminishaji. Tunapanga usafiri kwa niaba yako kupitia wakala washirika na madereva huru. Uthibitisho unategemea upatikanaji."
+      },
+      "serviceFee": {
+        "heading": "4. Ada ya Huduma",
+        "body": "Ada ya huduma isiyorejeshwa ya 300-500 RWF inatozwa kwa kila uteminishaji. Ada hii inafunika gharama za jukwaa na inafunuliwa kabla ya malipo."
+      },
+      "cancellations": {
+        "heading": "5. Ughairi & Marejesho",
+        "body": "Uteminishaji wa basi ulioghairiwa zaidi ya masaa 24 kabla ya kuondoka unastahili marejesho ya bei ya tikiti (ada ya huduma imeondolewa). Uteminishaji wa kiti binafsi haurejeshwi uthibitishwa baada ya uthibitisho. Kukodisha magari hakurejeshwi ndani ya masaa 12 ya kuanza kwa kukodisha."
+      },
+      "driverResponsibilities": {
+        "heading": "6. Wajibu wa Dereva",
+        "body": "Madereva wanaotoa viti binafsi kupitia Jali ni waendeshaji huru. Wanawajibika kwa usalama wa gari lao, bima, na kufuata sheria za usafiri za Rwanda."
+      },
+      "prohibitedUse": {
+        "heading": "7. Matumizi Yasiyoruhusiwa",
+        "body": "Hauruhusiwi kutumia Jali kwa madhumuni yasiyo halali, kunyanyasa watumiaji wengine, kuwasilisha maagizo ya uongo, au kujaribu kufikia akaunti ya mtumiaji mwingine."
+      },
+      "limitationOfLiability": {
+        "heading": "8. Kikwazo cha Wajibu",
+        "body": "Jali haiwajibu kwa uchevu, ughairi, au matukio yaliyosababishwa na waendeshaji wa usafiri wa tatu. Tunarahisisha uteminishaji lakini hatuendi magari."
+      },
+      "changesToTerms": {
+        "heading": "9. Mabadiliko ya Masharti",
+        "body": "Tunaweza kusasisha Masharti haya wakati wowote. Matumizi yaendeleayo ya programu baada ya mabadiliko yanamaanisha kukubali. Tutakujuza mabadiliko muhimu kupitia arifa."
+      },
+      "governingLaw": {
+        "heading": "10. Sheria Inayotawala",
+        "body": "Masharti haya yanatawaliwa na sheria za Jamhuri ya Rwanda."
+      }
+    },
+    "privacy": {
+      "title": "Sera ya Faragha",
+      "whatWeCollect": {
+        "heading": "Tunachokusanya",
+        "body": "Tunakusanya nambari yako ya simu au barua pepe ya akaunti ya Google (kwa kuingia), jina lako, mahali ulipo takriban (kukokotoa ada ya huduma), historia yako ya maagizo, na tokeni ya arifa ya kifaa chako (kukutumia masasisho)."
+      },
+      "howWeUse": {
+        "heading": "Jinsi tunavyotumia data yako",
+        "body": "Data yako inatumika kama: kuchakata na kusimamia maagizo yako, kukokotoa ada ya huduma kulingana na umbali, kutuma arifa kuhusu maagizo yako, na kuboresha huduma ya Jali. Hatuuzi data yako kwa wahusika wa tatu."
+      },
+      "location": {
+        "heading": "Mahali",
+        "body": "Jali inaomba mahali ulipo tu ili kukadiria ada ya huduma kulingana na umbali wako kutoka stesheni ya basi iliyo karibu. Mahali hakihifadhiwi kwenye seva zetu na hakishirikiwi na wahusika wa tatu."
+      },
+      "firebase": {
+        "heading": "Firebase",
+        "body": "Jali inatumia Google Firebase kwa uthibitishaji na arifa. Firebase inaweza kuchakata nambari yako ya simu au barua pepe kwenye seva za Google. Angalia Sera ya Faragha ya Google kwa maelezo."
+      },
+      "dataStorage": {
+        "heading": "Uhifadhi wa data",
+        "body": "Data ya akaunti yako na rekodi za maagizo zinahifadhiwa kwenye seva zetu salama zinazohifadhiwa katika Umoja wa Ulaya (Hetzner). Picha za tikiti zinahifadhiwa kwenye Google Firebase Storage."
+      },
+      "dataRetention": {
+        "heading": "Uhifadhi wa data",
+        "body": "Data yako inahifadhiwa kwa muda wote akaunti yako ilivyo. Unapofuta akaunti yako, maelezo yako ya kibinafsi yanaondolewa kabisa ndani ya siku 30. Rekodi zisizo na majina zinaweza kuhifadhiwa kwa madhumuni ya takwimu."
+      },
+      "yourRights": {
+        "heading": "Haki zako",
+        "body": "Una haki ya kufikia, kurekebisha, au kufuta data yako ya kibinafsi wakati wowote. Unaweza kufuta akaunti yako moja kwa moja kwenye programu chini ya Profaili → Futa Akaunti. Kwa maombi mengine, wasiliana nasi privacy@jali.rw."
+      },
+      "children": {
+        "heading": "Watoto",
+        "body": "Jali haikusalidiwa kwa watumiaji chini ya umri wa miaka 18. Hatukusanyi data kutoka kwa watoto kwa makusudi."
+      },
+      "contact": {
+        "heading": "Wasiliana",
+        "body": "Kwa maswali ya faragha, wasiliana nasi privacy@jali.rw au uandikie: Jali, Kigali, Rwanda."
+      },
+      "lastUpdated": {
+        "heading": "Ilisasishwa mwisho",
+        "body": "Sera hii ilisasishwa mwisho tarehe 6 Aprili 2026."
+      }
+    }
+  },
+  "components": {
+    "busCard": {
+      "seatsLeft": "viti vilivyobaki",
+      "bookNow": "Temini Sasa"
+    },
+    "rentalCard": {
+      "rentFor": "Kodisha kwa",
+      "days": "Siku",
+      "rwfPerDay": "RWF / siku {{days}}"
+    },
+    "privateCard": {
+      "seatsLeft": "kiti(ti) vilivyobaki",
+      "bookSeat": "Temini Kiti — Lipa Mapema"
+    },
+    "bookingSheet": {
+      "ticket": "Tikiti",
+      "seatFee": "Ada ya kiti",
+      "serviceFee": "Ada ya huduma",
+      "total": "Jumla",
+      "payWith": "LIPA NA",
+      "sendingRequest": "Inatuma ombi...",
+      "requestBooking": "Omba Uteminishaji kupitia {{method}}",
+      "bookingSent": "Ombi la Uteminishwa Limetumwa!",
+      "bookingSentDesc": "Timu yetu itapanga tikiti yako na kukujuza wakati iko tayari.",
+      "bookingFailed": "Uteminishaji umeshindikana",
+      "tryAgain": "Tafadhali jaribu tena.",
+      "noRefundWarning": "Hakuna marejesho ukiwa na uchevu -- gari linaondoka kwa wakati",
+      "detectingLocation": "Inagundua mahali ulipo...",
+      "enableLocation": "Washa mahali ulipo kwa ada sahihi",
+      "kmFromStation": "{{km}} km kutoka stesheni ya {{city}}"
+    },
+    "cityPicker": {
+      "selectCity": "Chagua Mji",
+      "searchCity": "Tafuta mji...",
+      "tapToChange": "bonyeza kubadilisha",
+      "selectCityPlaceholder": "chagua mji",
+      "cancel": "Ghairi"
+    },
+    "offlineBanner": {
+      "noConnection": "Hakuna muunganisho wa intaneti",
+      "checkNetwork": "Angalia mtandao wako"
+    }
+  },
+  "common": {
+    "ok": "Sawa",
+    "yes": "Ndiyo",
+    "no": "Hapana",
+    "delete": "Futa",
+    "remove": "Ondoa",
+    "close": "Funga",
+    "confirm": "Thibitisha",
+    "change": "Badilisha"
+  }
+}

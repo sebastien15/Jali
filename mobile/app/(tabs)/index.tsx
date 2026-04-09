@@ -6,21 +6,22 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { CITIES, BUSES, CARS, PRIVATE } from "@/constants/data";
+import { CITIES } from "@/constants/data";
 import { BusCard } from "@/components/BusCard";
 import { PrivateCard } from "@/components/PrivateCard";
 import { RentalCard } from "@/components/RentalCard";
 import { BookingSheet } from "@/components/BookingSheet";
 import { CityPicker } from "@/components/CityPicker";
 import api from "@/lib/api";
-import { useMocks } from "@/lib/env";
 
 type Mode = "bus" | "private" | "rental";
 
 const DATE_OPTS = ["Today", "Tomorrow", "Apr 7", "Apr 8", "Apr 9"];
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const [from, setFrom]         = useState("Kigali");
   const [to, setTo]             = useState("");
   const [date, setDate]         = useState("Today");
@@ -35,13 +36,6 @@ export default function HomeScreen() {
   const [error, setError]         = useState<string | null>(null);
 
   useEffect(() => {
-    if (useMocks) {
-      const filtered = BUSES.filter(b => b.from === from && (!to || b.to === to));
-      setBuses(filtered);
-      setCars(CARS);
-      setPrivate(PRIVATE.filter(p => p.from === from && (!to || p.to === to)));
-      return;
-    }
     setLoading(true);
     setError(null);
     Promise.all([
@@ -72,8 +66,8 @@ export default function HomeScreen() {
       <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <View>
-            <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: "600" }}>Muraho 👋</Text>
-            <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>Where to?</Text>
+            <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: "600" }}>{t('home.greeting')}</Text>
+            <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>{t('home.whereTo')}</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/profile")}
@@ -105,14 +99,14 @@ export default function HomeScreen() {
             value={to}
             onChange={setTo}
             cities={CITIES.filter(c => c !== from)}
-            placeholder="To (any)"
+            placeholder={t('home.toAny')}
           />
         </View>
 
         {/* Date chips */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 0 }}>
           <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
-            {DATE_OPTS.map(d => (
+            {[t('home.dateToday'), t('home.dateTomorrow'), "Apr 7", "Apr 8", "Apr 9"].map(d => (
               <TouchableOpacity
                 key={d}
                 onPress={() => setDate(d)}
@@ -133,9 +127,9 @@ export default function HomeScreen() {
       {/* ── Mode tabs ── */}
       <View style={{ flexDirection: "row", backgroundColor: C.white, borderBottomWidth: 2, borderBottomColor: C.border }}>
         {([
-          { id: "bus",     icon: "🚌", label: "Bus"          },
-          { id: "private", icon: "💺", label: "Private Seat" },
-          { id: "rental",  icon: "🚗", label: "Car Rental"   },
+          { id: "bus",     icon: "🚌", label: t('home.modeBus')    },
+          { id: "private", icon: "💺", label: t('home.modePrivate') },
+          { id: "rental",  icon: "🚗", label: t('home.modeRental')  },
         ] as const).map(m => (
           <TouchableOpacity
             key={m.id}
@@ -194,7 +188,7 @@ export default function HomeScreen() {
                 paddingHorizontal: 24, paddingVertical: 12,
               }}
             >
-              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>Retry</Text>
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>{t('home.retry')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -202,9 +196,9 @@ export default function HomeScreen() {
         {!loadingData && mode === "bus" && (
           <>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
-              {filteredBuses.length} buses · {from}{to ? ` → ${to}` : " (all routes)"}
+              {filteredBuses.length} {t('home.buses')} · {from}{to ? ` → ${to}` : ` (${t('home.allRoutes')})`}
             </Text>
-            {filteredBuses.length === 0 && <EmptyState icon="🚌" msg="No buses for this route" />}
+            {filteredBuses.length === 0 && <EmptyState icon="🚌" msg={t('home.noBusesRoute')} />}
             {filteredBuses.map(b => (
               <BusCard key={b.id} bus={b} onPress={() => setSheet({ type: "bus", item: b, travelDate: date })} />
             ))}
@@ -219,13 +213,13 @@ export default function HomeScreen() {
             }}>
               <Text style={{ fontSize: 16 }}>⚠️</Text>
               <Text style={{ color: C.white, fontSize: 13, fontWeight: "700", flex: 1 }}>
-                Upfront fee — no refund if you're late
+                {t('home.upfrontFeeWarning')}
               </Text>
             </View>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
-              {filteredPrivate.length} private cars · {from}{to ? ` → ${to}` : " (all routes)"}
+              {filteredPrivate.length} {t('home.privateCars')} · {from}{to ? ` → ${to}` : ` (${t('home.allRoutes')})`}
             </Text>
-            {filteredPrivate.length === 0 && <EmptyState icon="💺" msg="No private cars for this route" />}
+            {filteredPrivate.length === 0 && <EmptyState icon="💺" msg={t('home.noPrivateCarsRoute')} />}
             {filteredPrivate.map(p => (
               <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p, travelDate: date })} />
             ))}
@@ -236,7 +230,7 @@ export default function HomeScreen() {
           <>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark }}>
-                {cars.length} cars in Kigali
+                {cars.length} {t('home.carsInCity')}
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <TouchableOpacity

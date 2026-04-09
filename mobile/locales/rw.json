@@ -1,0 +1,426 @@
+{
+  "home": {
+    "greeting": "Muraho 👋",
+    "whereTo": "Ujya he?",
+    "from": "Urava",
+    "toAny": "Ngera (aho ari ho hose)",
+    "dateToday": "Tariki uyu munsi",
+    "dateTomorrow": "Ejo",
+    "modeBus": "Basi",
+    "modePrivate": "Ahicaye prive",
+    "modeRental": "Gukodesha imodoka",
+    "noBusesRoute": "Nta bisi zihari kuri uyu muhanda",
+    "noPrivateCarsRoute": "Nta modoka bwite zihari kuri uyu muhanda",
+    "retry": "Ongera ugerageze",
+    "buses": "bisi",
+    "privateCars": "modoka bwite",
+    "carsInCity": "imodoka i Kigali",
+    "upfrontFeeWarning": "Amafaranga mbere -- nta gusubizwa utinze",
+    "allRoutes": "(imihanda yose)",
+    "loading": "Birimo gutunganywa..."
+  },
+  "profile": {
+    "driverMode": "Uburyo bwo Gutwara",
+    "driverModeQuestion": "Urifuza gukorana na Jali?",
+    "privateSeatTrips": "Mfite imyanya iri prive",
+    "ownRentalCars": "Mfite imodoka zo gukodesha",
+    "cancel": "Siba",
+    "logout": "Sohoka",
+    "logoutConfirm": "Uzi neza ko ushaka gusohoka?",
+    "deleteAccount": "Siba Konti",
+    "deleteAccountWarning": "Ibi bizasiba burundu konti yawe n'amakuru yose uyirimo. Ntushobora kuyagarura.",
+    "areYouSure": "ni ukuri?",
+    "deleteAccountDetails": "Amakuru ajyanye na konte yawe arasibwa.",
+    "keepAccount": "Oya, reka ngumane account",
+    "deleteEverything": "Yego, Siba byose",
+    "pleaseSignInAgain": "Ongera ugerageze",
+    "signInAgainDetails": "Kubw'umutekano, nyamuneka sohoka kandi winjire nanone mbere yo gusiba konti yawe.",
+    "paymentMethods": "Uburyo bwo Kwishyura",
+    "paymentSub": "MoMo, Airtel, card",
+    "notifications": "Ubutumwa",
+    "notificationsSub": "Genzura amakuru",
+    "language": "Ururimi",
+    "languageSub": "Kinyarwanda / English",
+    "helpSupport": "Ubufasha & Support",
+    "helpSub": "WhatsApp · Wk-Gat 8am-6pm",
+    "rateJali": "Gira icyo uvuga kuri Jali",
+    "rateSub": "Duhe igitekerezo cyawe",
+    "faq": "Ibibazo",
+    "faqSub": "Ibibazo bibazwa kenshi",
+    "privacyPolicy": "Politiki y'Ibanga",
+    "privacySub": "Uko twita ku makuru yawe",
+    "termsConditions": "Amabwiriza & Ibisabwa",
+    "termsSub": "Amabwiriza yo gukoresha Jali",
+    "aboutJali": "Ibya Jali",
+    "version": "Verisiyo",
+    "aboutDetails": "Gutumira ubwikorezi bwo mu Rwanda.\n\nYakozwe n'umutima i Kigali.",
+    "trips": "Ingendo",
+    "rating": "Igipimo",
+    "pending": "Bitegereje",
+    "switchToDrive": "Hindura utwara winjize",
+    "fleetOwner": "Nyiri floti -- agenga imodoka",
+    "privateDriver": "Umushoferi bwite -- atanga ingendo",
+    "logOut": "Sohoka",
+    "deleteMyAccount": "Siba konti yanjye",
+    "error": "Ikosa"
+  },
+  "drive": {
+    "driverMode": "Uburyo bwo Gutwara",
+    "dashboard": "Ikibaho",
+    "online": "Uri ku murongo",
+    "offline": "Nta murongo",
+    "todayRwf": "Uyu munsi RWF",
+    "tripsToday": "Ingendo uyu munsi",
+    "rating": "Igipimo",
+    "changeEarningMode": "Hindura uburyo bwo gutsindira",
+    "earningQuestion": "Wifuza gutsindira gute na Jali?",
+    "privateSeatDriver": "Umushoferi w'ahicaye bwite",
+    "fleetOwner": "Nyiri Floti / Gukodesha Imodoka",
+    "earningAs": "Intsinzi nka:",
+    "change": "Hindura",
+    "thisWeek": "Iyi cyumweru",
+    "trips": "Ingendo",
+    "myFleet": "Floti yanjye",
+    "available": "ihari",
+    "rented": "yakodeshejwe",
+    "newTripListing": "Ingingo nshya",
+    "active": "Ikora",
+    "paused": "Ihagaze",
+    "myPickupZones": "Aho mfata abagenzi",
+    "upcoming": "Irateganijwe",
+    "history": "Amateka",
+    "upcomingCount": "Irateganijwe ({{count}})",
+    "historyCount": "Amateka ({{count}})",
+    "noUpcomingRides": "Nta ngendo ziteganijwe",
+    "noTripHistory": "Nta mateka y'ingendo araba",
+    "pax": "abagenzi"
+  },
+  "trips": {
+    "myTrips": "Ingendo zanjye",
+    "filterAll": "zose",
+    "filterPending": "zitegereje",
+    "filterConfirmed": "zemewe",
+    "filterCompleted": "zarangiye",
+    "retry": "Ongera ugerageze",
+    "noTripsYet": "Nta ngendo hano",
+    "ticketPhotoReady": "Ifoto y'itike irateguye",
+    "tapToView": "Kanda urebe",
+    "showAtStation": "Garagaza kuri station",
+    "view": "Reba",
+    "awaitingConfirmation": "Itegereje kwemezwa -- admin itegura itike yawe",
+    "close": "Funga"
+  },
+  "login": {
+    "enterPhone": "Andika numero yawe y'u Rwanda",
+    "enterCode": "Andika code y'imibare 6 twohereje",
+    "sendCode": "Ohereza Code",
+    "verifyEnter": "Emeza & Injira",
+    "validPhoneRequired": "Andika numero y'u Rwanda yemewe",
+    "comingSoon": "Biraje vuba",
+    "phoneNotAvailable": "Kwinjira na telefoni ntabwo biraboneka. Koresha Google ubu.",
+    "or": "cyangwa",
+    "continueWithGoogle": "Komeza na Google",
+    "googleAvailable": "Kwinjira na Google biraboneka ku bashoferi mpuzamahanga",
+    "wrongCode": "Code nabi",
+    "changeNumber": "Hindura numero",
+    "googleSignInFailed": "Kwinjira na Google byanze"
+  },
+  "listing": {
+    "privateDriver": "Umushoferi Bwite",
+    "newTripListing": "Ingingo Nshya y'Urugendo",
+    "editListing": "Hindura Ingingo",
+    "route": "Umunzira",
+    "schedule": "Gahunda",
+    "capacityPricing": "Umwanya & Igiciro",
+    "available": "Ibi biraboneka kuri iyi ngendo",
+    "groupDiscount": "Igabanuka ry'itsinda",
+    "doorPickup": "Gufata ku muryango",
+    "notes": "Ibitekerezo",
+    "from": "Ava",
+    "to": "Agera",
+    "pickupPoint": "Aho ufata",
+    "dropOffArea": "Aho ubamanura (bidasabwa)",
+    "departureDate": "Itariki y'urugendo",
+    "departureTime": "Igihe cy'urugendo",
+    "change": "Hindura",
+    "confirmDate": "Emeza Itariki",
+    "availableSeats": "Imyanya iboneka",
+    "pricePerSeat": "Igiciro ku mwanya (RWF)",
+    "amenitiesHint": "Menyesha abagenzi ibiri mu modoka yawe",
+    "offerGroupDiscount": "Tanga igabanuka ry'itsinda",
+    "groupDiscountDesc": "Gabanya igiciro iyo imyanya myinshi yatumijwe hamwe",
+    "minGroupSize": "Umubare muto w'itsinda",
+    "discountPercentage": "Ijanisha ry'igabanuka",
+    "offerDoorPickup": "Tanga gufata ku muryango",
+    "doorPickupDesc": "Fata abagenzi aho bari (igiciro cy'inyongera)",
+    "extraFee": "Igiciro cy'inyongera ku gufata ku muryango (RWF)",
+    "extraFeeDesc": "Ibi byongerwa ku giciro cy'umwanya",
+    "updateListing": "Hindura Ingingo",
+    "publishListing": "Tangaza Ingingo",
+    "deleteListing": "Siba iyi ngendo",
+    "required": "Birasabwa",
+    "selectDestination": "Nyamuneka hitamo aho ujya n'aho ufata.",
+    "enterPrice": "Nyamuneka andika igiciro ku mwanya.",
+    "error": "Ikosa",
+    "saveListingError": "Ntibishoboye kubika ingingo.",
+    "deleteListingTitle": "Siba Ingingo",
+    "deleteListingConfirm": "Siba iyi ngendo?",
+    "confirmTime": "Emeza — {{time}}",
+    "listingUpdated": "Byahinduwe",
+    "listingPublished": "Byatangajwe",
+    "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
+    "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
+    "selectDestination": "Hitamo aho ujya",
+    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
+  },
+  "driverSetup": {
+    "fleetOwner": "Nyiri Floti",
+    "privateDriver": "Umushoferi Bwite",
+    "mySetup": "Imiterere yanjye",
+    "myProfile": "Profil yanjye",
+    "myVehicle": "Imodoka yanjye",
+    "whatsInYourCar": "Ibiri mu Modoka Yawe",
+    "carPhotos": "Amafoto y'Imodoka",
+    "operations": "Ibikorwa",
+    "displayName": "Izina rigaragara",
+    "phoneNumber": "Numero ya Telefoni",
+    "carModel": "Ubwoko bw'Imodoka",
+    "plateNumber": "Numero ya Plaque",
+    "carType": "Ubwoko bw'Imodoka",
+    "numberOfSeats": "Umubare w'Imyanya",
+    "pricePerDay": "Igiciro ku Munsi (RWF)",
+    "cautionDeposit": "Inguwanya / Depo (RWF)",
+    "amenitiesHint": "Abagenzi bazabona ibi bareba urutonde rwawe",
+    "photosHint": "Ongeramo amafoto 4 kugira ngo abagenzi bamenye ibyitezwe",
+    "frontView": "Imbere",
+    "sideView": "Ibumoso/Iburyo",
+    "interior": "Imbere mu modoka",
+    "luggageSpace": "Aho imitwaro",
+    "tapToAdd": "Kanda wongereho",
+    "allowedZones": "Zones zemewe",
+    "insuranceExpiry": "Iherezo ry'Ubwishingizi",
+    "docsUrl": "T&Cs / URL y'Icyangombwa cy'Ubwishingizi",
+    "docsUrlHint": "Ohereza icyangombwa kuri Firebase Storage ukomeze URL hano",
+    "saveChanges": "Bika Ihinduka",
+    "saved": "Byabitswe",
+    "profileUpdated": "Profil yawe yahinduwe.",
+    "error": "Ikosa",
+    "saveError": "Ntibishoboye kubika. Ongera ugerageze.",
+    "required": "Birasabwa",
+    "fillCarDetails": "Nyamuneka uzuza ubwoko bw'imodoka na numero ya plaque.",
+    "permissionNeeded": "Uruhushya rusabwa",
+    "photoPermission": "Nyamuneka emeza gukoresha amafoto yawe.",
+    "yourName": "Izina ryawe",
+    "carTypeSedan": "Sedan",
+    "carTypeSuv": "SUV",
+    "carTypeMinivan": "Minivan",
+    "carTypePickup": "Pickup"
+  },
+  "fleet": {
+    "fleetOwner": "Nyiri Floti",
+    "myFleet": "Floti yanjye",
+    "addCar": "Ongeraho Imodoka",
+    "noCarsYet": "Nta modoka ziraboneka — ongeraho ya mbere!",
+    "status": "Imiterere",
+    "available": "Iboneka",
+    "rented": "Yakodeshejwe",
+    "maintenance": "Gusana",
+    "pricePerDay": "Igiciro ku Munsi (RWF)",
+    "cautionDeposit": "Inguwanya / Depo (RWF)",
+    "allowedZones": "Zones zemewe",
+    "notesForRenter": "Ibitekerezo ku wakodesheje",
+    "remove": "Kuraho",
+    "saveChanges": "Bika Ihinduka",
+    "addNewCar": "Ongeraho Imodoka Nshya",
+    "carNameModel": "Izina / Ubwoko bw'Imodoka",
+    "carType": "Ubwoko bw'Imodoka",
+    "plateNumber": "Numero ya Plaque",
+    "numberOfSeats": "Umubare w'Imyanya",
+    "pricePerDayRwf": "Igiciro ku Munsi (RWF)",
+    "cautionDepositRwf": "Inguwanya / Depo (RWF)",
+    "required": "Birasabwa",
+    "fillCarName": "Nyamuneka uzuza izina ry'imodoka, plaque, n'igiciro ku munsi.",
+    "error": "Ikosa",
+    "addCarError": "Ntibishoboye kongeraho imodoka.",
+    "removeCar": "Kuraho Imodoka",
+    "removeCarConfirm": "Kuraho {{name}} ({{plate}}) mu floti yawe?",
+    "removeCarError": "Ntibishoboye gukuraho imodoka.",
+    "addToFleet": "Ongeraho mu Floti"
+  },
+  "legal": {
+    "faq": {
+      "title": "Ibibazo",
+      "howToBook": {
+        "heading": "Ntuma nshobora gutumiza bisi?",
+        "body": "Fungura Ahabanza, hitamo umujyi uva, aho ujya, n'itariki. Hitamo bisi ku rutonde kande utume. Umuyobozi azemeza gutumiza kandi ashira ifoto y'itike mu masaha make."
+      },
+      "serviceFee": {
+        "heading": "Serivisi y'amafaranga ikora ite?",
+        "body": "Jali ifata 300-500 RWF ku gutumiza buri yose hashingiwe ku ntera uva kuri station ya bisi ya hafi. Aya mafaranga yishyura ibikorwa byacu kandi agaragara neza mbere yo kwishyura."
+      },
+      "receiveTicket": {
+        "heading": "Nzabona itike ryari?",
+        "body": "Nyuma yo gutumiza, itsinda ryacu rihuza n'isosiyete ya bisi rikaguha itike. Dufata ifoto y'itike tuyishira kuri booking yawe — bisanzwe mu masaha 2-4. Uzabona ubutumwa bw'itike irateguye."
+      },
+      "cancelBooking": {
+        "heading": "Nshobora gusiba gutumiza?",
+        "body": "Gutumiza bisi bishobora gusibwa amasaha 24 mbere y'urugendo kugira ngo ubashe gusubizwa. Ahicaye bwite ntibishobora gusubizwa — umushoferi aba yatse umwanya mbere. Gukodesha imodoka bishingiye ku gihe gisigaye."
+      },
+      "paymentMethods": {
+        "heading": "Ni ubuhe buryo bwo kwishyura buboneka?",
+        "body": "Ubu dukoresha MTN Mobile Money, Airtel Money, n'ikadi ya banki. Kwishyura bizaboneka mu minsi iri imbere. Gutumiza byemejwe nyuma yo kwishyura."
+      },
+      "becomeDriver": {
+        "heading": "Naba umushoferi nte?",
+        "body": "Jya kuri Profile ukoraneho Uburyo bwo Gutwara. Uzashobora gutanga imyanya bwite ku nzira zawe ukwinjiza n'abagenzi. Amakuru y'imodoka n'akarere ushobora kubishira kuri Dashboard."
+      },
+      "contactSupport": {
+        "heading": "Ntuma mvugisha support?",
+        "body": "Kanda ku Bufasha & Support muri Profile yawe. Urashobora kutwandikira kuri WhatsApp cyangwa guhamagara mu masaha y'akazi (8am-6pm, Kuwa Mbere-Kuwa Gatandatu). Dushaka gusubiza mu isaha 1."
+      },
+      "outsideKigali": {
+        "heading": "Jali ikora hanze ya Kigali?",
+        "body": "Yego. Jali ikora inzira hagati ya Kigali, Musanze, Huye, Rubavu, Nyagatare, Rwamagana, Muhanga, na Rusizi. Imijyi myinshi izongerwa hashingiwe ku busabe."
+      }
+    },
+    "terms": {
+      "title": "Amabwiriza & Ibisabwa",
+      "acceptance": {
+        "heading": "1. Kwemera",
+        "body": "Ukoresha Jali, wemeye aya Mabwiriza. Ntabyo wemera, ntukoreshe app. Aya mabwiriza akora ku bakoresha bose harimo abagenzi, abashoferi, n'abayobozi."
+      },
+      "eligibility": {
+        "heading": "2. Ubushobozi",
+        "body": "Ugomba kuba ufite imyaka 18 nibura kugira ngo ukoreshe Jali. Ufungura konti wemeje ko ujuje ibi bisabwa."
+      },
+      "bookings": {
+        "heading": "3. Gutumiza",
+        "body": "Jali ikora nk'ihuza ry'ibisabwa. Dutegura ubwikorezi bwawe binyuze mu masosiyete y'abashoferi n'abashoferi bwite. Kwemezwa bishingiye ku mwanya uboneka."
+      },
+      "serviceFee": {
+        "heading": "4. Serivisi y'Amafaranga",
+        "body": "Serivisi y'amafaranga ya 300-500 RWF ntisubizwa ku gutumiza buri yose. Aya mafaranga yishyura ibikorwa bya platform kandi agaragara mbere yo kwishyura."
+      },
+      "cancellations": {
+        "heading": "5. Gusiba & Gusubizwa",
+        "body": "Gutumiza bisi byasibwe amasaha 24 mbere y'urugendo kugira ngo ubashe gusubizwa (serivisi idasubizwa). Ahicaye bwite ntibisubizwa nyuma yo kwemezwa. Gukodesha imodoka ntibisubizwa mu masaha 12 y'itangira."
+      },
+      "driverResponsibilities": {
+        "heading": "6. Inshingano z'Umushoferi",
+        "body": "Abashoferi batanga imyanya bwite binyuze kuri Jali ni abakora bwite. Bashinzwe imodoka yabo, ubwishingizi, no kubahiriza amategeko y'ubwikorezi mu Rwanda."
+      },
+      "prohibitedUse": {
+        "heading": "7. Gukoresha bidatemewe",
+        "body": "Ntugomba gukoresha Jali mu bikorwa bitemewe n'amategeko, gusuzugura abandi bakoresha, gutumiza impimbano, cyangwa kugerageza kwinjira muri konti y'undi mukoresha."
+      },
+      "limitationOfLiability": {
+        "heading": "8. Kugabanya Inshingano",
+        "body": "Jali ntibazwa gukererwa, gusiba, cyangwa impanuka ziterwa n'abashoferi b'indi sosiyete. Duhuza gutumiza ariko ntidutwara imodoka."
+      },
+      "changesToTerms": {
+        "heading": "9. Impinduka mu Mabwiriza",
+        "body": "Dushobora guhindura aya Mabwiriza igihe cyose. Gukoresha app nyuma y'impinduka bisobanura ko wemeye. Tuzakumenyesha impinduka zikomeye binyuze kuri notification."
+      },
+      "governingLaw": {
+        "heading": "10. Amategeko agenga",
+        "body": "Aya Mabwiriza agengwa n'amategeko ya Repubulika y'u Rwanda."
+      }
+    },
+    "privacy": {
+      "title": "Politiki y'Ibanga",
+      "whatWeCollect": {
+        "heading": "Ibyo dukusanya",
+        "body": "Dukusanya numero yawe ya telefoni cyangwa email ya konti Google (kugira ngo winjire), izina ryawe, aho uherereye (kubara serivisi), amateka y'ibisabwa, na token ya notification y'igikoresho cyawe (kukohereza amakuru)."
+      },
+      "howWeUse": {
+        "heading": "Uko dukoresha amakuru yawe",
+        "body": "Amakuru yawe akoreshwa kugira ngo: dutegure kandi ducunge ibisabwa byawe, tubare serivisi hashingiwe ku ntera, twohereze notification ku bisabwa byawe, n'iterambere rya serivisi ya Jali. Ntidutunza amakuru yawe."
+      },
+      "location": {
+        "heading": "Aho uherereye",
+        "body": "Jali isaba aho uherereye gusa kugira ngo ibare serivisi hashingiwe ku ntera uva kuri station ya bisi ya hafi. Aho uherereye ntibubikwa kuri server zacu kandi ntibisangirwa n'abandi."
+      },
+      "firebase": {
+        "heading": "Firebase",
+        "body": "Jali ikoresha Google Firebase kugira ngo yemeze konti no kohereza notification. Firebase ishobora gutunganya numero yawe ya telefoni cyangwa email kuri server za Google. Reba Politiki y'Ibanga ya Google."
+      },
+      "dataStorage": {
+        "heading": "Kubika amakuru",
+        "body": "Amakuru ya konti yawe n'ibisabwa bibikwa kuri server zacu zizewe ziri mu Burayi (Hetzner). Amafoto y'itike abikwa muri Google Firebase Storage."
+      },
+      "dataRetention": {
+        "heading": "Kugumisha amakuru",
+        "body": "Amakuru yawe agumishwa igihe konti yawe ihari. Usibye konti yawe, amakuru yawe y'ibanga akurwa burundu mu minsi 30. Amakuru y'ibisabwa atazwi arashobora kugumishwa."
+      },
+      "yourRights": {
+        "heading": "Uburenganzira bwawe",
+        "body": "Ufite uburenganzira bwo kugera, gukosora, cyangwa gusiba amakuru yawe igihe cyose. Urashobora gusiba konti yawe muri app → Profile → Siba Konti. Kugira ngo ubaze ibindi, twandikira privacy@jali.rw."
+      },
+      "children": {
+        "heading": "Abana",
+        "body": "Jali ntabwo igenewe abakoresha bafite imyaka munsi ya 18. Ntidukusanya amakuru y'abana n'ubushake."
+      },
+      "contact": {
+        "heading": "Twandikire",
+        "body": "Kubibazo by'ibanga, twandikira privacy@jali.rw cyangwa wandike: Jali, Kigali, u Rwanda."
+      },
+      "lastUpdated": {
+        "heading": "Iheruka kuvugururwa",
+        "body": "Iyi politiki yavuguruwe bwa nyuma ku ya 6 Mata 2026."
+      }
+    }
+  },
+  "components": {
+    "busCard": {
+      "seatsLeft": "imyanya isigaye",
+      "bookNow": "Tumiza Ubu"
+    },
+    "rentalCard": {
+      "rentFor": "Kodesha kuri",
+      "days": "Umunsi",
+      "rwfPerDay": "RWF / iminsi {{days}}"
+    },
+    "privateCard": {
+      "seatsLeft": "umwanya(us) usigaye",
+      "bookSeat": "Tumiza Umwanya — Ishyura Mbere"
+    },
+    "bookingSheet": {
+      "ticket": "Itike",
+      "seatFee": "Igiciro cy'umwanya",
+      "serviceFee": "Serivisi",
+      "total": "Yose",
+      "payWith": "ISHYURA NA",
+      "sendingRequest": "Ohereza icyifuzo...",
+      "requestBooking": "Saba gutumiza na {{method}}",
+      "bookingSent": "Icyifuzo cyoherejwe!",
+      "bookingSentDesc": "Itsinda ryacu rizategura itike yawe rikakumenyesha iri teguye.",
+      "bookingFailed": "Gutumiza byaranze",
+      "tryAgain": "Ongera ugerageze.",
+      "noRefundWarning": "Nta gusubizwa utinze -- imodoka igenda ku gihe",
+      "detectingLocation": "Igenzura aho uherereye...",
+      "enableLocation": "Fungura aho uherereye kugira ngo habare neza",
+      "kmFromStation": "{{km}} km kuva station ya {{city}}"
+    },
+    "cityPicker": {
+      "selectCity": "Hitamo Umujyi",
+      "searchCity": "Shakisha umujyi...",
+      "tapToChange": "kanda uhindure",
+      "selectCityPlaceholder": "hitamo umujyi",
+      "cancel": "Siba"
+    },
+    "offlineBanner": {
+      "noConnection": "Nta murongo wa internet",
+      "checkNetwork": "Genzura urusobe rwawe"
+    }
+  },
+  "common": {
+    "ok": "Yego",
+    "yes": "Yego",
+    "no": "Oya",
+    "delete": "Siba",
+    "remove": "Kuraho",
+    "close": "Funga",
+    "confirm": "Emeza",
+    "change": "Hindura"
+  }
+}

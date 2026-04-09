@@ -9,7 +9,6 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { C } from "@/constants/theme";
 import { useDriverMode, DriverType } from "@/lib/DriverModeContext";
-import { useMocks } from "@/lib/env";
 import { auth } from "@/lib/firebase";
 import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
 import api from "@/lib/api";
@@ -78,23 +77,19 @@ export default function DriverSetupScreen() {
     }
     setSaving(true);
     try {
-      if (!useMocks) {
-        await api.patch("/driver/profile", {
-          name,
-          car_model: carModel,
-          plate,
-          seats: parseInt(seats),
-          car_type: carType,
-          price_day: priceDay ? parseInt(priceDay) : undefined,
-          caution: caution ? parseInt(caution) : undefined,
-          insurance_expiry: insExpiry,
-          allowed_zones: zones.map(i => ZONES[i]),
-          docs_url: docsUrl,
-          amenities,
-        });
-      } else {
-        await new Promise(r => setTimeout(r, 600));
-      }
+      await api.patch("/driver/profile", {
+        name,
+        car_model: carModel,
+        plate,
+        seats: parseInt(seats),
+        car_type: carType,
+        price_day: priceDay ? parseInt(priceDay) : undefined,
+        caution: caution ? parseInt(caution) : undefined,
+        insurance_expiry: insExpiry,
+        allowed_zones: zones.map(i => ZONES[i]),
+        docs_url: docsUrl,
+        amenities,
+      });
       Alert.alert("Saved ✓", "Your profile has been updated.", [
         { text: "OK", onPress: () => router.back() },
       ]);
