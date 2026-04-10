@@ -12,7 +12,7 @@ class AdminProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->auth_user;
-        $user->load("location");
+        $user->load(["location", "roles"]);
 
         return response()->json([
             "id" => $user->id,

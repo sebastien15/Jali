@@ -39,7 +39,13 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const authRes = await api.post("/auth/login");
+        console.log(
+          "[AdminNav] /auth/login raw:",
+          JSON.stringify(authRes.data).slice(0, 300),
+        );
         const authUser = authRes.data.user;
+        console.log("[AdminNav] authUser:", authUser);
+        console.log("[AdminNav] authUser.roles:", authUser?.roles);
         const authRoles: string[] = authUser?.roles ?? [];
 
         let nextUser: AdminUser = {
@@ -52,7 +58,12 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
 
         try {
           const profileRes = await api.get("/admin/profile");
+          console.log(
+            "[AdminNav] /admin/profile raw:",
+            JSON.stringify(profileRes.data).slice(0, 300),
+          );
           const profile = profileRes.data;
+          console.log("[AdminNav] profile.roles:", profile.roles);
           nextUser = {
             name: profile.name ?? nextUser.name,
             email: profile.email ?? nextUser.email,
@@ -60,15 +71,17 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
             profile_image_url: profile.profile_image_url ?? null,
             location: profile.location ?? null,
           };
-        } catch {
-          // Fall back to auth payload
+        } catch (e) {
+          console.log("[AdminNav] /admin/profile FAILED:", e);
         }
 
+        console.log("[AdminNav] Final nextUser:", JSON.stringify(nextUser));
         if (mountedRef.current) {
           setUser(nextUser);
           setLoading(false);
         }
-      } catch {
+      } catch (e) {
+        console.log("[AdminNav] /auth/login FAILED:", e);
         if (mountedRef.current) {
           setUser(null);
           setLoading(false);
