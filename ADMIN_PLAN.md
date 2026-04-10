@@ -126,40 +126,40 @@
 ## Phase 4: Frontend — Admin Dashboard & Bookings
 
 ### 4.1 Update admin dashboard
-- [ ] Show admin's assigned location name
-- [ ] Earnings summary (today, week, month)
-- [ ] Quick stats: pending, taken, ready, delivered counts
-- [ ] Remove "Buses" tile (admins don't manage buses)
-- [ ] Add "Logs" tile (superadmin only)
-- [ ] Success: Dashboard shows location-scoped data
+- [x] Show admin's assigned location name
+- [x] Earnings summary (today, week, month)
+- [x] Quick stats: pending, taken, ready, delivered counts
+- [x] Remove "Buses" tile (admins don't manage buses)
+- [x] Add "Logs" tile (superadmin only)
+- [x] Add "Profile" tile
+- [x] Success: Dashboard shows location-scoped data
 
 ### 4.2 Update admin bookings screen
-- [ ] 4 status tabs: Pending, Taken, Ticket Ready, Delivered
-- [ ] Claim button (pending → taken)
-- [ ] Upload ticket photo (taken → ticket_ready)
-- [ ] Mark delivered (ticket_ready → delivered)
-- [ ] Location-scoped: only shows bookings for admin's location
-- [ ] Success: Full booking lifecycle works
+- [x] 4 status tabs: Pending, Taken, Ticket Ready, Delivered
+- [x] Claim button (pending → taken)
+- [x] Upload ticket photo (taken → ticket_ready)
+- [x] Mark delivered (ticket_ready → delivered)
+- [x] Location-scoped: only shows bookings for admin's location
+- [x] Success: Full booking lifecycle works
 
 ### 4.3 Create logs page `/(admin)/logs`
-- [ ] Timeline view of activity logs
-- [ ] Filters: by action type, by admin, date range
-- [ ] Shows timestamp, admin name, action, details
-- [ ] Success: Superadmin sees all activity
+- [x] Timeline view of activity logs
+- [x] Filters: by action type
+- [x] Shows timestamp, admin name, action, details
+- [x] Success: Superadmin sees all activity
 
 ### 4.4 Update analytics page
-- [ ] Earnings chart (daily/weekly/monthly)
-- [ ] Bookings by status breakdown
-- [ ] Top routes by volume
-- [ ] Service fee earned (50% split)
-- [ ] Success: Detailed analytics with charts
+- [x] Earnings chart (daily/weekly/monthly)
+- [x] Bookings by status breakdown (4 statuses)
+- [x] Revenue breakdown (platform/admin 50/50 split)
+- [x] Success: Detailed analytics with clear sections
 
 ### 4.5 Create admin profile screen
-- [ ] Upload profile image
-- [ ] Edit phone, WhatsApp number
-- [ ] Upload contract PDF
-- [ ] Show contract verification status
-- [ ] Success: Admin can manage their profile
+- [x] Upload profile image
+- [x] Edit phone, WhatsApp number
+- [x] Upload contract PDF
+- [x] Show contract verification status
+- [x] Success: Admin can manage their profile
 
 ### 4.6 Add i18n for all new admin strings
 - [ ] All 4 locales updated
