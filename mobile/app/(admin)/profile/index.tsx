@@ -17,9 +17,11 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 export default function AdminProfileScreen() {
   const { t } = useTranslation();
+  const { handleLogout } = useAdminNav();
   const [profile, setProfile] = useState<any>(null);
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -256,6 +258,28 @@ export default function AdminProfileScreen() {
               Save Changes
             </Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{
+            backgroundColor: "rgba(220,38,38,0.08)",
+            borderRadius: 14,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+            marginBottom: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            borderWidth: 1,
+            borderColor: "rgba(220,38,38,0.2)",
+          }}
+        >
+          <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+          <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>
+            Log Out
+          </Text>
         </TouchableOpacity>
 
         {/* Contract */}

@@ -1,6 +1,6 @@
 import { usePathname } from "expo-router";
 import { Tabs } from "expo-router";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import {
@@ -40,9 +40,24 @@ function TabIcon({
 }
 
 function TabsNavigator() {
-  const { isSuperAdmin } = useAdminNav();
+  const { isSuperAdmin, loading } = useAdminNav();
   const pathname = usePathname();
   const isLogin = pathname.includes("/login");
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: C.bg,
+        }}
+      >
+        <ActivityIndicator size="large" color={C.teal} />
+      </View>
+    );
+  }
 
   return (
     <Tabs
@@ -63,7 +78,6 @@ function TabsNavigator() {
         },
       }}
     >
-      {/* ── 4 Visible Tabs ── */}
       <Tabs.Screen
         name="dashboard"
         options={{
@@ -137,6 +151,16 @@ function TabsNavigator() {
       <Tabs.Screen name="users/index" options={{ href: null }} />
       <Tabs.Screen name="users/[id]" options={{ href: null }} />
       <Tabs.Screen name="logs/index" options={{ href: null }} />
+      {!isSuperAdmin && (
+        <Tabs.Screen name="stations/index" options={{ href: null }} />
+      )}
+      {isSuperAdmin && (
+        <>
+          <Tabs.Screen name="users/index" options={{ href: null }} />
+          <Tabs.Screen name="logs/index" options={{ href: null }} />
+          <Tabs.Screen name="profile/index" options={{ href: null }} />
+        </>
+      )}
     </Tabs>
   );
 }
