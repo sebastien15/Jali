@@ -19,7 +19,7 @@ class AuthController extends Controller
 
         $token = $request->bearerToken();
         if (!$token) {
-            Log::warn("[Auth] No token provided");
+            Log::warning("[Auth] No token provided");
             return response()->json(
                 ["error" => "Unauthorized", "message" => "No token provided"],
                 401,
