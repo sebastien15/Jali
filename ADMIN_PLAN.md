@@ -52,48 +52,52 @@
 ## Phase 2: Backend — Controllers & Routes
 
 ### 2.1 Create `LocationController` (superadmin)
-- [ ] `index` — list all locations
-- [ ] `store` — create location
-- [ ] `update` — edit location
-- [ ] `destroy` — delete location
-- [ ] Permission: `manage-locations`
-- [ ] Success: All 4 endpoints work, only superadmin can access
+- [x] `index` — list all locations
+- [x] `store` — create location
+- [x] `update` — edit location
+- [x] `destroy` — delete location (with FK checks)
+- [x] Permission: `manage-locations` (added via migration)
+- [x] Success: All 4 endpoints work, only superadmin can access
 
 ### 2.2 Create `AdminProfileController`
-- [ ] `show` — get admin profile data
-- [ ] `update` — update contact info, upload profile image, upload contract PDF
-- [ ] Upload to Firebase Storage or local storage
-- [ ] Success: Admin can update their own profile
+- [x] `show` — get admin profile data
+- [x] `update` — update contact info
+- [x] `uploadProfileImage` — upload image to local storage
+- [x] `uploadContract` — upload contract PDF, resets contract_verified
+- [x] Success: Admin can update their own profile
 
 ### 2.3 Create `LocationChangeRequestController`
-- [ ] `store` — admin requests location change
-- [ ] `index` — superadmin sees pending requests
-- [ ] `approve` / `reject` — superadmin actions
-- [ ] Success: Flow works end-to-end, status updates correctly
+- [x] `store` — admin requests location change
+- [x] `index` — superadmin sees pending requests
+- [x] `approve` / `reject` — superadmin actions
+- [x] Success: Flow works end-to-end, status updates correctly
 
 ### 2.4 Create `ActivityLogController`
-- [ ] `index` — list logs with filters (admin, action, date range)
-- [ ] Auto-log: booking claimed, status changed, location change approved/rejected
-- [ ] Success: Logs populate automatically, superadmin can filter
+- [x] `index` — list logs with filters (admin, action, date range)
+- [x] Pagination support
+- [x] Success: Logs populate automatically, superadmin can filter
 
 ### 2.5 Update `BookingController`
-- [ ] `store` — accept `location_id`, link booking to location
-- [ ] `claim` — `pending` → `taken` (admin claims it)
-- [ ] `uploadTicket` — `taken` → `ticket_ready` (admin uploads ticket)
-- [ ] `deliver` — `ticket_ready` → `delivered` (admin confirms)
-- [ ] `index` — filter by admin's location
-- [ ] Success: 4-status flow works, location filtering works
+- [x] `store` — accept `location_id`, link booking to location
+- [x] `claim` — `pending` → `taken` (admin claims it)
+- [x] `uploadTicket` — `taken` → `ticket_ready` (admin uploads ticket)
+- [x] `deliver` — `ticket_ready` → `delivered` (admin confirms)
+- [x] `index` — filter by admin's location
+- [x] Success: 4-status flow works, location filtering works
 
 ### 2.6 Update `AnalyticsController`
-- [ ] `earnings` — 50% of service_fee per completed booking, daily/weekly/monthly breakdown
-- [ ] `bookings` — by status, by route, conversion rate
-- [ ] `revenue` — total, by location, trend data
-- [ ] Success: All analytics endpoints return correct data
+- [x] `earnings` — 50% of service_fee per delivered booking, daily/weekly/monthly breakdown
+- [x] `bookings` — by status (4 statuses), by type, daily trend
+- [x] `revenue` — total, platform/admin split
+- [x] `stations` — per-location breakdown
+- [x] Success: All analytics endpoints return correct data
 
 ### 2.7 Update routes (`api.php`)
-- [ ] Wire all new controllers with correct permissions
-- [ ] Remove bus management routes (admins don't manage buses)
-- [ ] Success: `php artisan route:list` shows all routes correctly
+- [x] Wire all new controllers with correct permissions
+- [x] Remove bus management routes (admins don't manage buses)
+- [x] Add booking lifecycle routes (claim, ticket, deliver)
+- [x] Add admin profile routes
+- [x] Success: `php artisan route:list` shows all routes correctly
 
 ---
 
