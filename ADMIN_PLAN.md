@@ -24,28 +24,28 @@
 - [ ] Success: Migration runs, columns exist
 
 ### 1.6 Create `Location` model
-- [ ] Model: `Location` with `fillable`, `casts`, relations (`admins`, `bookings`)
-- [ ] Success: `Location` model exists, relations work
+- [x] Model: `Location` with `fillable`, `casts`, relations (`admins`, `bookings`)
+- [x] Success: `Location` model exists, relations work
 
 ### 1.7 Create `LocationChangeRequest` model
-- [ ] Model: with `fillable`, `casts`, relations (`admin`, `fromLocation`, `toLocation`, `superadmin`)
-- [ ] Success: Model exists
+- [x] Model: with `fillable`, `casts`, relations (`admin`, `fromLocation`, `toLocation`, `superadmin`)
+- [x] Success: Model exists
 
 ### 1.8 Create `ActivityLog` model
-- [ ] Model: with `fillable`, `casts` (details→array), relation (`admin`)
-- [ ] Success: Model exists
+- [x] Model: with `fillable`, `casts` (details→array), relation (`admin`)
+- [x] Success: Model exists
 
 ### 1.9 Update `User` model
-- [ ] Add `location()` relation, `locationChangeRequests()` relation, `activityLogs()` relation, profile fields to fillable
-- [ ] Success: Relations resolve correctly
+- [x] Add `location()` relation, `locationChangeRequests()` relation, `activityLogs()` relation, profile fields to fillable
+- [x] Success: Relations resolve correctly
 
 ### 1.10 Update `Booking` model
-- [ ] Add `location()` relation, `location_id` to fillable
-- [ ] Success: Relation resolves correctly
+- [x] Add `location()` relation, `location_id` to fillable
+- [x] Success: Relation resolves correctly
 
 ### 1.11 Seed initial locations
-- [ ] Seeder: Create bus_station locations for Kigali, Musanze, Huye, Rubavu, Nyagatare, Rwamagana, Muhanga, Rusizi
-- [ ] Success: `php artisan db:seed --class=LocationsSeeder` populates 8 locations
+- [x] Seeder: Create bus_station locations for Kigali, Musanze, Huye, Rubavu, Nyagatare, Rwamagana, Muhanga, Rusizi
+- [x] Success: `php artisan db:seed --class=LocationsSeeder` populates 8 locations
 
 ---
 
