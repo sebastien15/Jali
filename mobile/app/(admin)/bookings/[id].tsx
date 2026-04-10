@@ -4,10 +4,10 @@ import {
   StatusBar, ActivityIndicator, Alert, TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 const STATUS_COLOR: Record<string, string> = {
   pending: C.orange, confirmed: C.green, completed: C.muted,
@@ -71,12 +71,7 @@ export default function AdminBookingDetailScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View style={{ backgroundColor: C.teal, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={C.white} />
-        </TouchableOpacity>
-        <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>Booking #{booking?.id}</Text>
-      </View>
+      <AdminHeader title={`Booking #${booking?.id}`} showBack />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {/* Details card */}

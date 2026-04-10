@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 const ROLE_COLOR: Record<string, string> = {
   superadmin: "#7C3AED", admin: C.teal, driver: C.blue, user: C.muted,
@@ -39,12 +40,7 @@ export default function AdminUsersScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View style={{ backgroundColor: C.teal, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={C.white} />
-        </TouchableOpacity>
-        <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>Users</Text>
-      </View>
+      <AdminHeader title="Users" />
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

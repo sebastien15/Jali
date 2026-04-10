@@ -10,11 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { isAdminRole } from "@/constants/roles";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 export default function AdminStationsScreen() {
   const [stations, setStations] = useState<any[]>([]);
@@ -73,24 +73,7 @@ export default function AdminStationsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View
-        style={{
-          backgroundColor: C.teal,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-          paddingHorizontal: 20,
-          paddingTop: 16,
-          paddingBottom: 20,
-        }}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={C.white} />
-        </TouchableOpacity>
-        <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-          Stations
-        </Text>
-      </View>
+      <AdminHeader title="Stations" />
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

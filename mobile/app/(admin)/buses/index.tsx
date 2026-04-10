@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 export default function AdminBusesScreen() {
   const [buses, setBuses]           = useState<any[]>([]);
@@ -49,20 +50,17 @@ export default function AdminBusesScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View style={{ backgroundColor: C.teal, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={C.white} />
+      <AdminHeader
+        title="Buses"
+        right={
+          <TouchableOpacity
+            onPress={() => router.push("/(admin)/buses/new" as any)}
+            style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 }}
+          >
+            <Text style={{ color: C.white, fontWeight: "800", fontSize: 13 }}>+ Add</Text>
           </TouchableOpacity>
-          <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>Buses</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => router.push("/(admin)/buses/new" as any)}
-          style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 }}
-        >
-          <Text style={{ color: C.white, fontWeight: "800", fontSize: 13 }}>+ Add</Text>
-        </TouchableOpacity>
-      </View>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

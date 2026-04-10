@@ -12,11 +12,10 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 type BookingStatus = "pending" | "taken" | "ticket_ready" | "delivered";
 
@@ -178,51 +177,21 @@ export default function AdminBookingsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View
-        style={{
-          backgroundColor: C.teal,
-          paddingHorizontal: 20,
-          paddingTop: 16,
-          paddingBottom: 0,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 14,
-          }}
-        >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={C.white} />
-          </TouchableOpacity>
-          <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-            {t("admin.bookings")}
-          </Text>
-        </View>
+      <View style={{ backgroundColor: C.teal }}>
+        <AdminHeader title={t("admin.bookings")} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
-            {TABS.map((t) => (
+          <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16 }}>
+            {TABS.map((tab) => (
               <TouchableOpacity
-                key={t.key}
-                onPress={() => setFilter(t.key)}
+                key={tab.key}
+                onPress={() => setFilter(tab.key)}
                 style={{
-                  backgroundColor:
-                    filter === t.key ? C.white : "rgba(255,255,255,0.2)",
-                  borderRadius: 10,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
+                  backgroundColor: filter === tab.key ? C.white : "rgba(255,255,255,0.2)",
+                  borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
                 }}
               >
-                <Text
-                  style={{
-                    color: filter === t.key ? C.teal : C.white,
-                    fontWeight: "800",
-                    fontSize: 13,
-                  }}
-                >
-                  {t.label}
+                <Text style={{ color: filter === tab.key ? C.teal : C.white, fontWeight: "800", fontSize: 13 }}>
+                  {tab.label}
                 </Text>
               </TouchableOpacity>
             ))}

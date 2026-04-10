@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { router } from "expo-router";
 import {
   View,
@@ -11,21 +11,30 @@ import {
   Alert,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { isDev } from "@/lib/env";
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [step, setStep] = useState<"phone" | "email" | "otp">("phone");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmation, setConfirmation] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const otpRef0 = useRef<TextInput>(null);
   const otpRef1 = useRef<TextInput>(null);
@@ -36,12 +45,14 @@ export default function LoginScreen() {
   const otpRefs = [otpRef0, otpRef1, otpRef2, otpRef3, otpRef4, otpRef5];
 
   async function signInWithGoogle() {
-    // In dev mode skip Firebase — native libs don't work in Expo Go
     if (isDev) {
       router.replace("/(tabs)");
       return;
     }
+
     setGoogleLoading(true);
+    setError(null);
+
     try {
       GoogleSignin.configure({
         webClientId:
@@ -51,17 +62,16 @@ export default function LoginScreen() {
       const { data } = await GoogleSignin.signIn();
       const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
       await signInWithCredential(auth, credential);
-      // Register/sync user with Laravel backend
+
       try {
         await api.post("/auth/login");
       } catch (err: any) {
-        // Still redirect to tabs — Firebase auth succeeded
-        // Backend will be retried on next API call
         console.warn(
           "Backend sync failed, but Firebase auth succeeded:",
           err?.response?.data?.message,
         );
       }
+
       router.replace("/(tabs)");
     } catch (e: any) {
       Alert.alert(t("login.googleSignInFailed"), e.message);
@@ -70,22 +80,58 @@ export default function LoginScreen() {
     }
   }
 
+  async function signInWithEmail() {
+    if (!email.trim() || !password) {
+      setError(t("login.emailPasswordRequired"));
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      await api.post("/auth/login");
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      const code = e?.code ?? "";
+      const authCodes = [
+        "auth/user-not-found",
+        "auth/wrong-password",
+        "auth/invalid-credential",
+        "auth/invalid-email",
+      ];
+
+      if (authCodes.includes(code)) {
+        setError(t("authErrors.invalidCredentials"));
+      } else if (code === "auth/too-many-requests") {
+        setError(t("authErrors.tooManyAttempts"));
+      } else if (code === "auth/network-request-failed") {
+        setError(t("authErrors.noInternet"));
+      } else {
+        setError(t("authErrors.unknown"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function sendCode() {
     if (phone.length < 9) {
       Alert.alert(t("login.validPhoneRequired"));
       return;
     }
-    // Phone OTP will be wired to the Laravel backend.
+
     Alert.alert(t("login.comingSoon"), t("login.phoneNotAvailable"));
   }
 
   async function verifyCode() {
     const code = otp.join("");
     if (code.length < 6) return;
+
     setLoading(true);
     try {
       await confirmation.confirm(code);
-      // onAuthStateChanged in index.tsx redirects to tabs
     } catch (e: any) {
       Alert.alert(t("login.wrongCode"), e.message);
     } finally {
@@ -100,12 +146,18 @@ export default function LoginScreen() {
     if (val && idx < 5) otpRefs[idx + 1].current?.focus();
   }
 
+  const subtitle =
+    step === "phone"
+      ? t("login.enterPhone")
+      : step === "email"
+      ? t("login.emailLoginHint")
+      : t("login.enterCode");
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: C.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Header */}
       <View
         style={{
           backgroundColor: C.blue,
@@ -132,15 +184,75 @@ export default function LoginScreen() {
             fontWeight: "600",
           }}
         >
-          {step === "phone" ? t("login.enterPhone") : t("login.enterCode")}
+          {subtitle}
         </Text>
       </View>
 
-      {/* Body */}
       <View style={{ flex: 1, padding: 28, gap: 16 }}>
+        {step !== "otp" && (
+          <View
+            style={{
+              backgroundColor: C.white,
+              borderRadius: 16,
+              padding: 6,
+              flexDirection: "row",
+              gap: 6,
+              borderWidth: 1,
+              borderColor: C.border,
+            }}
+          >
+            {([
+              { id: "phone", label: t("login.phoneTab") },
+              { id: "email", label: t("login.emailTab") },
+            ] as const).map((option) => {
+              const active = step === option.id;
+
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  onPress={() => {
+                    setError(null);
+                    setStep(option.id);
+                  }}
+                  style={{
+                    flex: 1,
+                    borderRadius: 12,
+                    backgroundColor: active ? C.blue : "transparent",
+                    paddingVertical: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: active ? C.white : C.mid,
+                      fontWeight: "800",
+                      fontSize: 14,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {error && (
+          <View
+            style={{
+              backgroundColor: C.orangeLt,
+              borderRadius: 14,
+              padding: 12,
+            }}
+          >
+            <Text style={{ color: C.orange, fontWeight: "700", fontSize: 13 }}>
+              {error}
+            </Text>
+          </View>
+        )}
+
         {step === "phone" ? (
           <>
-            {/* Phone input */}
             <View
               style={{
                 backgroundColor: C.white,
@@ -180,6 +292,7 @@ export default function LoginScreen() {
                 }}
               />
             </View>
+
             <PrimaryBtn
               label={t("login.sendCode")}
               color={C.blue}
@@ -187,7 +300,6 @@ export default function LoginScreen() {
               loading={loading}
             />
 
-            {/* Divider */}
             <View
               style={{
                 flexDirection: "row",
@@ -203,7 +315,6 @@ export default function LoginScreen() {
               <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
             </View>
 
-            {/* Google sign-in */}
             <TouchableOpacity
               onPress={signInWithGoogle}
               disabled={googleLoading}
@@ -237,20 +348,113 @@ export default function LoginScreen() {
               {t("login.googleAvailable")}
             </Text>
 
-            {/* Admin portal link */}
-            <TouchableOpacity
-              onPress={() => router.push("/(admin)/login")}
-              style={{ marginTop: 8, alignItems: "center" }}
+            <AdminPortalLink />
+          </>
+        ) : step === "email" ? (
+          <>
+            <View
+              style={{
+                backgroundColor: C.white,
+                borderRadius: 18,
+                padding: 18,
+                gap: 14,
+                borderWidth: 1,
+                borderColor: C.border,
+              }}
             >
-              <Text style={{ color: C.muted, fontSize: 12 }}>
-                Admin?{" "}
-                <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
-              </Text>
-            </TouchableOpacity>
+              <View>
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    fontSize: 13,
+                    color: C.mid,
+                    marginBottom: 6,
+                  }}
+                >
+                  {t("login.emailLabel")}
+                </Text>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder={t("login.emailPlaceholder")}
+                  placeholderTextColor={C.muted}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                  style={{
+                    backgroundColor: C.bg,
+                    borderRadius: 12,
+                    paddingHorizontal: 14,
+                    paddingVertical: 14,
+                    fontSize: 15,
+                    color: C.dark,
+                    borderWidth: 1.5,
+                    borderColor: C.border,
+                  }}
+                />
+              </View>
+
+              <View>
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    fontSize: 13,
+                    color: C.mid,
+                    marginBottom: 6,
+                  }}
+                >
+                  {t("login.passwordLabel")}
+                </Text>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder={t("login.passwordPlaceholder")}
+                    placeholderTextColor={C.muted}
+                    secureTextEntry={!showPass}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={{
+                      backgroundColor: C.bg,
+                      borderRadius: 12,
+                      paddingHorizontal: 14,
+                      paddingVertical: 14,
+                      paddingRight: 48,
+                      fontSize: 15,
+                      color: C.dark,
+                      borderWidth: 1.5,
+                      borderColor: C.border,
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPass((value) => !value)}
+                    style={{ position: "absolute", right: 14, top: 14 }}
+                  >
+                    <Ionicons
+                      name={showPass ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={C.muted}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <PrimaryBtn
+              label={t("login.signInWithEmail")}
+              color={C.blue}
+              onPress={signInWithEmail}
+              loading={loading}
+            />
+
+            <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
+              {t("login.emailLoginHint")}
+            </Text>
+
+            <AdminPortalLink />
           </>
         ) : (
           <>
-            {/* 6-digit OTP */}
             <View
               style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}
             >
@@ -299,6 +503,19 @@ export default function LoginScreen() {
         )}
       </View>
     </KeyboardAvoidingView>
+  );
+}
+
+function AdminPortalLink() {
+  return (
+    <TouchableOpacity
+      onPress={() => router.push("/(admin)/login")}
+      style={{ marginTop: 8, alignItems: "center" }}
+    >
+      <Text style={{ color: C.muted, fontSize: 12 }}>
+        Admin? <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
+      </Text>
+    </TouchableOpacity>
   );
 }
 

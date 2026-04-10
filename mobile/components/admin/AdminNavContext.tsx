@@ -37,12 +37,21 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         // Get roles from auth endpoint
+        console.log("[AdminNav] Fetching /auth/login...");
         const authRes = await api.post("/auth/login");
+        console.log(
+          "[AdminNav] /auth/login response:",
+          JSON.stringify(authRes.data),
+        );
         const authRoles = authRes.data.user?.roles ?? [];
 
         // Get profile data
         try {
           const profileRes = await api.get("/admin/profile");
+          console.log(
+            "[AdminNav] /admin/profile response:",
+            JSON.stringify(profileRes.data),
+          );
           if (mountedRef.current) {
             setUser({
               name: profileRes.data.name ?? authRes.data.user?.name ?? "Admin",
@@ -52,7 +61,10 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
               location: profileRes.data.location ?? null,
             });
           }
-        } catch {
+        } catch (e) {
+          console.log(
+            "[AdminNav] /admin/profile failed, falling back to auth data",
+          );
           if (mountedRef.current) {
             setUser({
               name: authRes.data.user?.name ?? "Admin",
@@ -63,7 +75,8 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
             });
           }
         }
-      } catch {
+      } catch (e) {
+        console.log("[AdminNav] /auth/login FAILED:", e);
         if (mountedRef.current) {
           setUser({
             name: "Admin",

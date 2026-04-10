@@ -11,11 +11,11 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 const ACTION_LABELS: Record<string, string> = {
   booking_claimed: "Claimed booking",
@@ -89,39 +89,24 @@ export default function AdminLogsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <View
-        style={{
-          backgroundColor: C.teal,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 20,
-          paddingTop: 16,
-          paddingBottom: 20,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={C.white} />
+      <AdminHeader
+        title="Logs"
+        right={
+          <TouchableOpacity
+            onPress={() => setFilterModal(true)}
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: 10,
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+            }}
+          >
+            <Text style={{ color: C.white, fontWeight: "700", fontSize: 13 }}>
+              Filter
+            </Text>
           </TouchableOpacity>
-          <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-            Activity Logs
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => setFilterModal(true)}
-          style={{
-            backgroundColor: "rgba(255,255,255,0.2)",
-            borderRadius: 10,
-            paddingHorizontal: 14,
-            paddingVertical: 8,
-          }}
-        >
-          <Text style={{ color: C.white, fontWeight: "700", fontSize: 13 }}>
-            Filter
-          </Text>
-        </TouchableOpacity>
-      </View>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

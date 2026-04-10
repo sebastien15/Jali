@@ -1,52 +1,36 @@
-import { Redirect, router } from "expo-router";
+import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { onAuthStateChanged, signInAnonymously, User } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
-import { isDev, isTest } from "@/lib/env";
-import api from "@/lib/api";
-import { isAdminRole } from "@/constants/roles";
 
 export default function Index() {
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (isDev) return;
+    let active = true;
 
-    if (isTest) {
-      signInAnonymously(auth)
-        .then((cred) => setUser(cred.user))
-        .catch(() => setUser(null));
-      return;
+    async function resetSession() {
+      try {
+        if (auth.currentUser) {
+          await signOut(auth);
+        }
+      } finally {
+        if (active) {
+          setReady(true);
+        }
+      }
     }
 
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        return;
-      }
-      // Sync with backend and check roles
-      try {
-        const res = await api.post("/auth/login");
-        const roles: string[] = res.data.user?.roles ?? [];
-        if (roles.some(isAdminRole)) {
-          router.replace("/(admin)/dashboard");
-          return;
-        }
-      } catch {
-        // network error — fall through to regular app
-      }
-      setUser(firebaseUser);
-    });
-    return unsub;
+    resetSession();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // dev mode — skip auth entirely
-  if (isDev) return <Redirect href="/(tabs)" />;
-
-  // waiting for Firebase / anon sign-in
-  if (user === undefined) {
+  if (!ready) {
     return (
       <View
         style={{
@@ -61,8 +45,5 @@ export default function Index() {
     );
   }
 
-  // test mode — go straight to app after anon sign-in
-  if (isTest) return <Redirect href="/(tabs)" />;
-
-  return <Redirect href={user ? "/(tabs)" : "/(auth)/login"} />;
+  return <Redirect href="/(auth)/login" />;
 }
