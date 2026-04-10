@@ -82,6 +82,18 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
 
   const isSuperAdmin = user?.roles?.includes(ROLES.SUPERADMIN) ?? false;
 
+  // Debug
+  useEffect(() => {
+    console.log(
+      "[AdminNav] user:",
+      user?.name,
+      "roles:",
+      user?.roles,
+      "isSuperAdmin:",
+      isSuperAdmin,
+    );
+  }, [user]);
+
   const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
