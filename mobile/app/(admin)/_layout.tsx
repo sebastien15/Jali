@@ -63,6 +63,7 @@ function TabsNavigator() {
         },
       }}
     >
+      {/* ── 4 Visible Tabs ── */}
       <Tabs.Screen
         name="dashboard"
         options={{
@@ -127,6 +128,15 @@ function TabsNavigator() {
           }}
         />
       )}
+
+      {/* ── Hide ALL other routes from tab bar ── */}
+      <Tabs.Screen name="login" options={{ href: null }} />
+      <Tabs.Screen name="buses/index" options={{ href: null }} />
+      <Tabs.Screen name="buses/[id]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
+      <Tabs.Screen name="users/index" options={{ href: null }} />
+      <Tabs.Screen name="users/[id]" options={{ href: null }} />
+      <Tabs.Screen name="logs/index" options={{ href: null }} />
     </Tabs>
   );
 }
