@@ -104,6 +104,7 @@ export function AdminSidebar() {
           backgroundColor: "rgba(0,0,0,0.45)",
           opacity: backdropAnim,
           zIndex: 100,
+          pointerEvents: isOpen ? "auto" : "none",
         }}
       >
         <TouchableOpacity
@@ -126,6 +127,7 @@ export function AdminSidebar() {
           backgroundColor: C.white,
           transform: [{ translateX: slideAnim }],
           zIndex: 101,
+          pointerEvents: isOpen ? "auto" : "none",
           shadowColor: "#000",
           shadowOpacity: 0.2,
           shadowRadius: 10,
