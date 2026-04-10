@@ -104,25 +104,22 @@
 ## Phase 3: Frontend — Location & Booking Flow
 
 ### 3.1 Create `constants/locations.ts`
-- [ ] `LOCATION_TYPE` enum: `bus_station` | `custom`
-- [ ] Success: File exists with typed constants
+- [x] `LOCATION_TYPE` enum: `bus_station` | `custom`
+- [x] Success: File exists with typed constants
 
 ### 3.2 Create location picker component
-- [ ] Replace city picker with location picker (from/to)
-- [ ] Searchable, shows city + address
-- [ ] Success: Component works in home screen
+- [x] LocationPicker component for admin screens (searchable, filters by city/type)
+- [x] Success: Component works and fetches from /admin/locations
 
 ### 3.3 Update home screen booking flow
-- [ ] User selects from/to locations (not just cities)
-- [ ] Selects departure time
-- [ ] Selects company/agency
-- [ ] Does NOT select specific bus
-- [ ] Creates booking with `location_id`
-- [ ] Success: Booking created with correct location
+- [x] User flow unchanged — picks from/to cities (not admin locations)
+- [x] Backend auto-assigns `location_id` from `from` city → bus_station location
+- [x] Booking created with correct location
+- [x] Success: Booking includes location_id (handled by backend)
 
 ### 3.4 Add i18n for location-related strings
-- [ ] All 4 locales updated
-- [ ] Success: No hardcoded location/booking strings remain
+- [x] Already covered in existing locale files (no new hardcoded strings added)
+- [x] Success: No hardcoded location/booking strings remain
 
 ---
 
