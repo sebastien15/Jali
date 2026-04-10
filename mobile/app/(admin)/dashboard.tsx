@@ -111,6 +111,36 @@ export default function AdminDashboard() {
 
       <AdminHeader title={t("admin.dashboard")} />
 
+      {/* DEBUG */}
+      <View
+        style={{
+          backgroundColor: C.yellow,
+          padding: 12,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontWeight: "900", fontSize: 13, color: C.dark }}>
+          User: {user?.name ?? "(null)"}
+        </Text>
+        <Text style={{ fontWeight: "900", fontSize: 13, color: C.dark }}>
+          Roles: {JSON.stringify(user?.roles)}
+        </Text>
+        <View
+          style={{
+            backgroundColor: isSuperAdmin ? "#7C3AED" : C.teal,
+            borderRadius: 6,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+          }}
+        >
+          <Text style={{ color: C.white, fontWeight: "800", fontSize: 12 }}>
+            {isSuperAdmin ? "SUPERADMIN" : "ADMIN"}
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
