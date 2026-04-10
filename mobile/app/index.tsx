@@ -6,6 +6,7 @@ import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import { isDev, isTest } from "@/lib/env";
 import api from "@/lib/api";
+import { isAdminRole } from "@/constants/roles";
 
 export default function Index() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -29,7 +30,7 @@ export default function Index() {
       try {
         const res = await api.post("/auth/login");
         const roles: string[] = res.data.user?.roles ?? [];
-        if (roles.includes("admin") || roles.includes("superadmin")) {
+        if (roles.some(isAdminRole)) {
           router.replace("/(admin)/dashboard");
           return;
         }
@@ -47,7 +48,14 @@ export default function Index() {
   // waiting for Firebase / anon sign-in
   if (user === undefined) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.blue }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: C.blue,
+        }}
+      >
         <ActivityIndicator color={C.yellow} size="large" />
       </View>
     );

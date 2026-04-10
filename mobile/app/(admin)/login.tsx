@@ -16,8 +16,11 @@ import { router } from "expo-router";
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import { ROLES, isAdminRole } from "@/constants/roles";
+import { useTranslation } from "react-i18next";
 
 export default function AdminLoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -43,26 +46,27 @@ export default function AdminLoginScreen() {
       const res = await api.post("/auth/login");
       const roles: string[] = res.data.user?.roles ?? [];
 
-      if (roles.includes("admin") || roles.includes("superadmin")) {
+      if (roles.some(isAdminRole)) {
         router.replace("/(admin)/dashboard");
       } else {
-        setError("This account does not have admin access.");
+        setError(t("authErrors.noAdminAccess"));
         await signOut(auth);
       }
     } catch (e: any) {
       const code = e?.code ?? "";
-      if (
-        code === "auth/user-not-found" ||
-        code === "auth/wrong-password" ||
-        code === "auth/invalid-credential"
-      ) {
-        setError("Invalid email or password.");
+      const authCodes = [
+        "auth/user-not-found",
+        "auth/wrong-password",
+        "auth/invalid-credential",
+      ];
+      if (authCodes.includes(code)) {
+        setError(t("authErrors.invalidCredentials"));
       } else if (code === "auth/too-many-requests") {
-        setError("Too many attempts. Try again later.");
+        setError(t("authErrors.tooManyAttempts"));
       } else if (code === "auth/network-request-failed") {
-        setError("No internet connection.");
+        setError(t("authErrors.noInternet"));
       } else {
-        setError(`Error: ${code || e?.message || "Unknown error"}`);
+        setError(t("authErrors.unknown"));
       }
     } finally {
       setLoading(false);

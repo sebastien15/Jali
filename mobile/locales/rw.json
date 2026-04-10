@@ -422,5 +422,11 @@
     "close": "Funga",
     "confirm": "Emeza",
     "change": "Hindura"
+  },
+  "authErrors": {
+    "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
+    "tooManyAttempts": "Ingerageza nyinshi. Ongera ugerageze nyuma.",
+    "noInternet": "Nta murongo wa internet.",
+    "unknown": "Ikosa ryabaye. Ongera ugerageze."
   }
 }

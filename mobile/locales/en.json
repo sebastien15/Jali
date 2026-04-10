@@ -422,5 +422,11 @@
     "close": "Close",
     "confirm": "Confirm",
     "change": "Change"
+  },
+  "authErrors": {
+    "invalidCredentials": "Invalid email or password.",
+    "tooManyAttempts": "Too many attempts. Try again later.",
+    "noInternet": "No internet connection.",
+    "unknown": "Something went wrong. Please try again."
   }
 }
