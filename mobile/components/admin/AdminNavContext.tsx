@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import api from "@/lib/api";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
@@ -14,9 +21,6 @@ type AdminUser = {
 };
 
 type AdminNavCtx = {
-  isOpen: boolean;
-  open: () => void;
-  close: () => void;
   user: AdminUser | null;
   isSuperAdmin: boolean;
   handleLogout: () => Promise<void>;
@@ -25,7 +29,6 @@ type AdminNavCtx = {
 const Ctx = createContext<AdminNavCtx | null>(null);
 
 export function AdminNavProvider({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<AdminUser | null>(null);
   const mountedRef = useRef(true);
 
@@ -33,27 +36,49 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     mountedRef.current = true;
     (async () => {
       try {
-        const res = await api.get("/admin/profile");
-        if (mountedRef.current) {
-          setUser({
-            name: res.data.name ?? "Admin",
-            email: res.data.email ?? "",
-            roles: res.data.roles ?? [],
-            profile_image_url: res.data.profile_image_url ?? null,
-            location: res.data.location ?? null,
-          });
+        // Get roles from auth endpoint
+        const authRes = await api.post("/auth/login");
+        const authRoles = authRes.data.user?.roles ?? [];
+
+        // Get profile data
+        try {
+          const profileRes = await api.get("/admin/profile");
+          if (mountedRef.current) {
+            setUser({
+              name: profileRes.data.name ?? authRes.data.user?.name ?? "Admin",
+              email: profileRes.data.email ?? authRes.data.user?.email ?? "",
+              roles: profileRes.data.roles ?? authRoles,
+              profile_image_url: profileRes.data.profile_image_url ?? null,
+              location: profileRes.data.location ?? null,
+            });
+          }
+        } catch {
+          if (mountedRef.current) {
+            setUser({
+              name: authRes.data.user?.name ?? "Admin",
+              email: authRes.data.user?.email ?? "",
+              roles: authRoles,
+              profile_image_url: null,
+              location: null,
+            });
+          }
         }
       } catch {
         if (mountedRef.current) {
-          setUser({ name: "Admin", email: "", roles: [], profile_image_url: null, location: null });
+          setUser({
+            name: "Admin",
+            email: "",
+            roles: [],
+            profile_image_url: null,
+            location: null,
+          });
         }
       }
     })();
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
-
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
 
   const isSuperAdmin = user?.roles?.includes(ROLES.SUPERADMIN) ?? false;
 
@@ -65,7 +90,7 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ isOpen, open, close, user, isSuperAdmin, handleLogout }}>
+    <Ctx.Provider value={{ user, isSuperAdmin, handleLogout }}>
       {children}
     </Ctx.Provider>
   );

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StatusBar, Image } from "react-native";
+import { View, Text, StatusBar, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { C } from "@/constants/theme";
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function AdminHeader({ title, showBack = false, right }: Props) {
-  const { open, user, isSuperAdmin } = useAdminNav();
+  const { user, isSuperAdmin } = useAdminNav();
 
   const initials =
     user?.name
@@ -32,66 +32,70 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
           paddingBottom: 16,
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            flex: 1,
-          }}
-        >
-          {showBack ? (
+        {showBack ? (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <TouchableOpacity
               onPress={() => router.back()}
-              style={{ marginRight: 4 }}
+              style={{ marginRight: 10 }}
             >
               <Ionicons name="arrow-back" size={22} color={C.white} />
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={open}
+            <Text
+              style={{
+                color: C.white,
+                fontWeight: "900",
+                fontSize: 20,
+                flex: 1,
+              }}
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+          </View>
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 10,
+                gap: 8,
                 flex: 1,
               }}
             >
               {user?.profile_image_url ? (
                 <Image
                   source={{ uri: user.profile_image_url }}
-                  style={{ width: 36, height: 36, borderRadius: 18 }}
+                  style={{ width: 34, height: 34, borderRadius: 17 }}
                 />
               ) : (
                 <View
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 17,
                     backgroundColor: "rgba(255,255,255,0.25)",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Text
-                    style={{ color: C.white, fontWeight: "900", fontSize: 13 }}
+                    style={{ color: C.white, fontWeight: "900", fontSize: 12 }}
                   >
                     {initials}
                   </Text>
                 </View>
               )}
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text
-                  style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                  style={{ color: C.white, fontWeight: "800", fontSize: 15 }}
                   numberOfLines={1}
                 >
                   {user?.name ?? "Admin"}
                 </Text>
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
                 >
                   <View
                     style={{
@@ -105,7 +109,7 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
                   >
                     <Text
                       style={{
-                        color: isSuperAdmin ? C.white : C.white,
+                        color: C.white,
                         fontWeight: "600",
                         fontSize: 9,
                       }}
@@ -118,44 +122,19 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
                       style={{ color: "rgba(255,255,255,0.7)", fontSize: 10 }}
                       numberOfLines={1}
                     >
-                      {user.location.name}
+                      {user.location.name}, {user.location.city}
                     </Text>
                   )}
                 </View>
               </View>
-            </TouchableOpacity>
-          )}
-          {!showBack && (
-            <Text
-              style={{
-                color: C.white,
-                fontWeight: "900",
-                fontSize: 18,
-                marginLeft: "auto",
-              }}
-            >
-              {title}
-            </Text>
-          )}
-          {showBack && (
-            <Text
-              style={{
-                color: C.white,
-                fontWeight: "900",
-                fontSize: 18,
-                marginLeft: "auto",
-                flex: 1,
-                textAlign: "center",
-              }}
-            >
-              {title}
-            </Text>
-          )}
-        </View>
+            </View>
+          </View>
+        )}
         {right}
       </View>
     </>
   );
 }
 
+import { TouchableOpacity } from "react-native";
 export default AdminHeader;

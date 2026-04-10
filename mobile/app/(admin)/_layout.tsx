@@ -2,19 +2,20 @@ import { Tabs } from "expo-router";
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { AdminNavProvider } from "@/components/admin/AdminNavContext";
-import { AdminNavSheet } from "@/components/admin/AdminNavSheet";
-import { useAdminNav } from "@/components/admin/AdminNavContext";
+import {
+  AdminNavProvider,
+  useAdminNav,
+} from "@/components/admin/AdminNavContext";
 
-type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 function TabIcon({
   icon,
   iconFocused,
   focused,
 }: {
-  icon: IoniconName;
-  iconFocused: IoniconName;
+  icon: IconName;
+  iconFocused: IconName;
   focused: boolean;
 }) {
   return (
@@ -93,63 +94,34 @@ function TabsNavigator() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="profile/index"
-        options={{
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              icon="person-outline"
-              iconFocused="person"
-              focused={focused}
-            />
-          ),
-        }}
-      />
-
-      {/* Superadmin-only tabs */}
-      {isSuperAdmin && (
-        <>
-          <Tabs.Screen
-            name="stations/index"
-            options={{
-              tabBarLabel: "Stations",
-              tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon="location-outline"
-                  iconFocused="location"
-                  focused={focused}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="logs/index"
-            options={{
-              tabBarLabel: "Logs",
-              tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon="time-outline"
-                  iconFocused="time"
-                  focused={focused}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="users/index"
-            options={{
-              tabBarLabel: "Users",
-              tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  icon="people-outline"
-                  iconFocused="people"
-                  focused={focused}
-                />
-              ),
-            }}
-          />
-        </>
+      {isSuperAdmin ? (
+        <Tabs.Screen
+          name="stations/index"
+          options={{
+            tabBarLabel: "Stations",
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                icon="location-outline"
+                iconFocused="location"
+                focused={focused}
+              />
+            ),
+          }}
+        />
+      ) : (
+        <Tabs.Screen
+          name="profile/index"
+          options={{
+            tabBarLabel: "Profile",
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                icon="person-outline"
+                iconFocused="person"
+                focused={focused}
+              />
+            ),
+          }}
+        />
       )}
     </Tabs>
   );
@@ -160,7 +132,6 @@ export default function AdminLayout() {
     <AdminNavProvider>
       <View style={{ flex: 1 }}>
         <TabsNavigator />
-        <AdminNavSheet />
       </View>
     </AdminNavProvider>
   );

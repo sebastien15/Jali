@@ -58,49 +58,35 @@ export default function AdminDashboard() {
     load();
   }, [load]);
 
-  const tiles: NavTile[] = [
-    {
-      label: t("admin.bookings"),
-      icon: "calendar-outline",
-      route: "/(admin)/bookings/index",
-      color: C.teal,
-    },
-    {
-      label: t("admin.analytics"),
-      icon: "bar-chart-outline",
-      route: "/(admin)/analytics/index",
-      color: C.green,
-    },
-    {
-      label: t("admin.profile"),
-      icon: "person-outline",
-      route: "/(admin)/profile/index",
-      color: C.blue,
-    },
-    {
-      label: t("admin.stations"),
-      icon: "location-outline",
-      route: "/(admin)/stations/index",
-      color: C.orange,
-      superadminOnly: true,
-    },
-    {
-      label: t("admin.logs"),
-      icon: "time-outline",
-      route: "/(admin)/logs/index",
-      color: C.purple,
-      superadminOnly: true,
-    },
-    {
-      label: t("admin.users"),
-      icon: "people-outline",
-      route: "/(admin)/users/index",
-      color: C.blue,
-      superadminOnly: true,
-    },
-  ];
-
-  const visibleTiles = tiles.filter((t) => !t.superadminOnly || isSuperAdmin);
+  const tiles: NavTile[] = isSuperAdmin
+    ? [
+        {
+          label: t("admin.profile"),
+          icon: "person-outline",
+          route: "/(admin)/profile/index",
+          color: C.blue,
+        },
+        {
+          label: t("admin.logs"),
+          icon: "time-outline",
+          route: "/(admin)/logs/index",
+          color: C.purple,
+        },
+        {
+          label: t("admin.users"),
+          icon: "people-outline",
+          route: "/(admin)/users/index",
+          color: C.blue,
+        },
+      ]
+    : [
+        {
+          label: t("admin.stations"),
+          icon: "location-outline",
+          route: "/(admin)/stations/index",
+          color: C.orange,
+        },
+      ];
 
   if (loading) {
     return (
@@ -232,10 +218,10 @@ export default function AdminDashboard() {
             marginBottom: 10,
           }}
         >
-          Management
+          {isSuperAdmin ? "Management" : "Station Management"}
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {visibleTiles.map((tile) => (
+          {tiles.map((tile) => (
             <TouchableOpacity
               key={tile.label}
               onPress={() => router.push(tile.route as any)}
