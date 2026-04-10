@@ -11,12 +11,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
-import { ROLES, isAdminRole } from "@/constants/roles";
+import { ROLES } from "@/constants/roles";
 import { useTranslation } from "react-i18next";
+import AdminHeader from "@/components/admin/AdminHeader";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 type NavTile = {
   label: string;
@@ -28,11 +28,10 @@ type NavTile = {
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const { user, isSuperAdmin } = useAdminNav();
   const [earnings, setEarnings] = useState<any>(null);
   const [bookingStats, setBookingStats] = useState<any>(null);
   const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [adminName, setAdminName] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -40,15 +39,11 @@ export default function AdminDashboard() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [meRes, earningsRes, bookingsRes, profileRes] = await Promise.all([
-        api.post("/auth/login"),
+      const [earningsRes, bookingsRes, profileRes] = await Promise.all([
         api.get("/analytics/earnings"),
         api.get("/analytics/bookings"),
         api.get("/admin/profile"),
       ]);
-      const roles: string[] = meRes.data.user?.roles ?? [];
-      setIsSuperAdmin(roles.includes(ROLES.SUPERADMIN));
-      setAdminName(meRes.data.user?.name ?? "Admin");
       setEarnings(earningsRes.data.data ?? null);
       setBookingStats(bookingsRes.data.data ?? null);
       setAdminProfile(profileRes.data);
@@ -62,11 +57,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
   }, [load]);
-
-  async function handleLogout() {
-    await signOut(auth);
-    router.replace("/(auth)/login");
-  }
 
   const tiles: NavTile[] = [
     {
@@ -133,64 +123,7 @@ export default function AdminDashboard() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      {/* Header */}
-      <View
-        style={{
-          backgroundColor: C.teal,
-          paddingHorizontal: 20,
-          paddingTop: 16,
-          paddingBottom: 20,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <View>
-            <Text
-              style={{
-                color: "rgba(255,255,255,0.75)",
-                fontSize: 12,
-                fontWeight: "600",
-              }}
-            >
-              {isSuperAdmin ? t("admin.superadmin") : t("admin.admin")} ·{" "}
-              {adminName}
-            </Text>
-            {adminProfile?.location && (
-              <Text
-                style={{
-                  color: "rgba(255,255,255,0.55)",
-                  fontSize: 11,
-                  marginTop: 2,
-                }}
-              >
-                📍 {adminProfile.location.name}, {adminProfile.location.city}
-              </Text>
-            )}
-            <Text
-              style={{
-                color: C.white,
-                fontWeight: "900",
-                fontSize: 24,
-                marginTop: 2,
-              }}
-            >
-              {t("admin.dashboard")}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={handleLogout} style={{ padding: 4 }}>
-            <Ionicons
-              name="log-out-outline"
-              size={22}
-              color="rgba(255,255,255,0.8)"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <AdminHeader title={t("admin.dashboard")} />
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

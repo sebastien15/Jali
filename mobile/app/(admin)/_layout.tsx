@@ -1,15 +1,15 @@
 import { View } from "react-native";
 import { Stack } from "expo-router";
-import { AdminSidebarProvider } from "@/components/admin/AdminSidebarContext";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminNavProvider } from "@/components/admin/AdminNavContext";
+import { AdminNavSheet } from "@/components/admin/AdminNavSheet";
 
 export default function AdminLayout() {
   return (
-    <AdminSidebarProvider>
+    <AdminNavProvider>
       <View style={{ flex: 1 }}>
         <Stack screenOptions={{ headerShown: false }} />
-        <AdminSidebar />
+        <AdminNavSheet />
       </View>
-    </AdminSidebarProvider>
+    </AdminNavProvider>
   );
 }
