@@ -1,3 +1,4 @@
+import { usePathname } from "expo-router";
 import { Tabs } from "expo-router";
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -40,6 +41,8 @@ function TabIcon({
 
 function TabsNavigator() {
   const { isSuperAdmin } = useAdminNav();
+  const pathname = usePathname();
+  const isLogin = pathname.includes("/login");
 
   return (
     <Tabs
@@ -53,9 +56,10 @@ function TabsNavigator() {
           backgroundColor: C.white,
           borderTopWidth: 1,
           borderTopColor: C.border,
-          height: 72,
-          paddingBottom: 8,
-          paddingTop: 4,
+          height: isLogin ? 0 : 72,
+          paddingBottom: isLogin ? 0 : 8,
+          paddingTop: isLogin ? 0 : 4,
+          display: isLogin ? "none" : "flex",
         },
       }}
     >
