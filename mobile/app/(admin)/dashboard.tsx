@@ -16,6 +16,7 @@ import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { ROLES, isAdminRole } from "@/constants/roles";
+import { useTranslation } from "react-i18next";
 
 type NavTile = {
   label: string;
@@ -26,6 +27,7 @@ type NavTile = {
 };
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const [earnings, setEarnings] = useState<any>(null);
   const [bookingStats, setBookingStats] = useState<any>(null);
   const [adminProfile, setAdminProfile] = useState<any>(null);
@@ -68,39 +70,39 @@ export default function AdminDashboard() {
 
   const tiles: NavTile[] = [
     {
-      label: "Bookings",
+      label: t("admin.bookings"),
       icon: "calendar-outline",
       route: "/(admin)/bookings/index",
       color: C.teal,
     },
     {
-      label: "Analytics",
+      label: t("admin.analytics"),
       icon: "bar-chart-outline",
       route: "/(admin)/analytics/index",
       color: C.green,
     },
     {
-      label: "Profile",
+      label: t("admin.profile"),
       icon: "person-outline",
       route: "/(admin)/profile/index",
       color: C.blue,
     },
     {
-      label: "Stations",
+      label: t("admin.stations"),
       icon: "location-outline",
       route: "/(admin)/stations/index",
       color: C.orange,
       superadminOnly: true,
     },
     {
-      label: "Logs",
+      label: t("admin.logs"),
       icon: "time-outline",
       route: "/(admin)/logs/index",
       color: C.purple,
       superadminOnly: true,
     },
     {
-      label: "Users",
+      label: t("admin.users"),
       icon: "people-outline",
       route: "/(admin)/users/index",
       color: C.blue,
@@ -155,7 +157,8 @@ export default function AdminDashboard() {
                 fontWeight: "600",
               }}
             >
-              {isSuperAdmin ? "Superadmin" : "Admin"} · {adminName}
+              {isSuperAdmin ? t("admin.superadmin") : t("admin.admin")} ·{" "}
+              {adminName}
             </Text>
             {adminProfile?.location && (
               <Text
@@ -176,7 +179,7 @@ export default function AdminDashboard() {
                 marginTop: 2,
               }}
             >
-              Dashboard
+              {t("admin.dashboard")}
             </Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={{ padding: 4 }}>
@@ -216,7 +219,7 @@ export default function AdminDashboard() {
                 marginBottom: 12,
               }}
             >
-              YOUR EARNINGS (50% Service Fee)
+              {t("admin.yourEarnings")}
             </Text>
             <Text
               style={{
@@ -233,9 +236,18 @@ export default function AdminDashboard() {
               </Text>
             </Text>
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <MiniStat label="Today" value={earnings.today_earnings ?? 0} />
-              <MiniStat label="Week" value={earnings.week_earnings ?? 0} />
-              <MiniStat label="Month" value={earnings.month_earnings ?? 0} />
+              <MiniStat
+                label={t("admin.today")}
+                value={earnings.today_earnings ?? 0}
+              />
+              <MiniStat
+                label={t("admin.week")}
+                value={earnings.week_earnings ?? 0}
+              />
+              <MiniStat
+                label={t("admin.month")}
+                value={earnings.month_earnings ?? 0}
+              />
             </View>
           </View>
         )}
@@ -243,7 +255,7 @@ export default function AdminDashboard() {
         {/* Booking status cards */}
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
           <StatusCard
-            label="Pending"
+            label={t("admin.pending")}
             value={bs.pending ?? 0}
             color={C.orange}
             icon="⏳"

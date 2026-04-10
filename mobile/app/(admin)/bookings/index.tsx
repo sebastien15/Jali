@@ -16,6 +16,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import { useTranslation } from "react-i18next";
 
 type BookingStatus = "pending" | "taken" | "ticket_ready" | "delivered";
 
@@ -43,6 +44,7 @@ const TABS: { key: "all" | BookingStatus; label: string }[] = [
 ];
 
 export default function AdminBookingsScreen() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<"all" | BookingStatus>("all");
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +198,7 @@ export default function AdminBookingsScreen() {
             <Ionicons name="arrow-back" size={22} color={C.white} />
           </TouchableOpacity>
           <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-            Bookings
+            {t("admin.bookings")}
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>

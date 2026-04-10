@@ -13,8 +13,10 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
+import { useTranslation } from "react-i18next";
 
 export default function AdminAnalyticsScreen() {
+  const { t } = useTranslation();
   const [revenue, setRevenue] = useState<any>(null);
   const [bookings, setBookings] = useState<any>(null);
   const [earnings, setEarnings] = useState<any>(null);
