@@ -100,12 +100,19 @@ class AuthController extends Controller
                 "roles" => $user->roles->pluck("name")->toArray(),
             ]);
 
-            return response()->json([
+            $responseData = [
                 "user" => array_merge($user->toArray(), [
                     "roles" => $user->roles->pluck("name"),
                 ]),
                 "message" => "OK",
-            ]);
+            ];
+
+            Log::info(
+                "[Auth] RESPONSE BODY (exact JSON to client)",
+                $responseData,
+            );
+
+            return response()->json($responseData);
         } catch (\Exception $e) {
             Log::error("[Auth] Login failed", [
                 "class" => get_class($e),
