@@ -28,7 +28,7 @@ class CarRentalController extends Controller
      */
     public function driverCars(Request $request)
     {
-        $cars = CarRental::where('user_id', $request->auth_user->id)->get();
+        $cars = CarRental::where('user_id', $request->user()->id)->get();
 
         return response()->json($cars->map(fn($c) => $this->toFrontend($c)));
     }
@@ -50,7 +50,7 @@ class CarRentalController extends Controller
         ]);
 
         $car = CarRental::create([
-            'user_id'  => $request->auth_user->id,
+            'user_id'  => $request->user()->id,
             'name'     => $validated['name'],
             'type'     => $validated['type'],
             'plate'    => $validated['plate'],
@@ -72,7 +72,7 @@ class CarRentalController extends Controller
     public function updateCar(Request $request, $id)
     {
         $car = CarRental::where('id', $id)
-            ->where('user_id', $request->auth_user->id)
+            ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -104,7 +104,7 @@ class CarRentalController extends Controller
     public function destroyCar(Request $request, $id)
     {
         $car = CarRental::where('id', $id)
-            ->where('user_id', $request->auth_user->id)
+            ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
         $car->delete();

@@ -16,20 +16,32 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\LocationChangeRequestController;
 use App\Http\Controllers\Admin\LocationController;
 
-// Public — no auth needed
-Route::post("/auth/login", [AuthController::class, "login"]);
+// ── Public Routes ──
 Route::get("/buses", [BusController::class, "index"]);
 Route::get("/car-rentals", [CarRentalController::class, "index"]);
 Route::get("/private-seats", [PrivateSeatController::class, "index"]);
 
-// Protected — requires Firebase ID token
-Route::middleware("firebase.auth")->group(function () {
-    // Bookings (user + admin shared)
+// ── Laravel Auth Routes (new) ──
+Route::post("/auth/login", [AuthController::class, "login"]);
+Route::post("/auth/login/google", [
+    AuthController::class,
+    "loginWithGoogle",
+]);
+Route::post("/auth/otp/request", [AuthController::class, "requestOtp"]);
+Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
+
+// ── Protected Routes (Sanctum) ──
+Route::middleware("auth:sanctum")->group(function () {
+    // Current user
+    Route::get("/me", [AuthController::class, "me"]);
+    Route::post("/auth/logout", [AuthController::class, "logout"]);
+
+    // Bookings
     Route::get("/bookings", [BookingController::class, "index"]);
     Route::post("/bookings", [BookingController::class, "store"]);
     Route::get("/bookings/{id}", [BookingController::class, "show"]);
 
-    // Booking 4-status lifecycle (admin)
+    // Booking lifecycle
     Route::middleware("permission:confirm-bookings")->group(function () {
         Route::post("/bookings/{id}/claim", [
             BookingController::class,
@@ -45,7 +57,7 @@ Route::middleware("firebase.auth")->group(function () {
         ]);
     });
 
-    // Driver — requires create-private-seats permission
+    // Driver routes
     Route::middleware("permission:create-private-seats")
         ->prefix("driver")
         ->group(function () {
@@ -55,7 +67,6 @@ Route::middleware("firebase.auth")->group(function () {
                 DriverController::class,
                 "updateProfile",
             ]);
-
             Route::get("/listings", [
                 PrivateSeatController::class,
                 "driverListings",
@@ -69,7 +80,6 @@ Route::middleware("firebase.auth")->group(function () {
                 PrivateSeatController::class,
                 "destroy",
             ]);
-
             Route::get("/cars", [CarRentalController::class, "driverCars"]);
             Route::post("/cars", [CarRentalController::class, "storeCar"]);
             Route::patch("/cars/{id}", [
@@ -82,7 +92,7 @@ Route::middleware("firebase.auth")->group(function () {
             ]);
         });
 
-    // Analytics — admin/superadmin
+    // Analytics
     Route::middleware("permission:view-analytics")->group(function () {
         Route::get("/analytics/revenue", [
             AnalyticsController::class,
@@ -118,7 +128,6 @@ Route::middleware("firebase.auth")->group(function () {
 
     // Admin panel
     Route::prefix("admin")->group(function () {
-        // Location management (superadmin)
         Route::middleware("permission:manage-locations")->group(function () {
             Route::get("/locations", [LocationController::class, "index"]);
             Route::post("/locations", [LocationController::class, "store"]);
@@ -130,8 +139,6 @@ Route::middleware("firebase.auth")->group(function () {
                 LocationController::class,
                 "destroy",
             ]);
-
-            // Location change requests (superadmin)
             Route::get("/location-requests", [
                 LocationChangeRequestController::class,
                 "index",
@@ -146,18 +153,15 @@ Route::middleware("firebase.auth")->group(function () {
             ]);
         });
 
-        // Admin location change (any admin can request)
         Route::post("/location-request", [
             LocationChangeRequestController::class,
             "store",
         ]);
 
-        // Activity logs (superadmin)
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/logs", [ActivityLogController::class, "index"]);
         });
 
-        // Bookings admin view
         Route::middleware("permission:confirm-bookings")->group(function () {
             Route::get("/bookings", [AdminBookingController::class, "index"]);
             Route::patch("/bookings/{id}", [
@@ -166,7 +170,6 @@ Route::middleware("firebase.auth")->group(function () {
             ]);
         });
 
-        // Station/location assignment (superadmin)
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/stations", [AdminStationController::class, "index"]);
             Route::patch("/stations/{id}", [
@@ -175,7 +178,6 @@ Route::middleware("firebase.auth")->group(function () {
             ]);
         });
 
-        // User management (superadmin)
         Route::middleware("permission:manage-users")->group(function () {
             Route::get("/users", [AdminUserController::class, "index"]);
             Route::patch("/users/{id}", [AdminUserController::class, "update"]);

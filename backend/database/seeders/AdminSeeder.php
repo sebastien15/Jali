@@ -42,16 +42,15 @@ class AdminSeeder extends Seeder
         ];
 
         foreach ($admins as $data) {
-            // firebase_uid is intentionally null — gets linked on first Firebase login
             $user = User::firstOrCreate(
                 ["email" => $data["email"]],
-                ["name" => $data["name"], "firebase_uid" => null],
+                [
+                    "name" => $data["name"],
+                    "firebase_uid" => null,
+                    "role_id" => $data["role"]->id,
+                    "password" => bcrypt("Jali@2026"),
+                ],
             );
-
-            // Attach role only if not already assigned
-            if (!$user->roles()->where("name", $data["role"]->name)->exists()) {
-                $user->roles()->attach($data["role"]);
-            }
 
             // Assign station if applicable
             if ($data["station"]) {

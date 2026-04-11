@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,19 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
-import api from "@/lib/api";
-import { ROLES, isAdminRole } from "@/constants/roles";
+import api, { setApiToken, clearApiToken } from "@/lib/api";
 import { useTranslation } from "react-i18next";
 
 export default function AdminLoginScreen() {
@@ -27,6 +29,28 @@ export default function AdminLoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const token = await firebaseUser.getIdToken(true);
+          const res = await api.post("/auth/login/google", {
+            firebase_token: token,
+          });
+          if (res.data.token) {
+            await setApiToken(res.data.token);
+            const role: string = res.data.user?.roles ?? "";
+            if (role === "superadmin" || role === "admin") {
+              router.replace("/(admin)/dashboard");
+            }
+          }
+        } catch {}
+      }
+    });
+    return () => unsub();
+  }, []);
+
   async function handleLogin() {
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
@@ -35,38 +59,52 @@ export default function AdminLoginScreen() {
     setError(null);
     setLoading(true);
     try {
-      // Firebase JS SDK — works in Expo Go, no rebuild needed
-      await signInWithEmailAndPassword(
-        auth,
-        email.trim().toLowerCase(),
+      // Try Laravel login first
+      const res = await api.post("/auth/login", {
+        email: email.trim().toLowerCase(),
         password,
-      );
+      });
 
-      // Call backend to verify roles (don't rely on index.tsx routing in test mode)
-      const res = await api.post("/auth/login");
-      const roles: string[] = res.data.user?.roles ?? [];
-
-      if (roles.some(isAdminRole)) {
-        router.replace("/(admin)/dashboard");
+      if (res.data.token) {
+        await setApiToken(res.data.token);
+        const role: string = res.data.user?.roles ?? "";
+        if (role === "superadmin" || role === "admin") {
+          router.replace("/(admin)/dashboard");
+        } else {
+          setError(t("authErrors.noAdminAccess"));
+          await clearApiToken();
+        }
       } else {
-        setError(t("authErrors.noAdminAccess"));
-        await signOut(auth);
+        // Fallback: try Firebase → then Laravel Google login
+        const userCred = await signInWithEmailAndPassword(
+          auth,
+          email.trim().toLowerCase(),
+          password,
+        );
+        const firebaseToken = await userCred.user.getIdToken(true);
+        const googleRes = await api.post("/auth/login/google", {
+          firebase_token: firebaseToken,
+        });
+        if (googleRes.data.token) {
+          await setApiToken(googleRes.data.token);
+          const role: string = googleRes.data.user?.roles ?? "";
+          if (role === "superadmin" || role === "admin") {
+            router.replace("/(admin)/dashboard");
+          } else {
+            setError(t("authErrors.noAdminAccess"));
+            await clearApiToken();
+            await signOut(auth);
+          }
+        }
       }
     } catch (e: any) {
-      const code = e?.code ?? "";
-      const authCodes = [
-        "auth/user-not-found",
-        "auth/wrong-password",
-        "auth/invalid-credential",
-      ];
-      if (authCodes.includes(code)) {
-        setError(t("authErrors.invalidCredentials"));
-      } else if (code === "auth/too-many-requests") {
-        setError(t("authErrors.tooManyAttempts"));
-      } else if (code === "auth/network-request-failed") {
+      console.log("[AdminLogin] Login failed:", e?.response?.data || e.message);
+      if (e?.response?.status === 401 || e?.response?.status === 422) {
+        setError(e?.response?.data?.message ?? "Invalid credentials");
+      } else if (e?.code === "auth/network-request-failed") {
         setError(t("authErrors.noInternet"));
       } else {
-        setError(t("authErrors.unknown"));
+        setError(e?.message ?? t("authErrors.unknown"));
       }
     } finally {
       setLoading(false);
@@ -81,163 +119,200 @@ export default function AdminLoginScreen() {
       <View
         style={{
           backgroundColor: C.teal,
-          paddingHorizontal: 20,
-          paddingTop: 16,
-          paddingBottom: 28,
+          paddingTop: 72,
+          paddingBottom: 36,
+          paddingHorizontal: 28,
         }}
       >
-        <TouchableOpacity
-          onPress={() => router.replace("/(auth)/login")}
+        <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-            marginBottom: 16,
+            color: C.yellow,
+            fontWeight: "900",
+            fontSize: 36,
+            letterSpacing: -1,
           }}
         >
-          <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.7)" />
-          <Text
-            style={{
-              color: "rgba(255,255,255,0.7)",
-              fontSize: 13,
-              fontWeight: "600",
-            }}
-          >
-            Passenger login
-          </Text>
-        </TouchableOpacity>
-        <Text style={{ color: C.white, fontWeight: "900", fontSize: 28 }}>
-          Admin Portal
+          Jali
         </Text>
         <Text
-          style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}
+          style={{
+            color: "rgba(255,255,255,0.75)",
+            fontSize: 15,
+            marginTop: 4,
+            fontWeight: "600",
+          }}
         >
-          Sign in with your admin email
+          Admin Portal
         </Text>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, padding: 20 }}
-      >
-        {error && (
-          <View
-            style={{
-              backgroundColor: C.orangeLt,
-              borderRadius: 12,
-              padding: 12,
-              marginBottom: 16,
-            }}
-          >
-            <Text style={{ color: C.orange, fontWeight: "600", fontSize: 13 }}>
-              {error}
-            </Text>
-          </View>
-        )}
+      {/* Body */}
+      <View style={{ flex: 1, padding: 28, gap: 16 }}>
+        {/* Email */}
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="admin@jali.rw"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={{
+            backgroundColor: C.white,
+            borderRadius: 16,
+            paddingHorizontal: 16,
+            paddingVertical: 18,
+            fontSize: 16,
+            fontWeight: "700",
+            color: C.dark,
+            borderWidth: 1.5,
+            borderColor: C.border,
+          }}
+        />
 
+        {/* Password */}
         <View
           style={{
             backgroundColor: C.white,
-            borderRadius: 20,
-            padding: 20,
-            shadowColor: "#000",
-            shadowOpacity: 0.07,
-            shadowRadius: 10,
-            shadowOffset: { width: 0, height: 2 },
-            elevation: 3,
+            borderRadius: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            borderWidth: 1.5,
+            borderColor: C.border,
+            overflow: "hidden",
           }}
         >
-          <Text
-            style={{
-              fontWeight: "700",
-              fontSize: 13,
-              color: C.mid,
-              marginBottom: 6,
-            }}
-          >
-            Email
-          </Text>
           <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="admin@jali.rw"
-            placeholderTextColor={C.muted}
-            autoCapitalize="none"
-            keyboardType="email-address"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password"
+            secureTextEntry={!showPass}
             style={{
-              backgroundColor: C.bg,
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 13,
-              fontSize: 15,
+              flex: 1,
+              fontSize: 16,
+              fontWeight: "700",
               color: C.dark,
-              borderWidth: 1.5,
-              borderColor: C.border,
-              marginBottom: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 18,
             }}
           />
-
-          <Text
-            style={{
-              fontWeight: "700",
-              fontSize: 13,
-              color: C.mid,
-              marginBottom: 6,
-            }}
-          >
-            Password
-          </Text>
-          <View style={{ position: "relative", marginBottom: 24 }}>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor={C.muted}
-              secureTextEntry={!showPass}
-              style={{
-                backgroundColor: C.bg,
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 13,
-                fontSize: 15,
-                color: C.dark,
-                borderWidth: 1.5,
-                borderColor: C.border,
-                paddingRight: 48,
-              }}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPass((v) => !v)}
-              style={{ position: "absolute", right: 14, top: 14 }}
-            >
-              <Ionicons
-                name={showPass ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={C.muted}
-              />
-            </TouchableOpacity>
-          </View>
-
           <TouchableOpacity
-            onPress={handleLogin}
-            disabled={loading}
-            style={{
-              backgroundColor: C.teal,
-              borderRadius: 14,
-              paddingVertical: 16,
-              alignItems: "center",
-            }}
+            onPress={() => setShowPass((s) => !s)}
+            style={{ paddingHorizontal: 16 }}
           >
-            {loading ? (
-              <ActivityIndicator color={C.white} />
-            ) : (
-              <Text style={{ color: C.white, fontWeight: "900", fontSize: 16 }}>
-                Sign In
-              </Text>
-            )}
+            <Ionicons
+              name={showPass ? "eye-off" : "eye"}
+              size={22}
+              color={C.mid}
+            />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+
+        {error && (
+          <Text
+            style={{
+              color: "#DC2626",
+              fontWeight: "700",
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        )}
+
+        {/* Login Button */}
+        <TouchableOpacity
+          onPress={handleLogin}
+          disabled={loading}
+          style={{
+            backgroundColor: C.teal,
+            borderRadius: 16,
+            paddingVertical: 18,
+            alignItems: "center",
+            marginTop: 8,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color={C.white} />
+          ) : (
+            <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
+              Sign In
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            marginVertical: 4,
+          }}
+        >
+          <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+          <Text style={{ color: C.muted, fontSize: 13 }}>or</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+        </View>
+
+        {/* Google Sign-In */}
+        <TouchableOpacity
+          onPress={async () => {
+            setLoading(true);
+            setError(null);
+            try {
+              // This uses the existing Firebase flow for Google auth
+              const userCred = await signInWithEmailAndPassword(
+                auth,
+                email.trim().toLowerCase(),
+                password || "placeholder",
+              );
+              const firebaseToken = await userCred.user.getIdToken(true);
+              const res = await api.post("/auth/login/google", {
+                firebase_token: firebaseToken,
+              });
+              if (res.data.token) {
+                await setApiToken(res.data.token);
+                router.replace("/(admin)/dashboard");
+              }
+            } catch (e: any) {
+              setError(
+                e?.response?.data?.message ??
+                  e?.message ??
+                  "Google sign-in failed",
+              );
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          style={{
+            backgroundColor: C.white,
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 10,
+            borderWidth: 2,
+            borderColor: C.border,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color={C.mid} />
+          ) : (
+            <>
+              <Text style={{ fontSize: 20 }}>🌐</Text>
+              <Text style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}>
+                Continue with Google
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
+          Google sign-in is available for international travelers
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }

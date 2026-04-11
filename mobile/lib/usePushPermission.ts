@@ -11,6 +11,9 @@ export function usePushPermission() {
 }
 
 async function registerForPush() {
+  // Push notifications require native platform — skip on web
+  if (Platform.OS === "web") return;
+
   // Android needs a notification channel
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {

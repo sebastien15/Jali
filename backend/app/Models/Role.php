@@ -8,20 +8,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ["name", "description"];
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'role_permissions');
+        return $this->belongsToMany(Permission::class, "role_permissions");
     }
 
-    public function users(): BelongsToMany
+    public function users(): HasMany
     {
-        return $this->belongsToMany(User::class, 'user_roles');
+        return $this->hasMany(User::class);
     }
 
     public function hasPermission(string $permission): bool
     {
-        return $this->permissions()->where('name', $permission)->exists();
+        return $this->permissions()->where("name", $permission)->exists();
     }
 }

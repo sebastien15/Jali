@@ -1,4 +1,4 @@
-import { View, Text, StatusBar, Image } from "react-native";
+import { View, Text, StatusBar, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { C } from "@/constants/theme";
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function AdminHeader({ title, showBack = false, right }: Props) {
-  const { user, isSuperAdmin } = useAdminNav();
+  const { user, isSuperAdmin, handleLogout } = useAdminNav();
 
   const initials =
     user?.name
@@ -32,6 +32,7 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
           paddingBottom: 16,
           flexDirection: "row",
           alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         {showBack ? (
@@ -56,78 +57,78 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
           </View>
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-                flex: 1,
-              }}
-            >
-              {user?.profile_image_url ? (
-                <Image
-                  source={{ uri: user.profile_image_url }}
-                  style={{ width: 34, height: 34, borderRadius: 17 }}
-                />
-              ) : (
+            {user?.profile_image_url ? (
+              <Image
+                source={{ uri: user.profile_image_url }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  marginRight: 8,
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "rgba(255,255,255,0.25)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 8,
+                }}
+              >
+                <Text
+                  style={{ color: C.white, fontWeight: "900", fontSize: 13 }}
+                >
+                  {initials}
+                </Text>
+              </View>
+            )}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                numberOfLines={1}
+              >
+                {user?.name ?? "Admin"}
+              </Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              >
                 <View
                   style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 17,
-                    backgroundColor: "rgba(255,255,255,0.25)",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    backgroundColor: isSuperAdmin
+                      ? "#7C3AED"
+                      : "rgba(255,255,255,0.3)",
+                    borderRadius: 4,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
                   }}
                 >
                   <Text
-                    style={{ color: C.white, fontWeight: "900", fontSize: 12 }}
+                    style={{ color: C.white, fontWeight: "600", fontSize: 9 }}
                   >
-                    {initials}
+                    {isSuperAdmin ? "Superadmin" : "Admin"}
                   </Text>
                 </View>
-              )}
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ color: C.white, fontWeight: "800", fontSize: 15 }}
-                  numberOfLines={1}
-                >
-                  {user?.name ?? "Admin"}
-                </Text>
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: isSuperAdmin
-                        ? "#7C3AED"
-                        : "rgba(255,255,255,0.3)",
-                      borderRadius: 4,
-                      paddingHorizontal: 6,
-                      paddingVertical: 1,
-                    }}
+                {user?.location && (
+                  <Text
+                    style={{ color: "rgba(255,255,255,0.7)", fontSize: 10 }}
+                    numberOfLines={1}
                   >
-                    <Text
-                      style={{
-                        color: C.white,
-                        fontWeight: "600",
-                        fontSize: 9,
-                      }}
-                    >
-                      {isSuperAdmin ? "Superadmin" : "Admin"}
-                    </Text>
-                  </View>
-                  {user?.location && (
-                    <Text
-                      style={{ color: "rgba(255,255,255,0.7)", fontSize: 10 }}
-                      numberOfLines={1}
-                    >
-                      {user.location.name}, {user.location.city}
-                    </Text>
-                  )}
-                </View>
+                    {user.location.name}
+                  </Text>
+                )}
               </View>
             </View>
+            <TouchableOpacity onPress={handleLogout} style={{ padding: 6 }}>
+              <Ionicons
+                name="log-out-outline"
+                size={20}
+                color="rgba(255,255,255,0.9)"
+              />
+            </TouchableOpacity>
           </View>
         )}
         {right}
@@ -136,5 +137,4 @@ export function AdminHeader({ title, showBack = false, right }: Props) {
   );
 }
 
-import { TouchableOpacity } from "react-native";
 export default AdminHeader;

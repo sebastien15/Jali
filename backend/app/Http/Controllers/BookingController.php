@@ -17,7 +17,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         $query = Booking::query();
 
         if ($user->isAdmin() && !$user->isSuperAdmin()) {
@@ -27,6 +27,31 @@ class BookingController extends Controller
             } else {
                 return response()->json([]);
             }
+        } elseif ($user->isDriver()) {
+            // Driver: bookings for their private seats or rental cars
+            $privateSeatIds = PrivateSeat::where("user_id", $user->id)->pluck(
+                "id",
+            );
+            $carRentalIds = CarRental::where("user_id", $user->id)->pluck("id");
+
+            $query->where(function ($q) use ($privateSeatIds, $carRentalIds) {
+                if ($privateSeatIds->isNotEmpty()) {
+                    $q->orWhere(function ($sq) use ($privateSeatIds) {
+                        $sq->where("type", "private")->whereIn(
+                            "reference_id",
+                            $privateSeatIds,
+                        );
+                    });
+                }
+                if ($carRentalIds->isNotEmpty()) {
+                    $q->orWhere(function ($sq) use ($carRentalIds) {
+                        $sq->where("type", "rental")->whereIn(
+                            "reference_id",
+                            $carRentalIds,
+                        );
+                    });
+                }
+            });
         } else {
             // Regular user: only own bookings
             $query->where("user_id", $user->id);
@@ -59,7 +84,7 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $validated = $request->validate([
             "type" => "required|in:bus,private,rental",
@@ -139,7 +164,7 @@ class BookingController extends Controller
 
     public function show(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         $booking = Booking::findOrFail($id);
 
         if ($booking->user_id !== $user->id && !$user->isAdmin()) {
@@ -163,7 +188,7 @@ class BookingController extends Controller
      */
     public function claim(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         if (!$user->isAdmin()) {
             return response()->json(["error" => "Forbidden"], 403);
         }
@@ -208,7 +233,7 @@ class BookingController extends Controller
      */
     public function uploadTicket(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         if (!$user->isAdmin()) {
             return response()->json(["error" => "Forbidden"], 403);
         }
@@ -253,7 +278,7 @@ class BookingController extends Controller
      */
     public function deliver(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         if (!$user->isAdmin()) {
             return response()->json(["error" => "Forbidden"], 403);
         }

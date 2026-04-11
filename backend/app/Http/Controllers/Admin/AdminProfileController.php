@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,8 +12,18 @@ class AdminProfileController extends Controller
 {
     public function show(Request $request)
     {
-        $user = $request->auth_user;
-        $user->load(["location", "roles"]);
+        $user = $request->user();
+        $user->load(["location", "role.permissions"]);
+
+        Log::info("[AdminProfile] User data:", [
+            "id" => $user->id,
+            "name" => $user->name,
+            "role" => $user->role ? $user->role->name : "user",
+            "permissions" => $user->role
+                ? $user->role->permissions->pluck("name")->toArray()
+                : [],
+            "location" => $user->location ? $user->location->name : null,
+        ]);
 
         return response()->json([
             "id" => $user->id,
@@ -24,13 +35,16 @@ class AdminProfileController extends Controller
             "contract_doc_url" => $user->contract_doc_url,
             "contract_verified" => $user->contract_verified,
             "location" => $user->location,
-            "roles" => $user->roles->pluck("name"),
+            "roles" => $user->role ? $user->role->name : "user",
+            "permissions" => $user->role
+                ? $user->role->permissions->pluck("name")->toArray()
+                : [],
         ]);
     }
 
     public function update(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $data = $request->validate([
             "phone" => "nullable|string|max:20",
@@ -52,7 +66,7 @@ class AdminProfileController extends Controller
 
     public function uploadProfileImage(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $request->validate([
             "image" => "required|image|max:5120", // 5MB
@@ -76,7 +90,7 @@ class AdminProfileController extends Controller
 
     public function uploadContract(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $request->validate([
             "contract" => "required|file|mimes:pdf|max:10240", // 10MB

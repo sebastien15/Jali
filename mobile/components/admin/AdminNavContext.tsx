@@ -5,17 +5,19 @@ import {
   useCallback,
   useEffect,
   useRef,
+  Alert,
 } from "react";
-import api from "@/lib/api";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
+import api, { clearApiToken } from "@/lib/api";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 type AdminUser = {
   name: string;
   email: string;
-  roles: string[];
+  roles: string;
+  permissions: string[];
   profile_image_url: string | null;
   location: { name: string; city: string } | null;
 };
@@ -38,50 +40,28 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     mountedRef.current = true;
     (async () => {
       try {
-        const authRes = await api.post("/auth/login");
-        console.log(
-          "[AdminNav] /auth/login raw:",
-          JSON.stringify(authRes.data).slice(0, 300),
+        console.warn("[AdminNav] Fetching /me...");
+        const res = await api.get("/me");
+        console.warn(
+          "[AdminNav] /me response:",
+          JSON.stringify(res.data, null, 2),
         );
-        const authUser = authRes.data.user;
-        console.log("[AdminNav] authUser:", authUser);
-        console.log("[AdminNav] authUser.roles:", authUser?.roles);
-        const authRoles: string[] = authUser?.roles ?? [];
-
-        let nextUser: AdminUser = {
-          name: authUser?.name ?? "Admin",
-          email: authUser?.email ?? "",
-          roles: authRoles,
-          profile_image_url: null,
-          location: null,
-        };
-
-        try {
-          const profileRes = await api.get("/admin/profile");
-          console.log(
-            "[AdminNav] /admin/profile raw:",
-            JSON.stringify(profileRes.data).slice(0, 300),
-          );
-          const profile = profileRes.data;
-          console.log("[AdminNav] profile.roles:", profile.roles);
-          nextUser = {
-            name: profile.name ?? nextUser.name,
-            email: profile.email ?? nextUser.email,
-            roles: profile.roles ?? authRoles,
-            profile_image_url: profile.profile_image_url ?? null,
-            location: profile.location ?? null,
-          };
-        } catch (e) {
-          console.log("[AdminNav] /admin/profile FAILED:", e);
-        }
-
-        console.log("[AdminNav] Final nextUser:", JSON.stringify(nextUser));
         if (mountedRef.current) {
-          setUser(nextUser);
+          console.warn(
+            "[AdminNav] Setting user:",
+            res.data?.name,
+            "Role:",
+            res.data?.roles,
+          );
+          setUser(res.data);
           setLoading(false);
         }
-      } catch (e) {
-        console.log("[AdminNav] /auth/login FAILED:", e);
+      } catch (e: any) {
+        console.error(
+          "[AdminNav] /me FAILED:",
+          e.response?.status,
+          JSON.stringify(e.response?.data),
+        );
         if (mountedRef.current) {
           setUser(null);
           setLoading(false);
@@ -93,13 +73,31 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const isSuperAdmin = user?.roles?.includes(ROLES.SUPERADMIN) ?? false;
+  const isSuperAdmin = user?.roles === "superadmin";
 
   const handleLogout = useCallback(async () => {
     try {
-      await signOut(auth);
+      console.log("[AdminNav] Logging out...");
+      await api.post("/auth/logout");
+      await clearApiToken();
+      try {
+        await signOut(auth);
+      } catch {}
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        [
+          "firebaseLocalStorageDb",
+          "firebaseInstallationsDb",
+          "firebase-messaging-store",
+        ].forEach((db) => indexedDB.deleteDatabase(db));
+      } catch {}
+      console.log("[AdminNav] Redirecting to login...");
       router.replace("/(auth)/login");
-    } catch {}
+    } catch (e) {
+      console.log("[AdminNav] logout error:", e);
+      router.replace("/(auth)/login");
+    }
   }, []);
 
   return (

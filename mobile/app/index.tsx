@@ -1,30 +1,22 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 
 export default function Index() {
   const [ready, setReady] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
     let active = true;
-
-    async function resetSession() {
-      try {
-        if (auth.currentUser) {
-          await signOut(auth);
-        }
-      } finally {
-        if (active) {
-          setReady(true);
-        }
+    (async () => {
+      const token = await getApiToken();
+      if (active) {
+        setHasToken(!!token);
+        setReady(true);
       }
-    }
-
-    resetSession();
-
+    })();
     return () => {
       active = false;
     };
@@ -45,5 +37,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href="/(auth)/login" />;
+  return <Redirect href={hasToken ? "/(tabs)" : "/(auth)/login"} />;
 }

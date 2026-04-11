@@ -14,7 +14,7 @@ class DriverController extends Controller
      */
     public function stats(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         // IDs of all listings owned by this driver
         $listingIds = PrivateSeat::where('user_id', $user->id)->pluck('id');
@@ -51,7 +51,7 @@ class DriverController extends Controller
      */
     public function trips(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $listingIds = PrivateSeat::where('user_id', $user->id)->pluck('id');
 
@@ -84,7 +84,7 @@ class DriverController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $validated = $request->validate([
             'name'      => 'sometimes|string|max:255',

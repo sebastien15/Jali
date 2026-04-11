@@ -14,7 +14,7 @@ class AnalyticsController extends Controller
      */
     public function revenue(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $query = Booking::query()->where("status", "delivered");
 
@@ -52,7 +52,7 @@ class AnalyticsController extends Controller
      */
     public function bookings(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $query = Booking::query();
 
@@ -121,7 +121,7 @@ class AnalyticsController extends Controller
      */
     public function earnings(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $query = Booking::query()->where("status", "delivered");
 
@@ -175,7 +175,7 @@ class AnalyticsController extends Controller
      */
     public function stations(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         // Admin only sees their location
         if ($user->isAdmin() && !$user->isSuperAdmin()) {

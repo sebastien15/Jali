@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
 use App\Models\LocationChangeRequest;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class LocationChangeRequestController extends Controller
     // Admin submits a location change request
     public function store(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         $data = $request->validate([
             "to_location_id" => "required|exists:locations,id",
@@ -63,7 +64,7 @@ class LocationChangeRequestController extends Controller
     // Superadmin approves
     public function approve(Request $request, $id)
     {
-        $superadmin = $request->auth_user;
+        $superadmin = $request->user();
         $changeReq = LocationChangeRequest::with([
             "admin",
             "toLocation",
@@ -104,7 +105,7 @@ class LocationChangeRequestController extends Controller
     // Superadmin rejects
     public function reject(Request $request, $id)
     {
-        $superadmin = $request->auth_user;
+        $superadmin = $request->user();
         $changeReq = LocationChangeRequest::with("admin")->findOrFail($id);
 
         if ($changeReq->status !== "pending") {

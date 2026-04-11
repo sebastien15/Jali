@@ -10,7 +10,7 @@ class AdminBookingController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         $query = Booking::with("user")->orderBy("created_at", "desc");
 
         // Station admin only sees bookings for their city
@@ -51,7 +51,7 @@ class AdminBookingController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
         $booking = Booking::with("bookable")->findOrFail($id);
 
         // Station admin can only update bookings for their city

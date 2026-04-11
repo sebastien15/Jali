@@ -20,7 +20,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { C } from "@/constants/theme";
-import api from "@/lib/api";
+import api, { setApiToken, clearApiToken } from "@/lib/api";
 import { isDev } from "@/lib/env";
 
 export default function LoginScreen() {
@@ -63,13 +63,17 @@ export default function LoginScreen() {
       const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
       await signInWithCredential(auth, credential);
 
+      // Get Laravel token via Google Firebase token
       try {
-        await api.post("/auth/login");
+        const firebaseToken = await auth.currentUser?.getIdToken(true);
+        if (firebaseToken) {
+          const res = await api.post("/auth/login/google", {
+            firebase_token: firebaseToken,
+          });
+          if (res.data.token) await setApiToken(res.data.token);
+        }
       } catch (err: any) {
-        console.warn(
-          "Backend sync failed, but Firebase auth succeeded:",
-          err?.response?.data?.message,
-        );
+        console.warn("Backend sync failed:", err?.response?.data?.message);
       }
 
       router.replace("/(tabs)");
@@ -90,8 +94,21 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-      await api.post("/auth/login");
+      await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password,
+      );
+      // Get Laravel token
+      try {
+        const firebaseToken = await auth.currentUser?.getIdToken(true);
+        if (firebaseToken) {
+          const res = await api.post("/auth/login/google", {
+            firebase_token: firebaseToken,
+          });
+          if (res.data.token) await setApiToken(res.data.token);
+        }
+      } catch {}
       router.replace("/(tabs)");
     } catch (e: any) {
       const code = e?.code ?? "";
@@ -150,8 +167,8 @@ export default function LoginScreen() {
     step === "phone"
       ? t("login.enterPhone")
       : step === "email"
-      ? t("login.emailLoginHint")
-      : t("login.enterCode");
+        ? t("login.emailLoginHint")
+        : t("login.enterCode");
 
   return (
     <KeyboardAvoidingView
@@ -201,10 +218,12 @@ export default function LoginScreen() {
               borderColor: C.border,
             }}
           >
-            {([
-              { id: "phone", label: t("login.phoneTab") },
-              { id: "email", label: t("login.emailTab") },
-            ] as const).map((option) => {
+            {(
+              [
+                { id: "phone", label: t("login.phoneTab") },
+                { id: "email", label: t("login.emailTab") },
+              ] as const
+            ).map((option) => {
               const active = step === option.id;
 
               return (
@@ -513,7 +532,8 @@ function AdminPortalLink() {
       style={{ marginTop: 8, alignItems: "center" }}
     >
       <Text style={{ color: C.muted, fontSize: 12 }}>
-        Admin? <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
+        Admin?{" "}
+        <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
       </Text>
     </TouchableOpacity>
   );

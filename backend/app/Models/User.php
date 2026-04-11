@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Collection;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
         "firebase_uid",
@@ -20,6 +21,7 @@ class User extends Authenticatable
         "phone",
         "email",
         "fcm_token",
+        "role_id",
         "profile_image_url",
         "whatsapp_number",
         "contract_doc_url",
@@ -28,19 +30,22 @@ class User extends Authenticatable
 
     protected $hidden = [];
 
-    public function roles(): BelongsToMany
+    /**
+     * Get the single role assigned to the user.
+     */
+    public function role(): BelongsTo
     {
-        return $this->belongsToMany(Role::class, "user_roles");
+        return $this->belongsTo(Role::class);
     }
 
+    /**
+     * Get permissions via the user's role.
+     */
     public function permissions()
     {
-        return $this->roles()
-            ->with("permissions")
-            ->get()
-            ->pluck("permissions")
-            ->flatten()
-            ->unique("id");
+        return $this->role && $this->role->permissions
+            ? $this->role->permissions
+            : new Collection();
     }
 
     public function hasPermission(string $permission): bool
@@ -48,9 +53,9 @@ class User extends Authenticatable
         return $this->permissions()->contains("name", $permission);
     }
 
-    public function hasRole(string $role): bool
+    public function hasRole(string $roleName): bool
     {
-        return $this->roles()->where("name", $role)->exists();
+        return $this->role && $this->role->name === $roleName;
     }
 
     public function isAdmin(): bool
@@ -78,19 +83,16 @@ class User extends Authenticatable
         return $this->hasOne(AdminStation::class);
     }
 
-    // Location this admin is assigned to
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class, "location_id");
     }
 
-    // Outgoing location change requests
     public function locationChangeRequests(): HasMany
     {
         return $this->hasMany(LocationChangeRequest::class, "admin_id");
     }
 
-    // Activity logs
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class, "admin_id");

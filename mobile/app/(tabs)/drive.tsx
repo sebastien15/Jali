@@ -57,6 +57,7 @@ export default function DriveScreen() {
   const [tab, setTab] = useState<"upcoming" | "history">("upcoming");
   const [stats, setStats] = useState<DriverStats | null>(null);
   const [trips, setTrips] = useState<DriverTrip[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [driverCars, setDriverCars] = useState<DriverCar[]>([]);
   const [driverListings, setDriverListings] = useState<DriverListing[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,13 +68,15 @@ export default function DriveScreen() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       try {
-        const [statsRes, tripsRes, roleRes] = await Promise.all([
+        const [statsRes, tripsRes, roleRes, bookingsRes] = await Promise.all([
           api.get("/driver/stats"),
           api.get("/driver/trips"),
           isRental ? api.get("/driver/cars") : api.get("/driver/listings"),
+          api.get("/bookings"), // Fetch bookings for this driver's cars
         ]);
         setStats(statsRes.data);
         setTrips(tripsRes.data);
+        setBookings(bookingsRes.data);
         if (isRental) setDriverCars(roleRes.data);
         else setDriverListings(roleRes.data);
       } catch {

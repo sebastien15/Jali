@@ -13,7 +13,6 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
-import { ROLES } from "@/constants/roles";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
@@ -57,6 +56,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Debug log
+  useEffect(() => {
+    console.warn("[Dashboard] User state:", JSON.stringify(user));
+    console.warn("[Dashboard] isSuperAdmin:", isSuperAdmin);
+  }, [user, isSuperAdmin]);
 
   const tiles: NavTile[] = isSuperAdmin
     ? [
@@ -125,7 +130,7 @@ export default function AdminDashboard() {
           User: {user?.name ?? "(null)"}
         </Text>
         <Text style={{ fontWeight: "900", fontSize: 13, color: C.dark }}>
-          Roles: {JSON.stringify(user?.roles)}
+          Role: {user?.roles ?? "(none)"}
         </Text>
         <View
           style={{
@@ -139,6 +144,11 @@ export default function AdminDashboard() {
             {isSuperAdmin ? "SUPERADMIN" : "ADMIN"}
           </Text>
         </View>
+        <Text
+          style={{ fontSize: 10, color: C.dark, width: "100%", marginTop: 4 }}
+        >
+          RAW: {JSON.stringify(user)}
+        </Text>
       </View>
 
       <ScrollView

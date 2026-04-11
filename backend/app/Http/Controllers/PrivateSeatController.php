@@ -44,7 +44,7 @@ class PrivateSeatController extends Controller
      */
     public function driverListings(Request $request)
     {
-        $listings = PrivateSeat::where('user_id', $request->auth_user->id)
+        $listings = PrivateSeat::where('user_id', $request->user()->id)
             ->latest()
             ->get();
 
@@ -74,8 +74,8 @@ class PrivateSeatController extends Controller
             'custom_pickup_fee'   => 'integer|min:0',
         ]);
 
-        $validated['user_id'] = $request->auth_user->id;
-        $validated['driver']  = $request->auth_user->name;
+        $validated['user_id'] = $request->user()->id;
+        $validated['driver']  = $request->user()->name;
         $validated['active']  = true;
 
         $listing = PrivateSeat::create($validated);
@@ -89,7 +89,7 @@ class PrivateSeatController extends Controller
     public function update(Request $request, $id)
     {
         $listing = PrivateSeat::where('id', $id)
-            ->where('user_id', $request->auth_user->id)
+            ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -122,7 +122,7 @@ class PrivateSeatController extends Controller
     public function destroy(Request $request, $id)
     {
         $listing = PrivateSeat::where('id', $id)
-            ->where('user_id', $request->auth_user->id)
+            ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
         $listing->delete();

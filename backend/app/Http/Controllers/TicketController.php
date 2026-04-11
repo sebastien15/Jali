@@ -11,7 +11,7 @@ class TicketController extends Controller
 {
     public function upload(Request $request, $id)
     {
-        $user = $request->auth_user;
+        $user = $request->user();
 
         // Only admins can upload tickets
         if (!$user->isAdmin()) {
