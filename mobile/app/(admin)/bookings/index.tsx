@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -32,17 +33,20 @@ const STATUS_META: Record<
 };
 
 const TABS: { key: "all" | BookingStatus; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "pending", label: "Pending" },
-  { key: "confirmed", label: "Confirmed" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: "all",          label: "All" },
+  { key: "pending",      label: "⏳ Pending" },
+  { key: "taken",        label: "📋 Taken" },
+  { key: "ticket_ready", label: "🎫 Ready" },
+  { key: "delivered",    label: "✅ Delivered" },
 ];
 
 export default function AdminBookingsScreen() {
   const { t } = useTranslation();
   const { isSuperAdmin } = useAdminNav();
-  const [filter, setFilter] = useState<"all" | BookingStatus>("all");
+  const { status: initialStatus } = useLocalSearchParams<{ status?: string }>();
+  const [filter, setFilter] = useState<"all" | BookingStatus>(
+    (initialStatus as BookingStatus) ?? "all"
+  );
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,10 +57,7 @@ export default function AdminBookingsScreen() {
     else setLoading(true);
     try {
       const params: any = {};
-      // For non-superadmins, don't filter by status (backend already scopes)
-      if (isSuperAdmin && filter !== "all") {
-        params.status = filter;
-      }
+      if (filter !== "all") params.status = filter;
       const res = await api.get("/admin/bookings", { params });
       setBookings(res.data);
     } catch {

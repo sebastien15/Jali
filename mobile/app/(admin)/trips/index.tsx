@@ -44,6 +44,8 @@ export default function TripsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [filterAgency, setFilterAgency] = useState<number | null>(null);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
+  const [agencyDropdownOpen, setAgencyDropdownOpen] = useState(false);
+  const [agencySearch, setAgencySearch] = useState("");
   const [modal, setModal] = useState<{
     mode: "create" | "edit";
     trip?: TripData;
@@ -230,54 +232,43 @@ export default function TripsScreen() {
 
       {/* Filters */}
       <View style={{ backgroundColor: C.white, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {/* Agency filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", gap: 6 }}>
+        {/* Agency search dropdown trigger */}
+        <TouchableOpacity
+          onPress={() => { setAgencyDropdownOpen(true); setAgencySearch(""); }}
+          style={{
+            flex: 1, flexDirection: "row", alignItems: "center", gap: 6,
+            backgroundColor: C.bg, borderRadius: 10,
+            paddingHorizontal: 12, paddingVertical: 8,
+            borderWidth: 1.5, borderColor: C.border,
+          }}
+        >
+          <Ionicons name="search-outline" size={14} color={C.muted} />
+          <Text
+            numberOfLines={1}
+            style={{
+              color: filterAgency ? C.dark : C.muted,
+              fontWeight: "700",
+              fontSize: 12,
+              flex: 1,
+            }}
+          >
+            {filterAgency
+              ? agencies.find(a => a.id === filterAgency)?.name ?? "Agency"
+              : "Filter by agency…"}
+          </Text>
+          {filterAgency && (
             <TouchableOpacity
-              onPress={() => { setFilterAgency(null); }}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 8,
-                backgroundColor: filterAgency === null ? C.teal : C.bg,
+              onPress={(e) => {
+                e.stopPropagation();
+                setFilterAgency(null);
               }}
+              style={{ padding: 2 }}
             >
-              <Text
-                style={{
-                  color: filterAgency === null ? C.white : C.dark,
-                  fontWeight: "700",
-                  fontSize: 12,
-                }}
-              >
-                All
-              </Text>
+              <Ionicons name="close-circle" size={14} color={C.muted} />
             </TouchableOpacity>
-            {agencies.map((a) => (
-              <TouchableOpacity
-                key={a.id}
-                onPress={() => setFilterAgency(a.id)}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  backgroundColor: filterAgency === a.id ? C.teal : C.bg,
-                }}
-              >
-                <Text
-                  style={{
-                    color: filterAgency === a.id ? C.white : C.dark,
-                    fontWeight: "700",
-                    fontSize: 12,
-                    maxWidth: 80,
-                  }}
-                  numberOfLines={1}
-                >
-                  {a.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
+          )}
+        </TouchableOpacity>
+
         {/* Active toggle */}
         <TouchableOpacity
           onPress={() =>
@@ -504,6 +495,101 @@ export default function TripsScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Agency search dropdown modal */}
+      <Modal visible={agencyDropdownOpen} animationType="fade" transparent>
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }}
+          activeOpacity={1}
+          onPress={() => setAgencyDropdownOpen(false)}
+        >
+          <View
+            style={{
+              backgroundColor: C.white,
+              borderRadius: 16,
+              marginHorizontal: 24,
+              marginTop: 60,
+              maxHeight: 300,
+              shadowColor: "#000",
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 8,
+            }}
+          >
+            {/* Search input */}
+            <View style={{
+              flexDirection: "row", alignItems: "center", gap: 8,
+              paddingHorizontal: 14, paddingVertical: 12,
+              borderBottomWidth: 1, borderBottomColor: C.border,
+            }}>
+              <Ionicons name="search-outline" size={16} color={C.muted} />
+              <TextInput
+                value={agencySearch}
+                onChangeText={setAgencySearch}
+                placeholder="Search agencies…"
+                placeholderTextColor={C.muted}
+                autoFocus
+                style={{ flex: 1, fontSize: 14, color: C.dark }}
+                clearButtonMode="while-editing"
+              />
+            </View>
+
+            {/* "All" option */}
+            <TouchableOpacity
+              onPress={() => { setFilterAgency(null); setAgencyDropdownOpen(false); }}
+              style={{
+                paddingHorizontal: 16, paddingVertical: 12,
+                flexDirection: "row", alignItems: "center", gap: 10,
+                backgroundColor: filterAgency === null ? C.tealLt : C.white,
+                borderBottomWidth: 1, borderBottomColor: C.border,
+              }}
+            >
+              <Ionicons name="list-outline" size={16} color={filterAgency === null ? C.teal : C.muted} />
+              <Text style={{
+                color: filterAgency === null ? C.teal : C.dark,
+                fontWeight: filterAgency === null ? "800" : "600",
+                fontSize: 14,
+              }}>
+                All Agencies
+              </Text>
+            </TouchableOpacity>
+
+            {/* Agency list */}
+            <ScrollView nestedScrollEnabled>
+              {agencies
+                .filter(a => a.name.toLowerCase().includes(agencySearch.toLowerCase()))
+                .map(a => {
+                  const selected = filterAgency === a.id;
+                  return (
+                    <TouchableOpacity
+                      key={a.id}
+                      onPress={() => { setFilterAgency(a.id); setAgencyDropdownOpen(false); }}
+                      style={{
+                        paddingHorizontal: 16, paddingVertical: 12,
+                        flexDirection: "row", alignItems: "center", gap: 10,
+                        backgroundColor: selected ? C.tealLt : C.white,
+                        borderBottomWidth: 1, borderBottomColor: C.border,
+                      }}
+                    >
+                      <Ionicons name="business-outline" size={16} color={selected ? C.teal : C.muted} />
+                      <Text style={{
+                        color: selected ? C.teal : C.dark,
+                        fontWeight: selected ? "800" : "600",
+                        fontSize: 14,
+                      }}>
+                        {a.name}
+                      </Text>
+                      {selected && (
+                        <Ionicons name="checkmark-circle" size={16} color={C.teal} style={{ marginLeft: "auto" }} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

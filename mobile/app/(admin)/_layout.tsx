@@ -113,57 +113,39 @@ function TabsNavigator() {
           ),
         }}
       />
-      {isSuperAdmin ? (
-        <Tabs.Screen
-          name="stations/index"
-          options={{
-            tabBarLabel: "Stations",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                icon="location-outline"
-                iconFocused="location"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-      ) : (
-        <Tabs.Screen
-          name="profile/index"
-          options={{
-            tabBarLabel: "Profile",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                icon="person-outline"
-                iconFocused="person"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-      )}
+      {/* Stations tab — visible for superadmin, hidden for others */}
+      <Tabs.Screen
+        name="stations/index"
+        options={isSuperAdmin ? {
+          tabBarLabel: "Stations",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="location-outline" iconFocused="location" focused={focused} />
+          ),
+        } : { href: null }}
+      />
 
-      {/* ── Hide ALL other routes from tab bar ── */}
-      <Tabs.Screen name="login" options={{ href: null }} />
+      {/* Profile tab — visible for regular admin, hidden for superadmin (accessible via dashboard tile) */}
+      <Tabs.Screen
+        name="profile/index"
+        options={isSuperAdmin ? { href: null } : {
+          tabBarLabel: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="person-outline" iconFocused="person" focused={focused} />
+          ),
+        }}
+      />
+
+      {/* ── All other screens: navigable but hidden from tab bar ── */}
+      <Tabs.Screen name="login"           options={{ href: null }} />
       <Tabs.Screen name="locations/index" options={{ href: null }} />
-      <Tabs.Screen name="buses/index" options={{ href: null }} />
-      <Tabs.Screen name="buses/[id]" options={{ href: null }} />
-      <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
-      <Tabs.Screen name="users/index" options={{ href: null }} />
-      <Tabs.Screen name="users/[id]" options={{ href: null }} />
-      <Tabs.Screen name="logs/index" options={{ href: null }} />
-      <Tabs.Screen name="agencies/index" options={{ href: null }} />
-      <Tabs.Screen name="trips/index" options={{ href: null }} />
-      {!isSuperAdmin && (
-        <Tabs.Screen name="stations/index" options={{ href: null }} />
-      )}
-      {isSuperAdmin && (
-        <>
-          <Tabs.Screen name="users/index" options={{ href: null }} />
-          <Tabs.Screen name="logs/index" options={{ href: null }} />
-          <Tabs.Screen name="profile/index" options={{ href: null }} />
-        </>
-      )}
+      <Tabs.Screen name="buses/index"     options={{ href: null }} />
+      <Tabs.Screen name="buses/[id]"      options={{ href: null }} />
+      <Tabs.Screen name="bookings/[id]"   options={{ href: null }} />
+      <Tabs.Screen name="users/index"     options={{ href: null }} />
+      <Tabs.Screen name="users/[id]"      options={{ href: null }} />
+      <Tabs.Screen name="logs/index"      options={{ href: null }} />
+      <Tabs.Screen name="agencies/index"  options={{ href: null }} />
+      <Tabs.Screen name="trips/index"     options={{ href: null }} />
     </Tabs>
   );
 }

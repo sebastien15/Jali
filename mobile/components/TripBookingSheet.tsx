@@ -29,18 +29,19 @@ type TripData = {
   price: number;
 };
 
-const DATE_OPTS = ["Today", "Tomorrow"];
+const BASE_DATE_OPTS = ["Today", "Tomorrow"];
 
 interface Props {
   trip: TripData;
   onClose: () => void;
   onConfirm: () => void;
+  travelDate?: string; // pre-selected date from home screen
 }
 
-export function TripBookingSheet({ trip, onClose, onConfirm }: Props) {
+export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props) {
   const { t } = useTranslation();
   const [payMethod, setPayMethod] = useState<PayMethod | null>(null);
-  const [selectedDate, setSelectedDate] = useState("Today");
+  const [selectedDate, setSelectedDate] = useState(travelDate ?? "Today");
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -48,6 +49,11 @@ export function TripBookingSheet({ trip, onClose, onConfirm }: Props) {
 
   const fee = tripServiceFee(trip.price);
   const total = trip.price + fee;
+
+  // Include the pre-selected date in the options if it's not Today/Tomorrow
+  const dateOpts = BASE_DATE_OPTS.includes(travelDate ?? "")
+    ? BASE_DATE_OPTS
+    : [travelDate, ...BASE_DATE_OPTS].filter(Boolean) as string[];
 
   async function handleBook() {
     if (!payMethod) return;
@@ -269,7 +275,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm }: Props) {
             TRAVEL DATE
           </Text>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
-            {DATE_OPTS.map((d) => (
+            {dateOpts.map((d) => (
               <TouchableOpacity
                 key={d}
                 onPress={() => setSelectedDate(d)}

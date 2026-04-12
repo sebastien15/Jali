@@ -56,14 +56,9 @@ class AnalyticsController extends Controller
 
         $query = Booking::query();
 
-        // Admin scoped to their location
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            if ($user->location_id) {
-                $query->where("location_id", $user->location_id);
-            } else {
-                return response()->json(["data" => []]);
-            }
-        }
+        // Superadmin sees all; regular admin also sees all for now.
+        // Station-scoped filtering will be added once booking→trip→station
+        // chain is fully enforced on booking creation.
 
         $byStatus = $query
             ->clone()
@@ -125,13 +120,7 @@ class AnalyticsController extends Controller
 
         $query = Booking::query()->where("status", "delivered");
 
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            if ($user->location_id) {
-                $query->where("location_id", $user->location_id);
-            } else {
-                return response()->json(["data" => []]);
-            }
-        }
+        // Superadmin and admin both see all delivered bookings for now.
 
         $allDelivered = $query->get();
         $totalServiceFee = $allDelivered->sum(fn($b) => $b->service_fee);

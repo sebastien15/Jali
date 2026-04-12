@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { GoogleSignin } from "@/lib/native/google-signin";
-import api, { clearApiToken } from "@/lib/api";
+import api, { clearApiToken, getApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 
@@ -59,21 +59,24 @@ export default function ProfileScreen() {
     );
   }
 
-  async function handleLogout() {
+  function handleLogout() {
     Alert.alert("Log Out", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Log Out",
-        style: "destructive",
-        onPress: async () => {
-          try { await api.post("/auth/logout"); } catch {}
-          await clearApiToken();
-          GoogleSignin.signOut().catch(() => {});
-          signOut(auth).catch(() => {});
-          router.replace("/(auth)/login");
-        },
-      },
+      { text: "Log Out", style: "destructive", onPress: () => doLogout() },
     ]);
+  }
+
+  async function doLogout() {
+    const token = await getApiToken();
+    await clearApiToken();
+    GoogleSignin.signOut().catch(() => {});
+    signOut(auth).catch(() => {});
+    router.replace("/(auth)/login");
+    if (token) {
+      api.post("/auth/logout", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
   }
 
   async function handleDeleteAccount() {
@@ -87,13 +90,15 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              // Delete account must be awaited — we need to confirm it succeeded
               await api.delete("/auth/me");
               await clearApiToken();
               GoogleSignin.signOut().catch(() => {});
               signOut(auth).catch(() => {});
               router.replace("/(auth)/login");
-            } catch {
-              Alert.alert("Error", "Failed to delete account. Please try again.");
+            } catch (e: any) {
+              const msg = e?.response?.data?.message ?? "Failed to delete account. Please try again.";
+              Alert.alert("Error", msg);
             }
           },
         },

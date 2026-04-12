@@ -63,21 +63,33 @@ export default function AdminDashboard() {
     ...(isSuperAdmin
       ? [
           {
-            label: t("admin.profile"),
-            icon: "person-outline" as const,
-            route: "/(admin)/profile/index",
-            color: C.blue,
-          },
-          {
-            label: t("admin.logs"),
-            icon: "time-outline" as const,
-            route: "/(admin)/logs/index",
-            color: C.purple,
+            label: "Bookings",
+            icon: "calendar-outline" as const,
+            route: "/(admin)/bookings",
+            color: C.teal,
           },
           {
             label: t("admin.users"),
             icon: "people-outline" as const,
-            route: "/(admin)/users/index",
+            route: "/(admin)/users",
+            color: C.blue,
+          },
+          {
+            label: t("admin.stations"),
+            icon: "location-outline" as const,
+            route: "/(admin)/stations",
+            color: C.orange,
+          },
+          {
+            label: t("admin.logs"),
+            icon: "time-outline" as const,
+            route: "/(admin)/logs",
+            color: C.purple,
+          },
+          {
+            label: t("admin.profile"),
+            icon: "person-outline" as const,
+            route: "/(admin)/profile",
             color: C.blue,
           },
         ]
@@ -85,7 +97,7 @@ export default function AdminDashboard() {
           {
             label: t("admin.stations"),
             icon: "location-outline" as const,
-            route: "/(admin)/stations/index",
+            route: "/(admin)/stations",
             color: C.orange,
           },
         ]),
@@ -102,15 +114,15 @@ export default function AdminDashboard() {
     ...(canManageAgencies
       ? [
           {
-            label: t("agencies.title") || "Agencies",
+            label: "Agencies",
             icon: "business-outline" as const,
-            route: "/(admin)/agencies/index",
+            route: "/(admin)/agencies",
             color: C.purple,
           },
           {
-            label: t("trips.title") || "Trips",
-            icon: "bus-outline" as const,
-            route: "/(admin)/trips/index",
+            label: "Trips",
+            icon: "train-outline" as const,
+            route: "/(admin)/trips",
             color: C.blue,
           },
         ]
@@ -200,40 +212,20 @@ export default function AdminDashboard() {
           </View>
         )}
 
-        {/* Booking status cards */}
+        {/* Booking status cards — tap to open bookings filtered by status */}
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
-          <StatusCard
-            label={t("admin.pending")}
-            value={bs.pending ?? 0}
-            color={C.orange}
-            icon="⏳"
-          />
-          <StatusCard
-            label="Taken"
-            value={bs.taken ?? 0}
-            color={C.blue}
-            icon="📋"
-          />
-          <StatusCard
-            label="Ready"
-            value={bs.ticket_ready ?? 0}
-            color={C.green}
-            icon="🎫"
-          />
+          <StatusCard label={t("admin.pending")} value={bs.pending ?? 0} color={C.orange} icon="⏳"
+            onPress={() => router.push({ pathname: "/(admin)/bookings", params: { status: "pending" } } as any)} />
+          <StatusCard label="Taken" value={bs.taken ?? 0} color={C.blue} icon="📋"
+            onPress={() => router.push({ pathname: "/(admin)/bookings", params: { status: "taken" } } as any)} />
+          <StatusCard label="Ready" value={bs.ticket_ready ?? 0} color={C.green} icon="🎫"
+            onPress={() => router.push({ pathname: "/(admin)/bookings", params: { status: "ticket_ready" } } as any)} />
         </View>
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
-          <StatusCard
-            label="Delivered"
-            value={bs.delivered ?? 0}
-            color={C.teal}
-            icon="✅"
-          />
-          <StatusCard
-            label="Total"
-            value={bookingStats?.total_bookings ?? 0}
-            color={C.dark}
-            icon="📊"
-          />
+          <StatusCard label="Delivered" value={bs.delivered ?? 0} color={C.teal} icon="✅"
+            onPress={() => router.push({ pathname: "/(admin)/bookings", params: { status: "delivered" } } as any)} />
+          <StatusCard label="Total" value={bookingStats?.total_bookings ?? 0} color={C.dark} icon="📊"
+            onPress={() => router.push("/(admin)/bookings" as any)} />
         </View>
 
         {/* Nav tiles */}
@@ -312,31 +304,23 @@ function MiniStat({ label, value }: { label: string; value: number }) {
 }
 
 function StatusCard({
-  label,
-  value,
-  color,
-  icon,
+  label, value, color, icon, onPress,
 }: {
-  label: string;
-  value: number;
-  color: string;
-  icon: string;
+  label: string; value: number; color: string; icon: string; onPress: () => void;
 }) {
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress}
       style={{
-        flex: 1,
-        backgroundColor: C.white,
-        borderRadius: 16,
-        padding: 14,
-        alignItems: "center",
+        flex: 1, backgroundColor: C.white, borderRadius: 16,
+        padding: 14, alignItems: "center",
+        shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6,
+        shadowOffset: { width: 0, height: 1 }, elevation: 2,
       }}
     >
       <Text style={{ fontSize: 20, marginBottom: 4 }}>{icon}</Text>
       <Text style={{ color, fontWeight: "900", fontSize: 20 }}>{value}</Text>
-      <Text style={{ color: C.muted, fontSize: 10, fontWeight: "600" }}>
-        {label}
-      </Text>
-    </View>
+      <Text style={{ color: C.muted, fontSize: 10, fontWeight: "600" }}>{label}</Text>
+    </TouchableOpacity>
   );
 }

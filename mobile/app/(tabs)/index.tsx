@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StatusBar, ActivityIndicator,
+  StatusBar, ActivityIndicator, Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { PrivateCard } from "@/components/PrivateCard";
@@ -17,26 +18,39 @@ import { TripBookingSheet } from "@/components/TripBookingSheet";
 import api from "@/lib/api";
 
 type Mode = "bus" | "private" | "rental";
+type TimeSlot = "all" | "morning" | "afternoon" | "evening";
 
-const TIME_FILTERS = [
-  { id: "all" as const, label: "All times" },
-  { id: "morning" as const, label: "Morning (5–12)" },
-  { id: "afternoon" as const, label: "Afternoon (12–18)" },
-  { id: "evening" as const, label: "Evening (18–24)" },
-];
+function formatDateLabel(d: Date): string {
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return d.toLocaleDateString("en-RW", { month: "short", day: "numeric" });
+}
+
+function formatDateParam(d: Date): string {
+  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+}
 
 type StationObj = { id: number; city: string };
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const [from, setFrom]         = useState<StationObj | null>(null);
-  const [to, setTo]             = useState<StationObj | null>(null);
-  const [date, setDate]         = useState("Today");
+
+  const [from, setFrom]     = useState<StationObj | null>(null);
+  const [to, setTo]         = useState<StationObj | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showPicker, setShowPicker]     = useState(false);
+
   const [mode, setMode]         = useState<Mode>("bus");
   const [rentalDays, setRD]     = useState(1);
-  const [timeFilter, setTimeFilter] = useState<"all" | "morning" | "afternoon" | "evening">("all");
-  const [sheet, setSheet]       = useState<any>(null);
+  const [timeSlot, setTimeSlot] = useState<TimeSlot>("all");
+  const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
+
+  const [sheet, setSheet]         = useState<any>(null);
   const [tripSheet, setTripSheet] = useState<TripResult | null>(null);
+  const [tripSheetDate, setTripSheetDate] = useState<string>("");
 
   const [trips, setTrips]       = useState<TripResult[]>([]);
   const [cars, setCars]         = useState<any[]>([]);
@@ -44,47 +58,64 @@ export default function HomeScreen() {
   const [loadingData, setLoading]  = useState(false);
   const [error, setError]          = useState<string | null>(null);
 
-  const fromStationId = from?.id ?? null;
-  const toStationId   = to?.id ?? null;
+  const dateLabel = formatDateLabel(selectedDate);
+  const dateParam = formatDateParam(selectedDate);
 
   function fetchAll() {
     setLoading(true);
     setError(null);
 
     const tripParams: Record<string, any> = {};
-    if (fromStationId) tripParams.from_station_id = fromStationId;
-    if (toStationId)   tripParams.to_station_id   = toStationId;
+    if (from?.id) tripParams.from_station_id = from.id;
+    if (to?.id)   tripParams.to_station_id   = to.id;
 
     Promise.all([
       api.get("/trips", { params: tripParams }),
       api.get("/car-rentals"),
-      api.get("/private-seats", { params: { from: from?.city, ...(to?.city ? { to: to.city } : {}), date } }),
+      api.get("/private-seats", {
+        params: { from: from?.city, ...(to?.city ? { to: to.city } : {}), date: dateParam },
+      }),
     ])
       .then(([tripsRes, carRes, privateRes]) => {
         setTrips(tripsRes.data ?? []);
         setCars(carRes.data ?? []);
         setPrivate(privateRes.data ?? []);
+        setAgencyFilter(null); // reset agency filter on new fetch
       })
       .catch((err) => {
-        const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load data. Check your connection.";
+        const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load. Check your connection.";
         setError(msg);
       })
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { fetchAll(); }, [from, to, date]);
+  useEffect(() => { fetchAll(); }, [from, to, selectedDate]);
 
-  // Filter trips by time
-  const filteredTrips = trips.filter((trip) => {
-    if (timeFilter === "all") return true;
-    const hour = parseInt(trip.departure_time.split(":")[0], 10);
-    if (timeFilter === "morning")   return hour >= 5  && hour < 12;
-    if (timeFilter === "afternoon") return hour >= 12 && hour < 18;
-    if (timeFilter === "evening")   return hour >= 18 && hour < 24;
-    return true;
-  });
+  // Unique agencies from trips list
+  const agencies = useMemo(() => {
+    const names = [...new Set(trips.map(t => t.agency_name))].sort();
+    return names;
+  }, [trips]);
+
+  // Apply time + agency filters to trips
+  const filteredTrips = useMemo(() => {
+    return trips.filter(trip => {
+      if (agencyFilter && trip.agency_name !== agencyFilter) return false;
+      if (timeSlot === "all") return true;
+      const hour = parseInt(trip.departure_time.split(":")[0], 10);
+      if (timeSlot === "morning")   return hour >= 5  && hour < 12;
+      if (timeSlot === "afternoon") return hour >= 12 && hour < 18;
+      if (timeSlot === "evening")   return hour >= 18 && hour < 24;
+      return true;
+    });
+  }, [trips, agencyFilter, timeSlot]);
 
   const isFiltered = !!from || !!to;
+
+  const quickDates = [
+    { label: "Today",    date: new Date() },
+    { label: "Tomorrow", date: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })() },
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -92,6 +123,7 @@ export default function HomeScreen() {
 
       {/* ── Blue header ── */}
       <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
+        {/* Title row */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <View>
             <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: "600" }}>{t('home.greeting')}</Text>
@@ -123,34 +155,71 @@ export default function HomeScreen() {
           >
             <Text style={{ fontSize: 16 }}>⇄</Text>
           </TouchableOpacity>
-          <StationPicker
-            value={to}
-            onChange={setTo as any}
-            placeholder={t('home.toAny')}
-            exclude={from}
-          />
+          <StationPicker value={to} onChange={setTo as any} placeholder={t('home.toAny')} exclude={from} />
         </View>
 
-        {/* Date chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 0 }}>
+        {/* Date chips — Today, Tomorrow, Pick date */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
-            {[t('home.dateToday'), t('home.dateTomorrow'), "Apr 7", "Apr 8", "Apr 9"].map(d => (
-              <TouchableOpacity
-                key={d}
-                onPress={() => setDate(d)}
-                style={{
-                  backgroundColor: date === d ? C.yellow : "rgba(255,255,255,0.15)",
-                  borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8,
-                }}
-              >
-                <Text style={{ color: date === d ? C.dark : C.white, fontWeight: "800", fontSize: 13 }}>
-                  {d}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {quickDates.map(qd => {
+              const active = qd.label === dateLabel;
+              return (
+                <TouchableOpacity
+                  key={qd.label}
+                  onPress={() => setSelectedDate(qd.date)}
+                  style={{
+                    backgroundColor: active ? C.yellow : "rgba(255,255,255,0.15)",
+                    borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8,
+                  }}
+                >
+                  <Text style={{ color: active ? C.dark : C.white, fontWeight: "800", fontSize: 13 }}>
+                    {qd.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {/* Custom date chip */}
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              style={{
+                flexDirection: "row", alignItems: "center", gap: 6,
+                backgroundColor: !["Today", "Tomorrow"].includes(dateLabel)
+                  ? C.yellow
+                  : "rgba(255,255,255,0.15)",
+                borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
+              }}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={14}
+                color={!["Today", "Tomorrow"].includes(dateLabel) ? C.dark : C.white}
+              />
+              <Text style={{
+                color: !["Today", "Tomorrow"].includes(dateLabel) ? C.dark : C.white,
+                fontWeight: "800", fontSize: 13,
+              }}>
+                {["Today", "Tomorrow"].includes(dateLabel) ? "Pick date" : dateLabel}
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
+
+      {/* DateTimePicker (iOS inline / Android modal) */}
+      {showPicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          minimumDate={new Date()}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(_, date) => {
+            setShowPicker(Platform.OS === "ios"); // keep open on iOS until dismissed
+            if (date) setSelectedDate(date);
+            if (Platform.OS === "android") setShowPicker(false);
+          }}
+        />
+      )}
 
       {/* ── Mode tabs ── */}
       <View style={{ flexDirection: "row", backgroundColor: C.white, borderBottomWidth: 2, borderBottomColor: C.border }}>
@@ -176,36 +245,70 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* ── Time filter (bus/trips only) ── */}
+      {/* ── Filter bar (bus only) ── */}
       {mode === "bus" && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border }}>
-          <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 10 }}>
-            {TIME_FILTERS.map(tf => (
-              <TouchableOpacity
-                key={tf.id}
-                onPress={() => setTimeFilter(tf.id)}
-                style={{
-                  paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8,
-                  backgroundColor: timeFilter === tf.id ? C.blue : C.bg,
-                }}
-              >
-                <Text style={{
-                  color: timeFilter === tf.id ? C.white : C.dark,
-                  fontWeight: "700", fontSize: 12,
-                }}>
-                  {tf.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border }}
+        >
+          <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14, paddingVertical: 9, alignItems: "center" }}>
+            {/* Time chips */}
+            {(["all", "morning", "afternoon", "evening"] as TimeSlot[]).map(slot => {
+              const labels: Record<TimeSlot, string> = {
+                all: "All", morning: "☀️ Morning", afternoon: "🌤 Afternoon", evening: "🌙 Evening",
+              };
+              const active = timeSlot === slot;
+              return (
+                <TouchableOpacity
+                  key={slot}
+                  onPress={() => setTimeSlot(slot)}
+                  style={{
+                    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
+                    backgroundColor: active ? C.blue : C.bg,
+                    borderWidth: active ? 0 : 1.5, borderColor: C.border,
+                  }}
+                >
+                  <Text style={{ color: active ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
+                    {labels[slot]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {/* Divider */}
+            {agencies.length > 0 && (
+              <View style={{ width: 1, height: 20, backgroundColor: C.border, marginHorizontal: 4 }} />
+            )}
+
+            {/* Agency chips */}
+            {agencies.map(name => {
+              const active = agencyFilter === name;
+              return (
+                <TouchableOpacity
+                  key={name}
+                  onPress={() => setAgencyFilter(active ? null : name)}
+                  style={{
+                    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
+                    backgroundColor: active ? C.teal : C.bg,
+                    borderWidth: active ? 0 : 1.5, borderColor: C.border,
+                    flexDirection: "row", alignItems: "center", gap: 5,
+                  }}
+                >
+                  <Ionicons name="business-outline" size={11} color={active ? C.white : C.mid} />
+                  <Text style={{ color: active ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       )}
 
       {/* ── Listings ── */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {loadingData && (
-          <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />
-        )}
+        {loadingData && <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />}
 
         {error && !loadingData && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
@@ -222,7 +325,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── Bus = Trips ── */}
+        {/* ── Bus / Trips ── */}
         {!loadingData && !error && mode === "bus" && (
           <>
             {isFiltered ? (
@@ -234,20 +337,20 @@ export default function HomeScreen() {
             ) : (
               <View style={{ marginBottom: 12 }}>
                 <Text style={{ fontWeight: "900", fontSize: 16, color: C.dark }}>Available trips</Text>
-                <Text style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>Select stations above to filter by route</Text>
+                <Text style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
+                  Select stations above to filter by route
+                </Text>
               </View>
             )}
 
-            {filteredTrips.length === 0 && (
-              <EmptyState icon="🚌" msg={isFiltered ? "No trips found for this route" : "No trips available right now"} />
-            )}
-
-            {filteredTrips.map(trip => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onPress={() => setTripSheet(trip)}
+            {filteredTrips.length === 0 && !loadingData && (
+              <EmptyState
+                icon="🚌"
+                msg={isFiltered ? "No trips found for this route" : "No trips available right now"}
               />
+            )}
+            {filteredTrips.map(trip => (
+              <TripCard key={trip.id} trip={trip} onPress={() => { setTripSheet(trip); setTripSheetDate(dateLabel); }} />
             ))}
           </>
         )}
@@ -265,11 +368,13 @@ export default function HomeScreen() {
               </Text>
             </View>
             <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark, marginBottom: 12 }}>
-              {privateSeats.length} {t('home.privateCars')} · {from?.city ?? ""}{to?.city ? ` → ${to.city}` : ` (${t('home.allRoutes')})`}
+              {privateSeats.length} {t('home.privateCars')}
+              {from?.city ? ` · ${from.city}` : ""}
+              {to?.city ? ` → ${to.city}` : ` (${t('home.allRoutes')})`}
             </Text>
             {privateSeats.length === 0 && <EmptyState icon="💺" msg={t('home.noPrivateCarsRoute')} />}
             {privateSeats.map(p => (
-              <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p, travelDate: date })} />
+              <PrivateCard key={p.id} item={p} onPress={() => setSheet({ type: "private", item: p, travelDate: dateLabel })} />
             ))}
           </>
         )}
@@ -300,28 +405,22 @@ export default function HomeScreen() {
             {cars.map(c => (
               <RentalCard
                 key={c.id} car={c} days={rentalDays}
-                onPress={() => setSheet({ type: "rental", item: c, days: rentalDays, travelDate: date })}
+                onPress={() => setSheet({ type: "rental", item: c, days: rentalDays, travelDate: dateLabel })}
               />
             ))}
           </>
         )}
       </ScrollView>
 
-      {/* Booking sheet for private/rental */}
       {sheet && (
-        <BookingSheet
-          data={sheet}
-          onClose={() => setSheet(null)}
-          onConfirm={() => setSheet(null)}
-        />
+        <BookingSheet data={sheet} onClose={() => setSheet(null)} onConfirm={() => setSheet(null)} />
       )}
-
-      {/* Trip booking sheet */}
       {tripSheet && (
         <TripBookingSheet
           trip={tripSheet}
-          onClose={() => setTripSheet(null)}
-          onConfirm={() => setTripSheet(null)}
+          onClose={() => { setTripSheet(null); setTripSheetDate(""); }}
+          onConfirm={() => { setTripSheet(null); setTripSheetDate(""); }}
+          travelDate={tripSheetDate}
         />
       )}
     </SafeAreaView>
