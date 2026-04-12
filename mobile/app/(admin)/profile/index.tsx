@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as DocumentPicker from "expo-document-picker";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
@@ -57,38 +58,48 @@ export default function AdminProfileScreen() {
   }
 
   async function pickImage() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission needed", "Please allow access to photos.");
-      return;
-    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 1,
     });
-    if (result.canceled) return;
+    if (result.canceled || !result.assets?.[0]) return;
 
+    const asset = result.assets[0];
+
+    // Show local preview immediately — keep it even after upload
+    const localUri = asset.uri;
+    setProfile((p: any) => ({ ...p, profile_image_url: localUri }));
     setImageLoading(true);
+
     try {
+      // Compress to 400×400 JPEG
+      const compressed = await ImageManipulator.manipulateAsync(
+        localUri,
+        [{ resize: { width: 400, height: 400 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
       const formData = new FormData();
-      const uri = result.assets[0].uri;
-      const filename = uri.split("/").pop() ?? "profile.jpg";
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : "image/jpeg";
-      // @ts-ignore
-      formData.append("image", { uri, name: filename, type } as any);
-      const res = await api.post("/admin/profile/image", formData, {
+      if (typeof window !== "undefined" && compressed.uri.startsWith("blob:")) {
+        const response = await fetch(compressed.uri);
+        const blob = await response.blob();
+        formData.append("image", blob, "profile.jpg");
+      } else {
+        formData.append("image", {
+          uri: compressed.uri,
+          name: "profile.jpg",
+          type: "image/jpeg",
+        } as any);
+      }
+
+      await api.post("/admin/profile/image", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setProfile((p) => ({
-        ...p,
-        profile_image_url: res.data.profile_image_url,
-      }));
-      Alert.alert("Success", "Profile image uploaded.");
+      // Keep local URI displayed — it's the same image, and server URL is relative
     } catch (e: any) {
-      Alert.alert("Error", e?.response?.data?.message ?? "Failed to upload.");
+      console.log("[Profile] image upload error:", e?.response?.status, e?.response?.data);
     } finally {
       setImageLoading(false);
     }
