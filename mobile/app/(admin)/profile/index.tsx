@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
@@ -94,28 +95,28 @@ export default function AdminProfileScreen() {
   }
 
   async function pickContract() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission needed", "Please allow access to files.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: false,
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+      copyToCacheDirectory: true,
     });
-    if (result.canceled) return;
+    if (result.canceled || !result.assets?.[0]) return;
 
+    const asset = result.assets[0];
     setContractLoading(true);
     try {
       const formData = new FormData();
-      const uri = result.assets[0].uri;
-      const filename = uri.split("/").pop() ?? "contract.pdf";
-      // @ts-ignore
-      formData.append("contract", {
-        uri,
-        name: filename,
-        type: "application/pdf",
-      } as any);
+      if (typeof window !== "undefined" && asset.uri.startsWith("blob:")) {
+        // Web: fetch the blob and append as real Blob
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+        formData.append("contract", blob, asset.name ?? "contract.pdf");
+      } else {
+        formData.append("contract", {
+          uri: asset.uri,
+          name: asset.name ?? "contract.pdf",
+          type: "application/pdf",
+        } as any);
+      }
       const res = await api.post("/admin/profile/contract", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -124,9 +125,8 @@ export default function AdminProfileScreen() {
         contract_doc_url: res.data.contract_doc_url,
         contract_verified: false,
       }));
-      Alert.alert("Success", "Contract uploaded. Awaiting verification.");
     } catch (e: any) {
-      Alert.alert("Error", e?.response?.data?.message ?? "Failed to upload.");
+      console.log("[Contract] upload error:", e?.response?.status, e?.response?.data);
     } finally {
       setContractLoading(false);
     }
