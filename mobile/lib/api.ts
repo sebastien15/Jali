@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { isProd, isTest } from "@/lib/env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const DEV_URL = "http://localhost:8000/api";
+const DEV_URL = "http://192.168.1.64:8000/api";
 const PROD_URL = "https://api.jali.rw/api";
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? (isProd ? PROD_URL : DEV_URL);
