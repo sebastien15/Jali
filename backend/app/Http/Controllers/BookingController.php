@@ -8,6 +8,7 @@ use App\Models\Bus;
 use App\Models\CarRental;
 use App\Models\Location;
 use App\Models\PrivateSeat;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -87,7 +88,7 @@ class BookingController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            "type" => "required|in:bus,private,rental",
+            "type" => "required|in:bus,private,rental,trip",
             "reference_id" => "required|integer",
             "price" => "required|integer|min:0",
             "service_fee" => "required|integer|min:0",
@@ -107,6 +108,7 @@ class BookingController extends Controller
                 "bus" => Bus::find($itemId),
                 "private" => PrivateSeat::find($itemId),
                 "rental" => CarRental::find($itemId),
+                "trip" => Trip::with(["agency", "fromStation", "toStation"])->find($itemId),
             };
 
             if (!$item) {
@@ -117,11 +119,13 @@ class BookingController extends Controller
                 "bus" => "{$item->agency} · {$item->from} → {$item->to}",
                 "private" => "{$item->driver} · {$item->from} → {$item->to}",
                 "rental" => "{$item->name} ({$item->type})",
+                "trip" => "{$item->agency->name} · {$item->fromStation->city} → {$item->toStation->city}",
             };
             $validated["sub"] = match ($type) {
                 "bus" => "Departs {$item->dep} · {$item->seats} seats",
                 "private" => "Departs {$item->dep}",
                 "rental" => "{$item->plate} · {$item->seats} seats",
+                "trip" => "Departs {$item->departure_time} · Est. arrival {$item->estimated_arrival_time}",
             };
         }
 
@@ -147,6 +151,7 @@ class BookingController extends Controller
             "status" => "pending",
             "payment_method" => $validated["payment_method"],
             "travel_date" => $validated["travel_date"] ?? null,
+            "trip_id" => $type === "trip" ? $itemId : null,
         ]);
 
         return response()->json(

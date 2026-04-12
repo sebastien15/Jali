@@ -22,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const SUPERADMIN_ITEMS: NavItem[] = [
+  { label: "Bus Stops", icon: "bus-outline", route: "/(admin)/locations" },
   { label: "Stations", icon: "location-outline", route: "/(admin)/stations/index" },
   { label: "Logs", icon: "time-outline", route: "/(admin)/logs/index" },
   { label: "Users", icon: "people-outline", route: "/(admin)/users/index" },
@@ -127,7 +128,7 @@ export function AdminNavSheet() {
 
           {/* Nav items */}
           <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS.filter(item => !(isSuperAdmin && item.label === "Bookings")).map((item) => (
               <SheetItem key={item.label} item={item} active={isActive(item.route)} onPress={() => handleNav(item.route)} />
             ))}
 

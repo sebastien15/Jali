@@ -19,10 +19,12 @@ import {
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import api, { setApiToken, clearApiToken } from "@/lib/api";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 import { useTranslation } from "react-i18next";
 
 export default function AdminLoginScreen() {
   const { t } = useTranslation();
+  const { refetch } = useAdminNav();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -42,6 +44,7 @@ export default function AdminLoginScreen() {
             await setApiToken(res.data.token);
             const role: string = res.data.user?.roles ?? "";
             if (role === "superadmin" || role === "admin") {
+              await refetch();
               router.replace("/(admin)/dashboard");
             }
           }
@@ -69,6 +72,7 @@ export default function AdminLoginScreen() {
         await setApiToken(res.data.token);
         const role: string = res.data.user?.roles ?? "";
         if (role === "superadmin" || role === "admin") {
+          await refetch();
           router.replace("/(admin)/dashboard");
         } else {
           setError(t("authErrors.noAdminAccess"));
@@ -89,6 +93,7 @@ export default function AdminLoginScreen() {
           await setApiToken(googleRes.data.token);
           const role: string = googleRes.data.user?.roles ?? "";
           if (role === "superadmin" || role === "admin") {
+            await refetch();
             router.replace("/(admin)/dashboard");
           } else {
             setError(t("authErrors.noAdminAccess"));
@@ -272,6 +277,7 @@ export default function AdminLoginScreen() {
               });
               if (res.data.token) {
                 await setApiToken(res.data.token);
+                await refetch();
                 router.replace("/(admin)/dashboard");
               }
             } catch (e: any) {

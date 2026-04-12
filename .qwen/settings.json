@@ -10,7 +10,8 @@
       "Bash(open *)",
       "Bash(npm install *)",
       "Bash(mkdir *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npx *)"
     ]
   },
   "$version": 3

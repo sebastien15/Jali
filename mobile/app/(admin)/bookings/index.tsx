@@ -8,55 +8,56 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
-  TextInput,
-  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
-type BookingStatus = "pending" | "taken" | "ticket_ready" | "delivered";
+type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "taken" | "ticket_ready" | "delivered";
 
 const STATUS_META: Record<
   BookingStatus,
   { label: string; color: string; bg: string; icon: string }
 > = {
   pending: { label: "Pending", color: C.orange, bg: C.orangeLt, icon: "⏳" },
+  confirmed: { label: "Confirmed", color: C.green, bg: C.greenLt, icon: "✅" },
+  completed: { label: "Completed", color: C.teal, bg: C.tealLt, icon: "🏁" },
+  cancelled: { label: "Cancelled", color: "#DC2626", bg: "#FEE2E2", icon: "❌" },
   taken: { label: "Taken", color: C.blue, bg: C.blueLt, icon: "📋" },
-  ticket_ready: {
-    label: "Ticket Ready",
-    color: C.green,
-    bg: C.greenLt,
-    icon: "🎫",
-  },
+  ticket_ready: { label: "Ticket Ready", color: C.green, bg: C.greenLt, icon: "🎫" },
   delivered: { label: "Delivered", color: C.teal, bg: C.tealLt, icon: "✅" },
 };
 
 const TABS: { key: "all" | BookingStatus; label: string }[] = [
   { key: "all", label: "All" },
   { key: "pending", label: "Pending" },
-  { key: "taken", label: "Taken" },
-  { key: "ticket_ready", label: "Ready" },
-  { key: "delivered", label: "Delivered" },
+  { key: "confirmed", label: "Confirmed" },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled" },
 ];
 
 export default function AdminBookingsScreen() {
   const { t } = useTranslation();
+  const { isSuperAdmin } = useAdminNav();
   const [filter, setFilter] = useState<"all" | BookingStatus>("all");
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
-  const [ticketModal, setTicketModal] = useState<any>(null);
-  const [ticketUrl, setTicketUrl] = useState("");
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const res = await api.get("/admin/bookings");
+      const params: any = {};
+      // For non-superadmins, don't filter by status (backend already scopes)
+      if (isSuperAdmin && filter !== "all") {
+        params.status = filter;
+      }
+      const res = await api.get("/admin/bookings", { params });
       setBookings(res.data);
     } catch {
       setBookings([]);
@@ -64,76 +65,52 @@ export default function AdminBookingsScreen() {
       if (isRefresh) setRefreshing(false);
       else setLoading(false);
     }
-  }, []);
+  }, [filter, isSuperAdmin]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const list =
-    filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
+  const list = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
 
-  async function handleClaim(id: number) {
-    Alert.alert("Claim Booking", "Take ownership of this booking?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Claim",
-        onPress: async () => {
-          setActionLoading(id);
-          try {
-            await api.post(`/bookings/${id}/claim`);
-            load();
-          } catch (e: any) {
-            Alert.alert("Error", e?.response?.data?.error ?? "Failed");
-          } finally {
-            setActionLoading(null);
-          }
-        },
-      },
-    ]);
-  }
+  // Calculate total service fees (system revenue)
+  const totalServiceFees = bookings.reduce((sum, b) => sum + (b.service_fee ?? 0), 0);
 
-  async function handleUploadTicket(id: number) {
-    setTicketModal({ id });
-    setTicketUrl("");
-  }
-
-  async function confirmUploadTicket() {
-    if (!ticketModal || !ticketUrl.trim()) return;
-    setActionLoading(ticketModal.id);
+  async function handleStatusChange(id: number, status: string) {
+    setActionLoading(id);
     try {
-      await api.patch(`/bookings/${ticketModal.id}/ticket`, {
-        ticket_photo_url: ticketUrl.trim(),
-      });
-      setTicketModal(null);
-      setTicketUrl("");
+      await api.patch(`/admin/bookings/${id}`, { status });
       load();
     } catch (e: any) {
-      Alert.alert("Error", e?.response?.data?.error ?? "Failed");
+      Alert.alert("Error", e?.response?.data?.message ?? "Failed");
     } finally {
       setActionLoading(null);
     }
   }
 
-  async function handleDeliver(id: number) {
+  function confirmBooking(id: number) {
     Alert.alert(
-      "Mark Delivered",
-      "Confirm ticket has been handed to passenger?",
+      t("adminBookings.confirm"),
+      "Confirm this booking?",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common.cancel") ?? "Cancel", style: "cancel" },
         {
-          text: "Deliver",
-          onPress: async () => {
-            setActionLoading(id);
-            try {
-              await api.post(`/bookings/${id}/deliver`);
-              load();
-            } catch (e: any) {
-              Alert.alert("Error", e?.response?.data?.error ?? "Failed");
-            } finally {
-              setActionLoading(null);
-            }
-          },
+          text: t("common.confirm"),
+          onPress: () => handleStatusChange(id, "confirmed"),
+        },
+      ],
+    );
+  }
+
+  function markComplete(id: number) {
+    Alert.alert(
+      t("adminBookings.markComplete"),
+      "Mark this booking as complete?",
+      [
+        { text: t("common.cancel") ?? "Cancel", style: "cancel" },
+        {
+          text: t("common.confirm"),
+          onPress: () => handleStatusChange(id, "completed"),
         },
       ],
     );
@@ -143,29 +120,19 @@ export default function AdminBookingsScreen() {
     if (b.status === "pending") {
       return (
         <ActionBtn
-          label="Claim"
-          color={C.blue}
-          onPress={() => handleClaim(b.id)}
-          loading={actionLoading === b.id}
-        />
-      );
-    }
-    if (b.status === "taken") {
-      return (
-        <ActionBtn
-          label="Upload Ticket"
+          label={t("adminBookings.confirm") || "Confirm"}
           color={C.green}
-          onPress={() => handleUploadTicket(b.id)}
+          onPress={() => confirmBooking(b.id)}
           loading={actionLoading === b.id}
         />
       );
     }
-    if (b.status === "ticket_ready") {
+    if (b.status === "confirmed") {
       return (
         <ActionBtn
-          label="Delivered ✓"
+          label={t("adminBookings.markComplete") || "Mark Complete"}
           color={C.teal}
-          onPress={() => handleDeliver(b.id)}
+          onPress={() => markComplete(b.id)}
           loading={actionLoading === b.id}
         />
       );
@@ -178,7 +145,7 @@ export default function AdminBookingsScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
       <View style={{ backgroundColor: C.teal }}>
-        <AdminHeader title={t("admin.bookings")} />
+        <AdminHeader title={t("adminBookings.title") || t("admin.bookings")} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16 }}>
             {TABS.map((tab) => (
@@ -208,20 +175,38 @@ export default function AdminBookingsScreen() {
           />
         }
       >
+        {/* Revenue summary for superadmin */}
+        {isSuperAdmin && (
+          <View
+            style={{
+              backgroundColor: C.white,
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16,
+            }}
+          >
+            <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>
+              {t("adminBookings.revenueHeader") || "Total Service Fees"}
+            </Text>
+            <Text style={{ color: C.teal, fontWeight: "900", fontSize: 24, marginTop: 4 }}>
+              {totalServiceFees.toLocaleString()} RWF
+            </Text>
+          </View>
+        )}
+
         {loading && (
           <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
         )}
 
         {!loading && list.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
-            No bookings found.
+            {t("adminBookings.noBookings") || "No bookings found."}
           </Text>
         )}
 
         {!loading &&
           list.map((b) => {
-            const meta =
-              STATUS_META[b.status as BookingStatus] ?? STATUS_META.pending;
+            const meta = STATUS_META[b.status as BookingStatus] ?? STATUS_META.pending;
             return (
               <View
                 key={b.id}
@@ -245,25 +230,34 @@ export default function AdminBookingsScreen() {
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text
-                      style={{ color: C.dark, fontWeight: "800", fontSize: 14 }}
-                    >
+                    <Text style={{ color: C.dark, fontWeight: "800", fontSize: 14 }}>
                       {b.title}
                     </Text>
                     <Text style={{ color: C.mid, fontSize: 12, marginTop: 2 }}>
                       {b.sub}
                     </Text>
-                    <Text
-                      style={{ color: C.muted, fontSize: 12, marginTop: 4 }}
-                    >
-                      {b.user_name} · {b.user_email}
-                    </Text>
+                    {b.user_name && (
+                      <Text style={{ color: C.muted, fontSize: 12, marginTop: 4 }}>
+                        {t("adminBookings.booker")}: {b.user_name}
+                        {b.user_phone ? ` · ${b.user_phone}` : ""}
+                      </Text>
+                    )}
+                    {b.agency_name && (
+                      <Text style={{ color: C.blue, fontSize: 12, marginTop: 2, fontWeight: "700" }}>
+                        🏢 {b.agency_name}
+                        {b.trip_departure ? ` · Departs ${b.trip_departure}` : ""}
+                      </Text>
+                    )}
+                    {isSuperAdmin && b.confirmed_by_name && (
+                      <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
+                        {t("adminBookings.confirmedBy")}: {b.confirmed_by_name}
+                        {b.confirmed_at ? ` · ${new Date(b.confirmed_at).toLocaleString()}` : ""}
+                      </Text>
+                    )}
                   </View>
                   <View style={{ alignItems: "flex-end", gap: 6 }}>
-                    <Text
-                      style={{ color: C.dark, fontWeight: "800", fontSize: 13 }}
-                    >
-                      {(b.price + (b.service_fee ?? 0)).toLocaleString()} RWF
+                    <Text style={{ color: C.dark, fontWeight: "800", fontSize: 13 }}>
+                      {b.total?.toLocaleString() ?? (b.price + (b.service_fee ?? 0)).toLocaleString()} RWF
                     </Text>
                     <View
                       style={{
@@ -273,13 +267,7 @@ export default function AdminBookingsScreen() {
                         paddingVertical: 3,
                       }}
                     >
-                      <Text
-                        style={{
-                          color: meta.color,
-                          fontSize: 11,
-                          fontWeight: "700",
-                        }}
-                      >
+                      <Text style={{ color: meta.color, fontSize: 11, fontWeight: "700" }}>
                         {meta.icon} {meta.label}
                       </Text>
                     </View>
@@ -290,97 +278,6 @@ export default function AdminBookingsScreen() {
             );
           })}
       </ScrollView>
-
-      {/* Upload ticket modal */}
-      <Modal visible={!!ticketModal} animationType="slide" transparent>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
-              paddingBottom: 40,
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                backgroundColor: C.border,
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 20,
-              }}
-            />
-            <Text
-              style={{
-                fontWeight: "900",
-                fontSize: 18,
-                color: C.dark,
-                marginBottom: 16,
-              }}
-            >
-              Upload Ticket Photo
-            </Text>
-            <TextInput
-              value={ticketUrl}
-              onChangeText={setTicketUrl}
-              placeholder="Paste ticket photo URL from Firebase Storage"
-              placeholderTextColor={C.muted}
-              style={{
-                backgroundColor: C.bg,
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 13,
-                fontSize: 14,
-                color: C.dark,
-                borderWidth: 1.5,
-                borderColor: C.border,
-                marginBottom: 16,
-              }}
-            />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <TouchableOpacity
-                onPress={() => {
-                  setTicketModal(null);
-                  setTicketUrl("");
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: C.bg,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: C.mid, fontWeight: "700" }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmUploadTicket}
-                disabled={!ticketUrl.trim()}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: ticketUrl.trim() ? C.green : C.border,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: C.white, fontWeight: "800" }}>
-                  Upload
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

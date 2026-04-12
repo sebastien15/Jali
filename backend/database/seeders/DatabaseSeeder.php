@@ -25,7 +25,10 @@ class DatabaseSeeder extends Seeder
         $this->call(CarRentalsSeeder::class);
         $this->call(PrivateSeatsSeeder::class);
 
-        // 7. Bookings (requires users and transportation data)
+        // 7. Agencies & Trips
+        $this->call(AgenciesTripsSeeder::class);
+
+        // 8. Bookings (requires users and transportation data)
         $this->call(BookingsSeeder::class);
     }
 }

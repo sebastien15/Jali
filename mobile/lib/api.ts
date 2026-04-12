@@ -30,7 +30,8 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401 && !isTest) {
+    const url = error.config?.url ?? "";
+    if (error.response?.status === 401 && !isTest && !url.includes("/auth/logout")) {
       // Token expired or invalid — clear and redirect to login
       await AsyncStorage.removeItem(TOKEN_KEY);
       router.replace("/(auth)/login");

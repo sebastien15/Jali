@@ -62,6 +62,12 @@ const FEE_TIERS: { maxKm: number; fee: number }[] = [
 export const FALLBACK_FEE = 500; // used when location is unavailable
 export const MIN_FEE      = 300;
 
+// ── Trip service fee ─────────────────────────────────────────────────────────
+// 5% of the price, floored at 500 RWF, capped at 3000 RWF.
+export function tripServiceFee(price: number): number {
+  return Math.max(500, Math.min(3000, Math.round(price * 0.05)));
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 /**
  * Returns the Jali service fee in RWF given the user's current coordinates

@@ -21,11 +21,20 @@ const ACTION_LABELS: Record<string, string> = {
   booking_claimed: "Claimed booking",
   ticket_uploaded: "Uploaded ticket",
   booking_delivered: "Delivered booking",
+  booking_confirmed: "Confirmed booking",
   profile_updated: "Updated profile",
   profile_image_uploaded: "Uploaded profile image",
   contract_uploaded: "Uploaded contract",
   location_change_approved: "Approved location change",
   location_change_rejected: "Rejected location change",
+  agency_created: "Created agency",
+  agency_updated: "Updated agency",
+  agency_deleted: "Deleted agency",
+  agency_route_added: "Added route to agency",
+  agency_route_removed: "Removed route from agency",
+  trip_created: "Created trip",
+  trip_updated: "Updated trip",
+  trip_deleted: "Deleted trip",
 };
 
 export default function AdminLogsScreen() {

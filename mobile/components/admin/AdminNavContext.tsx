@@ -26,6 +26,7 @@ type AdminNavCtx = {
   user: AdminUser | null;
   isSuperAdmin: boolean;
   loading: boolean;
+  refetch: () => Promise<void>;
   handleLogout: () => Promise<void>;
 };
 
@@ -36,42 +37,25 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
 
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/me");
+      if (mountedRef.current) setUser(res.data);
+    } catch {
+      if (mountedRef.current) setUser(null);
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     mountedRef.current = true;
-    (async () => {
-      try {
-        console.warn("[AdminNav] Fetching /me...");
-        const res = await api.get("/me");
-        console.warn(
-          "[AdminNav] /me response:",
-          JSON.stringify(res.data, null, 2),
-        );
-        if (mountedRef.current) {
-          console.warn(
-            "[AdminNav] Setting user:",
-            res.data?.name,
-            "Role:",
-            res.data?.roles,
-          );
-          setUser(res.data);
-          setLoading(false);
-        }
-      } catch (e: any) {
-        console.error(
-          "[AdminNav] /me FAILED:",
-          e.response?.status,
-          JSON.stringify(e.response?.data),
-        );
-        if (mountedRef.current) {
-          setUser(null);
-          setLoading(false);
-        }
-      }
-    })();
+    fetchUser();
     return () => {
       mountedRef.current = false;
     };
-  }, []);
+  }, [fetchUser]);
 
   const isSuperAdmin = user?.roles === "superadmin";
 
@@ -101,7 +85,7 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ user, isSuperAdmin, loading, handleLogout }}>
+    <Ctx.Provider value={{ user, isSuperAdmin, loading, refetch: fetchUser, handleLogout }}>
       {children}
     </Ctx.Provider>
   );

@@ -28,6 +28,8 @@ type NavTile = {
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const { user, isSuperAdmin } = useAdminNav();
+  const canManageLocations = user?.permissions?.includes("manage-locations") ?? false;
+  const canManageAgencies = user?.permissions?.includes("manage-agencies") ?? false;
   const [earnings, setEarnings] = useState<any>(null);
   const [bookingStats, setBookingStats] = useState<any>(null);
   const [adminProfile, setAdminProfile] = useState<any>(null);
@@ -57,41 +59,63 @@ export default function AdminDashboard() {
     load();
   }, [load]);
 
-  // Debug log
-  useEffect(() => {
-    console.warn("[Dashboard] User state:", JSON.stringify(user));
-    console.warn("[Dashboard] isSuperAdmin:", isSuperAdmin);
-  }, [user, isSuperAdmin]);
-
-  const tiles: NavTile[] = isSuperAdmin
-    ? [
-        {
-          label: t("admin.profile"),
-          icon: "person-outline",
-          route: "/(admin)/profile/index",
-          color: C.blue,
-        },
-        {
-          label: t("admin.logs"),
-          icon: "time-outline",
-          route: "/(admin)/logs/index",
-          color: C.purple,
-        },
-        {
-          label: t("admin.users"),
-          icon: "people-outline",
-          route: "/(admin)/users/index",
-          color: C.blue,
-        },
-      ]
-    : [
-        {
-          label: t("admin.stations"),
-          icon: "location-outline",
-          route: "/(admin)/stations/index",
-          color: C.orange,
-        },
-      ];
+  const tiles: NavTile[] = [
+    ...(isSuperAdmin
+      ? [
+          {
+            label: t("admin.profile"),
+            icon: "person-outline" as const,
+            route: "/(admin)/profile/index",
+            color: C.blue,
+          },
+          {
+            label: t("admin.logs"),
+            icon: "time-outline" as const,
+            route: "/(admin)/logs/index",
+            color: C.purple,
+          },
+          {
+            label: t("admin.users"),
+            icon: "people-outline" as const,
+            route: "/(admin)/users/index",
+            color: C.blue,
+          },
+        ]
+      : [
+          {
+            label: t("admin.stations"),
+            icon: "location-outline" as const,
+            route: "/(admin)/stations/index",
+            color: C.orange,
+          },
+        ]),
+    ...(canManageLocations
+      ? [
+          {
+            label: "Bus Stops",
+            icon: "bus-outline" as const,
+            route: "/(admin)/locations",
+            color: C.teal,
+          },
+        ]
+      : []),
+    ...(canManageAgencies
+      ? [
+          {
+            label: t("agencies.title") || "Agencies",
+            icon: "business-outline" as const,
+            route: "/(admin)/agencies/index",
+            color: C.purple,
+          },
+          {
+            label: t("trips.title") || "Trips",
+            icon: "bus-outline" as const,
+            route: "/(admin)/trips/index",
+            color: C.blue,
+          },
+        ]
+      : []),
+  ];
 
   if (loading) {
     return (
@@ -115,41 +139,6 @@ export default function AdminDashboard() {
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
       <AdminHeader title={t("admin.dashboard")} />
-
-      {/* DEBUG */}
-      <View
-        style={{
-          backgroundColor: C.yellow,
-          padding: 12,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ fontWeight: "900", fontSize: 13, color: C.dark }}>
-          User: {user?.name ?? "(null)"}
-        </Text>
-        <Text style={{ fontWeight: "900", fontSize: 13, color: C.dark }}>
-          Role: {user?.roles ?? "(none)"}
-        </Text>
-        <View
-          style={{
-            backgroundColor: isSuperAdmin ? "#7C3AED" : C.teal,
-            borderRadius: 6,
-            paddingHorizontal: 8,
-            paddingVertical: 3,
-          }}
-        >
-          <Text style={{ color: C.white, fontWeight: "800", fontSize: 12 }}>
-            {isSuperAdmin ? "SUPERADMIN" : "ADMIN"}
-          </Text>
-        </View>
-        <Text
-          style={{ fontSize: 10, color: C.dark, width: "100%", marginTop: 4 }}
-        >
-          RAW: {JSON.stringify(user)}
-        </Text>
-      </View>
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}

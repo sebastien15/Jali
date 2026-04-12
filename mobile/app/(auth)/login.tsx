@@ -17,7 +17,6 @@ import { auth } from "@/lib/firebase";
 import {
   GoogleAuthProvider,
   signInWithCredential,
-  signInWithEmailAndPassword,
 } from "firebase/auth";
 import { C } from "@/constants/theme";
 import api, { setApiToken, clearApiToken } from "@/lib/api";
@@ -94,36 +93,17 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        email.trim().toLowerCase(),
+      const res = await api.post("/auth/login", {
+        email: email.trim().toLowerCase(),
         password,
-      );
-      // Get Laravel token
-      try {
-        const firebaseToken = await auth.currentUser?.getIdToken(true);
-        if (firebaseToken) {
-          const res = await api.post("/auth/login/google", {
-            firebase_token: firebaseToken,
-          });
-          if (res.data.token) await setApiToken(res.data.token);
-        }
-      } catch {}
+      });
+      await setApiToken(res.data.token);
       router.replace("/(tabs)");
     } catch (e: any) {
-      const code = e?.code ?? "";
-      const authCodes = [
-        "auth/user-not-found",
-        "auth/wrong-password",
-        "auth/invalid-credential",
-        "auth/invalid-email",
-      ];
-
-      if (authCodes.includes(code)) {
+      const status = e?.response?.status;
+      if (status === 401 || status === 422) {
         setError(t("authErrors.invalidCredentials"));
-      } else if (code === "auth/too-many-requests") {
-        setError(t("authErrors.tooManyAttempts"));
-      } else if (code === "auth/network-request-failed") {
+      } else if (!e?.response) {
         setError(t("authErrors.noInternet"));
       } else {
         setError(t("authErrors.unknown"));

@@ -6,8 +6,9 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
-import { signOut, deleteUser } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { GoogleSignin } from "@/lib/native/google-signin";
+import api, { clearApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 
@@ -59,18 +60,17 @@ export default function ProfileScreen() {
   }
 
   async function handleLogout() {
-    Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
-      { text: t('profile.cancel'), style: "cancel" },
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: t('profile.logout'), style: "destructive",
+        text: "Log Out",
+        style: "destructive",
         onPress: async () => {
-          try {
-            await GoogleSignin.signOut().catch(() => {});
-            await signOut(auth);
-            router.replace("/(auth)/login");
-          } catch (e: any) {
-            Alert.alert(t('profile.error'), e.message);
-          }
+          try { await api.post("/auth/logout"); } catch {}
+          await clearApiToken();
+          GoogleSignin.signOut().catch(() => {});
+          signOut(auth).catch(() => {});
+          router.replace("/(auth)/login");
         },
       },
     ]);
@@ -78,43 +78,23 @@ export default function ProfileScreen() {
 
   async function handleDeleteAccount() {
     Alert.alert(
-      t('profile.deleteAccount'),
-      t('profile.deleteAccountWarning'),
+      "Delete Account",
+      "This will permanently delete your account and all your data. This cannot be undone.",
       [
-        { text: t('profile.cancel'), style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         {
-          text: t('profile.delete'), style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              t('profile.areYouSure'),
-              t('profile.deleteAccountDetails'),
-              [
-                { text: t('profile.keepAccount'), style: "cancel" },
-                {
-                  text: t('profile.deleteEverything'), style: "destructive",
-                  onPress: async () => {
-                    try {
-                      const user = auth.currentUser;
-                      if (!user) return;
-                      await GoogleSignin.revokeAccess().catch(() => {});
-                      await GoogleSignin.signOut().catch(() => {});
-                      await deleteUser(user);
-                      router.replace("/(auth)/login");
-                    } catch (e: any) {
-                      // Firebase requires recent sign-in for deletion
-                      if (e.code === "auth/requires-recent-login") {
-                        Alert.alert(
-                          t('profile.pleaseSignInAgain'),
-                          t('profile.signInAgainDetails'),
-                        );
-                      } else {
-                        Alert.alert(t('profile.error'), e.message);
-                      }
-                    }
-                  },
-                },
-              ],
-            );
+          text: "Delete Everything",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete("/auth/me");
+              await clearApiToken();
+              GoogleSignin.signOut().catch(() => {});
+              signOut(auth).catch(() => {});
+              router.replace("/(auth)/login");
+            } catch {
+              Alert.alert("Error", "Failed to delete account. Please try again.");
+            }
           },
         },
       ],

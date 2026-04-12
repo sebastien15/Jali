@@ -7,7 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdminStation extends Model
 {
-    protected $fillable = ['user_id', 'city'];
+    protected $fillable = [
+        'user_id', 'city', 'district', 'type', 'address', 'latitude', 'longitude', 'image_url',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'latitude'  => 'float',
+            'longitude' => 'float',
+        ];
+    }
 
     public function user(): BelongsTo
     {

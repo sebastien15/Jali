@@ -15,11 +15,17 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\LocationChangeRequestController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\TripSearchController;
+use App\Http\Controllers\AgencyRatingController;
+use App\Http\Controllers\Admin\AgencyController;
+use App\Http\Controllers\Admin\TripController;
 
 // ── Public Routes ──
 Route::get("/buses", [BusController::class, "index"]);
 Route::get("/car-rentals", [CarRentalController::class, "index"]);
 Route::get("/private-seats", [PrivateSeatController::class, "index"]);
+Route::get("/stations", [AdminStationController::class, "index"]);
+Route::get("/trips", [TripSearchController::class, "index"]);
 
 // ── Laravel Auth Routes (new) ──
 Route::post("/auth/login", [AuthController::class, "login"]);
@@ -35,11 +41,15 @@ Route::middleware("auth:sanctum")->group(function () {
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
+    Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
 
     // Bookings
     Route::get("/bookings", [BookingController::class, "index"]);
     Route::post("/bookings", [BookingController::class, "store"]);
     Route::get("/bookings/{id}", [BookingController::class, "show"]);
+
+    // User rates an agency
+    Route::post('/agencies/{agency}/rate', [AgencyRatingController::class, 'store']);
 
     // Booking lifecycle
     Route::middleware("permission:confirm-bookings")->group(function () {
@@ -172,15 +182,22 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/stations", [AdminStationController::class, "index"]);
-            Route::patch("/stations/{id}", [
-                AdminStationController::class,
-                "update",
-            ]);
+            Route::post("/stations", [AdminStationController::class, "store"]);
+            Route::patch("/stations/{id}", [AdminStationController::class, "update"]);
+            Route::delete("/stations/{id}", [AdminStationController::class, "destroy"]);
         });
 
         Route::middleware("permission:manage-users")->group(function () {
             Route::get("/users", [AdminUserController::class, "index"]);
             Route::patch("/users/{id}", [AdminUserController::class, "update"]);
+        });
+
+        // Admin — agencies & trips
+        Route::middleware("permission:manage-agencies")->group(function () {
+            Route::apiResource("agencies", AgencyController::class);
+            Route::post("agencies/{agency}/routes", [AgencyController::class, "addRoute"]);
+            Route::delete("agencies/{agency}/routes/{route}", [AgencyController::class, "removeRoute"]);
+            Route::apiResource("trips", TripController::class);
         });
     });
 });

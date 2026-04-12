@@ -23,6 +23,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-users' => 'Manage users',
             'manage-admins' => 'Manage admin assignments',
             'view-station-analytics' => 'View station-specific analytics',
+            'manage-agencies' => 'Create, edit and delete agencies and trips',
         ];
 
         foreach ($permissions as $name => $desc) {
@@ -56,7 +57,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $admin->permissions()->sync(
             Permission::whereIn('name', [
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
-                'view-analytics', 'view-station-analytics',
+                'view-analytics', 'view-station-analytics', 'manage-agencies',
             ])->get()
         );
 

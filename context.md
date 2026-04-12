@@ -1,0 +1,434 @@
+# Jali — Project Context
+
+> AI quick-reference. Read this before exploring any file. Last updated: 2026-04-11.
+
+---
+
+## What Is Jali
+
+A Rwandan transport booking app. Users browse and book buses, private seats, and car rentals. Drivers can list their own seats/cars. Admins manage bookings, stations, locations, and users through a separate admin portal inside the same mobile app.
+
+---
+
+## Monorepo Layout
+
+```
+Jali/
+├── mobile/     React Native (Expo Router) — iOS & Android
+├── backend/    Laravel 11 REST API
+└── context.md  ← this file
+```
+
+---
+
+## Mobile App
+
+### Tech Stack
+
+| Concern | Library |
+|---|---|
+| Framework | Expo SDK 54, React Native 0.81.5, React 19 |
+| Routing | Expo Router v6 (file-based) |
+| Styling | NativeWind v4 + Tailwind CSS v3 |
+| HTTP | Axios (configured in `lib/api.ts`) |
+| Auth storage | AsyncStorage — key: `"jali_api_token"` |
+| Firebase | v12 — auth (`inMemoryPersistence`) + storage |
+| i18n | i18next + react-i18next — EN / FR / RW / SW |
+| Animations | React Native Reanimated v4 |
+| Icons | @expo/vector-icons (Ionicons) |
+
+### Environment (`lib/env.ts`)
+
+```ts
+EXPO_PUBLIC_APP_ENV = "dev" | "test" | "prod"
+isDev / isTest / isProd
+```
+
+API base URL (`lib/api.ts`):
+- Dev:  `http://localhost:8000/api`
+- Prod: `https://api.jali.rw/api`
+- Override: `EXPO_PUBLIC_API_URL`
+
+---
+
+### Route Map
+
+```
+app/
+├── index.tsx                  Entry — checks token → /(tabs) or /(auth)/login
+├── _layout.tsx                Root — SafeAreaProvider + I18nWrapper + Stack + OfflineBanner
+│
+├── (auth)/
+│   ├── _layout.tsx            Bare stack wrapper
+│   └── login.tsx              User login: phone OTP (UI only, not wired) | email+password | Google
+│                              Steps: "phone" | "email" | "otp"
+│                              Google → Firebase → POST /auth/login/google → setApiToken → /(tabs)
+│                              Email → Firebase signInWithEmailAndPassword → POST /auth/login/google → /(tabs)
+│                              Dev shortcut: Google skips real auth, goes straight to /(tabs)
+│
+├── (tabs)/
+│   ├── _layout.tsx            DriverModeProvider wraps tabs; Drive tab hidden if driverMode=false
+│   ├── index.tsx              Home — browse buses, private seats, car rentals
+│   ├── trips.tsx              User's booking history
+│   ├── drive.tsx              Driver dashboard (split into components/driver/*)
+│   └── profile.tsx            User profile — reads from Firebase auth.currentUser directly (no API call)
+│
+├── (admin)/
+│   ├── _layout.tsx            AdminNavProvider wraps all; tab bar hidden on login screen
+│   │                          Superadmin tabs: Dashboard, Bookings, Analytics, Stations
+│   │                          Admin tabs:      Dashboard, Bookings, Analytics, Profile
+│   ├── login.tsx              Admin login: POST /auth/login → setApiToken → refetch() → dashboard
+│   │                          Also handles Firebase onAuthStateChanged auto-redirect
+│   ├── dashboard.tsx          Earnings summary, booking status cards, role-based nav tiles
+│   ├── analytics/index.tsx    Revenue + booking analytics charts
+│   ├── bookings/index.tsx     All bookings list
+│   ├── bookings/[id].tsx      Booking detail + status update
+│   ├── stations/index.tsx     Station list + edit (superadmin only in tab bar)
+│   ├── users/index.tsx        User list (superadmin only)
+│   ├── users/[id].tsx         User detail + edit
+│   ├── logs/index.tsx         Activity log (superadmin only)
+│   ├── profile/index.tsx      Admin profile — name, photo, contract upload; uses GET /admin/profile
+│   ├── buses/index.tsx        Bus list
+│   └── buses/[id].tsx         Bus detail
+│
+├── driver/
+│   ├── setup.tsx              Driver onboarding (card presentation)
+│   ├── fleet.tsx              Driver's car fleet management
+│   └── listing.tsx            Create/edit a private seat listing
+│
+└── legal/[doc].tsx            Legal docs viewer (modal presentation)
+```
+
+---
+
+### Auth Flow Detail
+
+#### User Auth
+1. Firebase email/password or Google Sign-In
+2. Get Firebase ID token → `POST /auth/login/google { firebase_token }`
+3. Laravel returns `{ token, user }` — store token in AsyncStorage
+4. Navigate to `/(tabs)`
+
+#### Admin Auth
+1. `POST /auth/login { email, password }` → Laravel Sanctum token
+2. `setApiToken(token)` stores in AsyncStorage
+3. `await refetch()` — forces `AdminNavContext` to re-fetch `/me` with new token
+4. `router.replace("/(admin)/dashboard")`
+
+**Why `refetch()` is required**: `AdminNavProvider` mounts with the layout (including on the login screen), so it calls `/me` before the token exists → gets null. After login, the provider instance stays mounted, so `refetch()` must be called explicitly. Without it, `user` stays null all session.
+
+#### Token Lifecycle
+- Stored: `AsyncStorage.setItem("jali_api_token", token)`
+- Auto-attached: request interceptor in `lib/api.ts`
+- Auto-logout: 401 response → clear token → `router.replace("/(auth)/login")`
+- 403 response: shows Alert "Access Denied"
+- Logout: `POST /auth/logout` + `clearApiToken()` + `signOut(auth)`
+
+---
+
+### Contexts & Global State
+
+#### `components/admin/AdminNavContext.tsx`
+```ts
+// Provider: wraps all (admin)/* screens via (admin)/_layout.tsx
+// Fetches GET /me once on mount; exposes refetch() for post-login use
+
+type AdminUser = {
+  name: string; email: string; roles: string;
+  permissions: string[]; profile_image_url: string | null;
+  location: { name: string; city: string } | null;
+}
+
+// Hook: useAdminNav()
+{ user, isSuperAdmin, loading, refetch, handleLogout }
+
+// isSuperAdmin = user?.roles === "superadmin"
+```
+
+#### `lib/DriverModeContext.tsx`
+```ts
+// Provider: wraps (tabs)/* via (tabs)/_layout.tsx
+// In-memory only — resets on app restart
+
+// Hook: useDriverMode()
+{ driverMode: boolean, driverType: "private"|"rental"|null,
+  setDriverMode, setDriverType }
+
+// Drive tab in (tabs)/_layout.tsx is hidden unless driverMode === true
+```
+
+---
+
+### Key Library Files
+
+#### `lib/api.ts` — Axios instance
+- Base URL from env (dev: localhost:8000, prod: api.jali.rw)
+- Request interceptor: attaches `Authorization: Bearer <token>`
+- Response interceptor: 401 → clear token + redirect; 403 → Alert
+- Exports: `api` (default), `setApiToken`, `clearApiToken`, `getApiToken`
+
+#### `lib/firebase.ts`
+- Firebase project: `jali-8cad5`
+- Uses `inMemoryPersistence` — Firebase session lost on app restart (Laravel token persists via AsyncStorage)
+- Exports: `auth`, `storage`, `firebaseConfig`
+
+#### `lib/env.ts`
+- `APP_ENV` from `EXPO_PUBLIC_APP_ENV`
+- Exports: `isDev`, `isTest`, `isProd`
+
+#### `lib/i18n.ts`
+- Languages: English (en), French (fr), Kinyarwanda (rw), Swahili (sw)
+- Locale files: `locales/{en,fr,rw,sw}.json`
+- Usage: `const { t } = useTranslation()`
+
+#### `lib/serviceFee.ts` / `lib/useServiceFee.ts`
+- Service fee calculation logic + hook
+
+#### `lib/usePushPermission.ts`
+- Push notification permission request (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
+
+---
+
+### Components
+
+#### Admin
+| File | Purpose |
+|---|---|
+| `components/admin/AdminHeader.tsx` | Header for all admin screens; shows `user?.name`, role badge (teal=admin, purple=superadmin), location name |
+| `components/admin/AdminNavContext.tsx` | Context + provider (see above) |
+| `components/admin/AdminNavSheet.tsx` | Bottom sheet navigation for admin |
+
+#### User / Shared
+| File | Purpose |
+|---|---|
+| `components/BookingSheet.tsx` | Booking confirmation bottom sheet |
+| `components/BusCard.tsx` | Bus listing card |
+| `components/CityPicker.tsx` | City selection UI |
+| `components/LocationPicker.tsx` | Location selection UI |
+| `components/OfflineBanner.tsx` | Global network offline indicator (shown in root layout) |
+| `components/PrivateCard.tsx` | Private seat listing card |
+| `components/RentalCard.tsx` | Car rental listing card |
+| `components/ui/Btn.tsx` | Reusable button |
+
+#### Driver
+| File | Purpose |
+|---|---|
+| `components/driver/DriverActionCard.tsx` | Driver action button card |
+| `components/driver/DriverHeader.tsx` | Header for drive screen |
+| `components/driver/DriverTypeBanner.tsx` | Shows driver type (private/rental) |
+| `components/driver/PickupZones.tsx` | Pickup zone selector |
+| `components/driver/TripsTabs.tsx` | Pending / completed trips tab switcher |
+| `components/driver/WeekSummaryCard.tsx` | Weekly earnings summary card |
+
+---
+
+### Constants
+
+#### `constants/theme.ts` — Color palette (`C.xxx`)
+```ts
+C.blue="#0055CC"   C.blueDk="#003D99"  C.blueLt="#E8F0FF"
+C.teal="#009E8E"   C.tealLt="#E5F7F5"
+C.yellow="#FFD000"
+C.green="#00A63E"  C.greenLt="#E6F7ED"
+C.orange="#FF5C00" C.orangeLt="#FFF0E8"
+C.purple="#7C3AED" C.purpleLt="#F0EBFE"
+C.white="#FFFFFF"  C.bg="#F2F4F8"
+C.dark="#0D1117"   C.mid="#4A5568"  C.muted="#9AA5B4"  C.border="#DDE2EC"
+```
+
+#### `constants/roles.ts`
+```ts
+ROLES = { SUPERADMIN:"superadmin", ADMIN:"admin", DRIVER:"driver", USER:"user" }
+isAdminRole(role: string): boolean  // true for admin | superadmin
+```
+
+#### `constants/data.ts` — Static app data
+#### `constants/locations.ts` — Location reference data
+
+---
+
+## Backend (Laravel 11)
+
+### Tech Stack
+- Laravel 11 + Laravel Sanctum (personal access tokens)
+- SQLite (dev database at `database/database.sqlite`)
+- `kreait/firebase-php` for Firebase token verification
+- Middleware: `CheckPermission` (`app/Http/Middleware/CheckPermission.php`)
+
+### API Routes (`routes/api.php`)
+
+#### Public (no auth)
+```
+GET  /buses
+GET  /car-rentals
+GET  /private-seats
+POST /auth/login                  email + password → Sanctum token
+POST /auth/login/google           firebase_token → Sanctum token
+POST /auth/otp/request            phone OTP request (dev: always returns success)
+POST /auth/otp/verify             OTP verify (dev: "123456" accepted)
+```
+
+#### Protected — `auth:sanctum`
+```
+GET  /me                          Current user (id, name, email, phone, roles, permissions, location)
+POST /auth/logout                 Revoke current token
+
+GET  /bookings                    User's bookings
+POST /bookings                    Create booking
+GET  /bookings/{id}               Booking detail
+
+# perm: confirm-bookings
+POST   /bookings/{id}/claim       Admin claims booking
+PATCH  /bookings/{id}/ticket      Upload ticket
+POST   /bookings/{id}/deliver     Mark delivered
+
+# perm: create-private-seats (driver routes)
+GET    /driver/stats
+GET    /driver/trips
+PATCH  /driver/profile
+GET    /driver/listings
+POST   /driver/listings
+PATCH  /driver/listings/{id}
+DELETE /driver/listings/{id}
+GET    /driver/cars
+POST   /driver/cars
+PATCH  /driver/cars/{id}
+DELETE /driver/cars/{id}
+
+# perm: view-analytics
+GET  /analytics/revenue
+GET  /analytics/bookings
+GET  /analytics/earnings
+GET  /analytics/stations
+
+# Admin profile (any auth user)
+GET   /admin/profile
+PATCH /admin/profile
+POST  /admin/profile/image
+POST  /admin/profile/contract
+
+# perm: manage-locations
+GET    /admin/locations
+POST   /admin/locations
+PATCH  /admin/locations/{id}
+DELETE /admin/locations/{id}
+GET    /admin/location-requests
+POST   /admin/location-requests/{id}/approve
+POST   /admin/location-requests/{id}/reject
+
+# any auth user
+POST /admin/location-request      Request a location change
+
+# perm: manage-admins
+GET  /admin/logs
+GET  /admin/stations
+PATCH /admin/stations/{id}
+
+# perm: confirm-bookings
+GET   /admin/bookings
+PATCH /admin/bookings/{id}
+
+# perm: manage-users
+GET   /admin/users
+PATCH /admin/users/{id}
+```
+
+---
+
+### Controllers
+
+```
+app/Http/Controllers/
+├── AuthController.php              login, loginWithGoogle, requestOtp, verifyOtp, logout, me, respondWithToken
+├── BookingController.php           index, store, show, claim, uploadTicket, deliver
+├── BusController.php               index
+├── CarRentalController.php         index, driverCars, storeCar, updateCar, destroyCar
+├── DriverController.php            stats, trips, updateProfile
+├── PrivateSeatController.php       index, store, update, destroy, driverListings
+├── AnalyticsController.php         revenue, bookings, earnings, stations
+└── Admin/
+    ├── AdminBookingController.php      index, update
+    ├── AdminBusController.php
+    ├── AdminProfileController.php      show, update, uploadProfileImage, uploadContract
+    ├── AdminStationController.php      index, update
+    ├── AdminUserController.php         index, update
+    ├── ActivityLogController.php       index
+    ├── LocationController.php          index, store, update, destroy
+    └── LocationChangeRequestController.php  index, store, approve, reject
+```
+
+---
+
+### Models
+
+```
+app/Models/
+├── User.php               role_id (FK), firebase_uid, name, email, phone, password,
+│                          profile_image_url, location_id; belongsTo Role, Location
+├── Role.php               name: superadmin|admin|driver|user; hasMany permissions
+├── Permission.php         name strings
+├── Booking.php            user bookings; status, location_id, travel_date
+├── Bus.php                bus listings (public)
+├── CarRental.php          car rental listings; owner fields
+├── PrivateSeat.php        private seat/carpool; driver fields
+├── Location.php           { name, city }
+├── LocationChangeRequest.php  admin location change requests
+├── ActivityLog.php        admin activity trail
+└── AdminStation.php       admin ↔ station assignments
+```
+
+---
+
+### Roles & Permissions
+
+| Role | Permissions |
+|---|---|
+| `superadmin` | all: confirm-bookings, view-analytics, create-private-seats, manage-locations, manage-admins, manage-users |
+| `admin` | confirm-bookings, view-analytics, manage-locations |
+| `driver` | create-private-seats |
+| `user` | (none / basic access) |
+
+Role check in frontend: `user?.roles === "superadmin"` → `isSuperAdmin`
+Role check middleware: `permission:manage-admins` etc. via `CheckPermission.php`
+
+---
+
+### Seeders
+
+```
+database/seeders/
+├── DatabaseSeeder.php            orchestrates all seeders
+├── RolesAndPermissionsSeeder.php creates roles + permission records
+├── AdminSeeder.php               creates superadmin + admin users
+├── UsersSeeder.php               regular users
+├── BusesSeeder.php
+├── CarRentalsSeeder.php
+├── PrivateSeatsSeeder.php
+├── BookingsSeeder.php
+├── AdminStationsSeeder.php
+└── LocationsSeeder.php
+```
+
+Run: `php artisan db:seed` or `php artisan migrate:fresh --seed`
+
+---
+
+### Key Config Notes
+
+- **Firebase credentials**: `storage/app/firebase-credentials.json`
+- **CORS**: `config/cors.php` — must allow the mobile app origin in prod
+- **Sanctum**: `config/sanctum.php` — stateless token auth only (no cookie sessions)
+- **OTP**: dev mode accepts `"123456"` — real SMS (Twilio/Africa's Talking) is TODO
+
+---
+
+## Known Architecture Decisions
+
+| Decision | Reason |
+|---|---|
+| `AdminNavProvider` mounted on login screen too | Layout wraps all `(admin)/*`; can't be excluded without extra nesting |
+| `refetch()` called after admin login | Provider doesn't re-run `useEffect` on same mount; `refetch` re-fetches `/me` after token is stored |
+| `inMemoryPersistence` for Firebase | Firebase v12 removed `getReactNativePersistence`; Laravel token in AsyncStorage handles persistence |
+| Profile screen uses Firebase `auth.currentUser` | User tab profile — simpler, no API call needed for basic info |
+| Admin profile uses `GET /admin/profile` | Richer data: location, contract status, etc. |
+| SQLite in dev | Simplicity; switch to MySQL/Postgres for prod via `.env` `DB_CONNECTION` |

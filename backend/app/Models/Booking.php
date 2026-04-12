@@ -10,6 +10,7 @@ class Booking extends Model
     protected $fillable = [
         "user_id",
         "location_id",
+        "trip_id",
         "type",
         "reference_id",
         "title",
@@ -21,12 +22,15 @@ class Booking extends Model
         "payment_method",
         "paid_at",
         "travel_date",
+        "confirmed_by",
+        "confirmed_at",
     ];
 
     protected function casts(): array
     {
         return [
             "paid_at" => "datetime",
+            "confirmed_at" => "datetime",
         ];
     }
 
@@ -38,5 +42,15 @@ class Booking extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }
+
+    public function confirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
     }
 }

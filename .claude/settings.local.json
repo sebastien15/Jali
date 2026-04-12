@@ -7,7 +7,10 @@
       "Bash(npm install:*)",
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(php artisan:*)",
+      "Bash(git -C \"/Users/sebastienndagijimana/Desktop/Projects/Jali\" ls-files)",
+      "Bash(/bin/ls /Users/sebastienndagijimana/Desktop/Projects/Jali/mobile/app/)"
     ]
   }
 }

@@ -217,6 +217,17 @@ class AuthController extends Controller
     }
 
     /**
+     * Delete the authenticated user's account
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+        $user->tokens()->delete();
+        $user->delete();
+        return response()->json(["message" => "Account deleted."]);
+    }
+
+    /**
      * Get current user profile
      */
     public function me(Request $request)
