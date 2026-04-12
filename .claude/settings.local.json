@@ -10,7 +10,8 @@
       "Bash(git push:*)",
       "Bash(php artisan:*)",
       "Bash(git -C \"/Users/sebastienndagijimana/Desktop/Projects/Jali\" ls-files)",
-      "Bash(/bin/ls /Users/sebastienndagijimana/Desktop/Projects/Jali/mobile/app/)"
+      "Bash(/bin/ls /Users/sebastienndagijimana/Desktop/Projects/Jali/mobile/app/)",
+      "Bash(xargs kill:*)"
     ]
   }
 }
