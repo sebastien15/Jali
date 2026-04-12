@@ -97,6 +97,9 @@ class BookingController extends Controller
             "sub" => "nullable|string",
             "travel_date" => "nullable|string",
             "location_id" => "nullable|exists:locations,id",
+            "quantity" => "nullable|integer|min:1|max:10",
+            "passenger_names" => "nullable|array",
+            "passenger_names.*" => "nullable|string|max:100",
         ]);
 
         $type = $validated["type"];
@@ -148,6 +151,8 @@ class BookingController extends Controller
             "sub" => $validated["sub"] ?? "",
             "price" => $validated["price"],
             "service_fee" => $validated["service_fee"],
+            "quantity" => $validated["quantity"] ?? 1,
+            "passenger_names" => $validated["passenger_names"] ?? null,
             "status" => "pending",
             "payment_method" => $validated["payment_method"],
             "travel_date" => $validated["travel_date"] ?? null,

@@ -60,10 +60,7 @@ export default function ProfileScreen() {
   }
 
   function handleLogout() {
-    Alert.alert("Log Out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Log Out", style: "destructive", onPress: () => doLogout() },
-    ]);
+    doLogout();
   }
 
   async function doLogout() {
@@ -79,31 +76,20 @@ export default function ProfileScreen() {
     }
   }
 
-  async function handleDeleteAccount() {
-    Alert.alert(
-      "Delete Account",
-      "This will permanently delete your account and all your data. This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete Everything",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // Delete account must be awaited — we need to confirm it succeeded
-              await api.delete("/auth/me");
-              await clearApiToken();
-              GoogleSignin.signOut().catch(() => {});
-              signOut(auth).catch(() => {});
-              router.replace("/(auth)/login");
-            } catch (e: any) {
-              const msg = e?.response?.data?.message ?? "Failed to delete account. Please try again.";
-              Alert.alert("Error", msg);
-            }
-          },
-        },
-      ],
-    );
+  function handleDeleteAccount() {
+    doDeleteAccount();
+  }
+
+  async function doDeleteAccount() {
+    try {
+      await api.delete("/auth/me");
+      await clearApiToken();
+      GoogleSignin.signOut().catch(() => {});
+      signOut(auth).catch(() => {});
+      router.replace("/(auth)/login");
+    } catch (e: any) {
+      console.log("[Profile] Delete account error:", e?.response?.status, e?.response?.data);
+    }
   }
 
   const MENU: MenuItem[] = [

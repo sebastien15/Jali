@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminBookingController extends Controller
 {
@@ -49,6 +50,8 @@ class AdminBookingController extends Controller
                 'price'             => $b->price,
                 'service_fee'       => $b->service_fee,
                 'total'             => $b->price + $b->service_fee,
+                'quantity'          => $b->quantity ?? 1,
+                'passenger_names'   => $b->passenger_names ?? [],
                 'status'            => $b->status,
                 'payment_method'    => $b->payment_method,
                 'travel_date'       => $b->travel_date,
@@ -100,24 +103,61 @@ class AdminBookingController extends Controller
             'ticket_photo_url' => 'sometimes|nullable|string|url',
         ]);
 
-        // When status changes to confirmed, set confirmed_by and confirmed_at
-        if (isset($data['status']) && $data['status'] === 'confirmed') {
-            $data['confirmed_by'] = $user->id;
-            $data['confirmed_at'] = now();
+        // Log and handle status transitions
+        if (isset($data['status'])) {
+            $actionMap = [
+                'taken'        => 'booking_claimed',
+                'ticket_ready' => 'ticket_uploaded',
+                'delivered'    => 'booking_delivered',
+                'confirmed'    => 'booking_confirmed',
+            ];
 
-            ActivityLog::create([
-                'admin_id'    => $user->id,
-                'action'      => 'booking_confirmed',
-                'entity_type' => 'booking',
-                'entity_id'   => $booking->id,
-                'details'     => [
-                    'title' => $booking->title,
-                    'user'  => $booking->user?->name,
-                ],
-            ]);
+            if (isset($actionMap[$data['status']])) {
+                ActivityLog::create([
+                    'admin_id'    => $user->id,
+                    'action'      => $actionMap[$data['status']],
+                    'entity_type' => 'booking',
+                    'entity_id'   => $booking->id,
+                    'details'     => [
+                        'title' => $booking->title,
+                        'user'  => $booking->user?->name,
+                    ],
+                ]);
+            }
         }
 
         $booking->update($data);
         return response()->json($booking);
+    }
+
+    public function uploadTicket(Request $request, $id)
+    {
+        $user = $request->user();
+        $booking = Booking::findOrFail($id);
+
+        $request->validate([
+            'ticket' => 'required|image|max:16384|mimes:jpg,jpeg,png,webp,heic,heif,gif', // 16MB
+        ]);
+
+        $path = $request->file('ticket')->store('tickets', 'public');
+        $url = Storage::url($path);
+
+        $booking->update([
+            'ticket_photo_url' => $url,
+            'status'           => 'ticket_ready',
+        ]);
+
+        ActivityLog::create([
+            'admin_id'    => $user->id,
+            'action'      => 'ticket_uploaded',
+            'entity_type' => 'booking',
+            'entity_id'   => $booking->id,
+            'details'     => ['title' => $booking->title, 'url' => $url],
+        ]);
+
+        return response()->json([
+            'ticket_photo_url' => $url,
+            'status'           => 'ticket_ready',
+        ]);
     }
 }

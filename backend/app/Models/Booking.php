@@ -24,6 +24,8 @@ class Booking extends Model
         "travel_date",
         "confirmed_by",
         "confirmed_at",
+        "quantity",
+        "passenger_names",
     ];
 
     protected function casts(): array
@@ -31,6 +33,7 @@ class Booking extends Model
         return [
             "paid_at" => "datetime",
             "confirmed_at" => "datetime",
+            "passenger_names" => "array",
         ];
     }
 

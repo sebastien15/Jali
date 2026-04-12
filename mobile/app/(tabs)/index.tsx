@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StatusBar, ActivityIndicator, Platform,
+  StatusBar, ActivityIndicator, Platform, Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -18,7 +18,6 @@ import { TripBookingSheet } from "@/components/TripBookingSheet";
 import api from "@/lib/api";
 
 type Mode = "bus" | "private" | "rental";
-type TimeSlot = "all" | "morning" | "afternoon" | "evening";
 
 function formatDateLabel(d: Date): string {
   const today = new Date();
@@ -45,7 +44,6 @@ export default function HomeScreen() {
 
   const [mode, setMode]         = useState<Mode>("bus");
   const [rentalDays, setRD]     = useState(1);
-  const [timeSlot, setTimeSlot] = useState<TimeSlot>("all");
   const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
 
   const [sheet, setSheet]         = useState<any>(null);
@@ -97,18 +95,13 @@ export default function HomeScreen() {
     return names;
   }, [trips]);
 
-  // Apply time + agency filters to trips
+  // Apply agency filter to trips
   const filteredTrips = useMemo(() => {
     return trips.filter(trip => {
       if (agencyFilter && trip.agency_name !== agencyFilter) return false;
-      if (timeSlot === "all") return true;
-      const hour = parseInt(trip.departure_time.split(":")[0], 10);
-      if (timeSlot === "morning")   return hour >= 5  && hour < 12;
-      if (timeSlot === "afternoon") return hour >= 12 && hour < 18;
-      if (timeSlot === "evening")   return hour >= 18 && hour < 24;
       return true;
     });
-  }, [trips, agencyFilter, timeSlot]);
+  }, [trips, agencyFilter]);
 
   const isFiltered = !!from || !!to;
 
@@ -206,20 +199,35 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      {/* DateTimePicker (iOS inline / Android modal) */}
-      {showPicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          minimumDate={new Date()}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(_, date) => {
-            setShowPicker(Platform.OS === "ios"); // keep open on iOS until dismissed
-            if (date) setSelectedDate(date);
-            if (Platform.OS === "android") setShowPicker(false);
-          }}
-        />
-      )}
+      {/* DateTimePicker in a modal so it's visible on all platforms */}
+      <Modal visible={showPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" }}
+          activeOpacity={1}
+          onPress={() => setShowPicker(false)}
+        >
+          <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, paddingBottom: 32 }}>
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              minimumDate={new Date()}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_, date) => {
+                if (date) setSelectedDate(date);
+                if (Platform.OS === "android") setShowPicker(false);
+              }}
+            />
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                onPress={() => setShowPicker(false)}
+                style={{ backgroundColor: C.blue, borderRadius: 12, paddingVertical: 14, alignItems: "center", marginTop: 8 }}
+              >
+                <Text style={{ color: C.white, fontWeight: "800", fontSize: 16 }}>Done</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* ── Mode tabs ── */}
       <View style={{ flexDirection: "row", backgroundColor: C.white, borderBottomWidth: 2, borderBottomColor: C.border }}>
@@ -253,34 +261,6 @@ export default function HomeScreen() {
           style={{ backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border }}
         >
           <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14, paddingVertical: 9, alignItems: "center" }}>
-            {/* Time chips */}
-            {(["all", "morning", "afternoon", "evening"] as TimeSlot[]).map(slot => {
-              const labels: Record<TimeSlot, string> = {
-                all: "All", morning: "☀️ Morning", afternoon: "🌤 Afternoon", evening: "🌙 Evening",
-              };
-              const active = timeSlot === slot;
-              return (
-                <TouchableOpacity
-                  key={slot}
-                  onPress={() => setTimeSlot(slot)}
-                  style={{
-                    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
-                    backgroundColor: active ? C.blue : C.bg,
-                    borderWidth: active ? 0 : 1.5, borderColor: C.border,
-                  }}
-                >
-                  <Text style={{ color: active ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
-                    {labels[slot]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-
-            {/* Divider */}
-            {agencies.length > 0 && (
-              <View style={{ width: 1, height: 20, backgroundColor: C.border, marginHorizontal: 4 }} />
-            )}
-
             {/* Agency chips */}
             {agencies.map(name => {
               const active = agencyFilter === name;

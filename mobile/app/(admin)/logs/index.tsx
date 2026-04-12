@@ -54,7 +54,7 @@ export default function AdminLogsScreen() {
         setLogs([]);
       }
       if (reset) setRefreshing(true);
-      else setLoading(true);
+      setLoading(true);
       try {
         const res = await api.get("/admin/logs", {
           params: {
@@ -69,8 +69,8 @@ export default function AdminLogsScreen() {
       } catch {
         setLogs([]);
       } finally {
+        setLoading(false);
         if (reset) setRefreshing(false);
-        else setLoading(false);
       }
     },
     [page, actionFilter],

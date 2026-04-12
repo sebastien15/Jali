@@ -75,12 +75,8 @@ export default function AdminUsersScreen() {
               <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14 }}>{u.name}</Text>
               <Text style={{ color: C.muted, fontSize: 12, marginTop: 1 }}>{u.email}</Text>
             </View>
-            <View style={{ flexDirection: "row", gap: 4, flexWrap: "wrap", justifyContent: "flex-end", maxWidth: 110 }}>
-              {(u.roles as string[]).map(r => (
-                <View key={r} style={{ backgroundColor: ROLE_BG[r] ?? C.bg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                  <Text style={{ color: ROLE_COLOR[r] ?? C.muted, fontSize: 10, fontWeight: "700" }}>{r}</Text>
-                </View>
-              ))}
+            <View style={{ backgroundColor: ROLE_BG[u.role] ?? C.bg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+              <Text style={{ color: ROLE_COLOR[u.role] ?? C.muted, fontSize: 10, fontWeight: "700" }}>{u.role}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={C.border} />
           </TouchableOpacity>

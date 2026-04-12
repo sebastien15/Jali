@@ -178,6 +178,10 @@ Route::middleware("auth:sanctum")->group(function () {
                 AdminBookingController::class,
                 "update",
             ]);
+            Route::post("/bookings/{id}/ticket", [
+                AdminBookingController::class,
+                "uploadTicket",
+            ]);
         });
 
         Route::middleware("permission:manage-admins")->group(function () {

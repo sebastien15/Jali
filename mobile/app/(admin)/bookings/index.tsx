@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C } from "@/constants/theme";
@@ -16,6 +17,10 @@ import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import { useRef } from "react";
+import { Toast, ToastHandle } from "@/components/Toast";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
 type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "taken" | "ticket_ready" | "delivered";
 
@@ -51,6 +56,7 @@ export default function AdminBookingsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const toastRef = useRef<ToastHandle>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -72,68 +78,131 @@ export default function AdminBookingsScreen() {
     load();
   }, [load]);
 
-  const list = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
+  const STATUS_PRIORITY: Record<string, number> = {
+    pending: 0,
+    taken: 1,
+    ticket_ready: 2,
+    delivered: 3,
+    confirmed: 4,
+    completed: 5,
+    cancelled: 6,
+  };
+
+  const list = (filter === "all" ? bookings : bookings.filter((b) => b.status === filter))
+    .slice()
+    .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 9) - (STATUS_PRIORITY[b.status] ?? 9));
 
   // Calculate total service fees (system revenue)
   const totalServiceFees = bookings.reduce((sum, b) => sum + (b.service_fee ?? 0), 0);
 
-  async function handleStatusChange(id: number, status: string) {
+  async function doStatusChange(id: number, status: string) {
+    console.log(`[Booking] PATCH /admin/bookings/${id} → status: ${status}`);
     setActionLoading(id);
     try {
-      await api.patch(`/admin/bookings/${id}`, { status });
+      const res = await api.patch(`/admin/bookings/${id}`, { status });
+      console.log(`[Booking] Success:`, res.data);
+      toastRef.current?.show({ message: `Booking updated to ${status.replace("_", " ")}`, type: "success" });
       load();
     } catch (e: any) {
-      Alert.alert("Error", e?.response?.data?.message ?? "Failed");
+      const msg = e?.response?.data?.message ?? "Failed to update booking.";
+      console.log(`[Booking] Error:`, e?.response?.status, msg);
+      toastRef.current?.show({ message: msg, type: "error" });
     } finally {
       setActionLoading(null);
     }
   }
 
-  function confirmBooking(id: number) {
-    Alert.alert(
-      t("adminBookings.confirm"),
-      "Confirm this booking?",
-      [
-        { text: t("common.cancel") ?? "Cancel", style: "cancel" },
-        {
-          text: t("common.confirm"),
-          onPress: () => handleStatusChange(id, "confirmed"),
-        },
-      ],
-    );
+  function handleStatusChange(id: number, status: string) {
+    console.log(`[Booking] button pressed → id=${id} status=${status}`);
+    doStatusChange(id, status);
   }
 
-  function markComplete(id: number) {
-    Alert.alert(
-      t("adminBookings.markComplete"),
-      "Mark this booking as complete?",
-      [
-        { text: t("common.cancel") ?? "Cancel", style: "cancel" },
-        {
-          text: t("common.confirm"),
-          onPress: () => handleStatusChange(id, "completed"),
-        },
-      ],
-    );
+  async function doUploadTicket(id: number) {
+    console.log(`[Booking] opening image picker for booking ${id}`);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.9,
+      allowsEditing: false,
+    });
+
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    setActionLoading(id);
+    try {
+      // Compress images; skip for PDFs and other non-image types
+      const isImage = !asset.mimeType || asset.mimeType.startsWith("image/");
+      let uri = asset.uri;
+      let mimeType = asset.mimeType ?? "image/jpeg";
+
+      if (isImage) {
+        const compressed = await ImageManipulator.manipulateAsync(
+          asset.uri,
+          [{ resize: { width: 1200 } }], // cap width, height auto-scales
+          { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        uri = compressed.uri;
+        mimeType = "image/jpeg";
+        console.log(`[Booking] compressed image: ${asset.uri} → ${compressed.uri}`);
+      }
+
+      const form = new FormData();
+      if (Platform.OS === "web") {
+        // On web, fetch the blob URL and append as a real Blob
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        form.append("ticket", blob, asset.fileName ?? "ticket.jpg");
+      } else {
+        form.append("ticket", {
+          uri,
+          name: asset.fileName ?? "ticket.jpg",
+          type: mimeType,
+        } as any);
+      }
+
+      await api.post(`/admin/bookings/${id}/ticket`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log(`[Booking] ticket uploaded for booking ${id}`);
+      toastRef.current?.show({ message: "Ticket uploaded — booking marked ready", type: "success" });
+      load();
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? "Failed to upload ticket.";
+      console.log(`[Booking] upload error:`, e?.response?.status, msg);
+      toastRef.current?.show({ message: msg, type: "error" });
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   function renderActions(b: any) {
     if (b.status === "pending") {
       return (
         <ActionBtn
-          label={t("adminBookings.confirm") || "Confirm"}
-          color={C.green}
-          onPress={() => confirmBooking(b.id)}
+          label="Claim Booking"
+          color={C.teal}
+          onPress={() => handleStatusChange(b.id, "taken")}
           loading={actionLoading === b.id}
         />
       );
     }
-    if (b.status === "confirmed") {
+    if (b.status === "taken") {
       return (
         <ActionBtn
-          label={t("adminBookings.markComplete") || "Mark Complete"}
-          color={C.teal}
-          onPress={() => markComplete(b.id)}
+          label="Upload Ticket"
+          color={C.blue}
+          onPress={() => doUploadTicket(b.id)}
+          loading={actionLoading === b.id}
+        />
+      );
+    }
+    if (b.status === "ticket_ready") {
+      return (
+        <ActionBtn
+          label="Mark Delivered"
+          color={C.green}
+          onPress={() => handleStatusChange(b.id, "delivered")}
           loading={actionLoading === b.id}
         />
       );
@@ -255,6 +324,21 @@ export default function AdminBookingsScreen() {
                         {b.confirmed_at ? ` · ${new Date(b.confirmed_at).toLocaleString()}` : ""}
                       </Text>
                     )}
+                    {/* Quantity + passenger names */}
+                    {b.quantity > 1 && (
+                      <Text style={{ color: C.blue, fontSize: 12, marginTop: 4, fontWeight: "700" }}>
+                        🎟 {b.quantity} tickets
+                        {Array.isArray(b.passenger_names) && b.passenger_names.filter(Boolean).length > 0
+                          ? ` · ${b.passenger_names.filter(Boolean).join(", ")}`
+                          : ""}
+                      </Text>
+                    )}
+                    {/* Booked at */}
+                    {b.created_at && (
+                      <Text style={{ color: C.muted, fontSize: 11, marginTop: 3 }}>
+                        🕐 {new Date(b.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </Text>
+                    )}
                   </View>
                   <View style={{ alignItems: "flex-end", gap: 6 }}>
                     <Text style={{ color: C.dark, fontWeight: "800", fontSize: 13 }}>
@@ -279,6 +363,7 @@ export default function AdminBookingsScreen() {
             );
           })}
       </ScrollView>
+      <Toast ref={toastRef} />
     </SafeAreaView>
   );
 }
