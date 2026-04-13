@@ -59,7 +59,7 @@ function TabsNavigator() {
         options={{
           tabBarLabel: "Home",
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="flash-outline" iconFocused="flash" focused={focused} />
+            <TabIcon icon="home-outline" iconFocused="home" focused={focused} />
           ),
         }}
       />

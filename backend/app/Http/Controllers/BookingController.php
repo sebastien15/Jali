@@ -29,7 +29,7 @@ class BookingController extends Controller
                 return response()->json([]);
             }
         } elseif ($user->isDriver()) {
-            // Driver: bookings for their private seats or rental cars
+            // Driver: bookings for their private cars or rental cars
             $privateSeatIds = PrivateSeat::where("user_id", $user->id)->pluck(
                 "id",
             );

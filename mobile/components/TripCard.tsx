@@ -9,8 +9,8 @@ export type TripResult = {
   agency_name: string;
   agency_rating: number;
   agency_ratings_count: number;
-  from: { id: number; city: string };
-  to: { id: number; city: string };
+  from: { id: number; name: string; city: string };
+  to: { id: number; name: string; city: string };
   departure_time: string;
   estimated_arrival_time: string;
   price: number;
@@ -50,7 +50,7 @@ export function TripCard({ trip, onPress }: Props) {
             {trip.agency_name}
           </Text>
           <Text style={{ color: C.mid, fontSize: 13, marginTop: 2 }}>
-            {trip.from.city} → {trip.to.city}
+            {trip.from.name ?? trip.from.city} → {trip.to.name ?? trip.to.city}
           </Text>
         </View>
         <View style={{

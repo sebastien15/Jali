@@ -11,24 +11,31 @@ class DatabaseSeeder extends Seeder
         // 1. Roles & Permissions (must be first)
         $this->call(RolesAndPermissionsSeeder::class);
 
-        // 2. Admin users (must be before AdminStationsSeeder)
+        // 2. Admin users
         $this->call(AdminSeeder::class);
 
         // 3. Regular users (assigns roles)
         $this->call(UsersSeeder::class);
 
-        // 5. Admin Stations (AdminSeeder already creates stations for seeded admins)
+        // 4. Booking pickup locations (all 16 national terminals)
+        $this->call(LocationsSeeder::class);
+
+        // 5. Bus terminals (admin_stations) — all 16 terminals with coordinates
+        //    Also truncates trips, agency_routes, corridor_terminals
         $this->call(AdminStationsSeeder::class);
 
-        // 6. Transportation data
+        // 6. Corridors (CRD-01 to CRD-08) + ordered terminal stops
+        $this->call(CorridorsSeeder::class);
+
+        // 7. Legacy transportation data
         $this->call(BusesSeeder::class);
         $this->call(CarRentalsSeeder::class);
         $this->call(PrivateSeatsSeeder::class);
 
-        // 7. Agencies & Trips
+        // 8. Agencies (43 total) + corridor routes + trips
         $this->call(AgenciesTripsSeeder::class);
 
-        // 8. Bookings (requires users and transportation data)
+        // 9. Sample bookings
         $this->call(BookingsSeeder::class);
     }
 }

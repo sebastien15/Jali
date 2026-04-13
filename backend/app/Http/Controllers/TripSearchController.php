@@ -15,6 +15,7 @@ class TripSearchController extends Controller
         $request->validate([
             'from_station_id' => 'nullable|exists:admin_stations,id',
             'to_station_id'   => 'nullable|exists:admin_stations,id',
+            'agency_id'       => 'nullable|exists:agencies,id',
         ]);
 
         $query = Trip::with(['agency.ratings', 'fromStation', 'toStation'])
@@ -25,6 +26,9 @@ class TripSearchController extends Controller
         }
         if ($request->filled('to_station_id')) {
             $query->where('to_station_id', $request->to_station_id);
+        }
+        if ($request->filled('agency_id')) {
+            $query->where('agency_id', $request->agency_id);
         }
 
         $trips = $query->orderBy('departure_time')->get();
@@ -37,10 +41,12 @@ class TripSearchController extends Controller
             'agency_ratings_count'     => $t->agency->ratings->count(),
             'from'                     => [
                 'id'   => $t->fromStation->id,
+                'name' => $t->fromStation->name,
                 'city' => $t->fromStation->city,
             ],
             'to'                       => [
                 'id'   => $t->toStation->id,
+                'name' => $t->toStation->name,
                 'city' => $t->toStation->city,
             ],
             'departure_time'           => $t->departure_time,

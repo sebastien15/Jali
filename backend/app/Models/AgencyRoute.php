@@ -10,7 +10,7 @@ class AgencyRoute extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['agency_id', 'from_station_id', 'to_station_id'];
+    protected $fillable = ['agency_id', 'corridor_id', 'from_station_id', 'to_station_id'];
 
     public function fromStation(): BelongsTo
     {
@@ -25,5 +25,10 @@ class AgencyRoute extends Model
     public function agency(): BelongsTo
     {
         return $this->belongsTo(Agency::class);
+    }
+
+    public function corridor(): BelongsTo
+    {
+        return $this->belongsTo(Corridor::class);
     }
 }

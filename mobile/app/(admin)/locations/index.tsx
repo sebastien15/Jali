@@ -22,7 +22,15 @@ import AdminHeader from "@/components/admin/AdminHeader";
 
 type LocationType = "bus_station" | "custom";
 
-type Location = {
+type Corridor = {
+  code: string;
+  name: string;
+  description: string;
+  stop_order: number;
+  agencies: string[];
+};
+
+type LocationItem = {
   id: number;
   name: string;
   type: LocationType;
@@ -30,6 +38,8 @@ type Location = {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  province: string | null;
+  corridors: Corridor[];
 };
 
 const TYPE_LABEL: Record<LocationType, string> = {
@@ -55,14 +65,15 @@ const EMPTY_FORM = {
 };
 
 export default function LocationsScreen() {
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<LocationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [editing, setEditing] = useState<Location | null>(null);
+  const [editing, setEditing] = useState<LocationItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -82,13 +93,17 @@ export default function LocationsScreen() {
     load();
   }, [load]);
 
+  function toggleExpand(id: number) {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setModalVisible(true);
   }
 
-  function openEdit(loc: Location) {
+  function openEdit(loc: LocationItem) {
     setEditing(loc);
     setForm({
       name: loc.name,
@@ -170,7 +185,7 @@ export default function LocationsScreen() {
     }
   }
 
-  function confirmDelete(loc: Location) {
+  function confirmDelete(loc: LocationItem) {
     Alert.alert(
       "Delete location",
       `Delete "${loc.name}" (${loc.city})? This cannot be undone.`,
@@ -217,97 +232,226 @@ export default function LocationsScreen() {
         )}
 
         {!loading &&
-          locations.map((loc) => (
-            <View
-              key={loc.id}
-              style={{
-                backgroundColor: C.white,
-                borderRadius: 20,
-                padding: 16,
-                marginBottom: 12,
-                shadowColor: "#000",
-                shadowOpacity: 0.07,
-                shadowRadius: 10,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 3,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              {/* Icon */}
+          locations.map((loc) => {
+            const isExpanded = !!expanded[loc.id];
+            const hasCorridor = loc.corridors && loc.corridors.length > 0;
+
+            return (
               <View
+                key={loc.id}
                 style={{
-                  backgroundColor: TYPE_BG[loc.type],
-                  borderRadius: 12,
-                  width: 44,
-                  height: 44,
-                  alignItems: "center",
-                  justifyContent: "center",
+                  backgroundColor: C.white,
+                  borderRadius: 20,
+                  marginBottom: 12,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.07,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 2 },
+                  elevation: 3,
+                  overflow: "hidden",
                 }}
               >
-                <Ionicons
-                  name={loc.type === "bus_station" ? "bus-outline" : "location-outline"}
-                  size={20}
-                  color={TYPE_COLOR[loc.type]}
-                />
-              </View>
-
-              {/* Info */}
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                  <Text style={{ color: C.dark, fontWeight: "800", fontSize: 14 }}>
-                    {loc.name}
-                  </Text>
+                {/* Top row: icon + name/meta + actions */}
+                <View style={{ flexDirection: "row", alignItems: "flex-start", padding: 16, gap: 12 }}>
+                  {/* Icon */}
                   <View
                     style={{
                       backgroundColor: TYPE_BG[loc.type],
-                      borderRadius: 5,
-                      paddingHorizontal: 5,
-                      paddingVertical: 1,
+                      borderRadius: 12,
+                      width: 44,
+                      height: 44,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: 2,
                     }}
                   >
-                    <Text style={{ color: TYPE_COLOR[loc.type], fontSize: 9, fontWeight: "700" }}>
-                      {TYPE_LABEL[loc.type]}
+                    <Ionicons
+                      name={loc.type === "bus_station" ? "bus-outline" : "location-outline"}
+                      size={20}
+                      color={TYPE_COLOR[loc.type]}
+                    />
+                  </View>
+
+                  {/* Info */}
+                  <View style={{ flex: 1, gap: 3 }}>
+                    {/* Name + type badge */}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <Text style={{ color: C.dark, fontWeight: "800", fontSize: 14 }}>
+                        {loc.name}
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: TYPE_BG[loc.type],
+                          borderRadius: 5,
+                          paddingHorizontal: 5,
+                          paddingVertical: 1,
+                        }}
+                      >
+                        <Text style={{ color: TYPE_COLOR[loc.type], fontSize: 9, fontWeight: "700" }}>
+                          {TYPE_LABEL[loc.type]}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Province + city */}
+                    <Text style={{ color: C.mid, fontSize: 12, fontWeight: "600" }}>
+                      {[loc.province, loc.city].filter(Boolean).join(" · ")}
+                      {loc.address ? ` · ${loc.address}` : ""}
                     </Text>
+
+                    {/* GPS */}
+                    {loc.latitude != null && loc.longitude != null && (
+                      <Text style={{ color: C.muted, fontSize: 11 }}>
+                        {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}
+                      </Text>
+                    )}
+
+                    {/* Corridor code pills */}
+                    {hasCorridor && (
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
+                        {loc.corridors.map((c) => (
+                          <View
+                            key={c.code}
+                            style={{
+                              backgroundColor: "#EEF6FF",
+                              borderRadius: 6,
+                              paddingHorizontal: 7,
+                              paddingVertical: 3,
+                              borderWidth: 1,
+                              borderColor: "#BFDBFE",
+                            }}
+                          >
+                            <Text style={{ color: "#1D4ED8", fontSize: 10, fontWeight: "800" }}>
+                              {c.code}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Actions */}
+                  <View style={{ flexDirection: "column", gap: 6, alignItems: "center" }}>
+                    <TouchableOpacity
+                      onPress={() => openEdit(loc)}
+                      style={{ backgroundColor: C.tealLt, borderRadius: 10, padding: 9 }}
+                    >
+                      <Ionicons name="pencil-outline" size={16} color={C.teal} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => confirmDelete(loc)}
+                      style={{ backgroundColor: C.orangeLt, borderRadius: 10, padding: 9 }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={C.orange} />
+                    </TouchableOpacity>
                   </View>
                 </View>
-                <Text style={{ color: C.mid, fontSize: 12, fontWeight: "600" }}>
-                  {loc.city}
-                  {loc.address ? ` · ${loc.address}` : ""}
-                </Text>
-                {loc.latitude != null && loc.longitude != null && (
-                  <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}
-                  </Text>
+
+                {/* Expand toggle */}
+                {hasCorridor && (
+                  <TouchableOpacity
+                    onPress={() => toggleExpand(loc.id)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                      paddingVertical: 9,
+                      borderTopWidth: 1,
+                      borderTopColor: C.border,
+                      backgroundColor: isExpanded ? "#F0FDFA" : C.bg,
+                    }}
+                  >
+                    <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>
+                      {isExpanded ? "Hide corridors & agencies" : `${loc.corridors.length} corridor${loc.corridors.length > 1 ? "s" : ""} · tap to expand`}
+                    </Text>
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color={C.teal}
+                    />
+                  </TouchableOpacity>
+                )}
+
+                {/* Expanded: corridors + agencies */}
+                {hasCorridor && isExpanded && (
+                  <View style={{ borderTopWidth: 1, borderTopColor: C.border }}>
+                    {loc.corridors.map((corridor, idx) => (
+                      <View
+                        key={corridor.code}
+                        style={{
+                          padding: 14,
+                          borderBottomWidth: idx < loc.corridors.length - 1 ? 1 : 0,
+                          borderBottomColor: C.border,
+                        }}
+                      >
+                        {/* Corridor header */}
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <View
+                            style={{
+                              backgroundColor: "#EEF6FF",
+                              borderRadius: 6,
+                              paddingHorizontal: 8,
+                              paddingVertical: 4,
+                              borderWidth: 1,
+                              borderColor: "#BFDBFE",
+                            }}
+                          >
+                            <Text style={{ color: "#1D4ED8", fontSize: 11, fontWeight: "900" }}>
+                              {corridor.code}
+                            </Text>
+                          </View>
+                          <Text style={{ color: C.dark, fontSize: 13, fontWeight: "700", flex: 1 }}>
+                            {corridor.name}
+                          </Text>
+                          <Text style={{ color: C.muted, fontSize: 10, fontWeight: "600" }}>
+                            Stop #{corridor.stop_order}
+                          </Text>
+                        </View>
+
+                        {/* Corridor description */}
+                        <Text style={{ color: C.mid, fontSize: 11, marginBottom: 8 }}>
+                          {corridor.description}
+                        </Text>
+
+                        {/* Agencies */}
+                        {corridor.agencies.length > 0 ? (
+                          <View>
+                            <Text style={{ color: C.muted, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 5 }}>
+                              Agencies on this corridor
+                            </Text>
+                            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+                              {corridor.agencies.map((agency) => (
+                                <View
+                                  key={agency}
+                                  style={{
+                                    backgroundColor: "#F0FDF4",
+                                    borderRadius: 6,
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 3,
+                                    borderWidth: 1,
+                                    borderColor: "#BBF7D0",
+                                  }}
+                                >
+                                  <Text style={{ color: "#15803D", fontSize: 11, fontWeight: "600" }}>
+                                    {agency}
+                                  </Text>
+                                </View>
+                              ))}
+                            </View>
+                          </View>
+                        ) : (
+                          <Text style={{ color: C.muted, fontSize: 11, fontStyle: "italic" }}>
+                            No agencies assigned
+                          </Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
                 )}
               </View>
-
-              {/* Actions */}
-              <View style={{ flexDirection: "row", gap: 6 }}>
-                <TouchableOpacity
-                  onPress={() => openEdit(loc)}
-                  style={{
-                    backgroundColor: C.tealLt,
-                    borderRadius: 10,
-                    padding: 9,
-                  }}
-                >
-                  <Ionicons name="pencil-outline" size={16} color={C.teal} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => confirmDelete(loc)}
-                  style={{
-                    backgroundColor: C.orangeLt,
-                    borderRadius: 10,
-                    padding: 9,
-                  }}
-                >
-                  <Ionicons name="trash-outline" size={16} color={C.orange} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+            );
+          })}
       </ScrollView>
 
       {/* FAB */}

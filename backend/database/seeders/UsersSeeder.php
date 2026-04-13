@@ -15,6 +15,14 @@ class UsersSeeder extends Seeder
 
         // Regular users (passengers)
         $users = [
+            // Test user
+            [
+                "firebase_uid" => "user_test_uid",
+                "name" => "Test User",
+                "email" => "user@jali.rw",
+                "phone" => "+250700000000",
+                "password" => bcrypt("Jali@2026"),
+            ],
             [
                 "firebase_uid" => "user_001_uid",
                 "name" => "Emmanuel Niyonzima",

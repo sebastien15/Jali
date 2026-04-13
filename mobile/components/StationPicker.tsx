@@ -9,17 +9,21 @@ import api from "@/lib/api";
 
 type Station = {
   id: number;
+  name: string;
   city: string;
+  province: string | null;
   district: string | null;
   type: "bus_station" | "custom";
   address: string | null;
 };
 
+export type StationObj = { id: number; name: string; city: string };
+
 interface Props {
-  value: string | { id: number; city: string } | null;
-  onChange: (v: string | { id: number; city: string }) => void;
+  value: StationObj | null;
+  onChange: (v: StationObj) => void;
   placeholder: string;
-  exclude?: string | { id: number; city: string } | null;
+  exclude?: StationObj | null;
 }
 
 export function StationPicker({ value, onChange, placeholder, exclude }: Props) {
@@ -37,28 +41,29 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
       .finally(() => setLoading(false));
   }, [open]);
 
-  const displayValue = typeof value === "object" ? value?.city ?? "" : value;
-  const excludeCity =
-    typeof exclude === "object" ? exclude?.city ?? null : exclude;
+  const excludeId = exclude?.id ?? null;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return stations.filter(s => {
-      if (excludeCity && s.city === excludeCity) return false;
+      if (excludeId && s.id === excludeId) return false;
       if (!q) return true;
       return (
+        (s.name ?? "").toLowerCase().includes(q) ||
         s.city.toLowerCase().includes(q) ||
         (s.district ?? "").toLowerCase().includes(q) ||
         (s.address ?? "").toLowerCase().includes(q)
       );
     });
-  }, [stations, search, excludeCity]);
+  }, [stations, search, excludeId]);
 
   function select(s: Station) {
-    onChange(s);
+    onChange({ id: s.id, name: s.name, city: s.city });
     setOpen(false);
     setSearch("");
   }
+
+  const displayValue = value?.name ?? "";
 
   return (
     <>
@@ -67,7 +72,7 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
           {displayValue || placeholder}
         </Text>
         <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginTop: 2 }}>
-          {displayValue ? "tap to change" : "select station"}
+          {displayValue ? "tap to change" : "select terminal"}
         </Text>
       </TouchableOpacity>
 
@@ -90,7 +95,7 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
               paddingHorizontal: 20, paddingVertical: 12,
             }}>
               <Text style={{ fontWeight: "900", fontSize: 19, color: C.dark }}>
-                Select Station
+                Select Terminal
               </Text>
               <TouchableOpacity
                 onPress={() => { setOpen(false); setSearch(""); }}
@@ -115,7 +120,7 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
               <TextInput
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Search by name, district or address…"
+                placeholder="Search by terminal name, city or district…"
                 placeholderTextColor={C.muted}
                 style={{ flex: 1, fontSize: 15, color: C.dark }}
                 autoFocus={false}
@@ -134,12 +139,13 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
                   <View style={{ alignItems: "center", paddingVertical: 40 }}>
                     <Ionicons name="location-outline" size={36} color={C.border} />
                     <Text style={{ color: C.muted, marginTop: 10, fontSize: 14 }}>
-                      {stations.length === 0 ? "No stations available" : "No results"}
+                      {stations.length === 0 ? "No terminals available" : "No results"}
                     </Text>
                   </View>
                 }
                 renderItem={({ item }) => {
-                  const selected = item.city === displayValue;
+                  const selected = item.id === value?.id;
+                  const subtitle = [item.city, item.district].filter(Boolean).join(" · ");
                   return (
                     <TouchableOpacity
                       onPress={() => select(item)}
@@ -166,11 +172,11 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
                           fontSize: 15, color: C.dark,
                           fontWeight: selected ? "800" : "600",
                         }}>
-                          {item.city}
+                          {item.name}
                         </Text>
-                        {(item.district || item.address) ? (
+                        {subtitle ? (
                           <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                            {[item.district, item.address].filter(Boolean).join(" · ")}
+                            {subtitle}
                           </Text>
                         ) : null}
                       </View>

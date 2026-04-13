@@ -22,8 +22,8 @@ type TripData = {
   agency_name: string;
   agency_rating: number;
   agency_ratings_count: number;
-  from: { city: string };
-  to: { city: string };
+  from: { name: string; city: string };
+  to: { name: string; city: string };
   departure_time: string;
   estimated_arrival_time: string;
   price: number;
@@ -173,10 +173,10 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
           </View>
 
           {/* Route */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <Text style={{ color: C.dark, fontWeight: "800", fontSize: 15 }}>{trip.from.city}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+            <Text style={{ color: C.dark, fontWeight: "800", fontSize: 15 }}>{trip.from.name ?? trip.from.city}</Text>
             <Ionicons name="arrow-forward" size={18} color={C.blue} />
-            <Text style={{ color: C.dark, fontWeight: "800", fontSize: 15 }}>{trip.to.city}</Text>
+            <Text style={{ color: C.dark, fontWeight: "800", fontSize: 15 }}>{trip.to.name ?? trip.to.city}</Text>
           </View>
 
           {/* Times */}

@@ -68,7 +68,7 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
       },
       {
         heading: "6. Driver Responsibilities",
-        body: "Drivers who offer private seats via Jali are independent operators. They are responsible for their vehicle's roadworthiness, insurance, and compliance with Rwandan transport regulations.",
+        body: "Drivers who offer private cars via Jali are independent operators. They are responsible for their vehicle's roadworthiness, insurance, and compliance with Rwandan transport regulations.",
       },
       {
         heading: "7. Prohibited Use",

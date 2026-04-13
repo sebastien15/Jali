@@ -13,7 +13,9 @@ class AdminStationController extends Controller
         $s->loadMissing('user');
         return [
             'id'          => $s->id,
+            'name'        => $s->name,
             'city'        => $s->city,
+            'province'    => $s->province,
             'district'    => $s->district,
             'type'        => $s->type ?? 'bus_station',
             'address'     => $s->address,
