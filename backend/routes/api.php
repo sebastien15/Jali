@@ -20,14 +20,7 @@ use App\Http\Controllers\AgencyRatingController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\TripController;
 
-// ── Public Routes ──
-Route::get("/buses", [BusController::class, "index"]);
-Route::get("/car-rentals", [CarRentalController::class, "index"]);
-Route::get("/private-seats", [PrivateSeatController::class, "index"]);
-Route::get("/stations", [AdminStationController::class, "index"]);
-Route::get("/trips", [TripSearchController::class, "index"]);
-
-// ── Laravel Auth Routes (new) ──
+// ── Auth Routes (no token required) ──
 Route::post("/auth/login", [AuthController::class, "login"]);
 Route::post("/auth/login/google", [
     AuthController::class,
@@ -38,6 +31,13 @@ Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {
+    // Browsing data (requires login)
+    Route::get("/buses", [BusController::class, "index"]);
+    Route::get("/car-rentals", [CarRentalController::class, "index"]);
+    Route::get("/private-seats", [PrivateSeatController::class, "index"]);
+    Route::get("/stations", [AdminStationController::class, "index"]);
+    Route::get("/trips", [TripSearchController::class, "index"]);
+
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
@@ -123,7 +123,7 @@ Route::middleware("auth:sanctum")->group(function () {
     });
 
     // Admin profile
-    Route::prefix("admin/profile")->group(function () {
+    Route::middleware("permission:confirm-bookings")->prefix("admin/profile")->group(function () {
         Route::get("/", [AdminProfileController::class, "show"]);
         Route::patch("/", [AdminProfileController::class, "update"]);
         Route::post("/image", [
@@ -163,7 +163,7 @@ Route::middleware("auth:sanctum")->group(function () {
             ]);
         });
 
-        Route::post("/location-request", [
+        Route::middleware("permission:manage-locations")->post("/location-request", [
             LocationChangeRequestController::class,
             "store",
         ]);

@@ -538,7 +538,7 @@
     "routeAdded": "Umuhanda wongewemo",
     "routeRemoved": "Umuhanda wakurweho"
   },
-  "trips": {
+  "adminTrips": {
     "title": "Ingendo",
     "addNew": "Ongeraho Ingendo",
     "editTrip": "Hindura Ingendo",

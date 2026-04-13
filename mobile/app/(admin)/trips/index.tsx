@@ -155,10 +155,10 @@ export default function TripsScreen() {
 
       if (modal?.mode === "create") {
         await api.post("/admin/trips", payload);
-        setSuccessMsg(t("trips.created"));
+        setSuccessMsg(t("adminTrips.created"));
       } else if (modal?.trip) {
         await api.patch(`/admin/trips/${modal.trip.id}`, payload);
-        setSuccessMsg(t("trips.updated"));
+        setSuccessMsg(t("adminTrips.updated"));
       }
 
       setModal(null);
@@ -171,7 +171,7 @@ export default function TripsScreen() {
   }
 
   async function handleDelete(trip: TripData) {
-    Alert.alert(t("trips.title"), t("trips.deleteConfirm"), [
+    Alert.alert(t("adminTrips.title"), t("adminTrips.deleteConfirm"), [
       { text: t("common.cancel") ?? "Cancel", style: "cancel" },
       {
         text: t("common.delete"),
@@ -179,7 +179,7 @@ export default function TripsScreen() {
         onPress: async () => {
           try {
             await api.delete(`/admin/trips/${trip.id}`);
-            setSuccessMsg(t("trips.deleted"));
+            setSuccessMsg(t("adminTrips.deleted"));
             load();
           } catch (e: any) {
             Alert.alert(
@@ -196,7 +196,7 @@ export default function TripsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
       <AdminHeader
-        title={t("trips.title")}
+        title={t("adminTrips.title")}
         right={
           <TouchableOpacity
             onPress={openCreate}
@@ -306,7 +306,7 @@ export default function TripsScreen() {
 
         {!loading && trips.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
-            {t("trips.noTrips")}
+            {t("adminTrips.noTrips")}
           </Text>
         )}
 
@@ -358,12 +358,12 @@ export default function TripsScreen() {
                 marginBottom: 16,
               }}
             >
-              {modal?.mode === "create" ? t("trips.addNew") : t("trips.editTrip")}
+              {modal?.mode === "create" ? t("adminTrips.addNew") : t("adminTrips.editTrip")}
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Agency picker */}
-              <FieldLabel>{t("trips.agency")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.agency")}</FieldLabel>
               <PickerRow
                 options={agencies.map((a) => ({ label: a.name, value: String(a.id) }))}
                 value={form.agency_id}
@@ -371,7 +371,7 @@ export default function TripsScreen() {
               />
 
               {/* From */}
-              <FieldLabel>{t("trips.from")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.from")}</FieldLabel>
               <PickerRow
                 options={stations
                   .filter((s) => s.id !== Number(form.to_station_id))
@@ -381,7 +381,7 @@ export default function TripsScreen() {
               />
 
               {/* To */}
-              <FieldLabel>{t("trips.to")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.to")}</FieldLabel>
               <PickerRow
                 options={stations
                   .filter((s) => s.id !== Number(form.from_station_id))
@@ -391,7 +391,7 @@ export default function TripsScreen() {
               />
 
               {/* Departure time */}
-              <FieldLabel>{t("trips.departure")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.departure")}</FieldLabel>
               <TextInput
                 value={form.departure_time}
                 onChangeText={(v) => setForm((f) => ({ ...f, departure_time: v }))}
@@ -402,7 +402,7 @@ export default function TripsScreen() {
               />
 
               {/* Estimated arrival */}
-              <FieldLabel>{t("trips.estimatedArrival")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.estimatedArrival")}</FieldLabel>
               <TextInput
                 value={form.estimated_arrival_time}
                 onChangeText={(v) =>
@@ -415,7 +415,7 @@ export default function TripsScreen() {
               />
 
               {/* Price */}
-              <FieldLabel>{t("trips.price")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.price")}</FieldLabel>
               <TextInput
                 value={form.price}
                 onChangeText={(v) => setForm((f) => ({ ...f, price: v }))}
@@ -426,7 +426,7 @@ export default function TripsScreen() {
               />
 
               {/* Total seats */}
-              <FieldLabel>{t("trips.totalSeats")}</FieldLabel>
+              <FieldLabel>{t("adminTrips.totalSeats")}</FieldLabel>
               <TextInput
                 value={form.total_seats}
                 onChangeText={(v) => setForm((f) => ({ ...f, total_seats: v }))}
@@ -447,7 +447,7 @@ export default function TripsScreen() {
                 }}
               >
                 <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14 }}>
-                  {t("trips.active")}
+                  {t("adminTrips.active")}
                 </Text>
                 <Switch
                   value={form.active}

@@ -9,7 +9,7 @@ import {
 } from "react";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
-import api, { clearApiToken } from "@/lib/api";
+import api, { clearApiToken, getApiToken } from "@/lib/api";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -39,6 +39,14 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
+    const token = await getApiToken();
+    if (!token) {
+      if (mountedRef.current) {
+        setUser(null);
+        setLoading(false);
+      }
+      return;
+    }
     try {
       const res = await api.get("/me");
       if (mountedRef.current) setUser(res.data);

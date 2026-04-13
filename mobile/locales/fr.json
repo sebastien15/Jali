@@ -538,7 +538,7 @@
     "routeAdded": "Itinéraire ajouté",
     "routeRemoved": "Itinéraire supprimé"
   },
-  "trips": {
+  "adminTrips": {
     "title": "Trajets",
     "addNew": "Ajouter un trajet",
     "editTrip": "Modifier le trajet",

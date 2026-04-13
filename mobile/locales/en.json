@@ -538,7 +538,7 @@
     "routeAdded": "Route added",
     "routeRemoved": "Route removed"
   },
-  "trips": {
+  "adminTrips": {
     "title": "Trips",
     "addNew": "Add Trip",
     "editTrip": "Edit Trip",

@@ -538,7 +538,7 @@
     "routeAdded": "Njia imeongezwa",
     "routeRemoved": "Njia imeondolewa"
   },
-  "trips": {
+  "adminTrips": {
     "title": "Safari",
     "addNew": "Ongeza Safari",
     "editTrip": "Hariri Safari",

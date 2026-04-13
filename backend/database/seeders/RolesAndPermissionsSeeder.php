@@ -22,6 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-buses' => 'Create, edit and delete bus routes',
             'manage-users' => 'Manage users',
             'manage-admins' => 'Manage admin assignments',
+            'manage-locations' => 'Manage pickup/dropoff locations',
             'view-station-analytics' => 'View station-specific analytics',
             'manage-agencies' => 'Create, edit and delete agencies and trips',
         ];
@@ -58,6 +59,7 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::whereIn('name', [
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
                 'view-analytics', 'view-station-analytics', 'manage-agencies',
+                'manage-locations',
             ])->get()
         );
 

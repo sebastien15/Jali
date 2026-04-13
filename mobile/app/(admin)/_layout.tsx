@@ -1,4 +1,4 @@
-import { usePathname } from "expo-router";
+import { usePathname, Redirect } from "expo-router";
 import { Tabs } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -40,7 +40,7 @@ function TabIcon({
 }
 
 function TabsNavigator() {
-  const { isSuperAdmin, loading } = useAdminNav();
+  const { user, isSuperAdmin, loading } = useAdminNav();
   const pathname = usePathname();
   const isLogin = pathname.includes("/login");
 
@@ -57,6 +57,10 @@ function TabsNavigator() {
         <ActivityIndicator size="large" color={C.teal} />
       </View>
     );
+  }
+
+  if (!user && !isLogin) {
+    return <Redirect href="/(admin)/login" />;
   }
 
   return (

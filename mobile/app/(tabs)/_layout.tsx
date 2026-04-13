@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { DriverModeProvider, useDriverMode } from "@/lib/DriverModeContext";
 import { usePushPermission } from "@/lib/usePushPermission";
+import ProtectedRoute from "@/lib/ProtectedRoute";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -97,9 +98,11 @@ function PushRegistrar() {
 
 export default function TabLayout() {
   return (
-    <DriverModeProvider>
-      <PushRegistrar />
-      <TabsNavigator />
-    </DriverModeProvider>
+    <ProtectedRoute>
+      <DriverModeProvider>
+        <PushRegistrar />
+        <TabsNavigator />
+      </DriverModeProvider>
+    </ProtectedRoute>
   );
 }
