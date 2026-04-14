@@ -6,7 +6,7 @@
 
 ## What Is Jali
 
-A Rwandan transport booking app. Users browse and book buses, private seats, and car rentals. Drivers can list their own seats/cars. Admins manage bookings, stations, locations, and users through a separate admin portal inside the same mobile app.
+A Rwandan transport booking app. Users browse and book buses, private cars, and car rentals. Drivers can list their own seats/cars. Admins manage bookings, stations, locations, and users through a separate admin portal inside the same mobile app.
 
 ---
 
@@ -432,3 +432,106 @@ Run: `php artisan db:seed` or `php artisan migrate:fresh --seed`
 | Profile screen uses Firebase `auth.currentUser` | User tab profile — simpler, no API call needed for basic info |
 | Admin profile uses `GET /admin/profile` | Richer data: location, contract status, etc. |
 | SQLite in dev | Simplicity; switch to MySQL/Postgres for prod via `.env` `DB_CONNECTION` |
+
+---
+
+## ⚠️ MANDATORY: API & Screen Guard Requirements
+
+**All new APIs and screens MUST follow these guard patterns. No exceptions.**
+
+### Backend (Laravel) — REQUIRED Pattern
+
+Every new API endpoint MUST follow this layered security pattern:
+
+```php
+// 1. PUBLIC auth endpoints (NO guard):
+Route::post("/auth/login", ...);
+Route::post("/auth/login/google", ...);
+Route::post("/auth/otp/request", ...);
+Route::post("/auth/otp/verify", ...);
+
+// 2. ALL OTHER endpoints MUST be inside auth:sanctum group:
+Route::middleware("auth:sanctum")->group(function () {
+    
+    // Basic authenticated endpoints (any logged-in user)
+    Route::get("/me", ...);
+    Route::get("/bookings", ...);
+    
+    // Role-restricted endpoints MUST add permission middleware:
+    Route::middleware("permission:<permission-name>")->group(function () {
+        // Admin-only routes
+        Route::get("/admin/bookings", ...);
+        
+        // Driver-only routes
+        Route::get("/driver/stats", ...);
+    });
+});
+```
+
+**Backend Rules:**
+1. Every non-auth endpoint MUST be inside `Route::middleware("auth:sanctum")`
+2. Role-restricted endpoints MUST add `Route::middleware("permission:<name>")` inside the auth group
+3. Controllers MUST ALSO check role with `$user->isAdmin()`, `$user->isSuperAdmin()`, etc. for defense-in-depth
+4. New permissions MUST be added to `RolesAndPermissionsSeeder` and assigned to appropriate roles
+5. Token generation MUST use `$user->createToken("api-token")->plainTextToken` pattern
+
+### Mobile (Expo) — REQUIRED Pattern
+
+**For NEW user screens (inside `(tabs)`):**
+Already protected by `<ProtectedRoute>` in `(tabs)/_layout.tsx`. No additional per-screen guard needed.
+
+**For NEW admin screens (inside `(admin)`):**
+Must be added inside the existing `AdminNavProvider` wrapper. The admin layout provides role-aware protection via `/me` API call.
+
+**For NEW driver screens:**
+MUST be wrapped with `<ProtectedRoute>` either at individual screen level or at a driver layout level.
+
+**For NEW standalone protected screens (not in tabs/admin/driver groups):**
+```tsx
+import ProtectedRoute from "@/lib/ProtectedRoute";
+
+export default function MyScreen() {
+  return (
+    <ProtectedRoute>
+      {/* screen content */}
+    </ProtectedRoute>
+  );
+}
+```
+
+**Mobile Rules:**
+1. No screen that calls protected APIs should render without a token check
+2. All API calls automatically get Bearer token via Axios interceptor in `lib/api.ts`
+3. Use `ROLES` from `@/constants/roles` and `isAdminRole()` helper for role checks
+4. 401 responses auto-redirect to login; 403 responses show "Access Denied" alert
+
+### General Guard Rules
+
+| Rule | Description |
+|---|---|
+| **Backend auth** | Every API route (except login/OTP) must be inside `auth:sanctum` middleware group |
+| **Backend permissions** | Admin/driver-specific routes must use `permission:<name>` middleware |
+| **Backend defense-in-depth** | Controllers must also check `$user->isAdmin()` / `$user->isSuperAdmin()` for sensitive operations |
+| **Mobile route guard** | Every protected screen must be wrapped with `<ProtectedRoute>` at layout or screen level |
+| **Mobile API calls** | All API calls automatically get the Bearer token via the Axios interceptor |
+| **New permissions** | Must be seeded in `RolesAndPermissionsSeeder` and assigned to roles |
+| **Role constants** | Mobile side: use `ROLES` from `@/constants/roles` and `isAdminRole()` helper |
+| **No bare API screens** | No screen that calls protected APIs should render without a token check |
+
+### Roles & Permissions Matrix
+
+| Permission | superadmin | admin | user | driver |
+|---|---|---|---|---|
+| `create-bookings` | Yes | Yes | Yes | No |
+| `view-own-bookings` | Yes | Yes | Yes | No |
+| `upload-tickets` | Yes | Yes | No | No |
+| `confirm-bookings` | Yes | Yes | No | No |
+| `create-private-seats` | Yes | No | No | Yes |
+| `view-own-earnings` | Yes | No | No | Yes |
+| `view-analytics` | Yes | Yes | No | No |
+| `manage-buses` | Yes | Yes | No | No |
+| `manage-users` | Yes | No | No | No |
+| `manage-admins` | Yes | No | No | No |
+| `manage-locations` | Yes | Yes | No | No |
+| `view-station-analytics` | Yes | Yes | No | No |
+| `manage-agencies` | Yes | Yes | No | No |
