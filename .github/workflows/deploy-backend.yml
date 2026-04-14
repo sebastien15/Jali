@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy Backend to api.jali.stoka.rw
+    name: Deploy Backend to jali.stoka.rw
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: "8.4"
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql, bcmath
           coverage: none
 
@@ -42,7 +42,7 @@ jobs:
           APP_ENV=production
           APP_KEY=${{ secrets.APP_KEY }}
           APP_DEBUG=false
-          APP_URL=https://api.jali.stoka.rw
+          APP_URL=https://jali.stoka.rw
           APP_TIMEZONE=Africa/Kigali
 
           LOG_CHANNEL=stack
@@ -111,7 +111,7 @@ jobs:
 
       - name: Deployment Status
         if: success()
-        run: echo "✅ Backend deployment successful! API available at https://api.jali.stoka.rw"
+        run: echo "✅ Backend deployment successful! API available at https://jali.stoka.rw"
 
       - name: Deployment Failed
         if: failure()
