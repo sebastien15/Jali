@@ -341,4 +341,4 @@ curl -X POST \
 
 ## Support
 
-For questions or issues, refer to the main project documentation in `backend_laravel.md`.
+For questions or issues, refer to the main project documentation in `backend_laravel.md` or `context.md`.
