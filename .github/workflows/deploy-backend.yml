@@ -66,6 +66,12 @@ jobs:
           MAIL_LOG_CHANNEL=stack
           EOF
 
+      - name: Test SSH connectivity
+        run: |
+          nc -zv -w 5 ${{ secrets.SSH_HOST }} ${{ secrets.SSH_PORT || 22 }} && echo "✅ Port open" || echo "❌ Port closed or unreachable"
+          nc -zv -w 5 ${{ secrets.SSH_HOST }} 22 && echo "✅ Port 22 open" || echo "❌ Port 22 closed"
+          nc -zv -w 5 ${{ secrets.SSH_HOST }} 2222 && echo "✅ Port 2222 open" || echo "❌ Port 2222 closed"
+
       - name: Deploy to production server
         uses: appleboy/scp-action@v0.1.7
         with:
