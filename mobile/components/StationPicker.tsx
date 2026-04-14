@@ -10,6 +10,7 @@ import api from "@/lib/api";
 type Station = {
   id: number;
   name: string;
+  aliases: string[];
   city: string;
   province: string | null;
   district: string | null;
@@ -51,8 +52,10 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
       return (
         (s.name ?? "").toLowerCase().includes(q) ||
         s.city.toLowerCase().includes(q) ||
+        (s.province ?? "").toLowerCase().includes(q) ||
         (s.district ?? "").toLowerCase().includes(q) ||
-        (s.address ?? "").toLowerCase().includes(q)
+        (s.address ?? "").toLowerCase().includes(q) ||
+        (s.aliases ?? []).some(alias => alias.toLowerCase().includes(q))
       );
     });
   }, [stations, search, excludeId]);

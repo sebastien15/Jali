@@ -27,6 +27,7 @@ class AdminStationsSeeder extends Seeder
         $terminals = [
             'nyabugogo' => [
                 'name'      => 'Nyabugogo Bus Park',
+                'aliases'   => ['Gare ya Nyabugogo', 'Nyabugogo', 'Kigali Bus Terminal', 'Kigali gare', 'terminus Kigali'],
                 'city'      => 'Kigali',
                 'district'  => 'Gasabo',
                 'province'  => 'Kigali City',
@@ -38,6 +39,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'remera' => [
                 'name'      => 'Remera Terminal',
+                'aliases'   => ['Remera', 'Kigali Remera', 'Gare ya Remera'],
                 'city'      => 'Kigali',
                 'district'  => 'Gasabo',
                 'province'  => 'Kigali City',
@@ -49,6 +51,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'rwamagana' => [
                 'name'      => 'Rwamagana Terminal',
+                'aliases'   => ['Rwamagana', 'Gare ya Rwamagana'],
                 'city'      => 'Rwamagana',
                 'district'  => 'Rwamagana',
                 'province'  => 'Eastern',
@@ -60,6 +63,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'kayonza' => [
                 'name'      => 'Kayonza Terminal',
+                'aliases'   => ['Kayonza', 'Gare ya Kayonza'],
                 'city'      => 'Kayonza',
                 'district'  => 'Kayonza',
                 'province'  => 'Eastern',
@@ -71,6 +75,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'nyagatare' => [
                 'name'      => 'Nyagatare Terminal',
+                'aliases'   => ['Nyagatare', 'Gare ya Nyagatare'],
                 'city'      => 'Nyagatare',
                 'district'  => 'Nyagatare',
                 'province'  => 'Eastern',
@@ -82,6 +87,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'ngoma' => [
                 'name'      => 'Ngoma Terminal',
+                'aliases'   => ['Ngoma', 'Kibungo', 'Gare ya Kibungo', 'Gare ya Ngoma'],
                 'city'      => 'Ngoma',
                 'district'  => 'Ngoma',
                 'province'  => 'Eastern',
@@ -93,6 +99,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'musanze' => [
                 'name'      => 'Musanze Terminal',
+                'aliases'   => ['Musanze', 'Ruhengeri', 'Gare ya Ruhengeri', 'Gare ya Musanze'],
                 'city'      => 'Musanze',
                 'district'  => 'Musanze',
                 'province'  => 'Northern',
@@ -104,6 +111,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'gicumbi' => [
                 'name'      => 'Gicumbi Terminal',
+                'aliases'   => ['Gicumbi', 'Byumba', 'Gare ya Byumba', 'Gare ya Gicumbi'],
                 'city'      => 'Gicumbi',
                 'district'  => 'Gicumbi',
                 'province'  => 'Northern',
@@ -115,6 +123,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'huye' => [
                 'name'      => 'Huye Terminal',
+                'aliases'   => ['Huye', 'Butare', 'Gare ya Butare', 'Gare ya Huye'],
                 'city'      => 'Huye',
                 'district'  => 'Huye',
                 'province'  => 'Southern',
@@ -126,6 +135,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'muhanga' => [
                 'name'      => 'Muhanga Terminal',
+                'aliases'   => ['Muhanga', 'Gitarama', 'Gare ya Gitarama', 'Gare ya Muhanga'],
                 'city'      => 'Muhanga',
                 'district'  => 'Muhanga',
                 'province'  => 'Southern',
@@ -137,6 +147,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'nyanza' => [
                 'name'      => 'Nyanza Terminal',
+                'aliases'   => ['Nyanza', 'Gare ya Nyanza'],
                 'city'      => 'Nyanza',
                 'district'  => 'Nyanza',
                 'province'  => 'Southern',
@@ -148,6 +159,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'rubavu' => [
                 'name'      => 'Rubavu Terminal',
+                'aliases'   => ['Rubavu', 'Gisenyi', 'Gare ya Gisenyi', 'Gare ya Rubavu'],
                 'city'      => 'Rubavu',
                 'district'  => 'Rubavu',
                 'province'  => 'Western',
@@ -159,6 +171,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'rusizi' => [
                 'name'      => 'Rusizi Terminal',
+                'aliases'   => ['Rusizi', 'Kamembe', 'Cyangugu', 'Gare ya Kamembe', 'Gare ya Rusizi', 'Gare ya Cyangugu'],
                 'city'      => 'Rusizi',
                 'district'  => 'Rusizi',
                 'province'  => 'Western',
@@ -170,6 +183,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'karongi' => [
                 'name'      => 'Karongi Terminal',
+                'aliases'   => ['Karongi', 'Kibuye', 'Gare ya Kibuye', 'Gare ya Karongi'],
                 'city'      => 'Karongi',
                 'district'  => 'Karongi',
                 'province'  => 'Western',
@@ -181,6 +195,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'nyamata' => [
                 'name'      => 'Nyamata Terminal',
+                'aliases'   => ['Nyamata', 'Bugesera', 'Gare ya Nyamata'],
                 'city'      => 'Nyamata',
                 'district'  => 'Bugesera',
                 'province'  => 'Eastern',
@@ -192,6 +207,7 @@ class AdminStationsSeeder extends Seeder
             ],
             'rulindo' => [
                 'name'      => 'Rulindo Terminal',
+                'aliases'   => ['Rulindo', 'Base', 'Gare ya Rulindo'],
                 'city'      => 'Rulindo',
                 'district'  => 'Rulindo',
                 'province'  => 'Northern',
@@ -213,6 +229,7 @@ class AdminStationsSeeder extends Seeder
             DB::table('admin_stations')->insert([
                 'user_id'    => $userId,
                 'name'       => $data['name'],
+                'aliases'    => json_encode($data['aliases'] ?? []),
                 'city'       => $data['city'],
                 'district'   => $data['district'],
                 'province'   => $data['province'],

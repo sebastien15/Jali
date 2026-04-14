@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class AdminStation extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'city', 'district', 'province', 'type', 'address', 'latitude', 'longitude', 'image_url',
+        'user_id', 'name', 'aliases', 'city', 'district', 'province', 'type', 'address', 'latitude', 'longitude', 'image_url',
     ];
 
     protected function casts(): array
@@ -16,6 +16,7 @@ class AdminStation extends Model
         return [
             'latitude'  => 'float',
             'longitude' => 'float',
+            'aliases'   => 'array',
         ];
     }
 

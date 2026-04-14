@@ -14,6 +14,7 @@ class AdminStationController extends Controller
         return [
             'id'          => $s->id,
             'name'        => $s->name,
+            'aliases'     => $s->aliases ?? [],
             'city'        => $s->city,
             'province'    => $s->province,
             'district'    => $s->district,
