@@ -66,26 +66,6 @@ jobs:
           MAIL_LOG_CHANNEL=stack
           EOF
 
-      - name: Generate Laravel app key
-        working-directory: backend
-        run: php artisan key:generate --force || true
-
-      - name: Run database migrations
-        working-directory: backend
-        run: php artisan migrate --force
-
-      - name: Clear and cache configuration
-        working-directory: backend
-        run: |
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-
-      - name: Set permissions on storage
-        working-directory: backend
-        run: |
-          chmod -R 755 storage bootstrap/cache
-
       - name: Deploy to production server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -98,7 +78,7 @@ jobs:
           strip_components: 1
           overwrite: true
 
-      - name: Run remote deployment script
+      - name: Run remote post-deploy steps
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -107,8 +87,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.SSH_DEPLOY_PATH }}/backend
-            chmod +x .scripts/deploy-prod.sh || true
-            ./.scripts/deploy-prod.sh || bash .scripts/deploy-prod.sh || true
+            chmod -R 755 storage bootstrap/cache
+            php artisan key:generate --force || true
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
 
       - name: Deployment Status
         if: success()
