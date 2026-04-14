@@ -86,9 +86,9 @@ jobs:
           port: 25552
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd ${{ secrets.SSH_DEPLOY_PATH }}/backend
             chmod -R 755 storage bootstrap/cache
-            php artisan key:generate --force || true
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache

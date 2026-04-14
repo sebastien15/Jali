@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('admin_stations', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
             $table->dropUnique(['user_id']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
         Schema::table('admin_stations', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
             $table->unique('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 };
