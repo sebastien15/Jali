@@ -11,7 +11,23 @@
       "Bash(php artisan:*)",
       "Bash(git -C \"/Users/sebastienndagijimana/Desktop/Projects/Jali\" ls-files)",
       "Bash(/bin/ls /Users/sebastienndagijimana/Desktop/Projects/Jali/mobile/app/)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\nTime: %{time_total}s\\\\nContent-Type: %{content_type}\\\\n\" https://jali.stoka.rw)",
+      "Bash(curl -s https://jali.stoka.rw)",
+      "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\nTime: %{time_total}s\\\\nContent-Type: %{content_type}\\\\n\" https://jali.stoka.rw/backend/)",
+      "Bash(curl -s https://jali.stoka.rw/backend/)",
+      "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\nTime: %{time_total}s\\\\nContent-Type: %{content_type}\\\\n\" https://jali.stoka.rw/backend/public/api/)",
+      "Bash(curl -s https://jali.stoka.rw/backend/public/api/)",
+      "Bash(curl -s -L -o /dev/null -w \"HTTP Status: %{http_code}\\\\nFinal URL: %{url_effective}\\\\nTime: %{time_total}s\\\\nContent-Type: %{content_type}\\\\n\" https://jali.stoka.rw/backend/public/api)",
+      "Bash(curl -s -L https://jali.stoka.rw/backend/public/api)",
+      "Bash(curl -s -L -w \"\\\\nHTTP Status: %{http_code}\\\\n\" https://jali.stoka.rw/backend/public/api/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"test\"}')",
+      "Bash(ls C:/Users/SEBND/Desktop/Jali/Jali/*.md)",
+      "Bash(curl -s -X POST https://jali.stoka.rw/backend/public/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"user@jali.rw\",\"password\":\"Jali@2026\"}')",
+      "Bash(curl -s -w '\\\\nHTTP Status: %{http_code}\\\\n' https://jali.stoka.rw/backend/public/api/trips -H 'Authorization: Bearer 2|LzXTDRBXE9xBcgw6DTCvCLYrXSAnNXNW0vXZQ5vjdb00cbcc' -H 'Accept: application/json')",
+      "Bash(curl -s -w '\\\\nHTTP Status: %{http_code}\\\\n' https://jali.stoka.rw/backend/public/api/bookings -H 'Authorization: Bearer 2|LzXTDRBXE9xBcgw6DTCvCLYrXSAnNXNW0vXZQ5vjdb00cbcc' -H 'Accept: application/json')",
+      "Bash(curl -s -w '\\\\nHTTP Status: %{http_code}\\\\n' https://jali.stoka.rw/backend/public/api/me -H 'Authorization: Bearer 2|LzXTDRBXE9xBcgw6DTCvCLYrXSAnNXNW0vXZQ5vjdb00cbcc' -H 'Accept: application/json')",
+      "Bash(curl -s https://jali.stoka.rw/backend/error_log)",
+      "Bash(curl -s https://jali.stoka.rw/backend/storage/logs/laravel.log)"
     ]
   }
 }

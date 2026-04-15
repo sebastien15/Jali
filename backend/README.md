@@ -315,7 +315,7 @@ php artisan serve
 ```bash
 # List buses (requires auth)
 curl -H "Authorization: Bearer <firebase_token>" \
-  http://localhost:8000/api/buses?from=Kigali&to=Musanze
+  https://jali.stoka.rw/backend/public/api/buses?from=Kigali&to=Musanze
 
 # Create booking
 curl -X POST \
@@ -329,14 +329,14 @@ curl -X POST \
     "service_fee": 300,
     "payment_method": "mtn_momo"
   }' \
-  http://localhost:8000/api/bookings
+  https://jali.stoka.rw/backend/public/api/bookings
 
 # Driver toggle
 curl -X POST \
   -H "Authorization: Bearer <firebase_token>" \
   -H "Content-Type: application/json" \
   -d '{"zone": "Kigali"}' \
-  http://localhost:8000/api/driver/toggle
+  https://jali.stoka.rw/backend/public/api/driver/toggle
 ```
 
 ## Support

@@ -42,7 +42,7 @@ function TabIcon({
 function TabsNavigator() {
   const { user, isSuperAdmin, loading } = useAdminNav();
   const pathname = usePathname();
-  const isLogin = pathname.includes("/login");
+  const isLogin = pathname.includes("/admin-login");
 
   if (loading) {
     return (
@@ -60,7 +60,7 @@ function TabsNavigator() {
   }
 
   if (!user && !isLogin) {
-    return <Redirect href="/(admin)/login" />;
+    return <Redirect href="/(admin)/admin-login" />;
   }
 
   return (
@@ -140,7 +140,7 @@ function TabsNavigator() {
       />
 
       {/* ── All other screens: navigable but hidden from tab bar ── */}
-      <Tabs.Screen name="login"           options={{ href: null }} />
+      <Tabs.Screen name="admin-login"      options={{ href: null }} />
       <Tabs.Screen name="locations/index" options={{ href: null }} />
       <Tabs.Screen name="buses/index"     options={{ href: null }} />
       <Tabs.Screen name="buses/[id]"      options={{ href: null }} />

@@ -45,7 +45,7 @@ isDev / isTest / isProd
 ```
 
 API base URL (`lib/api.ts`):
-- Dev:  `http://localhost:8000/api`
+- Dev:  `https://jali.stoka.rw/backend/public/api`
 - Prod: `https://api.jali.rw/api`
 - Override: `EXPO_PUBLIC_API_URL`
 
@@ -77,8 +77,9 @@ app/
 │   ├── _layout.tsx            AdminNavProvider wraps all; tab bar hidden on login screen
 │   │                          Superadmin tabs: Dashboard, Bookings, Analytics, Stations
 │   │                          Admin tabs:      Dashboard, Bookings, Analytics, Profile
-│   ├── login.tsx              Admin login: POST /auth/login → setApiToken → refetch() → dashboard
+│   ├── admin-login.tsx        Admin login: POST /auth/login → setApiToken → refetch() → dashboard
 │   │                          Also handles Firebase onAuthStateChanged auto-redirect
+│   │                          Route: /admin-login (renamed from login.tsx to avoid /login conflict)
 │   ├── dashboard.tsx          Earnings summary, booking status cards, role-based nav tiles
 │   ├── analytics/index.tsx    Revenue + booking analytics charts
 │   ├── bookings/index.tsx     All bookings list

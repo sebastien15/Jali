@@ -14,10 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
-import {
-  GoogleAuthProvider,
-  signInWithCredential,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { C } from "@/constants/theme";
 import api, { setApiToken, clearApiToken } from "@/lib/api";
 import { isDev } from "@/lib/env";
@@ -285,7 +282,6 @@ export default function LoginScreen() {
                   flex: 1,
                   fontSize: 18,
                   fontWeight: "800",
-                  color: C.dark,
                   paddingHorizontal: 16,
                   paddingVertical: 18,
                 }}
@@ -508,7 +504,7 @@ export default function LoginScreen() {
 function AdminPortalLink() {
   return (
     <TouchableOpacity
-      onPress={() => router.push("/(admin)/login")}
+      onPress={() => router.push("/(admin)/admin-login")}
       style={{ marginTop: 8, alignItems: "center" }}
     >
       <Text style={{ color: C.muted, fontSize: 12 }}>
