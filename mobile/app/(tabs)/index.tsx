@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import * as Location from "expo-location";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
 import { TripResult } from "@/components/TripCard";
@@ -44,46 +45,67 @@ export default function HomeScreen() {
   const [tripSheet, setTripSheet]     = useState<TripResult | null>(null);
   const [tripSheetDate, setTripSheetDate] = useState<string>("");
 
+  // User location — best-effort, doesn't block rendering
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    Location.requestForegroundPermissionsAsync().then(({ status }) => {
+      if (status !== "granted") return;
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+        .then(loc => setUserCoords({ lat: loc.coords.latitude, lng: loc.coords.longitude }))
+        .catch(() => {});
+    });
+  }, []);
+
   const dateParam = selectedDate.toISOString().split("T")[0];
   const todaySelected = selectedDate.toDateString() === new Date().toDateString();
   const timeSet = selectedDate.getHours() !== 0 || selectedDate.getMinutes() !== 0;
 
-  // ── Bus trips — always fetched, params change with from/to ────────────────
+  // Pass location only when no explicit from/to is selected (station filter takes priority)
+  const nearParam = userCoords && !from?.id ? userCoords : null;
+
+  // ── Bus trips — always pre-fetched, location-aware, limited to 50 ─────────
   const tripsQuery = useQuery({
-    queryKey: queryKeys.trips.search(from?.id, to?.id, dateParam),
+    queryKey: queryKeys.trips.search(from?.id, to?.id, dateParam, nearParam),
     queryFn: () => {
-      const params: Record<string, any> = {};
+      const params: Record<string, any> = { per_page: 50 };
       if (from?.id) params.from_station_id = from.id;
       if (to?.id)   params.to_station_id   = to.id;
-      return api.get("/trips", { params }).then(r => r.data ?? [] as TripResult[]);
+      if (nearParam) { params.near_lat = nearParam.lat; params.near_lng = nearParam.lng; }
+      return api.get("/trips", { params }).then(r => r.data ?? []);
     },
     staleTime: 60_000,
+    placeholderData: keepPreviousData, // show previous results while filter changes fetch
   });
 
-  // ── Car rentals — only fetched when rental tab is active ──────────────────
+  // ── Car rentals — pre-fetched in background immediately on mount ──────────
   const rentalsQuery = useQuery({
     queryKey: queryKeys.carRentals.all(),
     queryFn: () => api.get("/car-rentals").then(r => r.data ?? []),
     staleTime: 10 * 60_000,
-    enabled: mode === "rental",
   });
 
-  // ── Private seats — only fetched when private tab is active ───────────────
+  // ── Private seats — pre-fetched in background, location-aware, limited ────
   const privateQuery = useQuery({
-    queryKey: queryKeys.privateSeats.search(from?.city, to?.city, dateParam),
+    queryKey: queryKeys.privateSeats.search(from?.city, to?.city, dateParam, nearParam),
     queryFn: () =>
       api.get("/private-seats", {
-        params: { from: from?.city, ...(to?.city ? { to: to.city } : {}), date: dateParam },
+        params: {
+          per_page: 50,
+          from: from?.city,
+          ...(to?.city ? { to: to.city } : {}),
+          date: dateParam,
+          ...(nearParam ? { near_lat: nearParam.lat, near_lng: nearParam.lng } : {}),
+        },
       }).then(r => r.data ?? []),
     staleTime: 60_000,
-    enabled: mode === "private",
+    placeholderData: keepPreviousData,
   });
 
-  const trips      = tripsQuery.data   ?? [];
-  const cars       = rentalsQuery.data  ?? [];
-  const privateSeats = privateQuery.data ?? [];
+  const trips        = tripsQuery.data    ?? [];
+  const cars         = rentalsQuery.data  ?? [];
+  const privateSeats = privateQuery.data  ?? [];
 
-  // Loading and error per active mode
+  // isLoading is true only on first load (no cached data). isFetching includes background refetches.
   const loading = mode === "bus"
     ? tripsQuery.isLoading
     : mode === "rental"

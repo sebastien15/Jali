@@ -11,16 +11,16 @@ export const queryKeys = {
   // ── User-facing browsing ───────────────────────────────────────────────────
   trips: {
     all: () => ["trips"] as const,
-    search: (from?: string, to?: string, date?: string) =>
-      ["trips", "search", { from, to, date }] as const,
+    search: (from?: number, to?: number, date?: string, near?: { lat: number; lng: number } | null) =>
+      ["trips", "search", { from, to, date, near }] as const,
   },
   carRentals: {
     all: () => ["carRentals"] as const,
   },
   privateSeats: {
     all: () => ["privateSeats"] as const,
-    search: (from?: string, to?: string, date?: string) =>
-      ["privateSeats", "search", { from, to, date }] as const,
+    search: (from?: string, to?: string, date?: string, near?: { lat: number; lng: number } | null) =>
+      ["privateSeats", "search", { from, to, date, near }] as const,
   },
   stations: {
     all: () => ["stations"] as const,

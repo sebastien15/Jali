@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmation, setConfirmation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,8 +84,8 @@ export default function LoginScreen() {
   const emailMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post("/auth/login", { email, password }),
-    onSuccess: async (res) => {
-      await setApiToken(res.data.token);
+    onSuccess: (res) => {
+      setApiToken(res.data.token);
       router.replace("/(tabs)");
     },
     onError: (e: any) => {

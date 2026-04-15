@@ -11,15 +11,18 @@ const BASE_URL =
 
 const TOKEN_KEY = "jali_api_token";
 
+// In-memory cache — set synchronously on login so requests never wait for AsyncStorage
+let _token: string | null = null;
+
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 });
 
-// Attach Laravel API token to every request
+// Attach Laravel API token to every request — memory first, AsyncStorage as cold-start fallback
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem(TOKEN_KEY);
+  const token = _token ?? await AsyncStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -45,16 +48,18 @@ api.interceptors.response.use(
   },
 );
 
-export async function setApiToken(token: string) {
-  await AsyncStorage.setItem(TOKEN_KEY, token);
+export function setApiToken(token: string) {
+  _token = token;
+  AsyncStorage.setItem(TOKEN_KEY, token); // persist in background, don't block
 }
 
-export async function clearApiToken() {
-  await AsyncStorage.removeItem(TOKEN_KEY);
+export function clearApiToken() {
+  _token = null;
+  AsyncStorage.removeItem(TOKEN_KEY);
 }
 
-export async function getApiToken() {
-  return AsyncStorage.getItem(TOKEN_KEY);
+export async function getApiToken(): Promise<string | null> {
+  return _token ?? AsyncStorage.getItem(TOKEN_KEY);
 }
 
 export default api;

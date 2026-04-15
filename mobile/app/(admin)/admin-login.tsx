@@ -38,7 +38,7 @@ export default function AdminLoginScreen() {
           const token = await firebaseUser.getIdToken(true);
           const res = await api.post("/auth/login/google", { firebase_token: token });
           if (res.data.token) {
-            await setApiToken(res.data.token);
+            setApiToken(res.data.token);
             const role: string = res.data.user?.roles ?? "";
             if (role === "superadmin" || role === "admin") {
               await refetch();
@@ -76,12 +76,12 @@ export default function AdminLoginScreen() {
     onSuccess: async (data) => {
       const role: string = data.user?.roles ?? "";
       if (role === "superadmin" || role === "admin") {
-        await setApiToken(data.token);
+        setApiToken(data.token);
         await refetch();
         router.replace("/(admin)/dashboard");
       } else {
         setError(t("authErrors.noAdminAccess"));
-        await clearApiToken();
+        clearApiToken();
         try { await signOut(auth); } catch {}
       }
     },
@@ -109,7 +109,7 @@ export default function AdminLoginScreen() {
     },
     onSuccess: async (data) => {
       if (data.token) {
-        await setApiToken(data.token);
+        setApiToken(data.token);
         await refetch();
         router.replace("/(admin)/dashboard");
       }

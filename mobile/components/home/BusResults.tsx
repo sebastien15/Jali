@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useRef, useEffect } from "react";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { TripCard, TripResult } from "@/components/TripCard";
@@ -24,7 +25,7 @@ export function BusResults({
 }: Props) {
   const { t } = useTranslation();
 
-  if (loading) return <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />;
+  if (loading) return <BusResultsSkeleton />;
 
   if (error) {
     return (
@@ -79,6 +80,75 @@ export function BusResults({
           <TripCard key={trip.id} trip={trip} onPress={() => onPress(trip)} />
         ))
       )}
+    </>
+  );
+}
+
+// ── Skeleton ───────────────────────────────────────────────────────
+
+function SkeletonBox({ width, height, style }: {
+  width?: number | `${number}%`;
+  height: number;
+  style?: object;
+}) {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.7, duration: 750, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 750, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [opacity]);
+
+  return (
+    <Animated.View
+      style={[
+        { backgroundColor: C.border, borderRadius: 6, height, opacity },
+        width ? { width } : { alignSelf: "stretch" },
+        style,
+      ]}
+    />
+  );
+}
+
+function TripCardSkeleton() {
+  return (
+    <View style={{
+      backgroundColor: C.white, borderRadius: 20, padding: 16, marginBottom: 12,
+      shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 12,
+      shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    }}>
+      {/* Agency name + price badge */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+        <View style={{ flex: 1, marginRight: 12, gap: 8 }}>
+          <SkeletonBox height={16} width="55%" />
+          <SkeletonBox height={12} width="75%" />
+        </View>
+        <SkeletonBox height={52} width={72} style={{ borderRadius: 12 }} />
+      </View>
+
+      {/* Times + rating */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
+        <SkeletonBox height={12} width="48%" />
+        <SkeletonBox height={12} width="18%" />
+      </View>
+
+      {/* Book button */}
+      <SkeletonBox height={42} style={{ borderRadius: 12 }} />
+    </View>
+  );
+}
+
+function BusResultsSkeleton() {
+  return (
+    <>
+      <View style={{ marginBottom: 12, gap: 8 }}>
+        <SkeletonBox height={16} width="35%" />
+        <SkeletonBox height={12} width="55%" />
+      </View>
+      {[0, 1, 2, 3].map(i => <TripCardSkeleton key={i} />)}
     </>
   );
 }

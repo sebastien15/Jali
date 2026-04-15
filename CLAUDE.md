@@ -18,6 +18,7 @@ Jali/
 | Skill | Stack | File |
 |---|---|---|
 | React Native patterns & optimization | Mobile | `.claude/skills/stack-mobile.md` |
+| UX patterns (skeleton, prefetch, location, auth) | Mobile | `.claude/skills/ux-patterns.md` |
 | Laravel patterns & optimization | Backend | `.claude/skills/stack-backend.md` |
 | Server, DB, CDN, Redis, scaling | Infra | `.claude/skills/stack-infra.md` |
 | Routing conventions | Mobile | `.claude/skills/routing.md` |
