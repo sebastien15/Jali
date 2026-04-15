@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -18,9 +18,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 type StationType = "bus_station" | "custom";
 
@@ -73,10 +75,7 @@ type FilterAssign = "all" | "assigned" | "unassigned";
 type FilterType = "all" | StationType;
 
 export default function AdminStationsScreen() {
-  const [stations, setStations] = useState<Station[]>([]);
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   // Modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -92,36 +91,25 @@ export default function AdminStationsScreen() {
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterAssign, setFilterAssign] = useState<FilterAssign>("all");
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [stRes, usRes] = await Promise.all([
-        api.get("/admin/stations"),
-        api.get("/admin/users"),
-      ]);
-      setStations(stRes.data);
-      // API returns "role" (singular), filter to admin/superadmin only
-      setAdmins(
-        (usRes.data as AdminUser[]).filter(
-          (u) => u.role === "admin" || u.role === "superadmin",
-        ),
-      );
-    } catch {
-      setStations([]);
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, []);
+  const { data: stations = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.admin.stations(),
+    queryFn: () => api.get("/admin/stations").then(r => r.data ?? []),
+    staleTime: 2 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data: allAdmins = [] } = useQuery({
+    queryKey: queryKeys.admin.users(),
+    queryFn: () => api.get("/admin/users").then(r => r.data ?? []),
+    staleTime: 2 * 60_000,
+  });
+
+  const admins = (allAdmins as AdminUser[]).filter(
+    u => u.role === "admin" || u.role === "superadmin"
+  );
 
   // ── Filtered list ──
   const filtered = useMemo(() => {
-    return stations.filter((s) => {
+    return (stations as Station[]).filter((s) => {
       if (citySearch) {
         const q = citySearch.toLowerCase();
         const match =
@@ -233,7 +221,7 @@ export default function AdminStationsScreen() {
         await api.post("/admin/stations", payload);
       }
       closeModal();
-      load(true);
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stations() });
     } catch (e: any) {
       Alert.alert("Error", e?.response?.data?.message ?? "Could not save station.");
     } finally {
@@ -253,7 +241,7 @@ export default function AdminStationsScreen() {
           onPress: async () => {
             try {
               await api.delete(`/admin/stations/${s.id}`);
-              load(true);
+              queryClient.invalidateQueries({ queryKey: queryKeys.admin.stations() });
             } catch (e: any) {
               Alert.alert("Error", e?.response?.data?.message ?? "Could not remove station.");
             }
@@ -264,7 +252,6 @@ export default function AdminStationsScreen() {
   }
 
   const selectedAdmin = admins.find((a) => a.id === form.admin_id);
-  const hasFilters = citySearch || filterType !== "all" || filterAssign !== "all";
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -342,12 +329,12 @@ export default function AdminStationsScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {loading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
 
         {/* Empty state */}
-        {!loading && stations.length === 0 && (
+        {!isLoading && (stations as Station[]).length === 0 && (
           <View style={{ alignItems: "center", marginTop: 60, gap: 16 }}>
             <View style={{
               backgroundColor: C.orangeLt, borderRadius: 24,
@@ -371,7 +358,7 @@ export default function AdminStationsScreen() {
         )}
 
         {/* No results after filter */}
-        {!loading && stations.length > 0 && filtered.length === 0 && (
+        {!isLoading && (stations as Station[]).length > 0 && filtered.length === 0 && (
           <View style={{ alignItems: "center", marginTop: 40, gap: 8 }}>
             <Ionicons name="filter-outline" size={32} color={C.border} />
             <Text style={{ color: C.muted, fontSize: 14 }}>No stations match your filters.</Text>
@@ -384,13 +371,12 @@ export default function AdminStationsScreen() {
         )}
 
         {/* Station cards */}
-        {!loading && filtered.map((s) => (
+        {!isLoading && filtered.map((s) => (
           <View key={s.id} style={{
             backgroundColor: C.white, borderRadius: 20, marginBottom: 14,
             shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 10,
             shadowOffset: { width: 0, height: 2 }, elevation: 3, overflow: "hidden",
           }}>
-            {/* Optional image banner */}
             {s.image_url ? (
               <Image
                 source={{ uri: s.image_url }}
@@ -400,7 +386,6 @@ export default function AdminStationsScreen() {
             ) : null}
 
             <View style={{ padding: 14 }}>
-              {/* Header row: city + type badge + actions */}
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
                 <View style={{
                   backgroundColor: TYPE_BG[s.type],
@@ -441,7 +426,6 @@ export default function AdminStationsScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Address */}
               {s.address ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 4 }}>
                   <Ionicons name="map-outline" size={12} color={C.muted} />
@@ -449,7 +433,6 @@ export default function AdminStationsScreen() {
                 </View>
               ) : null}
 
-              {/* Coordinates */}
               {s.latitude != null && s.longitude != null ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 }}>
                   <Ionicons name="navigate-outline" size={12} color={C.muted} />
@@ -461,7 +444,6 @@ export default function AdminStationsScreen() {
                 <View style={{ marginBottom: 8 }} />
               )}
 
-              {/* Admin assignment */}
               {s.admin_name ? (
                 <TouchableOpacity
                   onPress={() => router.push(`/(admin)/users/${s.admin_id}` as any)}
@@ -507,7 +489,7 @@ export default function AdminStationsScreen() {
       </ScrollView>
 
       {/* FAB */}
-      {!loading && stations.length > 0 && (
+      {!isLoading && (stations as Station[]).length > 0 && (
         <TouchableOpacity
           onPress={openCreate}
           style={{
@@ -585,43 +567,24 @@ export default function AdminStationsScreen() {
               </View>
             </View>
 
-            {/* City */}
             <View>
               <Text style={labelStyle}>Station Name *</Text>
-              <TextInput
-                value={form.city}
-                onChangeText={(v) => setForm((f) => ({ ...f, city: v }))}
-                placeholder="e.g. Nyabugogo Terminal"
-                placeholderTextColor={C.muted}
-                style={inputStyle}
-              />
+              <TextInput value={form.city} onChangeText={(v) => setForm((f) => ({ ...f, city: v }))}
+                placeholder="e.g. Nyabugogo Terminal" placeholderTextColor={C.muted} style={inputStyle} />
             </View>
 
-            {/* District */}
             <View>
               <Text style={labelStyle}>District</Text>
-              <TextInput
-                value={form.district}
-                onChangeText={(v) => setForm((f) => ({ ...f, district: v }))}
-                placeholder="e.g. Nyarugenge, Gasabo"
-                placeholderTextColor={C.muted}
-                style={inputStyle}
-              />
+              <TextInput value={form.district} onChangeText={(v) => setForm((f) => ({ ...f, district: v }))}
+                placeholder="e.g. Nyarugenge, Gasabo" placeholderTextColor={C.muted} style={inputStyle} />
             </View>
 
-            {/* Address */}
             <View>
               <Text style={labelStyle}>Address</Text>
-              <TextInput
-                value={form.address}
-                onChangeText={(v) => setForm((f) => ({ ...f, address: v }))}
-                placeholder="e.g. KN 5 Rd, Nyarugenge"
-                placeholderTextColor={C.muted}
-                style={inputStyle}
-              />
+              <TextInput value={form.address} onChangeText={(v) => setForm((f) => ({ ...f, address: v }))}
+                placeholder="e.g. KN 5 Rd, Nyarugenge" placeholderTextColor={C.muted} style={inputStyle} />
             </View>
 
-            {/* Coordinates */}
             <View>
               <Text style={labelStyle}>Coordinates</Text>
               <Text style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}>
@@ -631,17 +594,9 @@ export default function AdminStationsScreen() {
                 onPress={pickCurrentLocation}
                 disabled={locating}
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                  alignSelf: "flex-start",
-                  backgroundColor: C.card,
-                  borderWidth: 1,
-                  borderColor: C.primary,
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 7,
-                  marginBottom: 10,
+                  flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start",
+                  backgroundColor: C.card, borderWidth: 1, borderColor: C.primary,
+                  borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 10,
                   opacity: locating ? 0.6 : 1,
                 }}
               >
@@ -657,54 +612,30 @@ export default function AdminStationsScreen() {
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: C.mid, fontSize: 12, fontWeight: "600", marginBottom: 4 }}>Latitude</Text>
-                  <TextInput
-                    value={form.latitude}
-                    onChangeText={(v) => setForm((f) => ({ ...f, latitude: v }))}
-                    placeholder="-1.944648"
-                    keyboardType="decimal-pad"
-                    placeholderTextColor={C.muted}
-                    style={inputStyle}
-                  />
+                  <TextInput value={form.latitude} onChangeText={(v) => setForm((f) => ({ ...f, latitude: v }))}
+                    placeholder="-1.944648" keyboardType="decimal-pad" placeholderTextColor={C.muted} style={inputStyle} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: C.mid, fontSize: 12, fontWeight: "600", marginBottom: 4 }}>Longitude</Text>
-                  <TextInput
-                    value={form.longitude}
-                    onChangeText={(v) => setForm((f) => ({ ...f, longitude: v }))}
-                    placeholder="30.061088"
-                    keyboardType="decimal-pad"
-                    placeholderTextColor={C.muted}
-                    style={inputStyle}
-                  />
+                  <TextInput value={form.longitude} onChangeText={(v) => setForm((f) => ({ ...f, longitude: v }))}
+                    placeholder="30.061088" keyboardType="decimal-pad" placeholderTextColor={C.muted} style={inputStyle} />
                 </View>
               </View>
             </View>
 
-            {/* Image URL */}
             <View>
               <Text style={labelStyle}>Image URL (optional)</Text>
-              <TextInput
-                value={form.image_url}
-                onChangeText={(v) => setForm((f) => ({ ...f, image_url: v }))}
-                placeholder="https://…"
-                placeholderTextColor={C.muted}
-                autoCapitalize="none"
-                keyboardType="url"
-                style={inputStyle}
-              />
+              <TextInput value={form.image_url} onChangeText={(v) => setForm((f) => ({ ...f, image_url: v }))}
+                placeholder="https://…" placeholderTextColor={C.muted}
+                autoCapitalize="none" keyboardType="url" style={inputStyle} />
             </View>
 
             {/* Admin picker */}
             <View>
               <Text style={labelStyle}>Assigned Admin</Text>
-
-              {/* Selected display */}
               <TouchableOpacity
                 onPress={() => setPickerOpen((o) => !o)}
-                style={{
-                  ...inputStyle,
-                  flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-                }}
+                style={{ ...inputStyle, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
               >
                 <Text style={{ fontSize: 15, fontWeight: "600", color: selectedAdmin ? C.dark : C.muted }}>
                   {selectedAdmin ? selectedAdmin.name : "None (unassigned)"}
@@ -712,13 +643,11 @@ export default function AdminStationsScreen() {
                 <Ionicons name={pickerOpen ? "chevron-up" : "chevron-down"} size={16} color={C.muted} />
               </TouchableOpacity>
 
-              {/* Dropdown */}
               {pickerOpen && (
                 <View style={{
                   backgroundColor: C.white, borderRadius: 14,
                   borderWidth: 1.5, borderColor: C.border, marginTop: 4,
                 }}>
-                  {/* Search */}
                   <View style={{
                     flexDirection: "row", alignItems: "center",
                     paddingHorizontal: 12, paddingVertical: 8,
@@ -726,22 +655,18 @@ export default function AdminStationsScreen() {
                   }}>
                     <Ionicons name="search-outline" size={14} color={C.muted} />
                     <TextInput
-                      value={adminSearch}
-                      onChangeText={setAdminSearch}
-                      placeholder="Search admin by name or email…"
-                      placeholderTextColor={C.muted}
+                      value={adminSearch} onChangeText={setAdminSearch}
+                      placeholder="Search admin by name or email…" placeholderTextColor={C.muted}
                       style={{ flex: 1, paddingLeft: 8, fontSize: 13, color: C.dark, paddingVertical: 2 }}
                       autoCapitalize="none"
                     />
                   </View>
 
                   <ScrollView style={{ maxHeight: 240 }} nestedScrollEnabled>
-                    {/* None */}
                     <TouchableOpacity
                       onPress={() => { setForm((f) => ({ ...f, admin_id: null })); setPickerOpen(false); setAdminSearch(""); }}
                       style={{
-                        padding: 14,
-                        borderBottomWidth: 1, borderBottomColor: C.border,
+                        padding: 14, borderBottomWidth: 1, borderBottomColor: C.border,
                         backgroundColor: form.admin_id === null ? C.tealLt : C.white,
                       }}
                     >

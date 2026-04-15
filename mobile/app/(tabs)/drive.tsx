@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,8 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 import {
@@ -19,6 +19,7 @@ import {
   DriverCar,
 } from "@/constants/data";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Sub-components
 import { DriverHeader } from "@/components/driver/DriverHeader";
@@ -37,51 +38,55 @@ import {
 
 export default function DriveScreen() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { driverType, setDriverType } = useDriverMode();
   const isRental = driverType === "rental";
 
-  // State
   const [online, setOnline] = useState(false);
   const [activeZones, setActiveZones] = useState<number[]>([0, 1]);
   const [tab, setTab] = useState<"upcoming" | "history">("upcoming");
-  const [stats, setStats] = useState<DriverStats | null>(null);
-  const [trips, setTrips] = useState<DriverTrip[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [driverCars, setDriverCars] = useState<DriverCar[]>([]);
-  const [driverListings, setDriverListings] = useState<DriverListing[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Data loader
-  const load = useCallback(
-    async (isRefresh = false) => {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      try {
-        const [statsRes, tripsRes, roleRes, bookingsRes] = await Promise.all([
-          api.get("/driver/stats"),
-          api.get("/driver/trips"),
-          isRental ? api.get("/driver/cars") : api.get("/driver/listings"),
-          api.get("/bookings"),
-        ]);
-        setStats(statsRes.data);
-        setTrips(tripsRes.data);
-        setBookings(bookingsRes.data);
-        if (isRental) setDriverCars(roleRes.data);
-        else setDriverListings(roleRes.data);
-      } catch {
-        // errors shown via null/empty state
-      } finally {
-        if (isRefresh) setRefreshing(false);
-        else setLoading(false);
-      }
-    },
-    [isRental],
-  );
+  const statsQuery = useQuery({
+    queryKey: queryKeys.driver.stats(),
+    queryFn: () => api.get("/driver/stats").then(r => r.data as DriverStats),
+    staleTime: 2 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const tripsQuery = useQuery({
+    queryKey: queryKeys.driver.trips(),
+    queryFn: () => api.get("/driver/trips").then(r => r.data as DriverTrip[]),
+    staleTime: 60_000,
+  });
+
+  const carsQuery = useQuery({
+    queryKey: queryKeys.driver.cars(),
+    queryFn: () => api.get("/driver/cars").then(r => r.data as DriverCar[]),
+    staleTime: 5 * 60_000,
+    enabled: isRental,
+  });
+
+  const listingsQuery = useQuery({
+    queryKey: queryKeys.driver.listings(),
+    queryFn: () => api.get("/driver/listings").then(r => r.data as DriverListing[]),
+    staleTime: 5 * 60_000,
+    enabled: !isRental,
+  });
+
+  const stats    = statsQuery.data ?? null;
+  const trips    = tripsQuery.data ?? [];
+  const driverCars     = carsQuery.data ?? [];
+  const driverListings = listingsQuery.data ?? [];
+
+  const isLoading = statsQuery.isLoading || tripsQuery.isLoading;
+  const isRefetching = statsQuery.isRefetching || tripsQuery.isRefetching
+    || carsQuery.isRefetching || listingsQuery.isRefetching;
+
+  function onRefresh() {
+    queryClient.invalidateQueries({ queryKey: queryKeys.driver.stats() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.driver.trips() });
+    if (isRental) queryClient.invalidateQueries({ queryKey: queryKeys.driver.cars() });
+    else queryClient.invalidateQueries({ queryKey: queryKeys.driver.listings() });
+  }
 
   function handleChangeType() {
     Alert.alert(t("drive.changeEarningMode"), t("drive.earningQuestion"), [
@@ -114,7 +119,7 @@ export default function DriveScreen() {
       {/* Header */}
       <DriverHeader
         stats={stats}
-        loading={loading}
+        loading={isLoading}
         online={online}
         onToggleOnline={() => setOnline((o) => !o)}
       />
@@ -126,8 +131,8 @@ export default function DriveScreen() {
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
             tintColor={C.teal}
           />
         }

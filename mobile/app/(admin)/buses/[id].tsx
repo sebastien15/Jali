@@ -5,37 +5,55 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 export default function AdminBusFormScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const isNew = id === "new";
 
-  const [loading, setLoading] = useState(!isNew);
-  const [saving, setSaving]   = useState(false);
-  const [agency, setAgency]   = useState("");
-  const [from, setFrom]       = useState("");
-  const [to, setTo]           = useState("");
-  const [dep, setDep]         = useState("");
-  const [arr, setArr]         = useState("");
-  const [price, setPrice]     = useState("");
-  const [seats, setSeats]     = useState("30");
-  const [active, setActive]   = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [agency, setAgency] = useState("");
+  const [from, setFrom]     = useState("");
+  const [to, setTo]         = useState("");
+  const [dep, setDep]       = useState("");
+  const [arr, setArr]       = useState("");
+  const [price, setPrice]   = useState("");
+  const [seats, setSeats]   = useState("30");
+  const [active, setActive] = useState(true);
 
+  const { data: bus, isLoading } = useQuery({
+    queryKey: queryKeys.admin.bus(id!),
+    queryFn: () =>
+      api.get("/admin/buses").then(r => {
+        return (r.data as any[]).find(b => String(b.id) === id) ?? null;
+      }),
+    staleTime: 2 * 60_000,
+    enabled: !isNew,
+    initialData: () => {
+      if (isNew) return undefined;
+      const cached = queryClient.getQueryData<any[]>(queryKeys.admin.buses());
+      return cached?.find(b => String(b.id) === id) ?? undefined;
+    },
+  });
+
+  // Sync form from loaded bus
   useEffect(() => {
-    if (isNew) return;
-    api.get("/admin/buses").then(res => {
-      const bus = (res.data as any[]).find(b => String(b.id) === id);
-      if (bus) {
-        setAgency(bus.agency ?? ""); setFrom(bus.from ?? ""); setTo(bus.to ?? "");
-        setDep(bus.dep ?? ""); setArr(bus.arr ?? ""); setPrice(String(bus.price ?? ""));
-        setSeats(String(bus.seats ?? "30")); setActive(bus.active ?? true);
-      }
-    }).catch(() => Alert.alert("Error", "Could not load bus."))
-      .finally(() => setLoading(false));
-  }, [id, isNew]);
+    if (bus) {
+      setAgency(bus.agency ?? "");
+      setFrom(bus.from ?? "");
+      setTo(bus.to ?? "");
+      setDep(bus.dep ?? "");
+      setArr(bus.arr ?? "");
+      setPrice(String(bus.price ?? ""));
+      setSeats(String(bus.seats ?? "30"));
+      setActive(bus.active ?? true);
+    }
+  }, [bus]);
 
   async function handleSave() {
     if (!agency.trim() || !from.trim() || !to.trim() || !dep.trim() || !price.trim()) {
@@ -47,6 +65,7 @@ export default function AdminBusFormScreen() {
       const payload = { agency, from, to, dep, arr, active, price: parseInt(price), seats: parseInt(seats) };
       if (isNew) await api.post("/admin/buses", payload);
       else await api.patch(`/admin/buses/${id}`, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.buses() });
       Alert.alert("Saved", isNew ? "Bus added." : "Bus updated.", [
         { text: "OK", onPress: () => router.back() },
       ]);
@@ -57,7 +76,7 @@ export default function AdminBusFormScreen() {
     }
   }
 
-  if (loading) {
+  if (!isNew && isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator color={C.teal} />

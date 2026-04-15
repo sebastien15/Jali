@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,10 +14,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 type Station = { id: number; city: string; district: string | null };
 type Agency = { id: number; name: string };
@@ -37,11 +39,7 @@ type TripData = {
 
 export default function TripsScreen() {
   const { t } = useTranslation();
-  const [trips, setTrips] = useState<TripData[]>([]);
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [filterAgency, setFilterAgency] = useState<number | null>(null);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
   const [agencyDropdownOpen, setAgencyDropdownOpen] = useState(false);
@@ -63,33 +61,37 @@ export default function TripsScreen() {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
+  const tripFilters = { agency_id: filterAgency, active: filterActive };
+
+  const tripsQuery = useQuery({
+    queryKey: queryKeys.admin.trips(tripFilters),
+    queryFn: () => {
       const params: any = {};
       if (filterAgency) params.agency_id = filterAgency;
       if (filterActive !== null) params.active = filterActive ? "1" : "0";
+      return api.get("/admin/trips", { params }).then(r => r.data ?? []);
+    },
+    staleTime: 60_000,
+  });
 
-      const [tripsRes, agenciesRes, stationsRes] = await Promise.all([
-        api.get("/admin/trips", { params }),
-        api.get("/admin/agencies"),
-        api.get("/stations"),
-      ]);
-      setTrips(tripsRes.data);
-      setAgencies(agenciesRes.data);
-      setStations(stationsRes.data);
-    } catch {
-      setTrips([]);
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, [filterAgency, filterActive]);
+  const agenciesQuery = useQuery({
+    queryKey: queryKeys.admin.agencies(),
+    queryFn: () => api.get("/admin/agencies").then(r => r.data ?? []),
+    staleTime: 5 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const stationsQuery = useQuery({
+    queryKey: queryKeys.stations.public(),
+    queryFn: () => api.get("/stations").then(r => r.data ?? []),
+    staleTime: 10 * 60_000,
+  });
+
+  const trips    = tripsQuery.data as TripData[] ?? [];
+  const agencies = agenciesQuery.data as Agency[] ?? [];
+  const stations = stationsQuery.data as Station[] ?? [];
+
+  const isLoading    = tripsQuery.isLoading;
+  const isRefetching = tripsQuery.isRefetching;
 
   useEffect(() => {
     if (successMsg) {
@@ -128,13 +130,8 @@ export default function TripsScreen() {
 
   async function handleSave() {
     if (
-      !form.agency_id ||
-      !form.from_station_id ||
-      !form.to_station_id ||
-      !form.departure_time ||
-      !form.estimated_arrival_time ||
-      !form.price ||
-      !form.total_seats
+      !form.agency_id || !form.from_station_id || !form.to_station_id ||
+      !form.departure_time || !form.estimated_arrival_time || !form.price || !form.total_seats
     ) {
       Alert.alert(t("common.close"), "Please fill in all fields");
       return;
@@ -162,7 +159,7 @@ export default function TripsScreen() {
       }
 
       setModal(null);
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
     } catch (e: any) {
       Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
     } finally {
@@ -180,12 +177,9 @@ export default function TripsScreen() {
           try {
             await api.delete(`/admin/trips/${trip.id}`);
             setSuccessMsg(t("adminTrips.deleted"));
-            load();
+            queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
           } catch (e: any) {
-            Alert.alert(
-              t("common.close"),
-              e?.response?.data?.message ?? "Failed",
-            );
+            Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
           }
         },
       },
@@ -207,32 +201,20 @@ export default function TripsScreen() {
               paddingVertical: 8,
             }}
           >
-            <Text style={{ color: C.white, fontWeight: "800", fontSize: 18 }}>
-              +
-            </Text>
+            <Text style={{ color: C.white, fontWeight: "800", fontSize: 18 }}>+</Text>
           </TouchableOpacity>
         }
       />
 
       {/* Success banner */}
       {successMsg ? (
-        <View
-          style={{
-            backgroundColor: C.greenLt,
-            padding: 12,
-            marginHorizontal: 16,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: C.green, fontWeight: "700", fontSize: 13 }}>
-            {successMsg}
-          </Text>
+        <View style={{ backgroundColor: C.greenLt, padding: 12, marginHorizontal: 16, borderRadius: 10 }}>
+          <Text style={{ color: C.green, fontWeight: "700", fontSize: 13 }}>{successMsg}</Text>
         </View>
       ) : null}
 
       {/* Filters */}
       <View style={{ backgroundColor: C.white, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {/* Agency search dropdown trigger */}
         <TouchableOpacity
           onPress={() => { setAgencyDropdownOpen(true); setAgencySearch(""); }}
           style={{
@@ -243,52 +225,24 @@ export default function TripsScreen() {
           }}
         >
           <Ionicons name="search-outline" size={14} color={C.muted} />
-          <Text
-            numberOfLines={1}
-            style={{
-              color: filterAgency ? C.dark : C.muted,
-              fontWeight: "700",
-              fontSize: 12,
-              flex: 1,
-            }}
-          >
-            {filterAgency
-              ? agencies.find(a => a.id === filterAgency)?.name ?? "Agency"
-              : "Filter by agency…"}
+          <Text numberOfLines={1} style={{ color: filterAgency ? C.dark : C.muted, fontWeight: "700", fontSize: 12, flex: 1 }}>
+            {filterAgency ? agencies.find(a => a.id === filterAgency)?.name ?? "Agency" : "Filter by agency…"}
           </Text>
           {filterAgency && (
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                setFilterAgency(null);
-              }}
-              style={{ padding: 2 }}
-            >
+            <TouchableOpacity onPress={(e) => { e.stopPropagation(); setFilterAgency(null); }} style={{ padding: 2 }}>
               <Ionicons name="close-circle" size={14} color={C.muted} />
             </TouchableOpacity>
           )}
         </TouchableOpacity>
 
-        {/* Active toggle */}
         <TouchableOpacity
-          onPress={() =>
-            setFilterActive(filterActive === null ? true : filterActive === true ? false : null)
-          }
+          onPress={() => setFilterActive(filterActive === null ? true : filterActive === true ? false : null)}
           style={{
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 8,
-            backgroundColor:
-              filterActive === null ? C.bg : filterActive ? C.greenLt : C.muted + "33",
+            paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+            backgroundColor: filterActive === null ? C.bg : filterActive ? C.greenLt : C.muted + "33",
           }}
         >
-          <Text
-            style={{
-              color: filterActive === null ? C.muted : filterActive ? C.green : C.muted,
-              fontWeight: "700",
-              fontSize: 11,
-            }}
-          >
+          <Text style={{ color: filterActive === null ? C.muted : filterActive ? C.green : C.muted, fontWeight: "700", fontSize: 11 }}>
             {filterActive === null ? "All" : filterActive ? "Active" : "Inactive"}
           </Text>
         </TouchableOpacity>
@@ -296,73 +250,29 @@ export default function TripsScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />
-        }
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={tripsQuery.refetch} />}
       >
-        {loading && (
-          <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
+
+        {!isLoading && trips.length === 0 && (
+          <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>{t("adminTrips.noTrips")}</Text>
         )}
 
-        {!loading && trips.length === 0 && (
-          <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
-            {t("adminTrips.noTrips")}
-          </Text>
-        )}
-
-        {!loading &&
-          trips.map((trip) => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              onEdit={() => openEdit(trip)}
-              onDelete={() => handleDelete(trip)}
-            />
-          ))}
+        {!isLoading && trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} onEdit={() => openEdit(trip)} onDelete={() => handleDelete(trip)} />
+        ))}
       </ScrollView>
 
       {/* Create/Edit Modal */}
       <Modal visible={!!modal} animationType="slide" transparent>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
-              paddingBottom: 40,
-              maxHeight: "90%",
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                backgroundColor: C.border,
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 16,
-              }}
-            />
-            <Text
-              style={{
-                fontWeight: "900",
-                fontSize: 18,
-                color: C.dark,
-                marginBottom: 16,
-              }}
-            >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: "90%" }}>
+            <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 16 }} />
+            <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark, marginBottom: 16 }}>
               {modal?.mode === "create" ? t("adminTrips.addNew") : t("adminTrips.editTrip")}
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Agency picker */}
               <FieldLabel>{t("adminTrips.agency")}</FieldLabel>
               <PickerRow
                 options={agencies.map((a) => ({ label: a.name, value: String(a.id) }))}
@@ -370,120 +280,50 @@ export default function TripsScreen() {
                 onChange={(v) => setForm((f) => ({ ...f, agency_id: v }))}
               />
 
-              {/* From */}
               <FieldLabel>{t("adminTrips.from")}</FieldLabel>
               <PickerRow
-                options={stations
-                  .filter((s) => s.id !== Number(form.to_station_id))
-                  .map((s) => ({ label: s.city, value: String(s.id) }))}
+                options={stations.filter((s) => s.id !== Number(form.to_station_id)).map((s) => ({ label: s.city, value: String(s.id) }))}
                 value={form.from_station_id}
                 onChange={(v) => setForm((f) => ({ ...f, from_station_id: v }))}
               />
 
-              {/* To */}
               <FieldLabel>{t("adminTrips.to")}</FieldLabel>
               <PickerRow
-                options={stations
-                  .filter((s) => s.id !== Number(form.from_station_id))
-                  .map((s) => ({ label: s.city, value: String(s.id) }))}
+                options={stations.filter((s) => s.id !== Number(form.from_station_id)).map((s) => ({ label: s.city, value: String(s.id) }))}
                 value={form.to_station_id}
                 onChange={(v) => setForm((f) => ({ ...f, to_station_id: v }))}
               />
 
-              {/* Departure time */}
               <FieldLabel>{t("adminTrips.departure")}</FieldLabel>
-              <TextInput
-                value={form.departure_time}
-                onChangeText={(v) => setForm((f) => ({ ...f, departure_time: v }))}
-                placeholder="08:00"
-                placeholderTextColor={C.muted}
-                keyboardType="numeric"
-                style={inputStyle}
-              />
+              <TextInput value={form.departure_time} onChangeText={(v) => setForm((f) => ({ ...f, departure_time: v }))}
+                placeholder="08:00" placeholderTextColor={C.muted} keyboardType="numeric" style={inputStyle} />
 
-              {/* Estimated arrival */}
               <FieldLabel>{t("adminTrips.estimatedArrival")}</FieldLabel>
-              <TextInput
-                value={form.estimated_arrival_time}
-                onChangeText={(v) =>
-                  setForm((f) => ({ ...f, estimated_arrival_time: v }))
-                }
-                placeholder="11:30"
-                placeholderTextColor={C.muted}
-                keyboardType="numeric"
-                style={inputStyle}
-              />
+              <TextInput value={form.estimated_arrival_time} onChangeText={(v) => setForm((f) => ({ ...f, estimated_arrival_time: v }))}
+                placeholder="11:30" placeholderTextColor={C.muted} keyboardType="numeric" style={inputStyle} />
 
-              {/* Price */}
               <FieldLabel>{t("adminTrips.price")}</FieldLabel>
-              <TextInput
-                value={form.price}
-                onChangeText={(v) => setForm((f) => ({ ...f, price: v }))}
-                placeholder="5000"
-                placeholderTextColor={C.muted}
-                keyboardType="number-pad"
-                style={inputStyle}
-              />
+              <TextInput value={form.price} onChangeText={(v) => setForm((f) => ({ ...f, price: v }))}
+                placeholder="5000" placeholderTextColor={C.muted} keyboardType="number-pad" style={inputStyle} />
 
-              {/* Total seats */}
               <FieldLabel>{t("adminTrips.totalSeats")}</FieldLabel>
-              <TextInput
-                value={form.total_seats}
-                onChangeText={(v) => setForm((f) => ({ ...f, total_seats: v }))}
-                placeholder="30"
-                placeholderTextColor={C.muted}
-                keyboardType="number-pad"
-                style={inputStyle}
-              />
+              <TextInput value={form.total_seats} onChangeText={(v) => setForm((f) => ({ ...f, total_seats: v }))}
+                placeholder="30" placeholderTextColor={C.muted} keyboardType="number-pad" style={inputStyle} />
 
-              {/* Active toggle */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: 12,
-                  marginBottom: 16,
-                }}
-              >
-                <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14 }}>
-                  {t("adminTrips.active")}
-                </Text>
-                <Switch
-                  value={form.active}
-                  onValueChange={(v) => setForm((f) => ({ ...f, active: v }))}
-                  trackColor={{ false: C.border, true: C.teal }}
-                  thumbColor={C.white}
-                />
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 16 }}>
+                <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14 }}>{t("adminTrips.active")}</Text>
+                <Switch value={form.active} onValueChange={(v) => setForm((f) => ({ ...f, active: v }))}
+                  trackColor={{ false: C.border, true: C.teal }} thumbColor={C.white} />
               </View>
             </ScrollView>
 
             <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
-              <TouchableOpacity
-                onPress={() => setModal(null)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: C.bg,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: C.mid, fontWeight: "700" }}>
-                  {t("common.cancel") ?? "Cancel"}
-                </Text>
+              <TouchableOpacity onPress={() => setModal(null)}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.bg, alignItems: "center" }}>
+                <Text style={{ color: C.mid, fontWeight: "700" }}>{t("common.cancel") ?? "Cancel"}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={saving}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: saving ? C.border : C.teal,
-                  alignItems: "center",
-                }}
-              >
+              <TouchableOpacity onPress={handleSave} disabled={saving}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: saving ? C.border : C.teal, alignItems: "center" }}>
                 {saving ? (
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
@@ -504,39 +344,24 @@ export default function TripsScreen() {
           activeOpacity={1}
           onPress={() => setAgencyDropdownOpen(false)}
         >
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderRadius: 16,
-              marginHorizontal: 24,
-              marginTop: 60,
-              maxHeight: 300,
-              shadowColor: "#000",
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 4 },
-              elevation: 8,
-            }}
-          >
-            {/* Search input */}
+          <View style={{
+            backgroundColor: C.white, borderRadius: 16,
+            marginHorizontal: 24, marginTop: 60, maxHeight: 300,
+            shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 }, elevation: 8,
+          }}>
             <View style={{
               flexDirection: "row", alignItems: "center", gap: 8,
               paddingHorizontal: 14, paddingVertical: 12,
               borderBottomWidth: 1, borderBottomColor: C.border,
             }}>
               <Ionicons name="search-outline" size={16} color={C.muted} />
-              <TextInput
-                value={agencySearch}
-                onChangeText={setAgencySearch}
-                placeholder="Search agencies…"
-                placeholderTextColor={C.muted}
-                autoFocus
-                style={{ flex: 1, fontSize: 14, color: C.dark }}
-                clearButtonMode="while-editing"
-              />
+              <TextInput value={agencySearch} onChangeText={setAgencySearch}
+                placeholder="Search agencies…" placeholderTextColor={C.muted}
+                autoFocus style={{ flex: 1, fontSize: 14, color: C.dark }}
+                clearButtonMode="while-editing" />
             </View>
 
-            {/* "All" option */}
             <TouchableOpacity
               onPress={() => { setFilterAgency(null); setAgencyDropdownOpen(false); }}
               style={{
@@ -547,16 +372,11 @@ export default function TripsScreen() {
               }}
             >
               <Ionicons name="list-outline" size={16} color={filterAgency === null ? C.teal : C.muted} />
-              <Text style={{
-                color: filterAgency === null ? C.teal : C.dark,
-                fontWeight: filterAgency === null ? "800" : "600",
-                fontSize: 14,
-              }}>
+              <Text style={{ color: filterAgency === null ? C.teal : C.dark, fontWeight: filterAgency === null ? "800" : "600", fontSize: 14 }}>
                 All Agencies
               </Text>
             </TouchableOpacity>
 
-            {/* Agency list */}
             <ScrollView nestedScrollEnabled>
               {agencies
                 .filter(a => a.name.toLowerCase().includes(agencySearch.toLowerCase()))
@@ -574,16 +394,8 @@ export default function TripsScreen() {
                       }}
                     >
                       <Ionicons name="business-outline" size={16} color={selected ? C.teal : C.muted} />
-                      <Text style={{
-                        color: selected ? C.teal : C.dark,
-                        fontWeight: selected ? "800" : "600",
-                        fontSize: 14,
-                      }}>
-                        {a.name}
-                      </Text>
-                      {selected && (
-                        <Ionicons name="checkmark-circle" size={16} color={C.teal} style={{ marginLeft: "auto" }} />
-                      )}
+                      <Text style={{ color: selected ? C.teal : C.dark, fontWeight: selected ? "800" : "600", fontSize: 14 }}>{a.name}</Text>
+                      {selected && <Ionicons name="checkmark-circle" size={16} color={C.teal} style={{ marginLeft: "auto" }} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -595,73 +407,31 @@ export default function TripsScreen() {
   );
 }
 
-function TripCard({
-  trip,
-  onEdit,
-  onDelete,
-}: {
-  trip: TripData;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function TripCard({ trip, onEdit, onDelete }: { trip: TripData; onEdit: () => void; onDelete: () => void }) {
   const { t } = useTranslation();
   return (
-    <View
-      style={{
-        backgroundColor: C.white,
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOpacity: 0.07,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      }}
-    >
+    <View style={{
+      backgroundColor: C.white, borderRadius: 20, padding: 16, marginBottom: 12,
+      shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 10, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.dark, fontWeight: "900", fontSize: 15 }}>
-            {trip.agency_name}
-          </Text>
-          <Text style={{ color: C.mid, fontSize: 13, marginTop: 4 }}>
-            {trip.from.city} → {trip.to.city}
-          </Text>
+          <Text style={{ color: C.dark, fontWeight: "900", fontSize: 15 }}>{trip.agency_name}</Text>
+          <Text style={{ color: C.mid, fontSize: 13, marginTop: 4 }}>{trip.from.city} → {trip.to.city}</Text>
           <View style={{ flexDirection: "row", gap: 16, marginTop: 10 }}>
             <View>
-              <Text style={{ color: C.dark, fontWeight: "800", fontSize: 20 }}>
-                {trip.departure_time}
-              </Text>
-              <Text style={{ color: C.muted, fontSize: 11 }}>
-                Est. {trip.estimated_arrival_time}
-              </Text>
+              <Text style={{ color: C.dark, fontWeight: "800", fontSize: 20 }}>{trip.departure_time}</Text>
+              <Text style={{ color: C.muted, fontSize: 11 }}>Est. {trip.estimated_arrival_time}</Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={{ color: C.blue, fontWeight: "900", fontSize: 16 }}>
-                {trip.price.toLocaleString()} RWF
-              </Text>
-              <Text style={{ color: C.muted, fontSize: 11 }}>
-                {trip.total_seats} seats
-              </Text>
+              <Text style={{ color: C.blue, fontWeight: "900", fontSize: 16 }}>{trip.price.toLocaleString()} RWF</Text>
+              <Text style={{ color: C.muted, fontSize: 11 }}>{trip.total_seats} seats</Text>
             </View>
           </View>
         </View>
         <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-          <View
-            style={{
-              backgroundColor: trip.active ? C.greenLt : C.border,
-              borderRadius: 6,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-            }}
-          >
-            <Text
-              style={{
-                color: trip.active ? C.green : C.muted,
-                fontSize: 10,
-                fontWeight: "700",
-              }}
-            >
+          <View style={{ backgroundColor: trip.active ? C.greenLt : C.border, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Text style={{ color: trip.active ? C.green : C.muted, fontSize: 10, fontWeight: "700" }}>
               {trip.active ? "Active" : "Inactive"}
             </Text>
           </View>
@@ -679,53 +449,20 @@ function TripCard({
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text
-      style={{
-        color: C.muted,
-        fontSize: 11,
-        fontWeight: "700",
-        marginBottom: 6,
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-      }}
-    >
+    <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
       {children}
     </Text>
   );
 }
 
-function PickerRow({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; value: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function PickerRow({ options, value, onChange }: { options: { label: string; value: string }[]; value: string; onChange: (v: string) => void }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
       <View style={{ flexDirection: "row", gap: 6 }}>
         {options.map((opt) => (
-          <TouchableOpacity
-            key={opt.value}
-            onPress={() => onChange(opt.value)}
-            style={{
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              borderRadius: 10,
-              backgroundColor: value === opt.value ? C.teal : C.bg,
-            }}
-          >
-            <Text
-              style={{
-                color: value === opt.value ? C.white : C.dark,
-                fontWeight: "700",
-                fontSize: 13,
-              }}
-            >
-              {opt.label}
-            </Text>
+          <TouchableOpacity key={opt.value} onPress={() => onChange(opt.value)}
+            style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: value === opt.value ? C.teal : C.bg }}>
+            <Text style={{ color: value === opt.value ? C.white : C.dark, fontWeight: "700", fontSize: 13 }}>{opt.label}</Text>
           </TouchableOpacity>
         ))}
       </View>

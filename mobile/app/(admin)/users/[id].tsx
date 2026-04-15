@@ -10,10 +10,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { ROLES } from "@/constants/roles";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 const ALL_ROLES = [
   ROLES.USER,
@@ -32,24 +34,30 @@ const ROLE_COLOR: Record<Role, string> = {
 
 export default function AdminUserDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [user, setUser] = useState<any>(null);
+  const queryClient = useQueryClient();
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const { data: user, isLoading } = useQuery({
+    queryKey: queryKeys.admin.user(id!),
+    queryFn: () =>
+      // Use cached list if available, otherwise fetch list and find
+      api.get("/admin/users").then(r => {
+        const found = (r.data as any[]).find(u => String(u.id) === id);
+        return found ?? null;
+      }),
+    staleTime: 60_000,
+    // Try to seed from the already-cached users list
+    initialData: () => {
+      const cached = queryClient.getQueryData<any[]>(queryKeys.admin.users());
+      return cached?.find(u => String(u.id) === id) ?? undefined;
+    },
+  });
+
+  // Sync roles from fetched user
   useEffect(() => {
-    api
-      .get("/admin/users")
-      .then((res) => {
-        const found = (res.data as any[]).find((u) => String(u.id) === id);
-        if (found) {
-          setUser(found);
-          setRoles(found.roles ?? []);
-        }
-      })
-      .catch(() => Alert.alert("Error", "Could not load user."))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (user) setRoles(user.roles ?? []);
+  }, [user]);
 
   function toggleRole(role: Role) {
     setRoles((prev) =>
@@ -60,9 +68,9 @@ export default function AdminUserDetailScreen() {
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await api.patch(`/admin/users/${id}`, { roles });
-      setUser((prev: any) => ({ ...prev, roles: res.data.roles }));
+      await api.patch(`/admin/users/${id}`, { roles });
       Alert.alert("Saved", "Roles updated.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
     } catch {
       Alert.alert("Error", "Could not save roles.");
     } finally {
@@ -70,7 +78,7 @@ export default function AdminUserDetailScreen() {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView
         style={{

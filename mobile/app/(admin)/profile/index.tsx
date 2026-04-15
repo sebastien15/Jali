@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,41 +15,44 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as DocumentPicker from "expo-document-picker";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import { queryKeys } from "@/lib/queryKeys";
 
 export default function AdminProfileScreen() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { handleLogout } = useAdminNav();
-  const [profile, setProfile] = useState<any>(null);
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [saving, setSaving] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [contractLoading, setContractLoading] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await api.get("/admin/profile");
-      setProfile(res.data);
-      setPhone(res.data.phone ?? "");
-      setWhatsapp(res.data.whatsapp_number ?? "");
-    } catch {}
-  }, []);
+  const { data: profile, isLoading } = useQuery({
+    queryKey: queryKeys.adminProfile(),
+    queryFn: () => api.get("/admin/profile").then(r => r.data),
+    staleTime: Infinity,
+  });
 
+  // Sync form fields when profile loads
   useEffect(() => {
-    load();
-  }, [load]);
+    if (profile) {
+      setPhone(profile.phone ?? "");
+      setWhatsapp(profile.whatsapp_number ?? "");
+    }
+  }, [profile]);
 
   async function handleSave() {
     setSaving(true);
     try {
       await api.patch("/admin/profile", { phone, whatsapp_number: whatsapp });
       Alert.alert("Saved", "Profile updated.");
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
     } catch (e: any) {
       Alert.alert("Error", e?.response?.data?.message ?? "Failed to save.");
     } finally {
@@ -67,14 +70,10 @@ export default function AdminProfileScreen() {
     if (result.canceled || !result.assets?.[0]) return;
 
     const asset = result.assets[0];
-
-    // Show local preview immediately — keep it even after upload
     const localUri = asset.uri;
-    setProfile((p: any) => ({ ...p, profile_image_url: localUri }));
     setImageLoading(true);
 
     try {
-      // Compress to 400×400 JPEG
       const compressed = await ImageManipulator.manipulateAsync(
         localUri,
         [{ resize: { width: 400, height: 400 } }],
@@ -97,7 +96,7 @@ export default function AdminProfileScreen() {
       await api.post("/admin/profile/image", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      // Keep local URI displayed — it's the same image, and server URL is relative
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
     } catch (e: any) {
       console.log("[Profile] image upload error:", e?.response?.status, e?.response?.data);
     } finally {
@@ -117,7 +116,6 @@ export default function AdminProfileScreen() {
     try {
       const formData = new FormData();
       if (typeof window !== "undefined" && asset.uri.startsWith("blob:")) {
-        // Web: fetch the blob and append as real Blob
         const response = await fetch(asset.uri);
         const blob = await response.blob();
         formData.append("contract", blob, asset.name ?? "contract.pdf");
@@ -128,14 +126,10 @@ export default function AdminProfileScreen() {
           type: "application/pdf",
         } as any);
       }
-      const res = await api.post("/admin/profile/contract", formData, {
+      await api.post("/admin/profile/contract", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setProfile((p) => ({
-        ...p,
-        contract_doc_url: res.data.contract_doc_url,
-        contract_verified: false,
-      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
     } catch (e: any) {
       console.log("[Contract] upload error:", e?.response?.status, e?.response?.data);
     } finally {
@@ -143,7 +137,7 @@ export default function AdminProfileScreen() {
     }
   }
 
-  if (!profile) {
+  if (isLoading || !profile) {
     return (
       <SafeAreaView
         style={{

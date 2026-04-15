@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
   StatusBar, ActivityIndicator, RefreshControl, Alert,
@@ -6,28 +5,19 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 export default function AdminBusesScreen() {
-  const [buses, setBuses]           = useState<any[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
-    try {
-      const res = await api.get("/admin/buses");
-      setBuses(res.data);
-    } catch {
-      Alert.alert("Error", "Could not load buses.");
-    } finally {
-      if (isRefresh) setRefreshing(false); else setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const queryClient = useQueryClient();
+  const { data: buses = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.admin.buses(),
+    queryFn: () => api.get("/admin/buses").then(r => r.data ?? []),
+    staleTime: 2 * 60_000,
+  });
 
   async function handleDelete(id: number, agency: string) {
     Alert.alert("Delete bus", `Remove ${agency}?`, [
@@ -37,7 +27,7 @@ export default function AdminBusesScreen() {
         onPress: async () => {
           try {
             await api.delete(`/admin/buses/${id}`);
-            setBuses(prev => prev.filter(b => b.id !== id));
+            queryClient.invalidateQueries({ queryKey: queryKeys.admin.buses() });
           } catch {
             Alert.alert("Error", "Could not delete bus.");
           }
@@ -64,15 +54,15 @@ export default function AdminBusesScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {loading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
 
-        {!loading && buses.length === 0 && (
+        {!isLoading && buses.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>No buses yet.</Text>
         )}
 
-        {!loading && buses.map(bus => (
+        {!isLoading && buses.map((bus: any) => (
           <View key={bus.id} style={{
             backgroundColor: C.white, borderRadius: 20, padding: 16,
             marginBottom: 12, shadowColor: "#000", shadowOpacity: 0.07,

@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity,
   StatusBar, ActivityIndicator, RefreshControl,
@@ -6,9 +5,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 const ROLE_COLOR: Record<string, string> = {
   superadmin: "#7C3AED", admin: C.teal, driver: C.blue, user: C.muted,
@@ -18,23 +19,11 @@ const ROLE_BG: Record<string, string> = {
 };
 
 export default function AdminUsersScreen() {
-  const [users, setUsers]           = useState<any[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
-    try {
-      const res = await api.get("/admin/users");
-      setUsers(res.data);
-    } catch {
-      setUsers([]);
-    } finally {
-      if (isRefresh) setRefreshing(false); else setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const { data: users = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.admin.users(),
+    queryFn: () => api.get("/admin/users").then(r => r.data ?? []),
+    staleTime: 60_000,
+  });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -44,15 +33,15 @@ export default function AdminUsersScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {loading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
 
-        {!loading && users.length === 0 && (
+        {!isLoading && users.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>No users found.</Text>
         )}
 
-        {!loading && users.map(u => (
+        {!isLoading && users.map((u: any) => (
           <TouchableOpacity
             key={u.id}
             onPress={() => router.push(`/(admin)/users/${u.id}` as any)}

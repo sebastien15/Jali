@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StatusBar, Alert, ActivityIndicator, Modal, KeyboardAvoidingView, Platform,
+  StatusBar, Alert, ActivityIndicator, Modal, KeyboardAvoidingView, Platform, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { DriverCar } from "@/constants/data";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 const CAR_TYPES = ["Sedan", "SUV", "Minivan", "Pickup"] as const;
@@ -22,17 +24,17 @@ const STATUS_META: Record<CarStatus, { label: string; color: string; bg: string 
 };
 
 export default function FleetScreen() {
-  const [cars, setCars]           = useState<DriverCar[]>([]);
+  const queryClient = useQueryClient();
   const [expandedId, setExpandedId] = useState<number | null>(null);
-
-  useEffect(() => {
-    api.get("/driver/cars").then(r => setCars(r.data)).catch(() => setCars([]));
-  }, []);
-  const [saving, setSaving]       = useState<number | null>(null); // car id being saved
-  const [showAdd, setShowAdd]     = useState(false);
-
-  // Editable fields per card (keyed by car id)
+  const [saving, setSaving] = useState<number | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
   const [edits, setEdits] = useState<Record<number, Partial<DriverCar>>>({});
+
+  const { data: cars = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.driver.cars(),
+    queryFn: () => api.get("/driver/cars").then(r => r.data ?? []),
+    staleTime: 5 * 60_000,
+  });
 
   function getEdit<K extends keyof DriverCar>(car: DriverCar, key: K): DriverCar[K] {
     return (edits[car.id]?.[key] ?? car[key]) as DriverCar[K];
@@ -47,7 +49,7 @@ export default function FleetScreen() {
     setSaving(car.id);
     try {
       await api.patch(`/driver/cars/${car.id}`, patch);
-      setCars(cs => cs.map(c => c.id === car.id ? { ...c, ...patch } : c));
+      queryClient.invalidateQueries({ queryKey: queryKeys.driver.cars() });
       setEdits(e => { const n = { ...e }; delete n[car.id]; return n; });
       setExpandedId(null);
     } catch {
@@ -68,7 +70,7 @@ export default function FleetScreen() {
           onPress: async () => {
             try {
               await api.delete(`/driver/cars/${car.id}`);
-              setCars(cs => cs.filter(c => c.id !== car.id));
+              queryClient.invalidateQueries({ queryKey: queryKeys.driver.cars() });
             } catch {
               Alert.alert("Error", "Could not remove car.");
             }
@@ -110,8 +112,13 @@ export default function FleetScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {cars.length === 0 && (
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+      >
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
+
+        {!isLoading && (cars as DriverCar[]).length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 48 }}>
             <Text style={{ fontSize: 40 }}>🚗</Text>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14, marginTop: 8 }}>
@@ -120,7 +127,7 @@ export default function FleetScreen() {
           </View>
         )}
 
-        {cars.map(car => {
+        {(cars as DriverCar[]).map(car => {
           const expanded = expandedId === car.id;
           const currentStatus = getEdit(car, "status") as CarStatus;
           const meta = STATUS_META[currentStatus];
@@ -289,8 +296,8 @@ export default function FleetScreen() {
       <AddCarSheet
         visible={showAdd}
         onClose={() => setShowAdd(false)}
-        onAdd={(car) => {
-          setCars(cs => [...cs, car]);
+        onAdd={() => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.driver.cars() });
           setShowAdd(false);
         }}
       />
@@ -302,15 +309,15 @@ export default function FleetScreen() {
 function AddCarSheet({ visible, onClose, onAdd }: {
   visible: boolean;
   onClose: () => void;
-  onAdd: (car: DriverCar) => void;
+  onAdd: () => void;
 }) {
-  const [name, setName]       = useState("");
-  const [type, setType]       = useState<CarType>("Sedan");
-  const [plate, setPlate]     = useState("");
-  const [seats, setSeats]     = useState("5");
+  const [name, setName]         = useState("");
+  const [type, setType]         = useState<CarType>("Sedan");
+  const [plate, setPlate]       = useState("");
+  const [seats, setSeats]       = useState("5");
   const [priceDay, setPriceDay] = useState("");
-  const [caution, setCaution] = useState("");
-  const [saving, setSaving]   = useState(false);
+  const [caution, setCaution]   = useState("");
+  const [saving, setSaving]     = useState(false);
 
   async function handleAdd() {
     if (!name.trim() || !plate.trim() || !priceDay) {
@@ -332,11 +339,10 @@ function AddCarSheet({ visible, onClose, onAdd }: {
         amenities: [],
         photos: {},
       };
-      const res = await api.post("/driver/cars", newCar);
-      onAdd({ ...newCar, id: res.data.id } as DriverCar);
-      // Reset
+      await api.post("/driver/cars", newCar);
       setName(""); setPlate(""); setPriceDay(""); setCaution("");
       setType("Sedan"); setSeats("5");
+      onAdd();
     } catch {
       Alert.alert("Error", "Could not add car.");
     } finally {

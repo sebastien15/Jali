@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
-import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 const ACTION_LABELS: Record<string, string> = {
   booking_claimed: "Claimed booking",
@@ -38,52 +39,35 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 export default function AdminLogsScreen() {
-  const { t } = useTranslation();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [filterModal, setFilterModal] = useState(false);
+  const [pendingFilter, setPendingFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
 
-  const load = useCallback(
-    async (reset = false) => {
-      if (reset) {
-        setPage(1);
-        setLogs([]);
-      }
-      if (reset) setRefreshing(true);
-      setLoading(true);
-      try {
-        const res = await api.get("/admin/logs", {
-          params: {
-            page: reset ? 1 : page,
-            per_page: 30,
-            ...(actionFilter ? { action: actionFilter } : {}),
-          },
-        });
-        const data = res.data.data ?? [];
-        setLogs((prev) => (reset ? data : [...prev, ...data]));
-        setHasMore(!!res.data.next_page_url);
-      } catch {
-        setLogs([]);
-      } finally {
-        setLoading(false);
-        if (reset) setRefreshing(false);
-      }
-    },
-    [page, actionFilter],
-  );
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.admin.logs(actionFilter || undefined),
+    queryFn: ({ pageParam = 1 }) =>
+      api.get("/admin/logs", {
+        params: {
+          page: pageParam,
+          per_page: 30,
+          ...(actionFilter ? { action: actionFilter } : {}),
+        },
+      }).then(r => r.data),
+    getNextPageParam: (lastPage: any) =>
+      lastPage.next_page_url ? (lastPage.current_page + 1) : undefined,
+    initialPageParam: 1,
+    staleTime: 30_000,
+  });
 
-  useEffect(() => {
-    load(true);
-  }, []);
-
-  function handleFilter() {
-    setFilterModal(false);
-    load(true);
-  }
+  const logs = data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
 
   function formatTime(iso: string) {
     const d = new Date(iso);
@@ -102,7 +86,7 @@ export default function AdminLogsScreen() {
         title="Logs"
         right={
           <TouchableOpacity
-            onPress={() => setFilterModal(true)}
+            onPress={() => { setPendingFilter(actionFilter); setFilterModal(true); }}
             style={{
               backgroundColor: "rgba(255,255,255,0.2)",
               borderRadius: 10,
@@ -120,23 +104,20 @@ export default function AdminLogsScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
       >
-        {loading && logs.length === 0 && (
+        {isLoading && logs.length === 0 && (
           <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
         )}
 
-        {logs.length === 0 && !loading && (
+        {logs.length === 0 && !isLoading && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
             No activity logs yet.
           </Text>
         )}
 
-        {logs.map((log) => (
+        {logs.map((log: any) => (
           <View
             key={log.id}
             style={{
@@ -181,12 +162,9 @@ export default function AdminLogsScreen() {
           </View>
         ))}
 
-        {hasMore && !loading && (
+        {hasNextPage && !isFetchingNextPage && (
           <TouchableOpacity
-            onPress={() => {
-              setPage((p) => p + 1);
-              load();
-            }}
+            onPress={() => fetchNextPage()}
             style={{ paddingVertical: 14, alignItems: "center" }}
           >
             <Text style={{ color: C.teal, fontWeight: "700", fontSize: 14 }}>
@@ -194,7 +172,7 @@ export default function AdminLogsScreen() {
             </Text>
           </TouchableOpacity>
         )}
-        {loading && logs.length > 0 && (
+        {isFetchingNextPage && (
           <ActivityIndicator color={C.teal} style={{ marginTop: 16 }} />
         )}
       </ScrollView>
@@ -238,17 +216,15 @@ export default function AdminLogsScreen() {
               Filter Logs
             </Text>
             <TextInput
-              value={actionFilter}
-              onChangeText={setActionFilter}
+              value={pendingFilter}
+              onChangeText={setPendingFilter}
               placeholder="Filter by action (e.g. booking_claimed)"
               placeholderTextColor={C.muted}
               style={inputStyle}
             />
             <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
               <TouchableOpacity
-                onPress={() => {
-                  setFilterModal(false);
-                }}
+                onPress={() => setFilterModal(false)}
                 style={{
                   flex: 1,
                   paddingVertical: 14,
@@ -260,7 +236,7 @@ export default function AdminLogsScreen() {
                 <Text style={{ color: C.mid, fontWeight: "700" }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={handleFilter}
+                onPress={() => { setActionFilter(pendingFilter); setFilterModal(false); }}
                 style={{
                   flex: 1,
                   paddingVertical: 14,
@@ -271,20 +247,14 @@ export default function AdminLogsScreen() {
               >
                 <Text style={{ color: C.white, fontWeight: "800" }}>Apply</Text>
               </TouchableOpacity>
-              {actionFilter && (
+              {pendingFilter ? (
                 <TouchableOpacity
-                  onPress={() => {
-                    setActionFilter("");
-                    setFilterModal(false);
-                    load(true);
-                  }}
+                  onPress={() => { setPendingFilter(""); setActionFilter(""); setFilterModal(false); }}
                   style={{ paddingVertical: 14, paddingHorizontal: 16 }}
                 >
-                  <Text style={{ color: "#DC2626", fontWeight: "700" }}>
-                    Clear
-                  </Text>
+                  <Text style={{ color: "#DC2626", fontWeight: "700" }}>Clear</Text>
                 </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
         </View>

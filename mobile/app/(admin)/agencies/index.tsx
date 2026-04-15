@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,16 +13,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
-type Station = {
-  id: number;
-  city: string;
-  district: string | null;
-};
+type Station = { id: number; city: string; district: string | null };
 
 type AgencyRoute = {
   id: number;
@@ -40,39 +38,23 @@ type Agency = {
 
 export default function AgenciesScreen() {
   const { t } = useTranslation();
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [modal, setModal] = useState<{
-    mode: "create" | "edit";
-    agency?: Agency;
-  } | null>(null);
+  const queryClient = useQueryClient();
+  const [modal, setModal] = useState<{ mode: "create" | "edit"; agency?: Agency } | null>(null);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [agenciesRes, stationsRes] = await Promise.all([
-        api.get("/admin/agencies"),
-        api.get("/stations"),
-      ]);
-      setAgencies(agenciesRes.data);
-      setStations(stationsRes.data);
-    } catch {
-      setAgencies([]);
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, []);
+  const { data: agencies = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.admin.agencies(),
+    queryFn: () => api.get("/admin/agencies").then(r => r.data ?? []),
+    staleTime: 5 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data: stations = [] } = useQuery({
+    queryKey: queryKeys.stations.public(),
+    queryFn: () => api.get("/stations").then(r => r.data ?? []),
+    staleTime: 10 * 60_000,
+  });
 
   useEffect(() => {
     if (successMsg) {
@@ -85,11 +67,16 @@ export default function AgenciesScreen() {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await api.post("/admin/agencies", { name: name.trim() });
+      if (modal?.mode === "create") {
+        await api.post("/admin/agencies", { name: name.trim() });
+        setSuccessMsg(t("agencies.created"));
+      } else if (modal?.agency) {
+        await api.patch(`/admin/agencies/${modal.agency.id}`, { name: name.trim() });
+        setSuccessMsg(t("agencies.updated") ?? "Agency updated.");
+      }
       setModal(null);
       setName("");
-      setSuccessMsg(t("agencies.created"));
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.agencies() });
     } catch (e: any) {
       Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
     } finally {
@@ -107,12 +94,9 @@ export default function AgenciesScreen() {
           try {
             await api.delete(`/admin/agencies/${agency.id}`);
             setSuccessMsg(t("agencies.deleted"));
-            load();
+            queryClient.invalidateQueries({ queryKey: queryKeys.admin.agencies() });
           } catch (e: any) {
-            Alert.alert(
-              t("common.close"),
-              e?.response?.data?.message ?? "Failed",
-            );
+            Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
           }
         },
       },
@@ -126,7 +110,7 @@ export default function AgenciesScreen() {
         to_station_id: toId,
       });
       setSuccessMsg(t("agencies.routeAdded"));
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.agencies() });
     } catch (e: any) {
       Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
     }
@@ -136,7 +120,7 @@ export default function AgenciesScreen() {
     try {
       await api.delete(`/admin/agencies/${agencyId}/routes/${routeId}`);
       setSuccessMsg(t("agencies.routeRemoved"));
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.agencies() });
     } catch (e: any) {
       Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
     }
@@ -149,116 +133,53 @@ export default function AgenciesScreen() {
         title={t("agencies.title")}
         right={
           <TouchableOpacity
-            onPress={() => {
-              setModal({ mode: "create" });
-              setName("");
-            }}
-            style={{
-              backgroundColor: "rgba(255,255,255,0.2)",
-              borderRadius: 10,
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-            }}
+            onPress={() => { setModal({ mode: "create" }); setName(""); }}
+            style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 }}
           >
-            <Text style={{ color: C.white, fontWeight: "800", fontSize: 18 }}>
-              +
-            </Text>
+            <Text style={{ color: C.white, fontWeight: "800", fontSize: 18 }}>+</Text>
           </TouchableOpacity>
         }
       />
 
       {/* Success banner */}
       {successMsg ? (
-        <View
-          style={{
-            backgroundColor: C.greenLt,
-            padding: 12,
-            marginHorizontal: 16,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: C.green, fontWeight: "700", fontSize: 13 }}>
-            {successMsg}
-          </Text>
+        <View style={{ backgroundColor: C.greenLt, padding: 12, marginHorizontal: 16, borderRadius: 10 }}>
+          <Text style={{ color: C.green, fontWeight: "700", fontSize: 13 }}>{successMsg}</Text>
         </View>
       ) : null}
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {loading && (
-          <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
-        )}
+        {isLoading && <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />}
 
-        {!loading && agencies.length === 0 && (
+        {!isLoading && (agencies as Agency[]).length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
             {t("agencies.noAgencies")}
           </Text>
         )}
 
-        {!loading &&
-          agencies.map((a) => (
-            <AgencyCard
-              key={a.id}
-              agency={a}
-              stations={stations}
-              onEdit={() => {
-                setModal({ mode: "edit", agency: a });
-                setName(a.name);
-              }}
-              onDelete={() => handleDelete(a)}
-              onAddRoute={(fromId, toId) => handleAddRoute(a.id, fromId, toId)}
-              onRemoveRoute={(routeId) => handleRemoveRoute(a.id, routeId)}
-            />
-          ))}
+        {!isLoading && (agencies as Agency[]).map((a) => (
+          <AgencyCard
+            key={a.id}
+            agency={a}
+            stations={stations as Station[]}
+            onEdit={() => { setModal({ mode: "edit", agency: a }); setName(a.name); }}
+            onDelete={() => handleDelete(a)}
+            onAddRoute={(fromId, toId) => handleAddRoute(a.id, fromId, toId)}
+            onRemoveRoute={(routeId) => handleRemoveRoute(a.id, routeId)}
+          />
+        ))}
       </ScrollView>
 
       {/* Create/Edit modal */}
       <Modal visible={!!modal} animationType="slide" transparent>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
-              paddingBottom: 40,
-              maxHeight: "90%",
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                backgroundColor: C.border,
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 20,
-              }}
-            />
-            <Text
-              style={{
-                fontWeight: "900",
-                fontSize: 18,
-                color: C.dark,
-                marginBottom: 16,
-              }}
-            >
-              {modal?.mode === "create"
-                ? t("agencies.addNew")
-                : t("agencies.editAgency")}
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: "90%" }}>
+            <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
+            <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark, marginBottom: 16 }}>
+              {modal?.mode === "create" ? t("agencies.addNew") : t("agencies.editAgency")}
             </Text>
 
             <TextInput
@@ -267,46 +188,23 @@ export default function AgenciesScreen() {
               placeholder={t("agencies.namePlaceholder")}
               placeholderTextColor={C.muted}
               style={{
-                backgroundColor: C.bg,
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 13,
-                fontSize: 14,
-                color: C.dark,
-                borderWidth: 1.5,
-                borderColor: C.border,
-                marginBottom: 16,
+                backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14,
+                paddingVertical: 13, fontSize: 14, color: C.dark,
+                borderWidth: 1.5, borderColor: C.border, marginBottom: 16,
               }}
             />
 
             <View style={{ flexDirection: "row", gap: 10 }}>
               <TouchableOpacity
-                onPress={() => {
-                  setModal(null);
-                  setName("");
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: C.bg,
-                  alignItems: "center",
-                }}
+                onPress={() => { setModal(null); setName(""); }}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.bg, alignItems: "center" }}
               >
-                <Text style={{ color: C.mid, fontWeight: "700" }}>
-                  {t("common.cancel") ?? "Cancel"}
-                </Text>
+                <Text style={{ color: C.mid, fontWeight: "700" }}>{t("common.cancel") ?? "Cancel"}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleCreate}
                 disabled={saving || !name.trim()}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: saving || !name.trim() ? C.border : C.teal,
-                  alignItems: "center",
-                }}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: saving || !name.trim() ? C.border : C.teal, alignItems: "center" }}
               >
                 {saving ? (
                   <ActivityIndicator color="#fff" size="small" />
@@ -325,12 +223,7 @@ export default function AgenciesScreen() {
 }
 
 function AgencyCard({
-  agency,
-  stations,
-  onEdit,
-  onDelete,
-  onAddRoute,
-  onRemoveRoute,
+  agency, stations, onEdit, onDelete, onAddRoute, onRemoveRoute,
 }: {
   agency: Agency;
   stations: Station[];
@@ -345,46 +238,19 @@ function AgencyCard({
   const [toId, setToId] = useState<number | null>(null);
 
   return (
-    <View
-      style={{
-        backgroundColor: C.white,
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOpacity: 0.07,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
+    <View style={{
+      backgroundColor: C.white, borderRadius: 20, padding: 16, marginBottom: 12,
+      shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 10, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.dark, fontWeight: "900", fontSize: 15 }}>
-            {agency.name}
-          </Text>
+          <Text style={{ color: C.dark, fontWeight: "900", fontSize: 15 }}>{agency.name}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
             <Ionicons name="star" size={14} color={C.yellow} />
             <Text style={{ color: C.mid, fontSize: 12 }}>
-              {agency.average_rating > 0
-                ? agency.average_rating.toFixed(1)
-                : "New"}{" "}
-              ({agency.ratings_count})
+              {agency.average_rating > 0 ? agency.average_rating.toFixed(1) : "New"}{" "}({agency.ratings_count})
             </Text>
-            <View
-              style={{
-                backgroundColor: C.tealLt,
-                borderRadius: 6,
-                paddingHorizontal: 8,
-                paddingVertical: 2,
-              }}
-            >
+            <View style={{ backgroundColor: C.tealLt, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
               <Text style={{ color: C.teal, fontSize: 11, fontWeight: "700" }}>
                 {agency.routes.length} {t("agencies.routes")}
               </Text>
@@ -401,41 +267,18 @@ function AgencyCard({
         </View>
       </View>
 
-      {/* Routes */}
       {agency.routes.length > 0 && (
         <View style={{ marginTop: 12 }}>
-          <Text
-            style={{
-              color: C.muted,
-              fontSize: 11,
-              fontWeight: "700",
-              marginBottom: 6,
-              textTransform: "uppercase",
-            }}
-          >
+          <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 6, textTransform: "uppercase" }}>
             {t("agencies.routes")}
           </Text>
           {agency.routes.map((r) => (
-            <View
-              key={r.id}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: C.bg,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                marginBottom: 4,
-              }}
-            >
-              <Text style={{ color: C.dark, fontSize: 13, fontWeight: "600" }}>
-                {r.from.city} → {r.to.city}
-              </Text>
-              <TouchableOpacity
-                onPress={() => onRemoveRoute(r.id)}
-                style={{ padding: 4 }}
-              >
+            <View key={r.id} style={{
+              flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+              backgroundColor: C.bg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 4,
+            }}>
+              <Text style={{ color: C.dark, fontSize: 13, fontWeight: "600" }}>{r.from.city} → {r.to.city}</Text>
+              <TouchableOpacity onPress={() => onRemoveRoute(r.id)} style={{ padding: 4 }}>
                 <Ionicons name="close-circle" size={16} color={C.muted} />
               </TouchableOpacity>
             </View>
@@ -443,162 +286,53 @@ function AgencyCard({
         </View>
       )}
 
-      {/* Add route button */}
       <TouchableOpacity
-        onPress={() => {
-          setRouteModal(true);
-          setFromId(null);
-          setToId(null);
-        }}
-        style={{
-          marginTop: 10,
-          paddingVertical: 10,
-          borderRadius: 10,
-          backgroundColor: C.tealLt,
-          alignItems: "center",
-        }}
+        onPress={() => { setRouteModal(true); setFromId(null); setToId(null); }}
+        style={{ marginTop: 10, paddingVertical: 10, borderRadius: 10, backgroundColor: C.tealLt, alignItems: "center" }}
       >
-        <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>
-          + {t("agencies.addRoute")}
-        </Text>
+        <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>+ {t("agencies.addRoute")}</Text>
       </TouchableOpacity>
 
       {/* Route picker modal */}
       <Modal visible={routeModal} animationType="slide" transparent>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
-              paddingBottom: 40,
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                backgroundColor: C.border,
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 20,
-              }}
-            />
-            <Text
-              style={{
-                fontWeight: "900",
-                fontSize: 18,
-                color: C.dark,
-                marginBottom: 16,
-              }}
-            >
-              {t("agencies.addRoute")}
-            </Text>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
+            <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
+            <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark, marginBottom: 16 }}>{t("agencies.addRoute")}</Text>
 
-            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 6 }}>
-              {t("trips.from")}
-            </Text>
+            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 6 }}>{t("trips.from")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                {stations
-                  .filter((s) => s.id !== toId)
-                  .map((s) => (
-                    <TouchableOpacity
-                      key={s.id}
-                      onPress={() => setFromId(s.id)}
-                      style={{
-                        paddingHorizontal: 14,
-                        paddingVertical: 8,
-                        borderRadius: 10,
-                        backgroundColor:
-                          fromId === s.id ? C.teal : C.bg,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: fromId === s.id ? C.white : C.dark,
-                          fontWeight: "700",
-                          fontSize: 13,
-                        }}
-                      >
-                        {s.city}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                {stations.filter((s) => s.id !== toId).map((s) => (
+                  <TouchableOpacity key={s.id} onPress={() => setFromId(s.id)}
+                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: fromId === s.id ? C.teal : C.bg }}>
+                    <Text style={{ color: fromId === s.id ? C.white : C.dark, fontWeight: "700", fontSize: 13 }}>{s.city}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </ScrollView>
 
-            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 6 }}>
-              {t("trips.to")}
-            </Text>
+            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 6 }}>{t("trips.to")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                {stations
-                  .filter((s) => s.id !== fromId)
-                  .map((s) => (
-                    <TouchableOpacity
-                      key={s.id}
-                      onPress={() => setToId(s.id)}
-                      style={{
-                        paddingHorizontal: 14,
-                        paddingVertical: 8,
-                        borderRadius: 10,
-                        backgroundColor:
-                          toId === s.id ? C.teal : C.bg,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: toId === s.id ? C.white : C.dark,
-                          fontWeight: "700",
-                          fontSize: 13,
-                        }}
-                      >
-                        {s.city}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                {stations.filter((s) => s.id !== fromId).map((s) => (
+                  <TouchableOpacity key={s.id} onPress={() => setToId(s.id)}
+                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: toId === s.id ? C.teal : C.bg }}>
+                    <Text style={{ color: toId === s.id ? C.white : C.dark, fontWeight: "700", fontSize: 13 }}>{s.city}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </ScrollView>
 
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <TouchableOpacity
-                onPress={() => setRouteModal(false)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor: C.bg,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: C.mid, fontWeight: "700" }}>
-                  {t("common.cancel") ?? "Cancel"}
-                </Text>
+              <TouchableOpacity onPress={() => setRouteModal(false)}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.bg, alignItems: "center" }}>
+                <Text style={{ color: C.mid, fontWeight: "700" }}>{t("common.cancel") ?? "Cancel"}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => {
-                  if (fromId && toId) {
-                    onAddRoute(fromId, toId);
-                    setRouteModal(false);
-                  }
-                }}
+                onPress={() => { if (fromId && toId) { onAddRoute(fromId, toId); setRouteModal(false); } }}
                 disabled={!fromId || !toId}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  backgroundColor:
-                    fromId && toId ? C.teal : C.border,
-                  alignItems: "center",
-                }}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: fromId && toId ? C.teal : C.border, alignItems: "center" }}
               >
                 <Text style={{ color: C.white, fontWeight: "800" }}>Add</Text>
               </TouchableOpacity>

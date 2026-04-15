@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
 import {
   View,
@@ -8,19 +8,19 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
-import { useRef } from "react";
 import { Toast, ToastHandle } from "@/components/Toast";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import { queryKeys } from "@/lib/queryKeys";
 
 type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "taken" | "ticket_ready" | "delivered";
 
@@ -47,78 +47,51 @@ const TABS: { key: "all" | BookingStatus; label: string }[] = [
 
 export default function AdminBookingsScreen() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { isSuperAdmin } = useAdminNav();
   const { status: initialStatus } = useLocalSearchParams<{ status?: string }>();
   const [filter, setFilter] = useState<"all" | BookingStatus>(
     (initialStatus as BookingStatus) ?? "all"
   );
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const toastRef = useRef<ToastHandle>(null);
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
+  const { data: bookings = [], isLoading, isRefetching, refetch } = useQuery({
+    queryKey: queryKeys.admin.bookings(filter !== "all" ? filter : undefined),
+    queryFn: () => {
       const params: any = {};
       if (filter !== "all") params.status = filter;
-      const res = await api.get("/admin/bookings", { params });
-      setBookings(res.data);
-    } catch {
-      setBookings([]);
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, [filter, isSuperAdmin]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+      return api.get("/admin/bookings", { params }).then(r => r.data ?? []);
+    },
+    staleTime: 30_000,
+  });
 
   const STATUS_PRIORITY: Record<string, number> = {
-    pending: 0,
-    taken: 1,
-    ticket_ready: 2,
-    delivered: 3,
-    confirmed: 4,
-    completed: 5,
-    cancelled: 6,
+    pending: 0, taken: 1, ticket_ready: 2, delivered: 3,
+    confirmed: 4, completed: 5, cancelled: 6,
   };
 
-  const list = (filter === "all" ? bookings : bookings.filter((b) => b.status === filter))
+  const list = bookings
     .slice()
-    .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 9) - (STATUS_PRIORITY[b.status] ?? 9));
+    .sort((a: any, b: any) => (STATUS_PRIORITY[a.status] ?? 9) - (STATUS_PRIORITY[b.status] ?? 9));
 
-  // Calculate total service fees (system revenue)
-  const totalServiceFees = bookings.reduce((sum, b) => sum + (b.service_fee ?? 0), 0);
+  const totalServiceFees = bookings.reduce((sum: number, b: any) => sum + (b.service_fee ?? 0), 0);
 
   async function doStatusChange(id: number, status: string) {
-    console.log(`[Booking] PATCH /admin/bookings/${id} → status: ${status}`);
     setActionLoading(id);
     try {
-      const res = await api.patch(`/admin/bookings/${id}`, { status });
-      console.log(`[Booking] Success:`, res.data);
+      await api.patch(`/admin/bookings/${id}`, { status });
       toastRef.current?.show({ message: `Booking updated to ${status.replace("_", " ")}`, type: "success" });
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? "Failed to update booking.";
-      console.log(`[Booking] Error:`, e?.response?.status, msg);
       toastRef.current?.show({ message: msg, type: "error" });
     } finally {
       setActionLoading(null);
     }
   }
 
-  function handleStatusChange(id: number, status: string) {
-    console.log(`[Booking] button pressed → id=${id} status=${status}`);
-    doStatusChange(id, status);
-  }
-
   async function doUploadTicket(id: number) {
-    console.log(`[Booking] opening image picker for booking ${id}`);
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.9,
@@ -130,7 +103,6 @@ export default function AdminBookingsScreen() {
     const asset = result.assets[0];
     setActionLoading(id);
     try {
-      // Compress images; skip for PDFs and other non-image types
       const isImage = !asset.mimeType || asset.mimeType.startsWith("image/");
       let uri = asset.uri;
       let mimeType = asset.mimeType ?? "image/jpeg";
@@ -138,17 +110,15 @@ export default function AdminBookingsScreen() {
       if (isImage) {
         const compressed = await ImageManipulator.manipulateAsync(
           asset.uri,
-          [{ resize: { width: 1200 } }], // cap width, height auto-scales
+          [{ resize: { width: 1200 } }],
           { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
         );
         uri = compressed.uri;
         mimeType = "image/jpeg";
-        console.log(`[Booking] compressed image: ${asset.uri} → ${compressed.uri}`);
       }
 
       const form = new FormData();
       if (Platform.OS === "web") {
-        // On web, fetch the blob URL and append as a real Blob
         const response = await fetch(uri);
         const blob = await response.blob();
         form.append("ticket", blob, asset.fileName ?? "ticket.jpg");
@@ -164,12 +134,10 @@ export default function AdminBookingsScreen() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log(`[Booking] ticket uploaded for booking ${id}`);
       toastRef.current?.show({ message: "Ticket uploaded — booking marked ready", type: "success" });
-      load();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? "Failed to upload ticket.";
-      console.log(`[Booking] upload error:`, e?.response?.status, msg);
       toastRef.current?.show({ message: msg, type: "error" });
     } finally {
       setActionLoading(null);
@@ -182,7 +150,7 @@ export default function AdminBookingsScreen() {
         <ActionBtn
           label="Claim Booking"
           color={C.teal}
-          onPress={() => handleStatusChange(b.id, "taken")}
+          onPress={() => doStatusChange(b.id, "taken")}
           loading={actionLoading === b.id}
         />
       );
@@ -202,7 +170,7 @@ export default function AdminBookingsScreen() {
         <ActionBtn
           label="Mark Delivered"
           color={C.green}
-          onPress={() => handleStatusChange(b.id, "delivered")}
+          onPress={() => doStatusChange(b.id, "delivered")}
           loading={actionLoading === b.id}
         />
       );
@@ -239,10 +207,7 @@ export default function AdminBookingsScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
       >
         {/* Revenue summary for superadmin */}
@@ -264,18 +229,18 @@ export default function AdminBookingsScreen() {
           </View>
         )}
 
-        {loading && (
+        {isLoading && (
           <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
         )}
 
-        {!loading && list.length === 0 && (
+        {!isLoading && list.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
             {t("adminBookings.noBookings") || "No bookings found."}
           </Text>
         )}
 
-        {!loading &&
-          list.map((b) => {
+        {!isLoading &&
+          list.map((b: any) => {
             const meta = STATUS_META[b.status as BookingStatus] ?? STATUS_META.pending;
             return (
               <View
@@ -324,7 +289,6 @@ export default function AdminBookingsScreen() {
                         {b.confirmed_at ? ` · ${new Date(b.confirmed_at).toLocaleString()}` : ""}
                       </Text>
                     )}
-                    {/* Quantity + passenger names */}
                     {b.quantity > 1 && (
                       <Text style={{ color: C.blue, fontSize: 12, marginTop: 4, fontWeight: "700" }}>
                         🎟 {b.quantity} tickets
@@ -333,7 +297,6 @@ export default function AdminBookingsScreen() {
                           : ""}
                       </Text>
                     )}
-                    {/* Booked at */}
                     {b.created_at && (
                       <Text style={{ color: C.muted, fontSize: 11, marginTop: 3 }}>
                         🕐 {new Date(b.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}

@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,41 +7,43 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
-import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 export default function AdminAnalyticsScreen() {
-  const { t } = useTranslation();
-  const [revenue, setRevenue] = useState<any>(null);
-  const [bookings, setBookings] = useState<any>(null);
-  const [earnings, setEarnings] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [revRes, bkRes, earnRes] = await Promise.all([
-        api.get("/analytics/revenue"),
-        api.get("/analytics/bookings"),
-        api.get("/analytics/earnings"),
-      ]);
-      setRevenue(revRes.data.data);
-      setBookings(bkRes.data.data);
-      setEarnings(earnRes.data.data);
-    } catch {
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, []);
+  const revenueQuery = useQuery({
+    queryKey: queryKeys.admin.analytics.revenue(),
+    queryFn: () => api.get("/analytics/revenue").then(r => r.data.data),
+    staleTime: 5 * 60_000,
+  });
+  const bookingsQuery = useQuery({
+    queryKey: queryKeys.admin.analytics.bookings(),
+    queryFn: () => api.get("/analytics/bookings").then(r => r.data.data),
+    staleTime: 5 * 60_000,
+  });
+  const earningsQuery = useQuery({
+    queryKey: queryKeys.admin.analytics.earnings(),
+    queryFn: () => api.get("/analytics/earnings").then(r => r.data.data),
+    staleTime: 5 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const revenue  = revenueQuery.data;
+  const bookings = bookingsQuery.data;
+  const earnings = earningsQuery.data;
+
+  const isLoading = revenueQuery.isLoading || bookingsQuery.isLoading || earningsQuery.isLoading;
+  const isRefetching = revenueQuery.isRefetching || bookingsQuery.isRefetching || earningsQuery.isRefetching;
+
+  function onRefresh() {
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.revenue() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.bookings() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.earnings() });
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -53,13 +54,10 @@ export default function AdminAnalyticsScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
-        {loading ? (
+        {isLoading ? (
           <ActivityIndicator color={C.teal} style={{ marginTop: 32 }} />
         ) : (
           <>

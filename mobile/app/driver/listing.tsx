@@ -7,8 +7,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { isDev, isTest } from "@/lib/env";
+import { queryKeys } from "@/lib/queryKeys";
 
 // DateTimePicker is a native community module — not available in Expo Go.
 // Lazy-require it so dev/test (Expo Go) mode never loads the native binary.
@@ -73,31 +75,43 @@ export default function ListingScreen() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Load existing listing when editing — from API in test/prod, from mocks in dev
+  const queryClient = useQueryClient();
+
+  const { data: listing } = useQuery({
+    queryKey: queryKeys.driver.listing(editId!),
+    queryFn: () => api.get(`/driver/listings/${editId}`).then(r => r.data as DriverListing),
+    enabled: !!editId,
+    staleTime: 2 * 60_000,
+    refetchOnWindowFocus: false,
+    initialData: () => {
+      if (!editId) return undefined;
+      const cached = queryClient.getQueryData<DriverListing[]>(queryKeys.driver.listings());
+      return cached?.find(l => l.id === editId) ?? undefined;
+    },
+  });
+
+  // Sync form fields when listing data arrives
   useEffect(() => {
-    if (!editId) return;
-    function apply(l: DriverListing) {
-      setFrom(l.from);
-      setTo(l.to);
-      setPickupStation(l.pickupStation);
-      setDropLocation(l.dropLocation);
-      if (l.date) setDate(parseDateString(l.date));
-      if (l.dep) {
-        const [h, m] = l.dep.split(":");
-        setHour(h); setMinute(m); setPendingHour(h); setPendingMinute(m);
-      }
-      setSeats(String(l.seats));
-      setPrice(String(l.price));
-      setAmenities(l.amenities ?? []);
-      setGroupDiscount(l.groupDiscount ?? false);
-      setGroupMinSize(l.groupMinSize ?? 3);
-      setGroupDiscountPct(l.groupDiscountPct ?? 10);
-      setAllowCustomPickup(l.allowCustomPickup ?? false);
-      setCustomPickupFee(String(l.customPickupFee ?? ""));
-      setNotes(l.notes ?? "");
+    if (!listing) return;
+    setFrom(listing.from);
+    setTo(listing.to);
+    setPickupStation(listing.pickupStation);
+    setDropLocation(listing.dropLocation);
+    if (listing.date) setDate(parseDateString(listing.date));
+    if (listing.dep) {
+      const [h, m] = listing.dep.split(":");
+      setHour(h); setMinute(m); setPendingHour(h); setPendingMinute(m);
     }
-    api.get(`/driver/listings/${editId}`).then(r => apply(r.data)).catch(() => {});
-  }, [editId]);
+    setSeats(String(listing.seats));
+    setPrice(String(listing.price));
+    setAmenities(listing.amenities ?? []);
+    setGroupDiscount(listing.groupDiscount ?? false);
+    setGroupMinSize(listing.groupMinSize ?? 3);
+    setGroupDiscountPct(listing.groupDiscountPct ?? 10);
+    setAllowCustomPickup(listing.allowCustomPickup ?? false);
+    setCustomPickupFee(String(listing.customPickupFee ?? ""));
+    setNotes(listing.notes ?? "");
+  }, [listing]);
 
   const stations = BUS_STATIONS[from] ?? [];
   const dep = `${hour}:${minute}`;
@@ -133,6 +147,7 @@ export default function ListingScreen() {
       };
       if (editId) await api.patch(`/driver/listings/${editId}`, payload);
       else await api.post("/driver/listings", payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.driver.listings() });
       Alert.alert(
         editId ? "Updated ✓" : "Listed ✓",
         editId ? "Your listing has been updated." : "Your trip is now listed for passengers to book.",
@@ -153,6 +168,7 @@ export default function ListingScreen() {
         onPress: async () => {
           try {
             await api.delete(`/driver/listings/${editId}`);
+            queryClient.invalidateQueries({ queryKey: queryKeys.driver.listings() });
             router.back();
           } catch {
             Alert.alert("Error", "Could not delete listing.");

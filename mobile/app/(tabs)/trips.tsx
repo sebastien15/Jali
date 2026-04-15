@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View, Text, ScrollView, TouchableOpacity,
   StatusBar, Image, Modal, ActivityIndicator, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -23,27 +25,16 @@ export default function TripsScreen() {
   const { t } = useTranslation();
   const [filter, setFilter]   = useState<"all" | TripStatus>("all");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading]   = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError]       = useState<string | null>(null);
 
-  const fetchBookings = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get("/bookings");
-      setBookings(res.data);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load trips";
-      setError(msg);
-      setBookings([]);
-    } finally {
-      if (isRefresh) setRefreshing(false); else setLoading(false);
-    }
-  }, []);
+  const { data: bookings = [], isLoading, isRefetching, error, refetch } = useQuery({
+    queryKey: queryKeys.bookings.mine(),
+    queryFn: () => api.get("/bookings").then(r => r.data ?? []),
+    staleTime: 60_000,
+  });
 
-  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+  const errorMsg = (error as any)?.response?.data?.message
+    ?? (error as any)?.response?.data?.error
+    ?? (error ? "Failed to load trips" : null);
 
   const list = filter === "all" ? bookings : bookings.filter((t: any) => t.status === filter);
 
@@ -81,18 +72,18 @@ export default function TripsScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchBookings(true)} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {loading && <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />}
+        {isLoading && <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />}
 
-        {error && !loading && (
+        {errorMsg && !isLoading && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ fontSize: 40 }}>⚠️</Text>
             <Text style={{ color: C.orange, fontWeight: "700", fontSize: 14, marginTop: 8, textAlign: "center" }}>
-              {error}
+              {errorMsg}
             </Text>
             <TouchableOpacity
-              onPress={() => fetchBookings()}
+              onPress={() => refetch()}
               style={{
                 marginTop: 16, backgroundColor: C.blue, borderRadius: 12,
                 paddingHorizontal: 24, paddingVertical: 12,
@@ -103,7 +94,7 @@ export default function TripsScreen() {
           </View>
         )}
 
-        {!loading && !error && list.length === 0 && (
+        {!isLoading && !errorMsg && list.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
             <Text style={{ fontSize: 40 }}>🗓️</Text>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14, marginTop: 8 }}>
@@ -112,7 +103,7 @@ export default function TripsScreen() {
           </View>
         )}
 
-        {!loading && list.map((trip: any) => (
+        {!isLoading && list.map((trip: any) => (
           <View
             key={trip.id}
             style={{

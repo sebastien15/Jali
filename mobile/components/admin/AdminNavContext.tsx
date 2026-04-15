@@ -1,17 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  Alert,
-} from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
 import api, { clearApiToken, getApiToken } from "@/lib/api";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { queryKeys } from "@/lib/queryKeys";
 
 type AdminUser = {
   name: string;
@@ -33,67 +27,59 @@ type AdminNavCtx = {
 const Ctx = createContext<AdminNavCtx | null>(null);
 
 export function AdminNavProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const mountedRef = useRef(true);
+  const queryClient = useQueryClient();
+  const [tokenChecked, setTokenChecked] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
-  const fetchUser = useCallback(async () => {
-    setLoading(true);
-    const token = await getApiToken();
-    if (!token) {
-      if (mountedRef.current) {
-        setUser(null);
-        setLoading(false);
-      }
-      return;
-    }
-    try {
-      const res = await api.get("/me");
-      if (mountedRef.current) setUser(res.data);
-    } catch {
-      if (mountedRef.current) setUser(null);
-    } finally {
-      if (mountedRef.current) setLoading(false);
-    }
+  // Check for token once on mount — gates the /me query
+  useEffect(() => {
+    getApiToken().then((token) => {
+      setHasToken(!!token);
+      setTokenChecked(true);
+    });
   }, []);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchUser();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchUser]);
+  const { data: user, isLoading, refetch: refetchQuery } = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: () => api.get("/me").then((r) => r.data as AdminUser),
+    staleTime: Infinity,   // role/permissions never change mid-session
+    enabled: hasToken,
+    retry: false,
+  });
 
-  const isSuperAdmin = user?.roles === "superadmin";
+  const isSuperAdmin = user?.roles === ROLES.SUPERADMIN;
+
+  // True while: (a) initial token check not done, or (b) token exists and /me is loading
+  const loading = !tokenChecked || (hasToken && isLoading);
+
+  // Called after login — re-checks token then triggers /me fetch
+  const refetch = useCallback(async () => {
+    const token = await getApiToken();
+    if (token) {
+      setHasToken(true);
+      await refetchQuery();
+    }
+  }, [refetchQuery]);
 
   const handleLogout = useCallback(async () => {
     try {
-      console.log("[AdminNav] Logging out...");
       await api.post("/auth/logout");
       await clearApiToken();
-      try {
-        await signOut(auth);
-      } catch {}
+      try { await signOut(auth); } catch {}
       try {
         localStorage.clear();
         sessionStorage.clear();
-        [
-          "firebaseLocalStorageDb",
-          "firebaseInstallationsDb",
-          "firebase-messaging-store",
-        ].forEach((db) => indexedDB.deleteDatabase(db));
+        ["firebaseLocalStorageDb", "firebaseInstallationsDb", "firebase-messaging-store"]
+          .forEach((db) => indexedDB.deleteDatabase(db));
       } catch {}
-      console.log("[AdminNav] Redirecting to login...");
-      router.replace("/(auth)/login");
-    } catch (e) {
-      console.log("[AdminNav] logout error:", e);
-      router.replace("/(auth)/login");
-    }
-  }, []);
+    } catch {}
+    // Wipe all cached data — next admin session starts fresh
+    queryClient.clear();
+    router.replace("/(auth)/login");
+  }, [queryClient]);
 
   return (
-    <Ctx.Provider value={{ user, isSuperAdmin, loading, refetch: fetchUser, handleLogout }}>
+    <Ctx.Provider value={{ user: user ?? null, isSuperAdmin, loading, refetch, handleLogout }}>
       {children}
     </Ctx.Provider>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   View,
   Text,
@@ -6,7 +7,6 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -28,18 +28,15 @@ export default function AdminLoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-redirect if already logged in
+  // Auto-redirect if already logged in via Firebase session
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
           const token = await firebaseUser.getIdToken(true);
-          const res = await api.post("/auth/login/google", {
-            firebase_token: token,
-          });
+          const res = await api.post("/auth/login/google", { firebase_token: token });
           if (res.data.token) {
             await setApiToken(res.data.token);
             const role: string = res.data.user?.roles ?? "";
@@ -54,56 +51,41 @@ export default function AdminLoginScreen() {
     return () => unsub();
   }, []);
 
-  async function handleLogin() {
-    if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    try {
-      // Try Laravel login first
+  const loginMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      // Try Laravel direct login first
       const res = await api.post("/auth/login", {
         email: email.trim().toLowerCase(),
         password,
       });
 
-      if (res.data.token) {
-        await setApiToken(res.data.token);
-        const role: string = res.data.user?.roles ?? "";
-        if (role === "superadmin" || role === "admin") {
-          await refetch();
-          router.replace("/(admin)/dashboard");
-        } else {
-          setError(t("authErrors.noAdminAccess"));
-          await clearApiToken();
-        }
+      if (res.data.token) return res.data;
+
+      // Fallback: Firebase → Laravel Google login
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password,
+      );
+      const firebaseToken = await userCred.user.getIdToken(true);
+      const googleRes = await api.post("/auth/login/google", {
+        firebase_token: firebaseToken,
+      });
+      return googleRes.data;
+    },
+    onSuccess: async (data) => {
+      const role: string = data.user?.roles ?? "";
+      if (role === "superadmin" || role === "admin") {
+        await setApiToken(data.token);
+        await refetch();
+        router.replace("/(admin)/dashboard");
       } else {
-        // Fallback: try Firebase → then Laravel Google login
-        const userCred = await signInWithEmailAndPassword(
-          auth,
-          email.trim().toLowerCase(),
-          password,
-        );
-        const firebaseToken = await userCred.user.getIdToken(true);
-        const googleRes = await api.post("/auth/login/google", {
-          firebase_token: firebaseToken,
-        });
-        if (googleRes.data.token) {
-          await setApiToken(googleRes.data.token);
-          const role: string = googleRes.data.user?.roles ?? "";
-          if (role === "superadmin" || role === "admin") {
-            await refetch();
-            router.replace("/(admin)/dashboard");
-          } else {
-            setError(t("authErrors.noAdminAccess"));
-            await clearApiToken();
-            await signOut(auth);
-          }
-        }
+        setError(t("authErrors.noAdminAccess"));
+        await clearApiToken();
+        try { await signOut(auth); } catch {}
       }
-    } catch (e: any) {
-      console.log("[AdminLogin] Login failed:", e?.response?.data || e.message);
+    },
+    onError: (e: any) => {
       if (e?.response?.status === 401 || e?.response?.status === 422) {
         setError(e?.response?.data?.message ?? "Invalid credentials");
       } else if (e?.code === "auth/network-request-failed") {
@@ -111,10 +93,42 @@ export default function AdminLoginScreen() {
       } else {
         setError(e?.message ?? t("authErrors.unknown"));
       }
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  const googleMutation = useMutation({
+    mutationFn: async () => {
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password || "placeholder",
+      );
+      const firebaseToken = await userCred.user.getIdToken(true);
+      const res = await api.post("/auth/login/google", { firebase_token: firebaseToken });
+      return res.data;
+    },
+    onSuccess: async (data) => {
+      if (data.token) {
+        await setApiToken(data.token);
+        await refetch();
+        router.replace("/(admin)/dashboard");
+      }
+    },
+    onError: (e: any) => {
+      setError(e?.response?.data?.message ?? e?.message ?? "Google sign-in failed");
+    },
+  });
+
+  function handleLogin() {
+    if (!email.trim() || !password) {
+      setError("Please enter your email and password.");
+      return;
     }
+    setError(null);
+    loginMutation.mutate({ email, password });
   }
+
+  const isLoading = loginMutation.isPending || googleMutation.isPending;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -129,31 +143,16 @@ export default function AdminLoginScreen() {
           paddingHorizontal: 28,
         }}
       >
-        <Text
-          style={{
-            color: C.yellow,
-            fontWeight: "900",
-            fontSize: 36,
-            letterSpacing: -1,
-          }}
-        >
+        <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 36, letterSpacing: -1 }}>
           Jali
         </Text>
-        <Text
-          style={{
-            color: "rgba(255,255,255,0.75)",
-            fontSize: 15,
-            marginTop: 4,
-            fontWeight: "600",
-          }}
-        >
+        <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, marginTop: 4, fontWeight: "600" }}>
           Admin Portal
         </Text>
       </View>
 
       {/* Body */}
       <View style={{ flex: 1, padding: 28, gap: 16 }}>
-        {/* Email */}
         <TextInput
           value={email}
           onChangeText={setEmail}
@@ -171,7 +170,6 @@ export default function AdminLoginScreen() {
           }}
         />
 
-        {/* Password */}
         <View
           style={{
             backgroundColor: C.white,
@@ -188,42 +186,22 @@ export default function AdminLoginScreen() {
             onChangeText={setPassword}
             placeholder="Password"
             secureTextEntry={!showPass}
-            style={{
-              flex: 1,
-              fontSize: 16,
-              paddingHorizontal: 16,
-              paddingVertical: 18,
-            }}
+            style={{ flex: 1, fontSize: 16, paddingHorizontal: 16, paddingVertical: 18 }}
           />
-          <TouchableOpacity
-            onPress={() => setShowPass((s) => !s)}
-            style={{ paddingHorizontal: 16 }}
-          >
-            <Ionicons
-              name={showPass ? "eye-off" : "eye"}
-              size={22}
-              color={C.mid}
-            />
+          <TouchableOpacity onPress={() => setShowPass((s) => !s)} style={{ paddingHorizontal: 16 }}>
+            <Ionicons name={showPass ? "eye-off" : "eye"} size={22} color={C.mid} />
           </TouchableOpacity>
         </View>
 
         {error && (
-          <Text
-            style={{
-              color: "#DC2626",
-              fontWeight: "700",
-              fontSize: 13,
-              textAlign: "center",
-            }}
-          >
+          <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 13, textAlign: "center" }}>
             {error}
           </Text>
         )}
 
-        {/* Login Button */}
         <TouchableOpacity
           onPress={handleLogin}
-          disabled={loading}
+          disabled={isLoading}
           style={{
             backgroundColor: C.teal,
             borderRadius: 16,
@@ -232,61 +210,22 @@ export default function AdminLoginScreen() {
             marginTop: 8,
           }}
         >
-          {loading ? (
+          {loginMutation.isPending ? (
             <ActivityIndicator color={C.white} />
           ) : (
-            <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
-              Sign In
-            </Text>
+            <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>Sign In</Text>
           )}
         </TouchableOpacity>
 
-        {/* Divider */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            marginVertical: 4,
-          }}
-        >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 }}>
           <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
           <Text style={{ color: C.muted, fontSize: 13 }}>or</Text>
           <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
         </View>
 
-        {/* Google Sign-In */}
         <TouchableOpacity
-          onPress={async () => {
-            setLoading(true);
-            setError(null);
-            try {
-              // This uses the existing Firebase flow for Google auth
-              const userCred = await signInWithEmailAndPassword(
-                auth,
-                email.trim().toLowerCase(),
-                password || "placeholder",
-              );
-              const firebaseToken = await userCred.user.getIdToken(true);
-              const res = await api.post("/auth/login/google", {
-                firebase_token: firebaseToken,
-              });
-              if (res.data.token) {
-                await setApiToken(res.data.token);
-                await refetch();
-                router.replace("/(admin)/dashboard");
-              }
-            } catch (e: any) {
-              setError(
-                e?.response?.data?.message ??
-                  e?.message ??
-                  "Google sign-in failed",
-              );
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}
+          onPress={() => { setError(null); googleMutation.mutate(); }}
+          disabled={isLoading}
           style={{
             backgroundColor: C.white,
             borderRadius: 16,
@@ -299,7 +238,7 @@ export default function AdminLoginScreen() {
             borderColor: C.border,
           }}
         >
-          {loading ? (
+          {googleMutation.isPending ? (
             <ActivityIndicator color={C.mid} />
           ) : (
             <>

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import {
   View,
@@ -27,7 +28,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmation, setConfirmation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,34 +80,28 @@ export default function LoginScreen() {
     }
   }
 
-  async function signInWithEmail() {
+  const emailMutation = useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      api.post("/auth/login", { email, password }),
+    onSuccess: async (res) => {
+      await setApiToken(res.data.token);
+      router.replace("/(tabs)");
+    },
+    onError: (e: any) => {
+      const status = e?.response?.status;
+      if (status === 401 || status === 422) setError(t("authErrors.invalidCredentials"));
+      else if (!e?.response) setError(t("authErrors.noInternet"));
+      else setError(t("authErrors.unknown"));
+    },
+  });
+
+  function signInWithEmail() {
     if (!email.trim() || !password) {
       setError(t("login.emailPasswordRequired"));
       return;
     }
-
     setError(null);
-    setLoading(true);
-
-    try {
-      const res = await api.post("/auth/login", {
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      await setApiToken(res.data.token);
-      router.replace("/(tabs)");
-    } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 401 || status === 422) {
-        setError(t("authErrors.invalidCredentials"));
-      } else if (!e?.response) {
-        setError(t("authErrors.noInternet"));
-      } else {
-        setError(t("authErrors.unknown"));
-      }
-    } finally {
-      setLoading(false);
-    }
+    emailMutation.mutate({ email: email.trim().toLowerCase(), password });
   }
 
   async function sendCode() {
@@ -439,7 +433,7 @@ export default function LoginScreen() {
               label={t("login.signInWithEmail")}
               color={C.blue}
               onPress={signInWithEmail}
-              loading={loading}
+              loading={emailMutation.isPending}
             />
 
             <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>

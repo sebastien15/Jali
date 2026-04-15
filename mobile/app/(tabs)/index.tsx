@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
 import { TripResult } from "@/components/TripCard";
@@ -13,6 +14,7 @@ import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/components/home/PrivateResults";
 import { RentalResults } from "@/components/home/RentalResults";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 type Mode = "bus" | "private" | "rental";
 
@@ -27,6 +29,7 @@ function formatDateLabel(d: Date): string {
 }
 
 export default function HomeScreen() {
+  const queryClient = useQueryClient();
   const [from, setFrom]   = useState<StationObj | null>(null);
   const [to, setTo]       = useState<StationObj | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -41,47 +44,70 @@ export default function HomeScreen() {
   const [tripSheet, setTripSheet]     = useState<TripResult | null>(null);
   const [tripSheetDate, setTripSheetDate] = useState<string>("");
 
-  const [trips, setTrips]           = useState<TripResult[]>([]);
-  const [cars, setCars]             = useState<any[]>([]);
-  const [privateSeats, setPrivate]  = useState<any[]>([]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState<string | null>(null);
-
   const dateParam = selectedDate.toISOString().split("T")[0];
   const todaySelected = selectedDate.toDateString() === new Date().toDateString();
   const timeSet = selectedDate.getHours() !== 0 || selectedDate.getMinutes() !== 0;
 
-  function fetchAll() {
-    setLoading(true);
-    setError(null);
-    const tripParams: Record<string, any> = {};
-    if (from?.id) tripParams.from_station_id = from.id;
-    if (to?.id)   tripParams.to_station_id   = to.id;
+  // ── Bus trips — always fetched, params change with from/to ────────────────
+  const tripsQuery = useQuery({
+    queryKey: queryKeys.trips.search(from?.id, to?.id, dateParam),
+    queryFn: () => {
+      const params: Record<string, any> = {};
+      if (from?.id) params.from_station_id = from.id;
+      if (to?.id)   params.to_station_id   = to.id;
+      return api.get("/trips", { params }).then(r => r.data ?? [] as TripResult[]);
+    },
+    staleTime: 60_000,
+  });
 
-    Promise.all([
-      api.get("/trips", { params: tripParams }),
-      api.get("/car-rentals"),
+  // ── Car rentals — only fetched when rental tab is active ──────────────────
+  const rentalsQuery = useQuery({
+    queryKey: queryKeys.carRentals.all(),
+    queryFn: () => api.get("/car-rentals").then(r => r.data ?? []),
+    staleTime: 10 * 60_000,
+    enabled: mode === "rental",
+  });
+
+  // ── Private seats — only fetched when private tab is active ───────────────
+  const privateQuery = useQuery({
+    queryKey: queryKeys.privateSeats.search(from?.city, to?.city, dateParam),
+    queryFn: () =>
       api.get("/private-seats", {
         params: { from: from?.city, ...(to?.city ? { to: to.city } : {}), date: dateParam },
-      }),
-    ])
-      .then(([t, c, p]) => {
-        setTrips(t.data ?? []);
-        setCars(c.data ?? []);
-        setPrivate(p.data ?? []);
-        setAgencyFilter(null);
-      })
-      .catch(err => {
-        setError(err?.response?.data?.message ?? err?.response?.data?.error ?? "Failed to load. Check your connection.");
-      })
-      .finally(() => setLoading(false));
-  }
+      }).then(r => r.data ?? []),
+    staleTime: 60_000,
+    enabled: mode === "private",
+  });
 
-  useEffect(() => { fetchAll(); }, [from, to, selectedDate]);
+  const trips      = tripsQuery.data   ?? [];
+  const cars       = rentalsQuery.data  ?? [];
+  const privateSeats = privateQuery.data ?? [];
 
-  const agencies = useMemo(() => [...new Set(trips.map(t => t.agency_name))].sort(), [trips]);
+  // Loading and error per active mode
+  const loading = mode === "bus"
+    ? tripsQuery.isLoading
+    : mode === "rental"
+      ? rentalsQuery.isLoading
+      : privateQuery.isLoading;
 
-  const filteredTrips = useMemo(() => trips.filter(trip => {
+  const error = mode === "bus"
+    ? (tripsQuery.error as any)?.response?.data?.message ?? (tripsQuery.error ? "Failed to load." : null)
+    : mode === "rental"
+      ? (rentalsQuery.error as any)?.response?.data?.message ?? (rentalsQuery.error ? "Failed to load." : null)
+      : (privateQuery.error as any)?.response?.data?.message ?? (privateQuery.error ? "Failed to load." : null);
+
+  const refetchActive = mode === "bus"
+    ? tripsQuery.refetch
+    : mode === "rental"
+      ? rentalsQuery.refetch
+      : privateQuery.refetch;
+
+  const agencies = useMemo(
+    () => [...new Set(trips.map((t: TripResult) => t.agency_name))].sort(),
+    [trips],
+  );
+
+  const filteredTrips = useMemo(() => trips.filter((trip: TripResult) => {
     if (agencyFilter && trip.agency_name !== agencyFilter) return false;
     if (todaySelected && timeSet) {
       const [h, m] = trip.departure_time.split(":").map(Number);
@@ -95,6 +121,11 @@ export default function HomeScreen() {
     setTripSheetDate(formatDateLabel(selectedDate));
   }
 
+  function afterBooking() {
+    queryClient.invalidateQueries({ queryKey: queryKeys.trips.all() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.bookings.mine() });
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.blue} />
@@ -106,7 +137,7 @@ export default function HomeScreen() {
         selectedDate={selectedDate} onDateChange={setSelectedDate}
       />
 
-      <ModeTabs mode={mode} onChange={setMode} />
+      <ModeTabs mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />
 
       {mode === "bus" && (
         <AgencyFilterBar agencies={agencies} selected={agencyFilter} onChange={setAgencyFilter} />
@@ -118,7 +149,7 @@ export default function HomeScreen() {
             trips={filteredTrips} loading={loading} error={error}
             isFiltered={!!from || !!to} from={from} to={to}
             todaySelected={todaySelected} timeSet={timeSet} selectedDate={selectedDate}
-            onPress={openTripSheet} onRetry={fetchAll}
+            onPress={openTripSheet} onRetry={refetchActive}
           />
         )}
         {mode === "private" && (
@@ -126,7 +157,7 @@ export default function HomeScreen() {
             items={privateSeats} loading={loading} error={error}
             from={from} to={to}
             onPress={item => setSheet({ type: "private", item, travelDate: formatDateLabel(selectedDate) })}
-            onRetry={fetchAll}
+            onRetry={refetchActive}
           />
         )}
         {mode === "rental" && (
@@ -134,18 +165,24 @@ export default function HomeScreen() {
             cars={cars} loading={loading} error={error}
             days={rentalDays} onChangeDays={setRentalDays}
             onPress={(car, days) => setSheet({ type: "rental", item: car, days, travelDate: formatDateLabel(selectedDate) })}
-            onRetry={fetchAll}
+            onRetry={refetchActive}
           />
         )}
       </ScrollView>
 
-      {sheet && <BookingSheet data={sheet} onClose={() => setSheet(null)} onConfirm={() => setSheet(null)} />}
+      {sheet && (
+        <BookingSheet
+          data={sheet}
+          onClose={() => setSheet(null)}
+          onConfirm={() => { setSheet(null); afterBooking(); }}
+        />
+      )}
       {tripSheet && (
         <TripBookingSheet
           trip={tripSheet}
           travelDate={tripSheetDate}
           onClose={() => { setTripSheet(null); setTripSheetDate(""); }}
-          onConfirm={() => { setTripSheet(null); setTripSheetDate(""); }}
+          onConfirm={() => { setTripSheet(null); setTripSheetDate(""); afterBooking(); }}
         />
       )}
     </SafeAreaView>

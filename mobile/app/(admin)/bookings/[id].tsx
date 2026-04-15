@@ -5,9 +5,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { queryKeys } from "@/lib/queryKeys";
 
 const STATUS_COLOR: Record<string, string> = {
   pending: C.orange, confirmed: C.green, completed: C.muted,
@@ -18,26 +20,40 @@ const STATUS_BG: Record<string, string> = {
 
 export default function AdminBookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [booking, setBooking]     = useState<any>(null);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
   const [ticketUrl, setTicketUrl] = useState("");
 
+  const { data: booking, isLoading } = useQuery({
+    queryKey: queryKeys.admin.bookings(id),
+    queryFn: () =>
+      api.get("/admin/bookings").then(r => {
+        const found = (r.data as any[]).find(b => String(b.id) === id);
+        return found ?? null;
+      }),
+    staleTime: 30_000,
+    initialData: () => {
+      // Try to seed from any already-cached booking list
+      for (const [, data] of queryClient.getQueriesData<any[]>({ queryKey: queryKeys.admin.bookings() })) {
+        if (Array.isArray(data)) {
+          const found = data.find(b => String(b.id) === id);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    },
+  });
+
+  // Sync ticket URL when booking loads
   useEffect(() => {
-    api.get("/admin/bookings")
-      .then(res => {
-        const found = (res.data as any[]).find(b => String(b.id) === id);
-        if (found) { setBooking(found); setTicketUrl(found.ticket_photo_url ?? ""); }
-      })
-      .catch(() => Alert.alert("Error", "Could not load booking."))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (booking) setTicketUrl(booking.ticket_photo_url ?? "");
+  }, [booking]);
 
   async function handleConfirm() {
     setSaving(true);
     try {
-      const res = await api.patch(`/admin/bookings/${id}`, { status: "confirmed" });
-      setBooking((prev: any) => ({ ...prev, status: res.data.status }));
+      await api.patch(`/admin/bookings/${id}`, { status: "confirmed" });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch {
       Alert.alert("Error", "Could not confirm booking.");
     } finally {
@@ -50,8 +66,8 @@ export default function AdminBookingDetailScreen() {
     setSaving(true);
     try {
       await api.patch(`/admin/bookings/${id}`, { ticket_photo_url: ticketUrl.trim() });
-      setBooking((prev: any) => ({ ...prev, ticket_photo_url: ticketUrl.trim() }));
       Alert.alert("Saved", "Ticket URL saved.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch {
       Alert.alert("Error", "Could not save ticket URL.");
     } finally {
@@ -59,7 +75,7 @@ export default function AdminBookingDetailScreen() {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator color={C.teal} />

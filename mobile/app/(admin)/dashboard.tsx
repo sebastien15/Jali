@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,11 +10,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import { queryKeys } from "@/lib/queryKeys";
 
 type NavTile = {
   label: string;
@@ -27,37 +28,33 @@ type NavTile = {
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { user, isSuperAdmin } = useAdminNav();
   const canManageLocations = user?.permissions?.includes("manage-locations") ?? false;
   const canManageAgencies = user?.permissions?.includes("manage-agencies") ?? false;
-  const [earnings, setEarnings] = useState<any>(null);
-  const [bookingStats, setBookingStats] = useState<any>(null);
-  const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [earningsRes, bookingsRes, profileRes] = await Promise.all([
-        api.get("/analytics/earnings"),
-        api.get("/analytics/bookings"),
-        api.get("/admin/profile"),
-      ]);
-      setEarnings(earningsRes.data.data ?? null);
-      setBookingStats(bookingsRes.data.data ?? null);
-      setAdminProfile(profileRes.data);
-    } catch {
-    } finally {
-      if (isRefresh) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, []);
+  const earningsQuery = useQuery({
+    queryKey: queryKeys.admin.analytics.earnings(),
+    queryFn: () => api.get("/analytics/earnings").then(r => r.data.data ?? null),
+    staleTime: 5 * 60_000,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const bookingStatsQuery = useQuery({
+    queryKey: queryKeys.admin.analytics.bookings(),
+    queryFn: () => api.get("/analytics/bookings").then(r => r.data.data ?? null),
+    staleTime: 5 * 60_000,
+  });
+
+  const earnings     = earningsQuery.data ?? null;
+  const bookingStats = bookingStatsQuery.data ?? null;
+
+  const isLoading    = earningsQuery.isLoading || bookingStatsQuery.isLoading;
+  const isRefetching = earningsQuery.isRefetching || bookingStatsQuery.isRefetching;
+
+  function onRefresh() {
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.earnings() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.bookings() });
+  }
 
   const tiles: NavTile[] = [
     ...(isSuperAdmin
@@ -129,7 +126,7 @@ export default function AdminDashboard() {
       : []),
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView
         style={{
@@ -155,10 +152,7 @@ export default function AdminDashboard() {
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => load(true)}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         {/* Earnings summary */}

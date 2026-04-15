@@ -15,10 +15,14 @@ Jali/
 
 ## Skills Index
 
-| Skill | File |
-|---|---|
-| Deployment & hosting | `.claude/skills/deployment.md` |
-| Routing conventions | `.claude/skills/routing.md` |
+| Skill | Stack | File |
+|---|---|---|
+| React Native patterns & optimization | Mobile | `.claude/skills/stack-mobile.md` |
+| Laravel patterns & optimization | Backend | `.claude/skills/stack-backend.md` |
+| Server, DB, CDN, Redis, scaling | Infra | `.claude/skills/stack-infra.md` |
+| Routing conventions | Mobile | `.claude/skills/routing.md` |
+| Deployment & hosting URLs | Infra | `.claude/skills/deployment.md` |
+| TanStack migration plan | Mobile | `TANSTACK_PLAN.md` |
 
 ## Quick Rules
 
