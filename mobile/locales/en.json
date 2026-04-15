@@ -433,7 +433,8 @@
     "remove": "Remove",
     "close": "Close",
     "confirm": "Confirm",
-    "change": "Change"
+    "change": "Change",
+    "add": "Add"
   },
   "authErrors": {
     "invalidCredentials": "Invalid email or password.",
@@ -568,7 +569,15 @@
     "bookingSuccess": "Booking Confirmed!",
     "bookingSuccessMsg": "Your trip has been booked. Check your trips tab.",
     "loginRequired": "Please log in to book a trip",
-    "arrivalNote": "* Arrival time is an estimate and may vary due to traffic"
+    "arrivalNote": "* Arrival time is an estimate and may vary due to traffic",
+    "tickets": "TICKETS",
+    "passengers": "PASSENGERS",
+    "travelDate": "TRAVEL DATE",
+    "bookingSentToast": "Booking sent! We'll confirm shortly.",
+    "bookingInProgress": "Booking…",
+    "yourFullName": "Your full name",
+    "passengerName": "Passenger {{n}} name",
+    "agencyNew": "New"
   },
   "adminBookings": {
     "title": "Bookings",

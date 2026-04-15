@@ -23,10 +23,13 @@ function formatDateLabel(d: Date): string {
   const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
-  const timeStr = d.toLocaleTimeString("en-RW", { hour: "2-digit", minute: "2-digit" });
-  if (d.toDateString() === today.toDateString()) return `Today · ${timeStr}`;
-  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow · ${timeStr}`;
-  return `${d.toLocaleDateString("en-RW", { month: "short", day: "numeric" })} · ${timeStr}`;
+  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+  const timeSuffix = hasTime
+    ? ` · ${d.toLocaleTimeString("en-RW", { hour: "2-digit", minute: "2-digit" })}`
+    : "";
+  if (d.toDateString() === today.toDateString()) return `Today${timeSuffix}`;
+  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow${timeSuffix}`;
+  return `${d.toLocaleDateString("en-RW", { month: "short", day: "numeric" })}${timeSuffix}`;
 }
 
 export default function HomeScreen() {

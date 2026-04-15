@@ -23,8 +23,9 @@ type Props = {
 };
 
 export function TripCard({ trip, onPress }: Props) {
-  const fee = tripServiceFee(trip.price);
-  const total = trip.price + fee;
+  const price = Number(trip.price); // API may return string — force numeric
+  const fee = tripServiceFee(price);
+  const total = price + fee;
   const ratingLabel =
     trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : "New";
 
@@ -58,7 +59,7 @@ export function TripCard({ trip, onPress }: Props) {
           paddingHorizontal: 10, paddingVertical: 8, alignItems: "center",
         }}>
           <Text style={{ color: C.blue, fontWeight: "900", fontSize: 17 }}>
-            {trip.price.toLocaleString()}
+            {price.toLocaleString()}
           </Text>
           <Text style={{ color: C.blue, fontWeight: "600", fontSize: 10 }}>RWF</Text>
         </View>

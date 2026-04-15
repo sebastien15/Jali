@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { PAY_METHODS, PayMethod } from "@/constants/data";
 import { tripServiceFee } from "@/lib/serviceFee";
 import api from "@/lib/api";
 import { getApiToken } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import { Toast, ToastHandle } from "@/components/Toast";
 
 type TripData = {
@@ -42,22 +44,52 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   const { t } = useTranslation();
   const toastRef = useRef<ToastHandle>(null);
 
+  // Pre-fill passenger 1 with the user's profile name (cached from /me)
+  const queryClient = useQueryClient();
+  const cachedMe = queryClient.getQueryData<{ name?: string }>(queryKeys.me());
+  const { data: me } = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: () => api.get("/me").then(r => r.data),
+    staleTime: Infinity,
+  });
+  const userName = me?.name ?? cachedMe?.name ?? "";
+
   const [payMethod, setPayMethod] = useState<PayMethod | null>(null);
-  const [selectedDate, setSelectedDate] = useState(travelDate ?? "Today");
   const [loading, setLoading] = useState(false);
   const [ticketCount, setTicketCount] = useState(1);
-  const [passengerNames, setPassengerNames] = useState<string[]>([]);
+  const [passengerNames, setPassengerNames] = useState<string[]>(() => [userName]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // If /me wasn't cached on mount, fill in passenger 0 once it loads (only if still empty)
+  useEffect(() => {
+    if (me?.name) {
+      setPassengerNames(prev => {
+        if (prev[0]) return prev; // user already typed something — don't overwrite
+        const next = [...prev];
+        next[0] = me.name;
+        return next;
+      });
+    }
+  }, [me?.name]);
   const [showRating, setShowRating] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const fee = tripServiceFee(trip.price);
-  const totalPrice = trip.price * ticketCount;
+  const price = Number(trip.price); // API may return string — force numeric
+  const fee = tripServiceFee(price);
+  const totalPrice = price * ticketCount;
   const total = totalPrice + fee;
 
-  const dateOpts = BASE_DATE_OPTS.includes(travelDate ?? "")
+  // Normalise "Today · 07:00" → "Today" so it matches dateOpts without duplication
+  const normalizedDate = travelDate?.startsWith("Today")
+    ? "Today"
+    : travelDate?.startsWith("Tomorrow")
+      ? "Tomorrow"
+      : (travelDate ?? "Today");
+  const [selectedDate, setSelectedDate] = useState(normalizedDate);
+  const dateOpts = BASE_DATE_OPTS.includes(normalizedDate)
     ? BASE_DATE_OPTS
-    : [travelDate, ...BASE_DATE_OPTS].filter(Boolean) as string[];
+    : [normalizedDate, ...BASE_DATE_OPTS].filter(Boolean) as string[];
 
   function updatePassengerName(index: number, name: string) {
     setPassengerNames(prev => {
@@ -70,13 +102,10 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   function setCount(n: number) {
     const clamped = Math.min(10, Math.max(1, n));
     setTicketCount(clamped);
-    // trim or extend names array
     setPassengerNames(prev => {
-      const extra = clamped - 1; // slots for passengers 2..n
-      if (extra <= 0) return [];
       const next = [...prev];
-      while (next.length < extra) next.push("");
-      return next.slice(0, extra);
+      while (next.length < clamped) next.push("");
+      return next.slice(0, clamped);
     });
   }
 
@@ -99,9 +128,9 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
         payment_method: payMethod,
         travel_date: selectedDate,
         quantity: ticketCount,
-        passenger_names: passengerNames.filter(Boolean),
+        passenger_names: passengerNames.map(n => n.trim()).filter(Boolean),
       });
-      toastRef.current?.show({ message: "Booking sent! We'll confirm shortly.", type: "success" });
+      toastRef.current?.show({ message: t("booking.bookingSentToast"), type: "success" });
       setTimeout(() => {
         setShowRating(true);
         onConfirm();
@@ -166,7 +195,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
               <Ionicons name="star" size={14} color={C.yellow} />
               <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>
-                {trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : "New"}
+                {trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : t("booking.agencyNew")}
                 {trip.agency_ratings_count > 0 ? ` (${trip.agency_ratings_count})` : ""}
               </Text>
             </View>
@@ -190,7 +219,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
 
           {/* Ticket count */}
           <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
-            TICKETS
+            {t("booking.tickets")}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 20 }}>
             <TouchableOpacity
@@ -217,35 +246,66 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
               <Text style={{ color: ticketCount >= 10 ? C.muted : C.white, fontWeight: "900", fontSize: 20 }}>+</Text>
             </TouchableOpacity>
             <Text style={{ color: C.muted, fontSize: 13, flex: 1 }}>
-              {ticketCount} × {trip.price.toLocaleString()} RWF
+              {ticketCount} × {price.toLocaleString()} RWF
             </Text>
           </View>
 
-          {/* Passenger names (for extra tickets) */}
-          {ticketCount > 1 && (
-            <>
-              <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
-                PASSENGER NAMES (optional)
-              </Text>
-              {Array.from({ length: ticketCount - 1 }).map((_, i) => (
-                <TextInput
-                  key={i}
-                  value={passengerNames[i] ?? ""}
-                  onChangeText={name => updatePassengerName(i, name)}
-                  placeholder={`Passenger ${i + 2} name`}
-                  placeholderTextColor={C.muted}
-                  style={{
-                    backgroundColor: C.bg, borderRadius: 12,
-                    paddingHorizontal: 14, paddingVertical: 13,
-                    fontSize: 14, color: C.dark,
-                    borderWidth: 1.5, borderColor: C.border,
-                    marginBottom: 8,
-                  }}
-                />
-              ))}
-              <View style={{ height: 8 }} />
-            </>
-          )}
+          {/* Passengers */}
+          <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
+            {t("booking.passengers")}
+          </Text>
+
+          {Array.from({ length: ticketCount }).map((_, i) => {
+            const name = passengerNames[i] ?? "";
+            const isEditing = editingIndex === i;
+            return (
+              <View
+                key={i}
+                style={{
+                  flexDirection: "row", alignItems: "center", gap: 12,
+                  backgroundColor: C.bg, borderRadius: 12,
+                  paddingHorizontal: 14, paddingVertical: 10,
+                  marginBottom: 8,
+                  borderWidth: 1.5,
+                  borderColor: isEditing ? C.blue : C.border,
+                }}
+              >
+                {/* Number badge */}
+                <View style={{
+                  width: 28, height: 28, borderRadius: 14,
+                  backgroundColor: C.blueLt, alignItems: "center", justifyContent: "center",
+                }}>
+                  <Text style={{ color: C.blue, fontWeight: "900", fontSize: 13 }}>{i + 1}</Text>
+                </View>
+
+                {/* Name / input */}
+                {isEditing ? (
+                  <TextInput
+                    value={name}
+                    onChangeText={n => updatePassengerName(i, n)}
+                    autoFocus
+                    onBlur={() => setEditingIndex(null)}
+                    onSubmitEditing={() => setEditingIndex(null)}
+                    placeholder={i === 0 ? t("booking.yourFullName") : t("booking.passengerName", { n: i + 1 })}
+                    placeholderTextColor={C.muted}
+                    style={{ flex: 1, fontSize: 14, color: C.dark, paddingVertical: 0 }}
+                  />
+                ) : (
+                  <Text style={{ flex: 1, fontSize: 14, color: name ? C.dark : C.muted, fontWeight: name ? "600" : "400" }}>
+                    {name || (i === 0 ? t("booking.yourFullName") : t("booking.passengerName", { n: i + 1 }))}
+                  </Text>
+                )}
+
+                {/* Change / Add button */}
+                <TouchableOpacity onPress={() => setEditingIndex(i)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={{ color: C.blue, fontWeight: "700", fontSize: 13 }}>
+                    {name ? t("common.change") : t("common.add")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+          <View style={{ height: 4 }} />
 
           {/* Price breakdown */}
           <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
@@ -271,7 +331,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
 
           {/* Date selector */}
           <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
-            TRAVEL DATE
+            {t("booking.travelDate")}
           </Text>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
             {dateOpts.map(d => (
@@ -326,7 +386,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
             {loading ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <ActivityIndicator color="#fff" size="small" />
-                <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>Booking…</Text>
+                <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>{t("booking.bookingInProgress")}</Text>
               </View>
             ) : (
               <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>

@@ -433,7 +433,8 @@
     "remove": "Ondoa",
     "close": "Funga",
     "confirm": "Thibitisha",
-    "change": "Badilisha"
+    "change": "Badilisha",
+    "add": "Ongeza"
   },
   "authErrors": {
     "invalidCredentials": "Barua pepe au nywila si sahihi.",
@@ -568,7 +569,15 @@
     "bookingSuccess": "Uteminishaji Umethibitishwa!",
     "bookingSuccessMsg": "Safari yako imeteminiwa. Angalia safari zako.",
     "loginRequired": "Tafadhali ingia ili kutemini safari",
-    "arrivalNote": "* Muda wa kufika ni makadirio na unaweza kubadilika"
+    "arrivalNote": "* Muda wa kufika ni makadirio na unaweza kubadilika",
+    "tickets": "TIKETI",
+    "passengers": "ABIRIA",
+    "travelDate": "TAREHE YA SAFARI",
+    "bookingSentToast": "Uhifadhi umetumwa! Tutathibitisha hivi karibuni.",
+    "bookingInProgress": "Kutemini…",
+    "yourFullName": "Jina lako kamili",
+    "passengerName": "Jina la abiria {{n}}",
+    "agencyNew": "Mpya"
   },
   "adminBookings": {
     "title": "Maagizo",

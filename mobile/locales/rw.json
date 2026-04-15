@@ -433,7 +433,8 @@
     "remove": "Kuraho",
     "close": "Funga",
     "confirm": "Emeza",
-    "change": "Hindura"
+    "change": "Hindura",
+    "add": "Ongeraho"
   },
   "authErrors": {
     "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
@@ -568,7 +569,15 @@
     "bookingSuccess": "Gutumiza Byakunze!",
     "bookingSuccessMsg": "Ingendo yawe yatumijwe. Reba muri ongendo zawe.",
     "loginRequired": "Nyamuneka injira kugira ngo utumize ingendo",
-    "arrivalNote": "* Igihe cyo kugera ni impuzandengo kandi gishobora gutinda"
+    "arrivalNote": "* Igihe cyo kugera ni impuzandengo kandi gishobora gutinda",
+    "tickets": "IBYANGOMBWA",
+    "passengers": "ABAGENZI",
+    "travelDate": "ITARIKI Y'URUGENDO",
+    "bookingSentToast": "Inyandiko yoherejwe! Tuzayemeza vuba.",
+    "bookingInProgress": "Gutumiza…",
+    "yourFullName": "Amazina yawe yose",
+    "passengerName": "Amazina ya umugenzi wa {{n}}",
+    "agencyNew": "Nshya"
   },
   "adminBookings": {
     "title": "Ibisabwa",

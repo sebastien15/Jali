@@ -51,13 +51,13 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
   ];
 
   const timeChipLabel = timeSet
-    ? `After ${selectedDate.toLocaleTimeString("en-RW", { hour: "2-digit", minute: "2-digit" })}`
-    : "Pick time";
+    ? selectedDate.toLocaleTimeString("en-RW", { hour: "2-digit", minute: "2-digit" })
+    : "Time";
 
   const customDateActive = !quickDate;
   const customDateLabel = customDateActive
     ? selectedDate.toLocaleDateString("en-RW", { month: "short", day: "numeric" })
-    : "Pick date";
+    : "Date";
 
   return (
     <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
@@ -112,10 +112,10 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
                 }}
                 style={{
                   backgroundColor: active ? C.yellow : "rgba(255,255,255,0.15)",
-                  borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8,
+                  borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
                 }}
               >
-                <Text style={{ color: active ? C.dark : C.white, fontWeight: "800", fontSize: 13 }}>
+                <Text style={{ color: active ? C.dark : C.white, fontWeight: "800", fontSize: 12 }}>
                   {qd.label}
                 </Text>
               </TouchableOpacity>
@@ -127,13 +127,13 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
             <TouchableOpacity
               onPress={() => { setPickerTimeOnly(true); setShowPicker(true); }}
               style={{
-                flexDirection: "row", alignItems: "center", gap: 6,
+                flexDirection: "row", alignItems: "center", gap: 5,
                 backgroundColor: timeSet ? C.yellow : "rgba(255,255,255,0.15)",
-                borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
+                borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
               }}
             >
-              <Ionicons name="time-outline" size={14} color={timeSet ? C.dark : C.white} />
-              <Text style={{ color: timeSet ? C.dark : C.white, fontWeight: "800", fontSize: 13 }}>
+              <Ionicons name="time-outline" size={13} color={timeSet ? C.dark : C.white} />
+              <Text style={{ color: timeSet ? C.dark : C.white, fontWeight: "800", fontSize: 12 }}>
                 {timeChipLabel}
               </Text>
               {timeSet && (
@@ -156,13 +156,13 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
           <TouchableOpacity
             onPress={() => { setPickerTimeOnly(false); setShowPicker(true); }}
             style={{
-              flexDirection: "row", alignItems: "center", gap: 6,
+              flexDirection: "row", alignItems: "center", gap: 5,
               backgroundColor: customDateActive ? C.yellow : "rgba(255,255,255,0.15)",
-              borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
+              borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
             }}
           >
-            <Ionicons name="calendar-outline" size={14} color={customDateActive ? C.dark : C.white} />
-            <Text style={{ color: customDateActive ? C.dark : C.white, fontWeight: "800", fontSize: 13 }}>
+            <Ionicons name="calendar-outline" size={13} color={customDateActive ? C.dark : C.white} />
+            <Text style={{ color: customDateActive ? C.dark : C.white, fontWeight: "800", fontSize: 12 }}>
               {customDateLabel}
             </Text>
           </TouchableOpacity>

@@ -433,7 +433,8 @@
     "remove": "Retirer",
     "close": "Fermer",
     "confirm": "Confirmer",
-    "change": "Changer"
+    "change": "Changer",
+    "add": "Ajouter"
   },
   "authErrors": {
     "invalidCredentials": "Email ou mot de passe invalide.",
@@ -568,7 +569,15 @@
     "bookingSuccess": "Réservation confirmée !",
     "bookingSuccessMsg": "Votre trajet a été réservé. Vérifiez vos trajets.",
     "loginRequired": "Veuillez vous connecter pour réserver un trajet",
-    "arrivalNote": "* L'heure d'arrivée est une estimation et peut varier"
+    "arrivalNote": "* L'heure d'arrivée est une estimation et peut varier",
+    "tickets": "BILLETS",
+    "passengers": "PASSAGERS",
+    "travelDate": "DATE DE VOYAGE",
+    "bookingSentToast": "Réservation envoyée ! Nous confirmerons bientôt.",
+    "bookingInProgress": "Réservation…",
+    "yourFullName": "Votre nom complet",
+    "passengerName": "Nom du passager {{n}}",
+    "agencyNew": "Nouveau"
   },
   "adminBookings": {
     "title": "Réservations",
