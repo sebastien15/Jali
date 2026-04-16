@@ -156,6 +156,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }}>
       <StatusBar barStyle="light-content" backgroundColor={C.blue} />
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
 
       {/* Header */}
       <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
@@ -274,6 +275,7 @@ export default function ProfileScreen() {
 
         <View style={{ height: 16 }} />
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

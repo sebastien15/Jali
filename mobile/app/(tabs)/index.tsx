@@ -146,7 +146,7 @@ export default function HomeScreen() {
     const seen = new Set<string>();
     const result: string[] = [];
     for (const b of (bookingsQuery.data ?? [])) {
-      if (b.type !== "bus") continue;
+      if (b.type !== "trip") continue;
       const agency = b.title?.split(" · ")[0];
       if (agency && !seen.has(agency)) { seen.add(agency); result.push(agency); }
     }
@@ -155,7 +155,7 @@ export default function HomeScreen() {
 
   // Booked agencies shown first, rest sorted alphabetically
   const agencies = useMemo(() => {
-    const all = [...new Set(trips.map((t: TripResult) => t.agency_name))];
+    const all = [...new Set(trips.map((t: TripResult) => t.agency_name).filter(Boolean))];
     const bookedSet = new Set(bookedAgencyNames);
     const bookedFirst = bookedAgencyNames.filter(a => all.includes(a));
     const rest = all.filter(a => !bookedSet.has(a)).sort();
@@ -184,6 +184,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }}>
       <StatusBar barStyle="light-content" backgroundColor={C.blue} />
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
 
       <SearchHeader
         from={from} to={to}
@@ -247,6 +248,7 @@ export default function HomeScreen() {
           onConfirm={() => { setTripSheet(null); setTripSheetDate(""); afterBooking(); }}
         />
       )}
+      </View>
     </SafeAreaView>
   );
 }

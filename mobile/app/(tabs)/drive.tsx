@@ -115,6 +115,7 @@ export default function DriveScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.teal }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
 
       {/* Header */}
       <DriverHeader
@@ -164,6 +165,7 @@ export default function DriveScreen() {
           shown.map((r) => <TripRow key={r.id} trip={r} />)
         )}
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
