@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, TouchableOpacity, Animated, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { TripCard, TripResult } from "@/components/TripCard";
@@ -17,11 +17,15 @@ interface Props {
   selectedDate: Date;
   onPress: (trip: TripResult) => void;
   onRetry: () => void;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 export function BusResults({
   trips, loading, error, isFiltered, from, to,
   todaySelected, timeSet, selectedDate, onPress, onRetry,
+  fetchNextPage, hasNextPage, isFetchingNextPage,
 }: Props) {
   const { t } = useTranslation();
 
@@ -76,9 +80,22 @@ export function BusResults({
           </Text>
         </View>
       ) : (
-        trips.map(trip => (
-          <TripCard key={trip.id} trip={trip} onPress={() => onPress(trip)} />
-        ))
+        <>
+          {trips.map(trip => (
+            <TripCard key={trip.id} trip={trip} onPress={() => onPress(trip)} />
+          ))}
+          {hasNextPage && !isFetchingNextPage && (
+            <TouchableOpacity
+              onPress={fetchNextPage}
+              style={{ paddingVertical: 14, alignItems: "center" }}
+            >
+              <Text style={{ color: C.blue, fontWeight: "700", fontSize: 14 }}>Load more…</Text>
+            </TouchableOpacity>
+          )}
+          {isFetchingNextPage && (
+            <ActivityIndicator color={C.blue} style={{ marginTop: 8, marginBottom: 8 }} />
+          )}
+        </>
       )}
     </>
   );

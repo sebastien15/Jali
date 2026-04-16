@@ -12,9 +12,13 @@ interface Props {
   to: StationObj | null;
   onPress: (item: any) => void;
   onRetry: () => void;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
-export function PrivateResults({ items, loading, error, from, to, onPress, onRetry }: Props) {
+export function PrivateResults({ items, loading, error, from, to, onPress, onRetry,
+  fetchNextPage, hasNextPage, isFetchingNextPage }: Props) {
   const { t } = useTranslation();
 
   if (loading) return <ActivityIndicator color={C.blue} style={{ marginTop: 32 }} />;
@@ -62,9 +66,22 @@ export function PrivateResults({ items, loading, error, from, to, onPress, onRet
           </Text>
         </View>
       ) : (
-        items.map(p => (
-          <PrivateCard key={p.id} item={p} onPress={() => onPress(p)} />
-        ))
+        <>
+          {items.map(p => (
+            <PrivateCard key={p.id} item={p} onPress={() => onPress(p)} />
+          ))}
+          {hasNextPage && !isFetchingNextPage && (
+            <TouchableOpacity
+              onPress={fetchNextPage}
+              style={{ paddingVertical: 14, alignItems: "center" }}
+            >
+              <Text style={{ color: C.blue, fontWeight: "700", fontSize: 14 }}>Load more…</Text>
+            </TouchableOpacity>
+          )}
+          {isFetchingNextPage && (
+            <ActivityIndicator color={C.blue} style={{ marginTop: 8, marginBottom: 8 }} />
+          )}
+        </>
       )}
     </>
   );

@@ -33,9 +33,6 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
   function handleDateChange(_: any, d?: Date) {
     if (d) {
       setSelectedDate(d);
-      if (Platform.OS === "android") {
-        setShowDatePicker(false);
-      }
     }
   }
 
@@ -116,7 +113,7 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
                   value={selectedDate}
                   mode="date"
                   minimumDate={new Date()}
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  display="spinner"
                   onChange={handleDateChange}
                   style={styles.pickerNative}
                 />
@@ -124,7 +121,7 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
                 <DateTimePicker
                   value={selectedDate}
                   mode="time"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  display="spinner"
                   onChange={handleTimeChange}
                   style={styles.pickerNative}
                 />

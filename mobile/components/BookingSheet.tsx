@@ -19,9 +19,10 @@ interface Props {
   data: SheetData;
   onClose: () => void;
   onConfirm: () => void;
+  userCoords?: { lat: number; lng: number } | null;
 }
 
-export function BookingSheet({ data, onClose, onConfirm }: Props) {
+export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
   const { t } = useTranslation();
   const { type, item, days = 1, travelDate } = data;
   const [payMethod, setPayMethod] = useState<PayMethod>("MTN MoMo");
@@ -40,7 +41,7 @@ export function BookingSheet({ data, onClose, onConfirm }: Props) {
     distanceKm,
     loading: feeLoading,
     permissionDenied,
-  } = useServiceFee(isRental ? "Kigali" : departureCity);
+  } = useServiceFee(isRental ? "Kigali" : departureCity, isRental ? null : userCoords);
 
   const effectiveFee = isRental ? 300 : fee;
   const total = isBus
