@@ -28,7 +28,9 @@
       "Bash(curl -s -w '\\\\nHTTP Status: %{http_code}\\\\n' https://jali.stoka.rw/backend/public/api/me -H 'Authorization: Bearer 2|LzXTDRBXE9xBcgw6DTCvCLYrXSAnNXNW0vXZQ5vjdb00cbcc' -H 'Accept: application/json')",
       "Bash(curl -s https://jali.stoka.rw/backend/error_log)",
       "Bash(curl -s https://jali.stoka.rw/backend/storage/logs/laravel.log)",
-      "Bash(codegraph init:*)"
+      "Bash(codegraph init:*)",
+      "Bash(xargs cat *)",
+      "Bash(xargs ls *)"
     ]
   }
 }

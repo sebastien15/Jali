@@ -22,7 +22,8 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Toast, ToastHandle } from "@/components/Toast";
 
 type TripData = {
-  id: number;
+  id: number; // trip_departure_id — used as reference_id when booking
+  agency_id?: number;
   agency_name: string;
   agency_rating: number;
   agency_ratings_count: number;
@@ -148,7 +149,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   async function submitRating() {
     if (rating === 0) return;
     try {
-      await api.post(`/agencies/${trip.id}/rate`, {
+      await api.post(`/agencies/${trip.agency_id}/rate`, {
         stars: rating,
         comment: comment || null,
       });

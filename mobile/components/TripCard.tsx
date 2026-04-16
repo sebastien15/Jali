@@ -1,49 +1,61 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { tripServiceFee } from "@/lib/serviceFee";
 
-export type TripResult = {
+export type TripDeparture = {
   id: number;
+  departure_time: string;
+  estimated_arrival_time: string;
+};
+
+export type TripResult = {
+  id: number; // agency_route_id
   agency_id: number;
   agency_name: string;
   agency_rating: number;
   agency_ratings_count: number;
   from: { id: number; name: string; city: string };
   to: { id: number; name: string; city: string };
-  departure_time: string;
-  estimated_arrival_time: string;
   price: number;
   total_seats: number;
+  duration_mins: number;
+  departures: TripDeparture[];
 };
 
 type Props = {
   trip: TripResult;
-  onPress: () => void;
+  onSelectDeparture: (departure: TripDeparture) => void;
+  timeFilterMins?: number; // filter out departures before this minute-of-day
 };
 
-export function TripCard({ trip, onPress }: Props) {
-  const price = Number(trip.price); // API may return string — force numeric
+export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
+  const price = Number(trip.price);
   const fee = tripServiceFee(price);
   const total = price + fee;
-  const ratingLabel =
-    trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : "New";
+  const ratingLabel = trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : "New";
+
+  const visibleDepartures = timeFilterMins != null
+    ? trip.departures.filter(d => {
+        const [h, m] = d.departure_time.split(":").map(Number);
+        return h * 60 + m >= timeFilterMins;
+      })
+    : trip.departures;
+
+  if (visibleDepartures.length === 0) return null;
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={{
-        backgroundColor: C.white,
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOpacity: 0.07,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      }}
-    >
+    <View style={{
+      backgroundColor: C.white,
+      borderRadius: 20,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: "#000",
+      shadowOpacity: 0.07,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    }}>
       {/* Top row: agency + price badge */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
         <View style={{ flex: 1, marginRight: 12 }}>
@@ -54,42 +66,53 @@ export function TripCard({ trip, onPress }: Props) {
             {trip.from.name ?? trip.from.city} → {trip.to.name ?? trip.to.city}
           </Text>
         </View>
-        <View style={{
-          backgroundColor: C.blueLt, borderRadius: 12,
-          paddingHorizontal: 10, paddingVertical: 8, alignItems: "center",
-        }}>
-          <Text style={{ color: C.blue, fontWeight: "900", fontSize: 17 }}>
-            {price.toLocaleString()}
-          </Text>
-          <Text style={{ color: C.blue, fontWeight: "600", fontSize: 10 }}>RWF</Text>
-        </View>
-      </View>
-
-      {/* Middle row: times + rating */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <View style={{ flexDirection: "row", gap: 14 }}>
-          <Text style={{ color: C.mid, fontWeight: "700", fontSize: 13 }}>
-            🕐 {trip.departure_time} – {trip.estimated_arrival_time}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-            <Ionicons name="star" size={12} color={C.yellow} />
-            <Text style={{ color: C.mid, fontWeight: "700", fontSize: 13 }}>{ratingLabel}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View style={{ backgroundColor: C.blueLt, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8, alignItems: "center" }}>
+            <Text style={{ color: C.blue, fontWeight: "900", fontSize: 17 }}>{price.toLocaleString()}</Text>
+            <Text style={{ color: C.blue, fontWeight: "600", fontSize: 10 }}>RWF</Text>
           </View>
         </View>
-        <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12 }}>
-          +{fee.toLocaleString()} fee
-        </Text>
       </View>
 
-      {/* Book Now button */}
-      <View style={{
-        backgroundColor: C.blue, borderRadius: 12,
-        paddingVertical: 12, alignItems: "center",
-      }}>
-        <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 15 }}>
-          Book Now — {total.toLocaleString()} RWF →
-        </Text>
+      {/* Rating + fee */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+          <Ionicons name="star" size={12} color={C.yellow} />
+          <Text style={{ color: C.mid, fontWeight: "700", fontSize: 13 }}>{ratingLabel}</Text>
+        </View>
+        <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12 }}>+{fee.toLocaleString()} fee</Text>
       </View>
-    </TouchableOpacity>
+
+      {/* Departure time chips */}
+      <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 8, letterSpacing: 0.5, textTransform: "uppercase" }}>
+        Select departure
+      </Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {visibleDepartures.map(dep => (
+            <TouchableOpacity
+              key={dep.id}
+              onPress={() => onSelectDeparture(dep)}
+              style={{
+                backgroundColor: C.blue,
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                alignItems: "center",
+                minWidth: 72,
+              }}
+            >
+              <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 15 }}>{dep.departure_time}</Text>
+              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 10, marginTop: 1 }}>~{dep.estimated_arrival_time}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Total hint */}
+      <Text style={{ color: C.muted, fontSize: 12, marginTop: 10, textAlign: "right" }}>
+        Total {total.toLocaleString()} RWF incl. fee
+      </Text>
+    </View>
   );
 }

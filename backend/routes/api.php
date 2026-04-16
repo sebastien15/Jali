@@ -202,6 +202,8 @@ Route::middleware("auth:sanctum")->group(function () {
             Route::post("agencies/{agency}/routes", [AgencyController::class, "addRoute"]);
             Route::delete("agencies/{agency}/routes/{route}", [AgencyController::class, "removeRoute"]);
             Route::apiResource("trips", TripController::class);
+            Route::post("trips/{id}/departures", [TripController::class, "addDeparture"]);
+            Route::delete("trips/{routeId}/departures/{departureId}", [TripController::class, "removeDeparture"]);
         });
     });
 });

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Trip;
+use App\Models\AgencyRoute;
 use Illuminate\Http\Request;
 
 class TripSearchController extends Controller
 {
     /**
-     * Public trip search — no auth required.
+     * Return active agency routes grouped with their departure times.
+     * Each route has a `departures` array — one card per agency on the user side.
      */
     public function index(Request $request)
     {
@@ -18,8 +19,12 @@ class TripSearchController extends Controller
             'agency_id'       => 'nullable|exists:agencies,id',
         ]);
 
-        $query = Trip::with(['agency.ratings', 'fromStation', 'toStation'])
-            ->where('active', true);
+        $query = AgencyRoute::with([
+            'agency.ratings',
+            'fromStation',
+            'toStation',
+            'departures' => fn($q) => $q->where('active', true)->orderBy('departure_time'),
+        ])->where('active', true);
 
         if ($request->filled('from_station_id')) {
             $query->where('from_station_id', $request->from_station_id);
@@ -31,28 +36,40 @@ class TripSearchController extends Controller
             $query->where('agency_id', $request->agency_id);
         }
 
-        $paginator = $query->orderBy('departure_time')->paginate(10);
+        $paginator = $query->whereHas('departures', fn($q) => $q->where('active', true))
+            ->paginate(20);
 
-        return response()->json($paginator->through(fn($t) => [
-            'id'                       => $t->id,
-            'agency_id'                => $t->agency_id,
-            'agency_name'              => $t->agency->name,
-            'agency_rating'            => $t->agency->average_rating,
-            'agency_ratings_count'     => $t->agency->ratings->count(),
-            'from'                     => [
-                'id'   => $t->fromStation->id,
-                'name' => $t->fromStation->name,
-                'city' => $t->fromStation->city,
+        return response()->json($paginator->through(fn($r) => [
+            'id'                   => $r->id,
+            'agency_id'            => $r->agency_id,
+            'agency_name'          => $r->agency->name,
+            'agency_rating'        => $r->agency->average_rating,
+            'agency_ratings_count' => $r->agency->ratings->count(),
+            'from'                 => [
+                'id'   => $r->fromStation->id,
+                'name' => $r->fromStation->name,
+                'city' => $r->fromStation->city,
             ],
-            'to'                       => [
-                'id'   => $t->toStation->id,
-                'name' => $t->toStation->name,
-                'city' => $t->toStation->city,
+            'to'                   => [
+                'id'   => $r->toStation->id,
+                'name' => $r->toStation->name,
+                'city' => $r->toStation->city,
             ],
-            'departure_time'           => $t->departure_time,
-            'estimated_arrival_time'   => $t->estimated_arrival_time,
-            'price'                    => $t->price,
-            'total_seats'              => $t->total_seats,
+            'price'        => $r->price,
+            'total_seats'  => $r->total_seats,
+            'duration_mins' => $r->duration_mins,
+            'departures'   => $r->departures->map(fn($d) => [
+                'id'                     => $d->id,
+                'departure_time'         => substr($d->departure_time, 0, 5),
+                'estimated_arrival_time' => $this->arrivalTime($d->departure_time, $r->duration_mins),
+            ])->values(),
         ]));
+    }
+
+    private function arrivalTime(string $departure, int $durationMins): string
+    {
+        [$h, $m] = array_map('intval', explode(':', substr($departure, 0, 5)));
+        $total = $h * 60 + $m + $durationMins;
+        return sprintf('%02d:%02d', intdiv($total % (24 * 60), 60), $total % 60);
     }
 }

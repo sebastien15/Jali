@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { TripCard, TripResult } from "@/components/TripCard";
+import { TripCard, TripResult, TripDeparture } from "@/components/TripCard";
 import { StationObj } from "@/components/StationPicker";
 
 interface Props {
@@ -15,7 +15,8 @@ interface Props {
   todaySelected: boolean;
   timeSet: boolean;
   selectedDate: Date;
-  onPress: (trip: TripResult) => void;
+  timeFilterMins?: number;
+  onSelectDeparture: (trip: TripResult, departure: TripDeparture) => void;
   onRetry: () => void;
   fetchNextPage: () => void;
   hasNextPage: boolean;
@@ -24,7 +25,7 @@ interface Props {
 
 export function BusResults({
   trips, loading, error, isFiltered, from, to,
-  todaySelected, timeSet, selectedDate, onPress, onRetry,
+  todaySelected, timeSet, selectedDate, timeFilterMins, onSelectDeparture, onRetry,
   fetchNextPage, hasNextPage, isFetchingNextPage,
 }: Props) {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ export function BusResults({
       {isFiltered ? (
         <View style={{ marginBottom: 12 }}>
           <Text style={{ fontWeight: "800", fontSize: 15, color: C.dark }}>
-            {trips.length} {trips.length === 1 ? "trip" : "trips"}
+            {trips.length} {trips.length === 1 ? "agency" : "agencies"}
           </Text>
           <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
             {from?.name ?? ""}{to ? ` → ${to.name}` : ""}{afterTimeLabel}
@@ -82,7 +83,12 @@ export function BusResults({
       ) : (
         <>
           {trips.map(trip => (
-            <TripCard key={trip.id} trip={trip} onPress={() => onPress(trip)} />
+            <TripCard
+              key={trip.id}
+              trip={trip}
+              timeFilterMins={timeFilterMins}
+              onSelectDeparture={(dep) => onSelectDeparture(trip, dep)}
+            />
           ))}
           {hasNextPage && !isFetchingNextPage && (
             <TouchableOpacity

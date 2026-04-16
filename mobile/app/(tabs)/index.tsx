@@ -5,7 +5,7 @@ import { useQuery, useInfiniteQuery, useQueryClient, keepPreviousData } from "@t
 import * as Location from "expo-location";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
-import { TripResult } from "@/components/TripCard";
+import { TripResult, TripDeparture } from "@/components/TripCard";
 import { TripBookingSheet } from "@/components/TripBookingSheet";
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
@@ -162,17 +162,35 @@ export default function HomeScreen() {
     return [...bookedFirst, ...rest];
   }, [trips, bookedAgencyNames]);
 
+  const timeFilterMins = todaySelected && timeSet
+    ? selectedDate.getHours() * 60 + selectedDate.getMinutes()
+    : undefined;
+
   const filteredTrips = useMemo(() => trips.filter((trip: TripResult) => {
     if (agencyFilter && trip.agency_name !== agencyFilter) return false;
-    if (todaySelected && timeSet) {
-      const [h, m] = trip.departure_time.split(":").map(Number);
-      if ((h * 60 + m) < (selectedDate.getHours() * 60 + selectedDate.getMinutes())) return false;
+    if (timeFilterMins != null) {
+      const hasUpcoming = trip.departures?.some(d => {
+        const [h, m] = d.departure_time.split(":").map(Number);
+        return h * 60 + m >= timeFilterMins;
+      });
+      if (!hasUpcoming) return false;
     }
     return true;
-  }), [trips, agencyFilter, selectedDate, todaySelected, timeSet]);
+  }), [trips, agencyFilter, timeFilterMins]);
 
-  function openTripSheet(trip: TripResult) {
-    setTripSheet(trip);
+  function openTripSheet(trip: TripResult, departure: TripDeparture) {
+    setTripSheet({
+      id: departure.id,
+      agency_id: trip.agency_id,
+      agency_name: trip.agency_name,
+      agency_rating: trip.agency_rating,
+      agency_ratings_count: trip.agency_ratings_count,
+      from: trip.from,
+      to: trip.to,
+      departure_time: departure.departure_time,
+      estimated_arrival_time: departure.estimated_arrival_time,
+      price: trip.price,
+    });
     setTripSheetDate(formatDateLabel(selectedDate));
   }
 
@@ -205,7 +223,8 @@ export default function HomeScreen() {
             trips={filteredTrips} loading={loading} error={error}
             isFiltered={!!from || !!to} from={from} to={to}
             todaySelected={todaySelected} timeSet={timeSet} selectedDate={selectedDate}
-            onPress={openTripSheet} onRetry={refetchActive}
+            timeFilterMins={timeFilterMins}
+            onSelectDeparture={openTripSheet} onRetry={refetchActive}
             fetchNextPage={tripsQuery.fetchNextPage}
             hasNextPage={!!tripsQuery.hasNextPage}
             isFetchingNextPage={tripsQuery.isFetchingNextPage}

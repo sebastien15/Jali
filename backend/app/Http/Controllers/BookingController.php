@@ -9,6 +9,7 @@ use App\Models\CarRental;
 use App\Models\Location;
 use App\Models\PrivateSeat;
 use App\Models\Trip;
+use App\Models\TripDeparture;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -108,10 +109,10 @@ class BookingController extends Controller
         // Server-side title/sub generation
         if (empty($validated["title"])) {
             $item = match ($type) {
-                "bus" => Bus::find($itemId),
+                "bus"     => Bus::find($itemId),
                 "private" => PrivateSeat::find($itemId),
-                "rental" => CarRental::find($itemId),
-                "trip" => Trip::with(["agency", "fromStation", "toStation"])->find($itemId),
+                "rental"  => CarRental::find($itemId),
+                "trip"    => TripDeparture::with(["route.agency", "route.fromStation", "route.toStation"])->find($itemId),
             };
 
             if (!$item) {
@@ -119,44 +120,60 @@ class BookingController extends Controller
             }
 
             $validated["title"] = match ($type) {
-                "bus" => "{$item->agency} · {$item->from} → {$item->to}",
+                "bus"     => "{$item->agency} · {$item->from} → {$item->to}",
                 "private" => "{$item->driver} · {$item->from} → {$item->to}",
-                "rental" => "{$item->name} ({$item->type})",
-                "trip" => "{$item->agency->name} · {$item->fromStation->city} → {$item->toStation->city}",
+                "rental"  => "{$item->name} ({$item->type})",
+                "trip"    => "{$item->route->agency->name} · {$item->route->fromStation->city} → {$item->route->toStation->city}",
             };
             $validated["sub"] = match ($type) {
-                "bus" => "Departs {$item->dep} · {$item->seats} seats",
+                "bus"     => "Departs {$item->dep} · {$item->seats} seats",
                 "private" => "Departs {$item->dep}",
-                "rental" => "{$item->plate} · {$item->seats} seats",
-                "trip" => "Departs {$item->departure_time} · Est. arrival {$item->estimated_arrival_time}",
+                "rental"  => "{$item->plate} · {$item->seats} seats",
+                "trip"    => "Departs {$item->departure_time}",
             };
         }
 
         // Auto-assign location from route city if not provided
         if (empty($validated["location_id"]) && isset($item)) {
-            $location = Location::where("city", $item->from)
-                ->where("type", "bus_station")
-                ->first();
-            if ($location) {
-                $validated["location_id"] = $location->id;
+            $fromCity = $type === "trip" ? $item->route->fromStation->city : ($item->from ?? null);
+            if ($fromCity) {
+                $location = Location::where("city", $fromCity)
+                    ->where("type", "bus_station")
+                    ->first();
+                if ($location) {
+                    $validated["location_id"] = $location->id;
+                }
             }
         }
 
         $booking = Booking::create([
-            "user_id" => $user->id,
-            "location_id" => $validated["location_id"] ?? null,
-            "type" => $type,
-            "reference_id" => $itemId,
-            "title" => $validated["title"],
-            "sub" => $validated["sub"] ?? "",
-            "price" => $validated["price"],
-            "service_fee" => $validated["service_fee"],
-            "quantity" => $validated["quantity"] ?? 1,
-            "passenger_names" => $validated["passenger_names"] ?? null,
-            "status" => "pending",
-            "payment_method" => $validated["payment_method"],
-            "travel_date" => $validated["travel_date"] ?? null,
-            "trip_id" => $type === "trip" ? $itemId : null,
+            "user_id"            => $user->id,
+            "location_id"        => $validated["location_id"] ?? null,
+            "type"               => $type,
+            "reference_id"       => $itemId,
+            "title"              => $validated["title"],
+            "sub"                => $validated["sub"] ?? "",
+            "price"              => $validated["price"],
+            "service_fee"        => $validated["service_fee"],
+            "quantity"           => $validated["quantity"] ?? 1,
+            "passenger_names"    => $validated["passenger_names"] ?? null,
+            "status"             => "pending",
+            "payment_method"     => $validated["payment_method"],
+            "travel_date"        => $validated["travel_date"] ?? null,
+            "trip_id"            => null,
+            "trip_departure_id"  => $type === "trip" ? $itemId : null,
+        ]);
+
+        ActivityLog::create([
+            "admin_id" => $user->id,
+            "action" => "booking_created",
+            "entity_type" => "booking",
+            "entity_id" => $booking->id,
+            "details" => [
+                "title" => $booking->title,
+                "type" => $booking->type,
+                "payment_method" => $booking->payment_method,
+            ],
         ]);
 
         return response()->json(

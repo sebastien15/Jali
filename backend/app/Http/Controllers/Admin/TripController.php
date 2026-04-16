@@ -4,150 +4,254 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
-use App\Models\Trip;
+use App\Models\AgencyRoute;
+use App\Models\TripDeparture;
 use Illuminate\Http\Request;
 
 class TripController extends Controller
 {
     /**
-     * List trips with agency and station info.
+     * List all agency routes with their departures.
      */
     public function index(Request $request)
     {
-        $trips = Trip::with(['agency', 'fromStation', 'toStation'])
+        $routes = AgencyRoute::with(['agency', 'fromStation', 'toStation', 'departures'])
             ->when($request->agency_id, fn($q) => $q->where('agency_id', $request->agency_id))
             ->when($request->filled('active'), fn($q) => $q->where('active', $request->boolean('active')))
-            ->orderBy('departure_time')
             ->get();
 
-        return response()->json($trips->map(fn($t) => $this->formatTrip($t)));
+        return response()->json($routes->map(fn($r) => $this->formatRoute($r)));
     }
 
     /**
-     * Create a new trip.
+     * Create a new agency route (optionally with a first departure time).
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'agency_id'              => 'required|exists:agencies,id',
-            'from_station_id'        => 'required|exists:admin_stations,id|different:to_station_id',
-            'to_station_id'          => 'required|exists:admin_stations,id',
-            'departure_time'         => 'required|date_format:H:i',
-            'estimated_arrival_time' => 'required|date_format:H:i',
-            'price'                  => 'required|integer|min:100',
-            'total_seats'            => 'required|integer|min:1|max:200',
-            'active'                 => 'boolean',
+            'agency_id'       => 'required|exists:agencies,id',
+            'from_station_id' => 'required|exists:admin_stations,id|different:to_station_id',
+            'to_station_id'   => 'required|exists:admin_stations,id',
+            'price'           => 'required|integer|min:100',
+            'total_seats'     => 'required|integer|min:1|max:200',
+            'duration_mins'   => 'required|integer|min:1|max:1440',
+            'active'          => 'boolean',
+            'departure_time'  => 'nullable|date_format:H:i',
         ]);
 
-        $trip = Trip::create($validated);
+        $unique = AgencyRoute::where('agency_id', $validated['agency_id'])
+            ->where('from_station_id', $validated['from_station_id'])
+            ->where('to_station_id', $validated['to_station_id'])
+            ->exists();
+
+        if ($unique) {
+            return response()->json(['error' => 'A route for this agency and stations already exists.'], 422);
+        }
+
+        $route = AgencyRoute::create([
+            'agency_id'       => $validated['agency_id'],
+            'from_station_id' => $validated['from_station_id'],
+            'to_station_id'   => $validated['to_station_id'],
+            'price'           => $validated['price'],
+            'total_seats'     => $validated['total_seats'],
+            'duration_mins'   => $validated['duration_mins'],
+            'active'          => $validated['active'] ?? true,
+        ]);
+
+        if (!empty($validated['departure_time'])) {
+            TripDeparture::create([
+                'agency_route_id' => $route->id,
+                'departure_time'  => $validated['departure_time'],
+                'active'          => true,
+            ]);
+        }
+
+        $route->load(['agency', 'fromStation', 'toStation', 'departures']);
 
         ActivityLog::create([
             'admin_id'    => $request->user()->id,
-            'action'      => 'trip_created',
-            'entity_type' => 'trip',
-            'entity_id'   => $trip->id,
+            'action'      => 'route_created',
+            'entity_type' => 'agency_route',
+            'entity_id'   => $route->id,
             'details'     => [
-                'agency'  => $trip->agency->name,
-                'from'    => $trip->fromStation->city,
-                'to'      => $trip->toStation->city,
-                'departure' => $trip->departure_time,
+                'agency' => $route->agency->name,
+                'from'   => $route->fromStation->city,
+                'to'     => $route->toStation->city,
             ],
         ]);
 
-        return response()->json($this->formatTrip($trip), 201);
+        return response()->json($this->formatRoute($route), 201);
     }
 
     /**
-     * Update a trip.
+     * Update route details (price, seats, duration, active).
      */
     public function update(Request $request, $id)
     {
-        $trip = Trip::findOrFail($id);
+        $route = AgencyRoute::findOrFail($id);
 
         $validated = $request->validate([
-            'agency_id'              => 'sometimes|exists:agencies,id',
-            'from_station_id'        => 'sometimes|exists:admin_stations,id|different:to_station_id',
-            'to_station_id'          => 'sometimes|exists:admin_stations,id',
-            'departure_time'         => 'sometimes|date_format:H:i',
-            'estimated_arrival_time' => 'sometimes|date_format:H:i',
-            'price'                  => 'sometimes|integer|min:100',
-            'total_seats'            => 'sometimes|integer|min:1|max:200',
-            'active'                 => 'sometimes|boolean',
+            'price'         => 'sometimes|integer|min:100',
+            'total_seats'   => 'sometimes|integer|min:1|max:200',
+            'duration_mins' => 'sometimes|integer|min:1|max:1440',
+            'active'        => 'sometimes|boolean',
         ]);
 
-        $trip->update($validated);
+        $route->update($validated);
+        $route->load(['agency', 'fromStation', 'toStation', 'departures']);
 
         ActivityLog::create([
             'admin_id'    => $request->user()->id,
-            'action'      => 'trip_updated',
-            'entity_type' => 'trip',
-            'entity_id'   => $trip->id,
+            'action'      => 'route_updated',
+            'entity_type' => 'agency_route',
+            'entity_id'   => $route->id,
             'details'     => [
-                'agency'  => $trip->agency->name,
-                'from'    => $trip->fromStation->city,
-                'to'      => $trip->toStation->city,
+                'agency' => $route->agency->name,
+                'from'   => $route->fromStation->city,
+                'to'     => $route->toStation->city,
             ],
         ]);
 
-        return response()->json($this->formatTrip($trip));
+        return response()->json($this->formatRoute($route));
     }
 
     /**
-     * Delete a trip. Returns 409 if trip has pending/confirmed bookings.
+     * Delete a route. Blocked if any active bookings exist on its departures.
      */
     public function destroy(Request $request, $id)
     {
-        $trip = Trip::findOrFail($id);
+        $route = AgencyRoute::with('departures')->findOrFail($id);
 
-        // Check for pending or confirmed bookings
-        $hasBookings = $trip->bookings()
+        $departureIds = $route->departures->pluck('id');
+        $hasBookings = \App\Models\Booking::whereIn('trip_departure_id', $departureIds)
             ->whereIn('status', ['pending', 'confirmed', 'taken', 'ticket_ready'])
             ->exists();
 
         if ($hasBookings) {
-            return response()->json([
-                'error' => 'Cannot delete trip with active bookings',
-            ], 409);
+            return response()->json(['error' => 'Cannot delete route with active bookings.'], 409);
         }
 
-        $trip->delete();
+        $route->delete();
 
         ActivityLog::create([
             'admin_id'    => $request->user()->id,
-            'action'      => 'trip_deleted',
-            'entity_type' => 'trip',
+            'action'      => 'route_deleted',
+            'entity_type' => 'agency_route',
             'entity_id'   => $id,
             'details'     => [
-                'agency' => $trip->agency->name,
-                'from'   => $trip->fromStation->city,
-                'to'     => $trip->toStation->city,
+                'agency' => $route->agency->name,
+                'from'   => $route->fromStation->city,
+                'to'     => $route->toStation->city,
             ],
         ]);
 
-        return response()->json(['message' => 'Trip deleted']);
+        return response()->json(['message' => 'Route deleted.']);
     }
 
-    private function formatTrip(Trip $t): array
+    /**
+     * Add a departure time to a route.
+     */
+    public function addDeparture(Request $request, $id)
+    {
+        $route = AgencyRoute::findOrFail($id);
+
+        $validated = $request->validate([
+            'departure_time' => 'required|date_format:H:i',
+        ]);
+
+        $exists = TripDeparture::where('agency_route_id', $route->id)
+            ->where('departure_time', $validated['departure_time'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['error' => 'Departure time already exists for this route.'], 422);
+        }
+
+        $departure = TripDeparture::create([
+            'agency_route_id' => $route->id,
+            'departure_time'  => $validated['departure_time'],
+            'active'          => true,
+        ]);
+
+        ActivityLog::create([
+            'admin_id'    => $request->user()->id,
+            'action'      => 'departure_added',
+            'entity_type' => 'trip_departure',
+            'entity_id'   => $departure->id,
+            'details'     => [
+                'agency'         => $route->agency->name,
+                'from'           => $route->fromStation->city,
+                'to'             => $route->toStation->city,
+                'departure_time' => $departure->departure_time,
+            ],
+        ]);
+
+        return response()->json([
+            'id'             => $departure->id,
+            'departure_time' => substr($departure->departure_time, 0, 5),
+            'active'         => $departure->active,
+        ], 201);
+    }
+
+    /**
+     * Remove a departure time from a route.
+     */
+    public function removeDeparture(Request $request, $routeId, $departureId)
+    {
+        $route     = AgencyRoute::findOrFail($routeId);
+        $departure = TripDeparture::where('agency_route_id', $routeId)->findOrFail($departureId);
+
+        $hasBookings = \App\Models\Booking::where('trip_departure_id', $departure->id)
+            ->whereIn('status', ['pending', 'confirmed', 'taken', 'ticket_ready'])
+            ->exists();
+
+        if ($hasBookings) {
+            return response()->json(['error' => 'Cannot remove departure with active bookings.'], 409);
+        }
+
+        $departure->delete();
+
+        ActivityLog::create([
+            'admin_id'    => $request->user()->id,
+            'action'      => 'departure_removed',
+            'entity_type' => 'trip_departure',
+            'entity_id'   => $departureId,
+            'details'     => [
+                'agency'         => $route->agency->name,
+                'from'           => $route->fromStation->city,
+                'to'             => $route->toStation->city,
+                'departure_time' => $departure->departure_time,
+            ],
+        ]);
+
+        return response()->json(['message' => 'Departure removed.']);
+    }
+
+    private function formatRoute(AgencyRoute $r): array
     {
         return [
-            'id'                     => $t->id,
-            'agency_id'              => $t->agency_id,
-            'agency_name'            => $t->agency->name,
-            'from'                   => [
-                'id'       => $t->fromStation->id,
-                'city'     => $t->fromStation->city,
-                'district' => $t->fromStation->district,
+            'id'           => $r->id,
+            'agency_id'    => $r->agency_id,
+            'agency_name'  => $r->agency->name,
+            'from'         => [
+                'id'       => $r->fromStation->id,
+                'city'     => $r->fromStation->city,
+                'district' => $r->fromStation->district,
             ],
-            'to'                     => [
-                'id'       => $t->toStation->id,
-                'city'     => $t->toStation->city,
-                'district' => $t->toStation->district,
+            'to'           => [
+                'id'       => $r->toStation->id,
+                'city'     => $r->toStation->city,
+                'district' => $r->toStation->district,
             ],
-            'departure_time'         => $t->departure_time,
-            'estimated_arrival_time' => $t->estimated_arrival_time,
-            'price'                  => $t->price,
-            'total_seats'            => $t->total_seats,
-            'active'                 => $t->active,
+            'price'        => $r->price,
+            'total_seats'  => $r->total_seats,
+            'duration_mins' => $r->duration_mins,
+            'active'       => $r->active,
+            'departures'   => $r->departures->map(fn($d) => [
+                'id'             => $d->id,
+                'departure_time' => substr($d->departure_time, 0, 5),
+                'active'         => $d->active,
+            ])->values(),
         ];
     }
 }

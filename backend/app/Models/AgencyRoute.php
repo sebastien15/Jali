@@ -10,7 +10,15 @@ class AgencyRoute extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['agency_id', 'corridor_id', 'from_station_id', 'to_station_id'];
+    protected $fillable = [
+        'agency_id', 'corridor_id', 'from_station_id', 'to_station_id',
+        'price', 'total_seats', 'duration_mins', 'active',
+    ];
+
+    protected function casts(): array
+    {
+        return ['active' => 'boolean'];
+    }
 
     public function fromStation(): BelongsTo
     {
@@ -30,5 +38,10 @@ class AgencyRoute extends Model
     public function corridor(): BelongsTo
     {
         return $this->belongsTo(Corridor::class);
+    }
+
+    public function departures()
+    {
+        return $this->hasMany(TripDeparture::class)->orderBy('departure_time');
     }
 }
