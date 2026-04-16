@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
@@ -90,10 +91,13 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
       />
 
       {/* Sheet */}
+      <KeyboardAvoidingView
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "90%" }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <View style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
         backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        maxHeight: "90%",
+        maxHeight: "100%",
       }}>
         {/* Handle */}
         <View style={{ alignItems: "center", paddingTop: 14, paddingBottom: 4 }}>
@@ -206,6 +210,7 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
           </TouchableOpacity>
         </ScrollView>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

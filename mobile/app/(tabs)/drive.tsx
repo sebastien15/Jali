@@ -113,7 +113,7 @@ export default function DriveScreen() {
   const shown = tab === "upcoming" ? upcoming : history;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.teal }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
       {/* Header */}

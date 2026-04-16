@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -167,16 +169,22 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
       />
 
       {/* Sheet */}
-      <View
+      <KeyboardAvoidingView
         style={{
           position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
+          maxHeight: "92%",
+        }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+      <View
+        style={{
           backgroundColor: C.white,
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
-          maxHeight: "92%",
+          maxHeight: "100%",
         }}
       >
         {/* Handle */}
@@ -452,6 +460,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
         {/* Toast */}
         <Toast ref={toastRef} />
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

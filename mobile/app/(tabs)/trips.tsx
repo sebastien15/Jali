@@ -39,7 +39,7 @@ export default function TripsScreen() {
   const list = filter === "all" ? bookings : bookings.filter((t: any) => t.status === filter);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }}>
       <StatusBar barStyle="light-content" backgroundColor={C.blue} />
 
       {/* Header */}

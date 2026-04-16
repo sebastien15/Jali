@@ -31,9 +31,9 @@ class TripSearchController extends Controller
             $query->where('agency_id', $request->agency_id);
         }
 
-        $trips = $query->orderBy('departure_time')->get();
+        $paginator = $query->orderBy('departure_time')->paginate(10);
 
-        return response()->json($trips->map(fn($t) => [
+        return response()->json($paginator->through(fn($t) => [
             'id'                       => $t->id,
             'agency_id'                => $t->agency_id,
             'agency_name'              => $t->agency->name,

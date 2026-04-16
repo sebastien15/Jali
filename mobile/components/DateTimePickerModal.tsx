@@ -30,16 +30,49 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
     }
   }, [visible, date, timeOnly]);
 
-  function handleDateChange(_: any, d?: Date) {
-    if (d) {
-      setSelectedDate(d);
+  // ── Android: render native dialogs directly — no custom Modal wrapper ──────
+  // DateTimePicker inside a Modal creates a double-overlay on Android.
+  // Native dialogs have their own Cancel/OK, so no custom shell needed.
+  if (Platform.OS === "android") {
+    if (!visible) return null;
+
+    // Date picker first (unless timeOnly), then time picker sequentially
+    if (!timeOnly && showDatePicker) {
+      return (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(_, d) => {
+            if (d === undefined) { onCancel(); return; }
+            setSelectedDate(d);
+            setShowDatePicker(false); // advance to time picker
+          }}
+        />
+      );
     }
+
+    return (
+      <DateTimePicker
+        value={selectedDate}
+        mode="time"
+        display="default"
+        onChange={(_, d) => {
+          if (d === undefined) { onCancel(); return; }
+          onConfirm(d);
+        }}
+      />
+    );
+  }
+
+  // ── iOS + Web: custom modal sheet with spinner / HTML inputs ──────────────
+  function handleDateChange(_: any, d?: Date) {
+    if (d) setSelectedDate(d);
   }
 
   function handleTimeChange(_: any, d?: Date) {
-    if (d) {
-      setSelectedDate(d);
-    }
+    if (d) setSelectedDate(d);
   }
 
   function handleDone() {
@@ -105,8 +138,8 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
             )}
           </View>
 
-          {/* Mobile: native DateTimePicker */}
-          {Platform.OS !== "web" && (
+          {/* iOS: native spinner inside sheet */}
+          {Platform.OS === "ios" && (
             <View style={styles.mobilePickers}>
               {!timeOnly && showDatePicker ? (
                 <DateTimePicker
@@ -126,37 +159,21 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
                   style={styles.pickerNative}
                 />
               )}
-              {Platform.OS === "ios" && !timeOnly && (
+              {!timeOnly && (
                 <View style={styles.iosSwitchRow}>
                   <TouchableOpacity
                     onPress={() => setShowDatePicker(true)}
-                    style={[
-                      styles.iosSwitchBtn,
-                      showDatePicker && styles.iosSwitchBtnActive,
-                    ]}
+                    style={[styles.iosSwitchBtn, showDatePicker && styles.iosSwitchBtnActive]}
                   >
-                    <Text
-                      style={[
-                        styles.iosSwitchText,
-                        showDatePicker && styles.iosSwitchTextActive,
-                      ]}
-                    >
+                    <Text style={[styles.iosSwitchText, showDatePicker && styles.iosSwitchTextActive]}>
                       Date
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => setShowDatePicker(false)}
-                    style={[
-                      styles.iosSwitchBtn,
-                      !showDatePicker && styles.iosSwitchBtnActive,
-                    ]}
+                    style={[styles.iosSwitchBtn, !showDatePicker && styles.iosSwitchBtnActive]}
                   >
-                    <Text
-                      style={[
-                        styles.iosSwitchText,
-                        !showDatePicker && styles.iosSwitchTextActive,
-                      ]}
-                    >
+                    <Text style={[styles.iosSwitchText, !showDatePicker && styles.iosSwitchTextActive]}>
                       Time
                     </Text>
                   </TouchableOpacity>
@@ -165,7 +182,7 @@ export function DateTimePickerModal({ visible, date, onConfirm, onCancel, timeOn
             </View>
           )}
 
-          {/* Web: native HTML inputs */}
+          {/* Web: HTML inputs */}
           {Platform.OS === "web" && (
             <WebDateTimeInputs date={selectedDate} onChange={setSelectedDate} timeOnly={timeOnly} />
           )}

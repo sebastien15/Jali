@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   View, Text, TouchableOpacity, Modal, FlatList,
-  TextInput, ActivityIndicator,
+  TextInput, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
@@ -80,12 +80,16 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1, justifyContent: "flex-end" }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)" }} />
           <View style={{
             backgroundColor: C.white,
             borderTopLeftRadius: 28, borderTopRightRadius: 28,
             paddingBottom: 36,
-            maxHeight: "88%",
+            maxHeight: "95%",
           }}>
             {/* Handle */}
             <View style={{ alignItems: "center", paddingTop: 14, paddingBottom: 4 }}>
@@ -190,7 +194,7 @@ export function StationPicker({ value, onChange, placeholder, exclude }: Props) 
               />
             )}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

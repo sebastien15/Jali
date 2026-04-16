@@ -35,7 +35,7 @@ class PrivateSeatController extends Controller
             });
         }
 
-        return response()->json($query->orderBy('dep')->get());
+        return response()->json($query->orderBy('dep')->paginate(10));
     }
 
     /**
