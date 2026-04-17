@@ -10,6 +10,7 @@ import {
   Alert,
   Image,
   Linking,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
 import { queryKeys } from "@/lib/queryKeys";
+import { setLanguage, getLanguage } from "@/lib/i18n";
 
 export default function AdminProfileScreen() {
   const { t } = useTranslation();
@@ -97,6 +99,40 @@ export default function AdminProfileScreen() {
       setImageLoading(false);
     }
   }
+
+  const LANGUAGES = [
+    { code: "en", label: "English" },
+    { code: "fr", label: "Français" },
+    { code: "rw", label: "Kinyarwanda" },
+    { code: "sw", label: "Kiswahili" },
+  ];
+
+  function pickLanguage() {
+    const current = getLanguage();
+    Alert.alert(
+      "Language",
+      "Choose your preferred language",
+      [
+        ...LANGUAGES.map(lang => ({
+          text: current === lang.code ? `✓ ${lang.label}` : lang.label,
+          onPress: () => setLanguage(lang.code),
+        })),
+        { text: "Cancel", style: "cancel" as const },
+      ]
+    );
+  }
+
+  const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help.";
+  const PLAY_STORE_URL = "market://details?id=com.jali.app";
+  const APP_STORE_URL = "https://apps.apple.com/app/jali/id0000000000";
+
+  const SETTINGS_MENU = [
+    { icon: "language-outline" as const, label: "Language", sub: "Kinyarwanda / English / Français", onPress: pickLanguage },
+    { icon: "help-circle-outline" as const, label: "Help & Support", sub: "WhatsApp · Mon–Sat 8am–6pm", onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
+    { icon: "star-outline" as const, label: "Rate Jali", sub: "Share your feedback", onPress: () => Linking.openURL(Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL) },
+    { icon: "shield-checkmark-outline" as const, label: "Privacy Policy", sub: "How we handle your data", onPress: () => {} },
+    { icon: "reader-outline" as const, label: "Terms & Conditions", sub: "Usage terms", onPress: () => {} },
+  ];
 
   async function downloadTemplate() {
     try {
@@ -236,6 +272,32 @@ export default function AdminProfileScreen() {
           <Ionicons name="log-out-outline" size={18} color="#DC2626" />
           <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>Log Out</Text>
         </TouchableOpacity>
+
+        {/* Settings & Info */}
+        <Section title="Settings & Info" />
+        {SETTINGS_MENU.map((item, i) => (
+          <TouchableOpacity
+            key={i}
+            onPress={item.onPress}
+            style={{
+              backgroundColor: C.white, borderRadius: 14, padding: 14,
+              marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 14,
+              shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4,
+              shadowOffset: { width: 0, height: 1 }, elevation: 1,
+            }}
+          >
+            <View style={{ backgroundColor: C.bg, borderRadius: 10, width: 38, height: 38, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name={item.icon} size={20} color={C.mid} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14 }}>{item.label}</Text>
+              <Text style={{ color: C.muted, fontSize: 12 }}>{item.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={C.muted} />
+          </TouchableOpacity>
+        ))}
+
+        <View style={{ height: 8 }} />
 
         {/* Contract — hidden for superadmin */}
         {!isSuperAdmin && (

@@ -11,6 +11,7 @@ import { GoogleSignin } from "@/lib/native/google-signin";
 import api, { clearApiToken, getApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
+import { setLanguage, getLanguage } from "@/lib/i18n";
 
 const APP_VERSION = "1.0.0";
 const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
@@ -92,6 +93,28 @@ export default function ProfileScreen() {
     }
   }
 
+  const LANGUAGES = [
+    { code: "en", label: "English" },
+    { code: "fr", label: "Français" },
+    { code: "rw", label: "Kinyarwanda" },
+    { code: "sw", label: "Kiswahili" },
+  ];
+
+  function pickLanguage() {
+    const current = getLanguage();
+    Alert.alert(
+      t('profile.language'),
+      t('profile.languageSub'),
+      [
+        ...LANGUAGES.map(lang => ({
+          text: current === lang.code ? `✓ ${lang.label}` : lang.label,
+          onPress: () => setLanguage(lang.code),
+        })),
+        { text: t('profile.cancel'), style: "cancel" as const },
+      ]
+    );
+  }
+
   const MENU: MenuItem[] = [
     {
       icon: "notifications-outline",
@@ -103,7 +126,7 @@ export default function ProfileScreen() {
       icon: "language-outline",
       label: t('profile.language'),
       sub: t('profile.languageSub'),
-      onPress: () => {},
+      onPress: pickLanguage,
     },
     {
       icon: "help-circle-outline",
