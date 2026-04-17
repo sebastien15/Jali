@@ -12,6 +12,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { queryClient } from "@/lib/queryClient";
 import api from "@/lib/api";
+import * as Location from "expo-location";
 
 const persister = createAsyncStoragePersister({
   storage: AsyncStorage,
@@ -38,8 +39,24 @@ function I18nWrapper({ children }: { children: React.ReactNode }) {
 
 function AccessTracker() {
   useEffect(() => {
-    const platform = Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web";
-    api.post("/track-access", { platform }).catch(() => {});
+    (async () => {
+      const platform = Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web";
+      const body: Record<string, unknown> = { platform };
+
+      // Pass location only if already granted — never prompt from here
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === "granted") {
+          const pos = await Location.getLastKnownPositionAsync();
+          if (pos) {
+            body.lat = pos.coords.latitude;
+            body.lng = pos.coords.longitude;
+          }
+        }
+      } catch {}
+
+      api.post("/track-access", body).catch(() => {});
+    })();
   }, []);
   return null;
 }

@@ -174,6 +174,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/logs", [ActivityLogController::class, "index"]);
+            Route::get("/logs/groups", [ActivityLogController::class, "groups"]);
             Route::get("/access-stats", [AppAccessController::class, "stats"]);
             Route::get("/app-accesses", [AppAccessController::class, "index"]);
         });

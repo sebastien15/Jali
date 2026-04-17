@@ -69,23 +69,26 @@ class AdminProfileController extends Controller
         $user = $request->user();
 
         $request->validate([
-            "image" => "required|image|max:5120", // 5MB
+            'image_base64' => ['required', 'string', function ($attr, $value, $fail) {
+                if (!str_starts_with($value, 'data:image/')) {
+                    $fail('Invalid image data.');
+                }
+            }],
         ]);
 
-        $path = $request->file("image")->store("profile-images", "public");
-        $url = Storage::url($path);
+        $dataUri = $request->input('image_base64');
 
-        $user->update(["profile_image_url" => $url]);
+        $user->update(['profile_image_url' => $dataUri]);
 
         ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "profile_image_uploaded",
-            "entity_type" => "user",
-            "entity_id" => $user->id,
-            "details" => ["url" => $url],
+            'admin_id'    => $user->id,
+            'action'      => 'profile_image_uploaded',
+            'entity_type' => 'user',
+            'entity_id'   => $user->id,
+            'details'     => ['source' => 'base64'],
         ]);
 
-        return response()->json(["profile_image_url" => $url]);
+        return response()->json(['profile_image_url' => $dataUri]);
     }
 
     public function uploadContract(Request $request)

@@ -54,7 +54,9 @@ export const queryKeys = {
     agencies: () => ["admin", "agencies"] as const,
     trips: (filters?: object) => ["admin", "trips", filters] as const,
     logs: (action?: string) => ["admin", "logs", { action }] as const,
+    logGroups: () => ["admin", "logs", "groups"] as const,
     appAccesses: (platform?: string) => ["admin", "appAccesses", { platform }] as const,
+    appAccessStats: () => ["admin", "appAccesses", "stats"] as const,
     locations: () => ["admin", "locations"] as const,
     analytics: {
       revenue: () => ["admin", "analytics", "revenue"] as const,

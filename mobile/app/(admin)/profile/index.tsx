@@ -32,6 +32,7 @@ export default function AdminProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [contractLoading, setContractLoading] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: queryKeys.adminProfile(),
@@ -70,35 +71,29 @@ export default function AdminProfileScreen() {
     if (result.canceled || !result.assets?.[0]) return;
 
     const asset = result.assets[0];
-    const localUri = asset.uri;
     setImageLoading(true);
 
     try {
+      // Resize to 200×200 and get base64 — no file system needed on the server
       const compressed = await ImageManipulator.manipulateAsync(
-        localUri,
-        [{ resize: { width: 400, height: 400 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        asset.uri,
+        [{ resize: { width: 200, height: 200 } }],
+        { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG, base64: true }
       );
 
-      const formData = new FormData();
-      if (typeof window !== "undefined" && compressed.uri.startsWith("blob:")) {
-        const response = await fetch(compressed.uri);
-        const blob = await response.blob();
-        formData.append("image", blob, "profile.jpg");
-      } else {
-        formData.append("image", {
-          uri: compressed.uri,
-          name: "profile.jpg",
-          type: "image/jpeg",
-        } as any);
-      }
+      const dataUri = `data:image/jpeg;base64,${compressed.base64}`;
 
-      await api.post("/admin/profile/image", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // Show locally immediately
+      setLocalPreview(dataUri);
+
+      await api.post("/admin/profile/image", { image_base64: dataUri });
+
       queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+      setLocalPreview(null);
     } catch (e: any) {
-      console.log("[Profile] image upload error:", e?.response?.status, e?.response?.data);
+      setLocalPreview(null);
+      const msg = e?.response?.data?.message ?? "Failed to upload photo. Please try again.";
+      Alert.alert("Upload failed", msg);
     } finally {
       setImageLoading(false);
     }
@@ -162,9 +157,9 @@ export default function AdminProfileScreen() {
         {/* Profile Image */}
         <View style={{ alignItems: "center", marginBottom: 24 }}>
           <TouchableOpacity onPress={pickImage} disabled={imageLoading}>
-            {profile.profile_image_url ? (
+            {(localPreview ?? profile.profile_image_url) ? (
               <Image
-                source={{ uri: profile.profile_image_url }}
+                source={{ uri: localPreview ?? profile.profile_image_url }}
                 style={{ width: 100, height: 100, borderRadius: 50 }}
               />
             ) : (

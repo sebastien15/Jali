@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ActivityLogController extends Controller
 {
@@ -41,5 +42,12 @@ class ActivityLogController extends Controller
         $logs = $query->paginate($perPage);
 
         return response()->json($logs);
+    }
+
+    /** Returns which action group keys actually have log entries. */
+    public function groups(): JsonResponse
+    {
+        $existing = ActivityLog::distinct()->pluck('action')->all();
+        return response()->json($existing);
     }
 }

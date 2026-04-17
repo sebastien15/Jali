@@ -135,6 +135,24 @@ class AdminBookingController extends Controller
         $user = $request->user();
         $booking = Booking::findOrFail($id);
 
+        // Station admins can only upload tickets for their own station's bookings
+        if ($user->isAdmin() && !$user->isSuperAdmin()) {
+            $station = $user->adminStation;
+            if ($station) {
+                if ($booking->type === 'trip' && $booking->trip) {
+                    if ($booking->trip->from_station_id !== $station->id) {
+                        abort(403, 'You can only manage bookings for your assigned station.');
+                    }
+                } elseif ($booking->type === 'bus') {
+                    if (stripos($booking->title, $station->city) === false) {
+                        abort(403, 'You can only manage bookings for your assigned city.');
+                    }
+                }
+            } else {
+                abort(403, 'No station assigned to your account.');
+            }
+        }
+
         $request->validate([
             'ticket' => 'required|image|max:16384|mimes:jpg,jpeg,png,webp,heic,heif,gif', // 16MB
         ]);

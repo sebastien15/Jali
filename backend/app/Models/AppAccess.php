@@ -8,7 +8,7 @@ class AppAccess extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['platform', 'user_id', 'ip_address', 'accessed_at'];
+    protected $fillable = ['platform', 'user_id', 'ip_address', 'lat', 'lng', 'district', 'accessed_at'];
 
     protected $casts = ['accessed_at' => 'datetime'];
 

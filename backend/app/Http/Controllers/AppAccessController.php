@@ -11,15 +11,52 @@ class AppAccessController extends Controller
     {
         $request->validate([
             'platform' => 'required|in:ios,android,web',
+            'lat'      => 'nullable|numeric|between:-90,90',
+            'lng'      => 'nullable|numeric|between:-180,180',
         ]);
+
+        $district = null;
+        if ($request->filled('lat') && $request->filled('lng')) {
+            $district = $this->districtFromCoords((float) $request->lat, (float) $request->lng);
+        }
 
         AppAccess::create([
             'platform'   => $request->platform,
             'user_id'    => $request->user()?->id,
             'ip_address' => $request->ip(),
+            'lat'        => $request->lat,
+            'lng'        => $request->lng,
+            'district'   => $district,
         ]);
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Reverse-geocode via Nominatim to get a district name.
+     * Returns null silently on any failure — never blocks the request.
+     */
+    private function districtFromCoords(float $lat, float $lng): ?string
+    {
+        try {
+            $resp = \Illuminate\Support\Facades\Http::timeout(3)
+                ->withHeaders(['User-Agent' => 'Jali/1.0 contact@jali.rw'])
+                ->get('https://nominatim.openstreetmap.org/reverse', [
+                    'lat'          => $lat,
+                    'lon'          => $lng,
+                    'format'       => 'json',
+                    'zoom'         => 10,
+                    'addressdetails' => 1,
+                ]);
+
+            if (!$resp->ok()) return null;
+
+            $addr = $resp->json('address', []);
+            // Rwanda: county = district, city / town / village as fallback
+            return $addr['county'] ?? $addr['city_district'] ?? $addr['city'] ?? $addr['town'] ?? null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function index(Request $request)
@@ -46,6 +83,7 @@ class AppAccessController extends Controller
             'user_email'  => $r->user?->email,
             'user_name'   => $r->user?->name,
             'ip_address'  => $r->ip_address,
+            'district'    => $r->district,
             'accessed_at' => $r->accessed_at,
         ]));
     }

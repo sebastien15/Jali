@@ -28,7 +28,7 @@ export function AgencyFilterBar({ agencies, selected, onChange }: Props) {
             minWidth: 40, alignItems: "center",
           }}
         >
-          <Text style={{ color: selected === null ? C.white : C.blue, fontWeight: "700", fontSize: 12 }} numberOfLines={1}>
+          <Text style={{ color: selected === null ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
             All
           </Text>
         </TouchableOpacity>
@@ -43,11 +43,10 @@ export function AgencyFilterBar({ agencies, selected, onChange }: Props) {
                 paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
                 backgroundColor: active ? C.blue : C.blueLt,
                 flexDirection: "row", alignItems: "center", gap: 5,
-                minWidth: 60,
               }}
             >
               <Ionicons name="business-outline" size={11} color={active ? C.white : C.blue} />
-              <Text style={{ color: active ? C.white : C.blue, fontWeight: "700", fontSize: 12 }} numberOfLines={1}>
+              <Text style={{ color: active ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
                 {name}
               </Text>
             </TouchableOpacity>

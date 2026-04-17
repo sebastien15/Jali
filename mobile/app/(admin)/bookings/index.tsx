@@ -24,26 +24,13 @@ import { queryKeys } from "@/lib/queryKeys";
 
 type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "taken" | "ticket_ready" | "delivered";
 
-const STATUS_META: Record<
-  BookingStatus,
-  { label: string; color: string; bg: string; icon: string }
-> = {
-  pending: { label: "Pending", color: C.orange, bg: C.orangeLt, icon: "⏳" },
-  confirmed: { label: "Confirmed", color: C.green, bg: C.greenLt, icon: "✅" },
-  completed: { label: "Completed", color: C.teal, bg: C.tealLt, icon: "🏁" },
-  cancelled: { label: "Cancelled", color: "#DC2626", bg: "#FEE2E2", icon: "❌" },
-  taken: { label: "Taken", color: C.blue, bg: C.blueLt, icon: "📋" },
-  ticket_ready: { label: "Ticket Ready", color: C.green, bg: C.greenLt, icon: "🎫" },
-  delivered: { label: "Delivered", color: C.teal, bg: C.tealLt, icon: "✅" },
+// Maps backend error messages to i18n keys
+const BACKEND_ERROR_KEYS: Record<string, string> = {
+  "This action is unauthorized.":           "adminBookings.noPermission",
+  "No station assigned to your account.":   "adminBookings.noStation",
+  "You can only manage bookings for your assigned station.": "adminBookings.wrongStation",
+  "You can only manage bookings for your assigned city.":    "adminBookings.wrongStation",
 };
-
-const TABS: { key: "all" | BookingStatus; label: string }[] = [
-  { key: "all",          label: "All" },
-  { key: "pending",      label: "⏳ Pending" },
-  { key: "taken",        label: "📋 Taken" },
-  { key: "ticket_ready", label: "🎫 Ready" },
-  { key: "delivered",    label: "✅ Delivered" },
-];
 
 export default function AdminBookingsScreen() {
   const { t } = useTranslation();
@@ -55,6 +42,24 @@ export default function AdminBookingsScreen() {
   );
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const toastRef = useRef<ToastHandle>(null);
+
+  const TABS: { key: "all" | BookingStatus; label: string }[] = [
+    { key: "all",          label: t("adminBookings.tabAll") },
+    { key: "pending",      label: `⏳ ${t("adminBookings.tabPending")}` },
+    { key: "taken",        label: `📋 ${t("adminBookings.tabTaken")}` },
+    { key: "ticket_ready", label: `🎫 ${t("adminBookings.tabReady")}` },
+    { key: "delivered",    label: `✅ ${t("adminBookings.tabDelivered")}` },
+  ];
+
+  const STATUS_META: Record<BookingStatus, { label: string; color: string; bg: string; icon: string }> = {
+    pending:     { label: t("adminBookings.statusPending"),     color: C.orange,  bg: C.orangeLt, icon: "⏳" },
+    confirmed:   { label: t("adminBookings.statusConfirmed"),   color: C.green,   bg: C.greenLt,  icon: "✅" },
+    completed:   { label: t("adminBookings.statusCompleted"),   color: C.teal,    bg: C.tealLt,   icon: "🏁" },
+    cancelled:   { label: t("adminBookings.statusCancelled"),   color: "#DC2626", bg: "#FEE2E2",  icon: "❌" },
+    taken:       { label: t("adminBookings.statusTaken"),       color: C.blue,    bg: C.blueLt,   icon: "📋" },
+    ticket_ready:{ label: t("adminBookings.statusTicketReady"), color: C.green,   bg: C.greenLt,  icon: "🎫" },
+    delivered:   { label: t("adminBookings.statusDelivered"),   color: C.teal,    bg: C.tealLt,   icon: "✅" },
+  };
 
   const { data: bookings = [], isLoading, isRefetching, refetch } = useQuery({
     queryKey: queryKeys.admin.bookings(filter !== "all" ? filter : undefined),
@@ -77,15 +82,21 @@ export default function AdminBookingsScreen() {
 
   const totalServiceFees = bookings.reduce((sum: number, b: any) => sum + (b.service_fee ?? 0), 0);
 
+  function resolveError(e: any): string {
+    const msg: string = e?.response?.data?.message ?? "";
+    const key = BACKEND_ERROR_KEYS[msg];
+    if (key) return t(key);
+    return t("adminBookings.updateFailed");
+  }
+
   async function doStatusChange(id: number, status: string) {
     setActionLoading(id);
     try {
       await api.patch(`/admin/bookings/${id}`, { status });
-      toastRef.current?.show({ message: `Booking updated to ${status.replace("_", " ")}`, type: "success" });
+      toastRef.current?.show({ message: t("adminBookings.statusDelivered"), type: "success" });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch (e: any) {
-      const msg = e?.response?.data?.message ?? "Failed to update booking.";
-      toastRef.current?.show({ message: msg, type: "error" });
+      toastRef.current?.show({ message: resolveError(e), type: "error" });
     } finally {
       setActionLoading(null);
     }
@@ -134,11 +145,15 @@ export default function AdminBookingsScreen() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toastRef.current?.show({ message: "Ticket uploaded — booking marked ready", type: "success" });
+      toastRef.current?.show({ message: t("adminBookings.ticketUploaded"), type: "success" });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
     } catch (e: any) {
-      const msg = e?.response?.data?.message ?? "Failed to upload ticket.";
-      toastRef.current?.show({ message: msg, type: "error" });
+      const msg = e?.response?.data?.message;
+      const key = BACKEND_ERROR_KEYS[msg ?? ""];
+      toastRef.current?.show({
+        message: key ? t(key) : t("adminBookings.uploadTicketFailed"),
+        type: "error",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -148,7 +163,7 @@ export default function AdminBookingsScreen() {
     if (b.status === "pending") {
       return (
         <ActionBtn
-          label="Claim Booking"
+          label={t("adminBookings.claimBooking")}
           color={C.teal}
           onPress={() => doStatusChange(b.id, "taken")}
           loading={actionLoading === b.id}
@@ -158,7 +173,7 @@ export default function AdminBookingsScreen() {
     if (b.status === "taken") {
       return (
         <ActionBtn
-          label="Upload Ticket"
+          label={t("adminBookings.uploadTicket")}
           color={C.blue}
           onPress={() => doUploadTicket(b.id)}
           loading={actionLoading === b.id}
@@ -168,7 +183,7 @@ export default function AdminBookingsScreen() {
     if (b.status === "ticket_ready") {
       return (
         <ActionBtn
-          label="Mark Delivered"
+          label={t("adminBookings.markDelivered")}
           color={C.green}
           onPress={() => doStatusChange(b.id, "delivered")}
           loading={actionLoading === b.id}
@@ -183,7 +198,7 @@ export default function AdminBookingsScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
       <View style={{ backgroundColor: C.teal }}>
-        <AdminHeader title={t("adminBookings.title") || t("admin.bookings")} />
+        <AdminHeader title={t("adminBookings.title")} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16 }}>
             {TABS.map((tab) => (
@@ -221,7 +236,7 @@ export default function AdminBookingsScreen() {
             }}
           >
             <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>
-              {t("adminBookings.revenueHeader") || "Total Service Fees"}
+              {t("adminBookings.revenueHeader")}
             </Text>
             <Text style={{ color: C.teal, fontWeight: "900", fontSize: 24, marginTop: 4 }}>
               {totalServiceFees.toLocaleString()} RWF
@@ -235,7 +250,7 @@ export default function AdminBookingsScreen() {
 
         {!isLoading && list.length === 0 && (
           <Text style={{ color: C.muted, textAlign: "center", marginTop: 40 }}>
-            {t("adminBookings.noBookings") || "No bookings found."}
+            {t("adminBookings.noBookings")}
           </Text>
         )}
 
@@ -280,7 +295,7 @@ export default function AdminBookingsScreen() {
                     {b.agency_name && (
                       <Text style={{ color: C.blue, fontSize: 12, marginTop: 2, fontWeight: "700" }}>
                         🏢 {b.agency_name}
-                        {b.trip_departure ? ` · Departs ${b.trip_departure}` : ""}
+                        {b.trip_departure ? ` · ${t("adminBookings.departs")} ${b.trip_departure}` : ""}
                       </Text>
                     )}
                     {isSuperAdmin && b.confirmed_by_name && (
