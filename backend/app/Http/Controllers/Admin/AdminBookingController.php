@@ -32,9 +32,8 @@ class AdminBookingController extends Controller
                             ->where('title', 'like', "%{$station->city}%");
                     });
                 });
-            } else {
-                return response()->json([]);
             }
+            // No station assigned → admin can see all bookings
         }
 
         if ($request->has('status')) {
@@ -93,9 +92,8 @@ class AdminBookingController extends Controller
                         abort(403, 'You can only manage bookings for your assigned city.');
                     }
                 }
-            } else {
-                abort(403, 'No station assigned to your account.');
             }
+            // No station assigned → admin can manage all bookings
         }
 
         $data = $request->validate([
@@ -148,9 +146,8 @@ class AdminBookingController extends Controller
                         abort(403, 'You can only manage bookings for your assigned city.');
                     }
                 }
-            } else {
-                abort(403, 'No station assigned to your account.');
             }
+            // No station assigned → admin can upload tickets for any booking
         }
 
         $request->validate([

@@ -83,7 +83,12 @@ export default function AdminBookingsScreen() {
   const totalServiceFees = bookings.reduce((sum: number, b: any) => sum + (b.service_fee ?? 0), 0);
 
   function resolveError(e: any): string {
-    const msg: string = e?.response?.data?.message ?? "";
+    const data = e?.response?.data ?? {};
+    const msg: string = data.message ?? data.error ?? "";
+    if (e?.response?.status === 403) {
+      const key = BACKEND_ERROR_KEYS[msg];
+      return key ? t(key) : t("adminBookings.noPermission");
+    }
     const key = BACKEND_ERROR_KEYS[msg];
     if (key) return t(key);
     return t("adminBookings.updateFailed");
