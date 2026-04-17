@@ -1,7 +1,7 @@
 import "../global.css";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Platform } from "react-native";
 import OfflineBanner from "@/components/OfflineBanner";
 import { initI18n } from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
@@ -11,6 +11,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { queryClient } from "@/lib/queryClient";
+import api from "@/lib/api";
 
 const persister = createAsyncStoragePersister({
   storage: AsyncStorage,
@@ -35,14 +36,23 @@ function I18nWrapper({ children }: { children: React.ReactNode }) {
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
 }
 
+function AccessTracker() {
+  useEffect(() => {
+    const platform = Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web";
+    api.post("/track-access", { platform }).catch(() => {});
+  }, []);
+  return null;
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000 }}
+        persistOptions={{ persister, maxAge: 7 * 24 * 60 * 60 * 1000 }}
       >
         <I18nWrapper>
+          <AccessTracker />
           <View style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />

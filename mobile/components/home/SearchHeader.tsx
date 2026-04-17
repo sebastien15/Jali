@@ -1,4 +1,6 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Modal, Platform } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -17,6 +19,7 @@ interface Props {
 
 export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selectedDate, onDateChange }: Props) {
   const { t } = useTranslation();
+  const [showPicker, setShowPicker] = useState(false);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -28,6 +31,14 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
     { label: "Today",    date: today },
     { label: "Tomorrow", date: tomorrow },
   ];
+
+  const isCustomDate =
+    selectedDate.toDateString() !== today.toDateString() &&
+    selectedDate.toDateString() !== tomorrow.toDateString();
+
+  const customLabel = isCustomDate
+    ? selectedDate.toLocaleDateString("en-RW", { month: "short", day: "numeric" })
+    : null;
 
   return (
     <View style={{ backgroundColor: C.blue, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
@@ -66,7 +77,7 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
         <StationPicker value={to} onChange={onToChange} placeholder={t('home.toAny')} exclude={from} />
       </View>
 
-      {/* Date chips — Today / Tomorrow only */}
+      {/* Date chips */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
           {quickDates.map(qd => {
@@ -86,8 +97,69 @@ export function SearchHeader({ from, to, onFromChange, onToChange, onSwap, selec
               </TouchableOpacity>
             );
           })}
+
+          {/* Custom date chip */}
+          <TouchableOpacity
+            onPress={() => setShowPicker(true)}
+            style={{
+              backgroundColor: isCustomDate ? C.yellow : "rgba(255,255,255,0.15)",
+              borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
+              flexDirection: "row", alignItems: "center", gap: 5,
+            }}
+          >
+            <Ionicons name="calendar-outline" size={13} color={isCustomDate ? C.dark : C.white} />
+            <Text style={{ color: isCustomDate ? C.dark : C.white, fontWeight: "800", fontSize: 12 }}>
+              {customLabel ?? "Pick date"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Android date picker — renders as native dialog */}
+      {showPicker && Platform.OS === "android" && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          minimumDate={today}
+          onChange={(_, date) => {
+            setShowPicker(false);
+            if (date) onDateChange(date);
+          }}
+        />
+      )}
+
+      {/* iOS date picker — bottom sheet modal */}
+      {Platform.OS === "ios" && (
+        <Modal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setShowPicker(false)}
+            style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.4)" }}
+          >
+            <TouchableOpacity activeOpacity={1} style={{
+              backgroundColor: C.white,
+              borderTopLeftRadius: 20, borderTopRightRadius: 20,
+              paddingHorizontal: 20, paddingBottom: 32, paddingTop: 16,
+            }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <Text style={{ fontWeight: "800", fontSize: 16, color: C.dark }}>Select date</Text>
+                <TouchableOpacity onPress={() => setShowPicker(false)}>
+                  <Text style={{ color: C.blue, fontWeight: "700", fontSize: 15 }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="inline"
+                minimumDate={today}
+                onChange={(_, date) => { if (date) onDateChange(date); }}
+                style={{ alignSelf: "center" }}
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 }

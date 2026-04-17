@@ -94,12 +94,6 @@ export default function ProfileScreen() {
 
   const MENU: MenuItem[] = [
     {
-      icon: "card-outline",
-      label: t('profile.paymentMethods'),
-      sub: t('profile.paymentSub'),
-      onPress: () => {},
-    },
-    {
       icon: "notifications-outline",
       label: t('profile.notifications'),
       sub: t('profile.notificationsSub'),
@@ -154,7 +148,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }} edges={["top", "left", "right"]}>
       <StatusBar barStyle="light-content" backgroundColor={C.blue} />
       <View style={{ flex: 1, backgroundColor: C.bg }}>
 

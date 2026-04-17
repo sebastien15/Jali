@@ -79,7 +79,8 @@ export default function HomeScreen() {
     getNextPageParam: (lastPage: any) =>
       lastPage.next_page_url ? lastPage.current_page + 1 : undefined,
     initialPageParam: 1,
-    staleTime: 60_000,
+    staleTime: 15 * 60_000, // agency schedules rarely change
+    gcTime: 30 * 60_000,
     placeholderData: keepPreviousData,
   });
 
@@ -94,7 +95,8 @@ export default function HomeScreen() {
   const rentalsQuery = useQuery({
     queryKey: queryKeys.carRentals.all(),
     queryFn: () => api.get("/car-rentals").then(r => r.data ?? []),
-    staleTime: 10 * 60_000,
+    staleTime: 15 * 60_000,
+    gcTime: 30 * 60_000,
   });
 
   // ── Private seats — paginated, 10 per page, location-aware ─────────────
@@ -114,7 +116,8 @@ export default function HomeScreen() {
     getNextPageParam: (lastPage: any) =>
       lastPage.next_page_url ? lastPage.current_page + 1 : undefined,
     initialPageParam: 1,
-    staleTime: 60_000,
+    staleTime: 10 * 60_000,
+    gcTime: 20 * 60_000,
     placeholderData: keepPreviousData,
   });
 

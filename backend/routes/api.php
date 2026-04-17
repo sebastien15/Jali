@@ -19,6 +19,10 @@ use App\Http\Controllers\TripSearchController;
 use App\Http\Controllers\AgencyRatingController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\TripController;
+use App\Http\Controllers\AppAccessController;
+
+// ── Access tracking — public (token optional, attached automatically if logged in) ──
+Route::post("/track-access", [AppAccessController::class, "store"]);
 
 // ── Auth Routes (no token required) ──
 Route::post("/auth/login", [AuthController::class, "login"]);
@@ -170,6 +174,8 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/logs", [ActivityLogController::class, "index"]);
+            Route::get("/access-stats", [AppAccessController::class, "stats"]);
+            Route::get("/app-accesses", [AppAccessController::class, "index"]);
         });
 
         Route::middleware("permission:confirm-bookings")->group(function () {
