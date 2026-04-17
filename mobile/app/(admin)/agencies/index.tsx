@@ -19,6 +19,7 @@ import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 type Station = { id: number; city: string; district: string | null };
 
@@ -31,6 +32,7 @@ type AgencyRoute = {
 type Agency = {
   id: number;
   name: string;
+  operating_hours: string | null;
   average_rating: number;
   ratings_count: number;
   routes: AgencyRoute[];
@@ -39,8 +41,10 @@ type Agency = {
 export default function AgenciesScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { isSuperAdmin } = useAdminNav();
   const [modal, setModal] = useState<{ mode: "create" | "edit"; agency?: Agency } | null>(null);
   const [name, setName] = useState("");
+  const [hours, setHours] = useState("");
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -64,18 +68,22 @@ export default function AgenciesScreen() {
   }, [successMsg]);
 
   async function handleCreate() {
-    if (!name.trim()) return;
     setSaving(true);
     try {
       if (modal?.mode === "create") {
+        if (!name.trim()) return;
         await api.post("/admin/agencies", { name: name.trim() });
         setSuccessMsg(t("agencies.created"));
       } else if (modal?.agency) {
-        await api.patch(`/admin/agencies/${modal.agency.id}`, { name: name.trim() });
+        const payload: any = {};
+        if (isSuperAdmin && name.trim()) payload.name = name.trim();
+        if (hours.trim()) payload.operating_hours = hours.trim();
+        await api.patch(`/admin/agencies/${modal.agency.id}`, payload);
         setSuccessMsg(t("agencies.updated") ?? "Agency updated.");
       }
       setModal(null);
       setName("");
+      setHours("");
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.agencies() });
     } catch (e: any) {
       Alert.alert(t("common.close"), e?.response?.data?.message ?? "Failed");
@@ -131,14 +139,14 @@ export default function AgenciesScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
       <AdminHeader
         title={t("agencies.title")}
-        right={
+        right={isSuperAdmin ? (
           <TouchableOpacity
-            onPress={() => { setModal({ mode: "create" }); setName(""); }}
+            onPress={() => { setModal({ mode: "create" }); setName(""); setHours(""); }}
             style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 }}
           >
             <Text style={{ color: C.white, fontWeight: "800", fontSize: 18 }}>+</Text>
           </TouchableOpacity>
-        }
+        ) : undefined}
       />
 
       {/* Success banner */}
@@ -165,7 +173,8 @@ export default function AgenciesScreen() {
             key={a.id}
             agency={a}
             stations={stations as Station[]}
-            onEdit={() => { setModal({ mode: "edit", agency: a }); setName(a.name); }}
+            isSuperAdmin={isSuperAdmin}
+            onEdit={() => { setModal({ mode: "edit", agency: a }); setName(a.name); setHours(a.operating_hours ?? ""); }}
             onDelete={() => handleDelete(a)}
             onAddRoute={(fromId, toId) => handleAddRoute(a.id, fromId, toId)}
             onRemoveRoute={(routeId) => handleRemoveRoute(a.id, routeId)}
@@ -182,17 +191,40 @@ export default function AgenciesScreen() {
               {modal?.mode === "create" ? t("agencies.addNew") : t("agencies.editAgency")}
             </Text>
 
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder={t("agencies.namePlaceholder")}
-              placeholderTextColor={C.muted}
-              style={{
-                backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14,
-                paddingVertical: 13, fontSize: 14, color: C.dark,
-                borderWidth: 1.5, borderColor: C.border, marginBottom: 16,
-              }}
-            />
+            {/* Name — superadmin only */}
+            {(isSuperAdmin || modal?.mode === "create") && (
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder={t("agencies.namePlaceholder")}
+                placeholderTextColor={C.muted}
+                style={{
+                  backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14,
+                  paddingVertical: 13, fontSize: 14, color: C.dark,
+                  borderWidth: 1.5, borderColor: C.border, marginBottom: 12,
+                }}
+              />
+            )}
+
+            {/* Operating hours — all admins in edit mode */}
+            {modal?.mode === "edit" && (
+              <>
+                <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", marginBottom: 6 }}>
+                  OPERATING HOURS
+                </Text>
+                <TextInput
+                  value={hours}
+                  onChangeText={setHours}
+                  placeholder="e.g. Mon–Fri 6am–8pm, Sat 7am–6pm"
+                  placeholderTextColor={C.muted}
+                  style={{
+                    backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14,
+                    paddingVertical: 13, fontSize: 14, color: C.dark,
+                    borderWidth: 1.5, borderColor: C.border, marginBottom: 16,
+                  }}
+                />
+              </>
+            )}
 
             <View style={{ flexDirection: "row", gap: 10 }}>
               <TouchableOpacity
@@ -223,10 +255,11 @@ export default function AgenciesScreen() {
 }
 
 function AgencyCard({
-  agency, stations, onEdit, onDelete, onAddRoute, onRemoveRoute,
+  agency, stations, isSuperAdmin, onEdit, onDelete, onAddRoute, onRemoveRoute,
 }: {
   agency: Agency;
   stations: Station[];
+  isSuperAdmin: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onAddRoute: (fromId: number, toId: number) => void;
@@ -256,18 +289,26 @@ function AgencyCard({
               </Text>
             </View>
           </View>
+          {agency.operating_hours ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 }}>
+              <Ionicons name="time-outline" size={12} color={C.muted} />
+              <Text style={{ color: C.muted, fontSize: 12 }}>{agency.operating_hours}</Text>
+            </View>
+          ) : null}
         </View>
         <View style={{ flexDirection: "row", gap: 8 }}>
           <TouchableOpacity onPress={onEdit} style={{ padding: 6 }}>
             <Ionicons name="pencil" size={18} color={C.blue} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={{ padding: 6 }}>
-            <Ionicons name="trash" size={18} color={C.orange} />
-          </TouchableOpacity>
+          {isSuperAdmin && (
+            <TouchableOpacity onPress={onDelete} style={{ padding: 6 }}>
+              <Ionicons name="trash" size={18} color={C.orange} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
-      {agency.routes.length > 0 && (
+      {isSuperAdmin && agency.routes.length > 0 && (
         <View style={{ marginTop: 12 }}>
           <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 6, textTransform: "uppercase" }}>
             {t("agencies.routes")}
@@ -286,12 +327,29 @@ function AgencyCard({
         </View>
       )}
 
-      <TouchableOpacity
-        onPress={() => { setRouteModal(true); setFromId(null); setToId(null); }}
-        style={{ marginTop: 10, paddingVertical: 10, borderRadius: 10, backgroundColor: C.tealLt, alignItems: "center" }}
-      >
-        <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>+ {t("agencies.addRoute")}</Text>
-      </TouchableOpacity>
+      {!isSuperAdmin && agency.routes.length > 0 && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 6, textTransform: "uppercase" }}>
+            Routes
+          </Text>
+          {agency.routes.map((r) => (
+            <View key={r.id} style={{
+              backgroundColor: C.bg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 4,
+            }}>
+              <Text style={{ color: C.dark, fontSize: 13, fontWeight: "600" }}>{r.from.city} → {r.to.city}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {isSuperAdmin && (
+        <TouchableOpacity
+          onPress={() => { setRouteModal(true); setFromId(null); setToId(null); }}
+          style={{ marginTop: 10, paddingVertical: 10, borderRadius: 10, backgroundColor: C.tealLt, alignItems: "center" }}
+        >
+          <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>+ {t("agencies.addRoute")}</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Route picker modal */}
       <Modal visible={routeModal} animationType="slide" transparent>

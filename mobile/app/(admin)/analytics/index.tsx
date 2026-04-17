@@ -12,9 +12,11 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 export default function AdminAnalyticsScreen() {
   const queryClient = useQueryClient();
+  const { isSuperAdmin } = useAdminNav();
 
   const revenueQuery = useQuery({
     queryKey: queryKeys.admin.analytics.revenue(),
@@ -154,25 +156,17 @@ export default function AdminAnalyticsScreen() {
               />
             </View>
 
-            {/* ── By Type ── */}
-            <Label text="By Transport Type" />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <StatCard
-                label="Bus"
-                value={bookings?.by_type?.bus ?? 0}
-                color={C.blue}
-              />
-              <StatCard
-                label="Rental"
-                value={bookings?.by_type?.rental ?? 0}
-                color={C.teal}
-              />
-              <StatCard
-                label="Private"
-                value={bookings?.by_type?.private ?? 0}
-                color={C.orange}
-              />
-            </View>
+            {/* ── By Type — superadmin only ── */}
+            {isSuperAdmin && (
+              <>
+                <Label text="By Transport Type" />
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <StatCard label="Bus"     value={bookings?.by_type?.bus ?? 0}     color={C.blue} />
+                  <StatCard label="Rental"  value={bookings?.by_type?.rental ?? 0}  color={C.teal} />
+                  <StatCard label="Private" value={bookings?.by_type?.private ?? 0} color={C.orange} />
+                </View>
+              </>
+            )}
           </>
         )}
       </ScrollView>

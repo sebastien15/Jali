@@ -20,6 +20,7 @@ use App\Http\Controllers\AgencyRatingController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\TripController;
 use App\Http\Controllers\AppAccessController;
+use App\Http\Controllers\Admin\CashoutController;
 
 // ── Access tracking — public (token optional, attached automatically if logged in) ──
 Route::post("/track-access", [AppAccessController::class, "store"]);
@@ -176,14 +177,14 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::middleware("permission:confirm-bookings")->group(function () {
             Route::get("/bookings", [AdminBookingController::class, "index"]);
-            Route::patch("/bookings/{id}", [
-                AdminBookingController::class,
-                "update",
-            ]);
-            Route::post("/bookings/{id}/ticket", [
-                AdminBookingController::class,
-                "uploadTicket",
-            ]);
+            Route::patch("/bookings/{id}", [AdminBookingController::class, "update"]);
+            Route::post("/bookings/{id}/ticket", [AdminBookingController::class, "uploadTicket"]);
+
+            // Cashout
+            Route::get("/cashout/preference", [CashoutController::class, "preference"]);
+            Route::post("/cashout/preference", [CashoutController::class, "savePreference"]);
+            Route::get("/cashout/requests", [CashoutController::class, "index"]);
+            Route::post("/cashout/requests", [CashoutController::class, "store"]);
         });
 
         Route::middleware("permission:manage-admins")->group(function () {

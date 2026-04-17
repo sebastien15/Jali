@@ -23,6 +23,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 type StationType = "bus_station" | "custom";
 
@@ -76,6 +77,26 @@ type FilterType = "all" | StationType;
 
 export default function AdminStationsScreen() {
   const queryClient = useQueryClient();
+  const { isSuperAdmin } = useAdminNav();
+
+  // Non-superadmin should not access station management
+  if (!isSuperAdmin) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top", "left", "right"]}>
+        <StatusBar barStyle="light-content" backgroundColor={C.teal} />
+        <AdminHeader title="Stations" showBack />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
+          <Ionicons name="lock-closed-outline" size={48} color={C.muted} />
+          <Text style={{ color: C.dark, fontWeight: "800", fontSize: 18, marginTop: 16, textAlign: "center" }}>
+            Access Restricted
+          </Text>
+          <Text style={{ color: C.muted, fontSize: 14, marginTop: 8, textAlign: "center" }}>
+            Station management is available to superadmins only. Your assigned station is shown in your profile.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // Modal
   const [modalVisible, setModalVisible] = useState(false);

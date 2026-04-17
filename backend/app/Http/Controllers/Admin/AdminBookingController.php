@@ -82,7 +82,7 @@ class AdminBookingController extends Controller
             if ($station) {
                 // For trip bookings: check if the trip departs from admin's station
                 if ($booking->type === 'trip' && $booking->trip) {
-                    if ($booking->trip->from_station_id !== $station->id) {
+                    if ((int)$booking->trip->from_station_id !== (int)$station->id) {
                         abort(403, 'You can only manage bookings for your assigned station.');
                     }
                 }
@@ -138,7 +138,7 @@ class AdminBookingController extends Controller
             $station = $user->adminStation;
             if ($station) {
                 if ($booking->type === 'trip' && $booking->trip) {
-                    if ($booking->trip->from_station_id !== $station->id) {
+                    if ((int)$booking->trip->from_station_id !== (int)$station->id) {
                         abort(403, 'You can only manage bookings for your assigned station.');
                     }
                 } elseif ($booking->type === 'bus') {

@@ -11,6 +11,7 @@ import {
   Image,
   Linking,
   Platform,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,6 +37,10 @@ export default function AdminProfileScreen() {
   const [imageLoading, setImageLoading] = useState(false);
   const [contractLoading, setContractLoading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [cashoutMethodModal, setCashoutMethodModal] = useState(false);
+  const [cashoutForm, setCashoutForm] = useState({ method: "mobile" as "bank" | "mobile", account_number: "", account_name: "", bank_name: "" });
+  const [savingCashout, setSavingCashout] = useState(false);
+  const [requestingCashout, setRequestingCashout] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: queryKeys.adminProfile(),
@@ -133,6 +138,62 @@ export default function AdminProfileScreen() {
     { icon: "shield-checkmark-outline" as const, label: "Privacy Policy", sub: "How we handle your data", onPress: () => {} },
     { icon: "reader-outline" as const, label: "Terms & Conditions", sub: "Usage terms", onPress: () => {} },
   ];
+
+  async function saveCashoutPreference() {
+    if (!cashoutForm.account_number.trim()) {
+      Alert.alert("Required", "Please enter an account number.");
+      return;
+    }
+    if (cashoutForm.method === "bank" && !cashoutForm.bank_name.trim()) {
+      Alert.alert("Required", "Please enter the bank name.");
+      return;
+    }
+    setSavingCashout(true);
+    try {
+      await api.post("/admin/cashout/preference", {
+        cashout_method: cashoutForm.method,
+        cashout_account_number: cashoutForm.account_number.trim(),
+        cashout_account_name: cashoutForm.account_name.trim() || undefined,
+        cashout_bank_name: cashoutForm.method === "bank" ? cashoutForm.bank_name.trim() : undefined,
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+      setCashoutMethodModal(false);
+      Alert.alert("Saved", "Cashout method saved.");
+    } catch (e: any) {
+      Alert.alert("Error", e?.response?.data?.message ?? "Failed to save.");
+    } finally {
+      setSavingCashout(false);
+    }
+  }
+
+  async function requestCashout() {
+    const available = profile.total_earnings ?? 0;
+    if (available <= 0) {
+      Alert.alert("No earnings", "You have no available earnings to cash out.");
+      return;
+    }
+    Alert.alert(
+      "Request Cashout",
+      `Request cashout of ${available.toLocaleString()} RWF to ${profile.cashout_method === "bank" ? `${profile.cashout_bank_name} (${profile.cashout_account_number})` : `Mobile (${profile.cashout_account_number})`}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Request",
+          onPress: async () => {
+            setRequestingCashout(true);
+            try {
+              await api.post("/admin/cashout/requests", { amount: available });
+              Alert.alert("Submitted", "Your cashout request has been submitted and will be processed soon.");
+            } catch (e: any) {
+              Alert.alert("Error", e?.response?.data?.message ?? "Failed to submit request.");
+            } finally {
+              setRequestingCashout(false);
+            }
+          },
+        },
+      ]
+    );
+  }
 
   async function downloadTemplate() {
     try {
@@ -272,6 +333,157 @@ export default function AdminProfileScreen() {
           <Ionicons name="log-out-outline" size={18} color="#DC2626" />
           <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>Log Out</Text>
         </TouchableOpacity>
+
+        {/* Assigned Station — non-superadmin */}
+        {!isSuperAdmin && profile.assigned_station && (
+          <>
+            <Section title="My Station" />
+            <View style={{ backgroundColor: C.tealLt, borderRadius: 14, padding: 14, marginBottom: 24, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Ionicons name="location" size={24} color={C.teal} />
+              <View>
+                <Text style={{ color: C.teal, fontWeight: "900", fontSize: 16 }}>{profile.assigned_station.city}</Text>
+                {profile.assigned_station.district ? (
+                  <Text style={{ color: C.teal, fontSize: 12 }}>{profile.assigned_station.district}</Text>
+                ) : null}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Cashout */}
+        <Section title="Earnings & Cashout" />
+        <View style={{ backgroundColor: C.white, borderRadius: 16, padding: 16, marginBottom: 24 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Available</Text>
+              <Text style={{ color: C.teal, fontWeight: "900", fontSize: 24 }}>
+                {(profile.total_earnings ?? 0).toLocaleString()}
+                <Text style={{ fontSize: 13, fontWeight: "600", color: C.muted }}> RWF</Text>
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setCashoutForm({
+                  method: profile.cashout_method ?? "mobile",
+                  account_number: profile.cashout_account_number ?? "",
+                  account_name: profile.cashout_account_name ?? "",
+                  bank_name: profile.cashout_bank_name ?? "",
+                });
+                setCashoutMethodModal(true);
+              }}
+              style={{ padding: 8, backgroundColor: C.bg, borderRadius: 10 }}
+            >
+              <Ionicons name="settings-outline" size={20} color={C.mid} />
+            </TouchableOpacity>
+          </View>
+
+          {profile.cashout_method ? (
+            <View style={{ backgroundColor: C.bg, borderRadius: 10, padding: 10, marginBottom: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Ionicons name={profile.cashout_method === "bank" ? "card-outline" : "phone-portrait-outline"} size={16} color={C.teal} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: C.dark, fontWeight: "700", fontSize: 13 }}>
+                  {profile.cashout_method === "bank" ? profile.cashout_bank_name ?? "Bank" : "Mobile Money"}
+                </Text>
+                <Text style={{ color: C.muted, fontSize: 12 }}>{profile.cashout_account_number}</Text>
+              </View>
+            </View>
+          ) : (
+            <Text style={{ color: C.muted, fontSize: 13, marginBottom: 12 }}>
+              No cashout method set. Tap the settings icon to add one.
+            </Text>
+          )}
+
+          <TouchableOpacity
+            onPress={requestCashout}
+            disabled={requestingCashout || !profile.cashout_method}
+            style={{
+              backgroundColor: profile.cashout_method ? C.teal : C.border,
+              borderRadius: 12, paddingVertical: 13, alignItems: "center",
+            }}
+          >
+            {requestingCashout ? <ActivityIndicator color={C.white} /> : (
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
+                Request Cashout
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Cashout method modal */}
+        <Modal visible={cashoutMethodModal} animationType="slide" transparent>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+            <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
+              <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
+              <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark, marginBottom: 16 }}>Cashout Method</Text>
+
+              {/* Method toggle */}
+              <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
+                {(["mobile", "bank"] as const).map(m => (
+                  <TouchableOpacity
+                    key={m}
+                    onPress={() => setCashoutForm(f => ({ ...f, method: m }))}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: "center",
+                      backgroundColor: cashoutForm.method === m ? C.teal : C.bg,
+                      flexDirection: "row", justifyContent: "center", gap: 6,
+                    }}
+                  >
+                    <Ionicons name={m === "bank" ? "card-outline" : "phone-portrait-outline"} size={16} color={cashoutForm.method === m ? C.white : C.mid} />
+                    <Text style={{ color: cashoutForm.method === m ? C.white : C.dark, fontWeight: "700" }}>
+                      {m === "bank" ? "Bank" : "Mobile Money"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {cashoutForm.method === "bank" && (
+                <>
+                  <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", marginBottom: 6 }}>BANK NAME</Text>
+                  <TextInput
+                    value={cashoutForm.bank_name}
+                    onChangeText={v => setCashoutForm(f => ({ ...f, bank_name: v }))}
+                    placeholder="e.g. Equity Bank Rwanda"
+                    placeholderTextColor={C.muted}
+                    style={{ backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: C.dark, borderWidth: 1.5, borderColor: C.border, marginBottom: 12 }}
+                  />
+                  <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", marginBottom: 6 }}>ACCOUNT NAME</Text>
+                  <TextInput
+                    value={cashoutForm.account_name}
+                    onChangeText={v => setCashoutForm(f => ({ ...f, account_name: v }))}
+                    placeholder="Account holder name"
+                    placeholderTextColor={C.muted}
+                    style={{ backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: C.dark, borderWidth: 1.5, borderColor: C.border, marginBottom: 12 }}
+                  />
+                </>
+              )}
+
+              <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", marginBottom: 6 }}>
+                {cashoutForm.method === "bank" ? "ACCOUNT NUMBER" : "PHONE NUMBER"}
+              </Text>
+              <TextInput
+                value={cashoutForm.account_number}
+                onChangeText={v => setCashoutForm(f => ({ ...f, account_number: v }))}
+                placeholder={cashoutForm.method === "bank" ? "Bank account number" : "+250 7XX XXX XXX"}
+                placeholderTextColor={C.muted}
+                keyboardType="phone-pad"
+                style={{ backgroundColor: C.bg, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: C.dark, borderWidth: 1.5, borderColor: C.border, marginBottom: 20 }}
+              />
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <TouchableOpacity onPress={() => setCashoutMethodModal(false)}
+                  style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.bg, alignItems: "center" }}>
+                  <Text style={{ color: C.mid, fontWeight: "700" }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={saveCashoutPreference} disabled={savingCashout}
+                  style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.teal, alignItems: "center" }}>
+                  {savingCashout ? <ActivityIndicator color={C.white} /> : (
+                    <Text style={{ color: C.white, fontWeight: "800" }}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Settings & Info */}
         <Section title="Settings & Info" />

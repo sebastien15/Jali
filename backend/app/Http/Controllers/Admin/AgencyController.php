@@ -20,6 +20,7 @@ class AgencyController extends Controller
         return response()->json($agencies->map(fn($a) => [
             'id' => $a->id,
             'name' => $a->name,
+            'operating_hours' => $a->operating_hours,
             'average_rating' => $a->average_rating,
             'ratings_count' => $a->ratings->count(),
             'routes' => $a->routes->map(fn($r) => [
@@ -69,10 +70,20 @@ class AgencyController extends Controller
     public function update(Request $request, $id)
     {
         $agency = Agency::findOrFail($id);
+        $user = $request->user();
+        $isSuperAdmin = $user->hasRole('superadmin');
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:150',
-        ]);
+        // Regular admins can only update operating_hours
+        if ($isSuperAdmin) {
+            $validated = $request->validate([
+                'name'            => 'sometimes|string|max:150',
+                'operating_hours' => 'sometimes|nullable|string|max:100',
+            ]);
+        } else {
+            $validated = $request->validate([
+                'operating_hours' => 'required|string|max:100',
+            ]);
+        }
 
         $agency->update($validated);
 
@@ -186,6 +197,7 @@ class AgencyController extends Controller
         return [
             'id' => $a->id,
             'name' => $a->name,
+            'operating_hours' => $a->operating_hours,
             'average_rating' => $a->average_rating,
             'ratings_count' => $a->ratings->count(),
             'routes' => $a->routes->map(fn($r) => [

@@ -27,6 +27,10 @@ class User extends Authenticatable
         "whatsapp_number",
         "contract_doc_url",
         "contract_verified",
+        "cashout_method",
+        "cashout_account_number",
+        "cashout_account_name",
+        "cashout_bank_name",
     ];
 
     protected $hidden = [];

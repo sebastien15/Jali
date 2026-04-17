@@ -57,73 +57,27 @@ export default function AdminDashboard() {
   }
 
   const tiles: NavTile[] = [
-    ...(isSuperAdmin
-      ? [
-          {
-            label: "Bookings",
-            icon: "calendar-outline" as const,
-            route: "/(admin)/bookings",
-            color: C.teal,
-          },
-          {
-            label: t("admin.users"),
-            icon: "people-outline" as const,
-            route: "/(admin)/users",
-            color: C.blue,
-          },
-          {
-            label: t("admin.stations"),
-            icon: "location-outline" as const,
-            route: "/(admin)/stations",
-            color: C.orange,
-          },
-          {
-            label: t("admin.logs"),
-            icon: "time-outline" as const,
-            route: "/(admin)/logs",
-            color: C.purple,
-          },
-          {
-            label: t("admin.profile"),
-            icon: "person-outline" as const,
-            route: "/(admin)/profile",
-            color: C.blue,
-          },
-        ]
-      : [
-          {
-            label: t("admin.stations"),
-            icon: "location-outline" as const,
-            route: "/(admin)/stations",
-            color: C.orange,
-          },
-        ]),
-    ...(canManageLocations
-      ? [
-          {
-            label: "Bus Stops",
-            icon: "bus-outline" as const,
-            route: "/(admin)/locations",
-            color: C.teal,
-          },
-        ]
-      : []),
-    ...(canManageAgencies
-      ? [
-          {
-            label: "Agencies",
-            icon: "business-outline" as const,
-            route: "/(admin)/agencies",
-            color: C.purple,
-          },
-          {
-            label: "Trips",
-            icon: "train-outline" as const,
-            route: "/(admin)/trips",
-            color: C.blue,
-          },
-        ]
-      : []),
+    // Bookings — all admins
+    { label: "Bookings", icon: "calendar-outline" as const, route: "/(admin)/bookings", color: C.teal },
+    // Profile — all admins
+    { label: t("admin.profile"), icon: "person-outline" as const, route: "/(admin)/profile", color: C.blue },
+    // Analytics — all admins
+    { label: "Analytics", icon: "bar-chart-outline" as const, route: "/(admin)/analytics", color: C.green },
+    // Superadmin-only
+    ...(isSuperAdmin ? [
+      { label: t("admin.users"), icon: "people-outline" as const, route: "/(admin)/users", color: C.blue },
+      { label: t("admin.stations"), icon: "location-outline" as const, route: "/(admin)/stations", color: C.orange },
+      { label: t("admin.logs"), icon: "time-outline" as const, route: "/(admin)/logs", color: C.purple },
+    ] : []),
+    // Locations (bus stops) — superadmin or manage-locations
+    ...(isSuperAdmin || canManageLocations ? [
+      { label: "Bus Stops", icon: "bus-outline" as const, route: "/(admin)/locations", color: C.teal },
+    ] : []),
+    // Agencies — all admins with permission (limited view for non-superadmin)
+    ...(canManageAgencies ? [
+      { label: "Agencies", icon: "business-outline" as const, route: "/(admin)/agencies", color: C.purple },
+      ...(isSuperAdmin ? [{ label: "Trips", icon: "train-outline" as const, route: "/(admin)/trips", color: C.blue }] : []),
+    ] : []),
   ];
 
   if (isLoading) {

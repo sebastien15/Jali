@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +26,13 @@ class AdminProfileController extends Controller
             "location" => $user->location ? $user->location->name : null,
         ]);
 
+        $station = \App\Models\AdminStation::where('user_id', $user->id)->first();
+
+        // Earnings for cashout display — 50% of service fees on delivered bookings
+        $totalEarnings = \App\Models\Booking::where('confirmed_by', $user->id)
+            ->where('status', 'delivered')
+            ->sum(\Illuminate\Support\Facades\DB::raw('service_fee * 0.5'));
+
         return response()->json([
             "id" => $user->id,
             "name" => $user->name,
@@ -34,7 +42,17 @@ class AdminProfileController extends Controller
             "profile_image_url" => $user->profile_image_url,
             "contract_doc_url" => $user->contract_doc_url,
             "contract_verified" => $user->contract_verified,
+            "cashout_method" => $user->cashout_method,
+            "cashout_account_number" => $user->cashout_account_number,
+            "cashout_account_name" => $user->cashout_account_name,
+            "cashout_bank_name" => $user->cashout_bank_name,
+            "total_earnings" => (float) $totalEarnings,
             "location" => $user->location,
+            "assigned_station" => $station ? [
+                "id"   => $station->id,
+                "city" => $station->city,
+                "district" => $station->district,
+            ] : null,
             "roles" => $user->role ? $user->role->name : "user",
             "permissions" => $user->role
                 ? $user->role->permissions->pluck("name")->toArray()
