@@ -130,14 +130,9 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:confirm-bookings")->prefix("admin/profile")->group(function () {
         Route::get("/", [AdminProfileController::class, "show"]);
         Route::patch("/", [AdminProfileController::class, "update"]);
-        Route::post("/image", [
-            AdminProfileController::class,
-            "uploadProfileImage",
-        ]);
-        Route::post("/contract", [
-            AdminProfileController::class,
-            "uploadContract",
-        ]);
+        Route::post("/image", [AdminProfileController::class, "uploadProfileImage"]);
+        Route::post("/contract", [AdminProfileController::class, "uploadContract"]);
+        Route::get("/contract-template", [AdminProfileController::class, "contractTemplate"]);
     });
 
     // Admin panel

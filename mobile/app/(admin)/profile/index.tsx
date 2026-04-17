@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,7 +27,7 @@ import { queryKeys } from "@/lib/queryKeys";
 export default function AdminProfileScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { handleLogout } = useAdminNav();
+  const { handleLogout, isSuperAdmin } = useAdminNav();
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [saving, setSaving] = useState(false);
@@ -40,7 +41,6 @@ export default function AdminProfileScreen() {
     staleTime: Infinity,
   });
 
-  // Sync form fields when profile loads
   useEffect(() => {
     if (profile) {
       setPhone(profile.phone ?? "");
@@ -74,7 +74,6 @@ export default function AdminProfileScreen() {
     setImageLoading(true);
 
     try {
-      // Resize to 200×200 and get base64 — no file system needed on the server
       const compressed = await ImageManipulator.manipulateAsync(
         asset.uri,
         [{ resize: { width: 200, height: 200 } }],
@@ -82,13 +81,13 @@ export default function AdminProfileScreen() {
       );
 
       const dataUri = `data:image/jpeg;base64,${compressed.base64}`;
-
-      // Show locally immediately
       setLocalPreview(dataUri);
 
       await api.post("/admin/profile/image", { image_base64: dataUri });
 
+      // Invalidate both caches so header also updates immediately
       queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.me() });
       setLocalPreview(null);
     } catch (e: any) {
       setLocalPreview(null);
@@ -96,6 +95,21 @@ export default function AdminProfileScreen() {
       Alert.alert("Upload failed", msg);
     } finally {
       setImageLoading(false);
+    }
+  }
+
+  async function downloadTemplate() {
+    try {
+      const res = await api.get("/admin/profile/contract-template", { maxRedirects: 0 });
+      const url = res.headers?.location ?? res.data?.url;
+      if (url) await Linking.openURL(url);
+    } catch (e: any) {
+      const redirectUrl = e?.response?.headers?.location;
+      if (redirectUrl) {
+        await Linking.openURL(redirectUrl);
+      } else {
+        Alert.alert("Not available", "Contract template is not configured yet. Contact the administrator.");
+      }
     }
   }
 
@@ -125,8 +139,9 @@ export default function AdminProfileScreen() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+      Alert.alert("Uploaded", "Contract submitted for review.");
     } catch (e: any) {
-      console.log("[Contract] upload error:", e?.response?.status, e?.response?.data);
+      Alert.alert("Upload failed", e?.response?.data?.message ?? "Failed to upload contract.");
     } finally {
       setContractLoading(false);
     }
@@ -134,14 +149,7 @@ export default function AdminProfileScreen() {
 
   if (isLoading || !profile) {
     return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: C.bg,
-        }}
-      >
+      <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.bg }}>
         <ActivityIndicator size="large" color={C.teal} />
       </SafeAreaView>
     );
@@ -150,7 +158,6 @@ export default function AdminProfileScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
-
       <AdminHeader title="Profile" />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
@@ -163,57 +170,29 @@ export default function AdminProfileScreen() {
                 style={{ width: 100, height: 100, borderRadius: 50 }}
               />
             ) : (
-              <View
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 50,
-                  backgroundColor: C.tealLt,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 2,
-                  borderColor: C.teal,
-                  borderStyle: "dashed",
-                }}
-              >
+              <View style={{
+                width: 100, height: 100, borderRadius: 50,
+                backgroundColor: C.tealLt, alignItems: "center", justifyContent: "center",
+                borderWidth: 2, borderColor: C.teal, borderStyle: "dashed",
+              }}>
                 <Ionicons name="camera-outline" size={32} color={C.teal} />
               </View>
             )}
             {imageLoading && (
-              <View
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                  borderRadius: 50,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <View style={{
+                position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.4)",
+                borderRadius: 50, alignItems: "center", justifyContent: "center",
+              }}>
                 <ActivityIndicator color={C.white} />
               </View>
             )}
           </TouchableOpacity>
-          <Text
-            style={{
-              color: C.dark,
-              fontWeight: "800",
-              fontSize: 18,
-              marginTop: 12,
-            }}
-          >
+          <Text style={{ color: C.dark, fontWeight: "800", fontSize: 18, marginTop: 12 }}>
             {profile.name}
           </Text>
           <Text style={{ color: C.muted, fontSize: 13 }}>{profile.email}</Text>
           {profile.location && (
-            <Text
-              style={{
-                color: C.teal,
-                fontSize: 12,
-                fontWeight: "600",
-                marginTop: 4,
-              }}
-            >
+            <Text style={{ color: C.teal, fontSize: 12, fontWeight: "600", marginTop: 4 }}>
               📍 {profile.location.name}, {profile.location.city}
             </Text>
           )}
@@ -223,149 +202,113 @@ export default function AdminProfileScreen() {
         <Section title="Contact Details" />
         <Field label="Phone Number">
           <TextInput
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+250 7XX XXX XXX"
-            keyboardType="phone-pad"
+            value={phone} onChangeText={setPhone}
+            placeholder="+250 7XX XXX XXX" keyboardType="phone-pad"
             style={inputStyle}
           />
         </Field>
         <Field label="WhatsApp Number">
           <TextInput
-            value={whatsapp}
-            onChangeText={setWhatsapp}
-            placeholder="+250 7XX XXX XXX"
-            keyboardType="phone-pad"
+            value={whatsapp} onChangeText={setWhatsapp}
+            placeholder="+250 7XX XXX XXX" keyboardType="phone-pad"
             style={inputStyle}
           />
         </Field>
 
         <TouchableOpacity
-          onPress={handleSave}
-          disabled={saving}
-          style={{
-            backgroundColor: C.teal,
-            borderRadius: 14,
-            paddingVertical: 16,
-            alignItems: "center",
-            marginBottom: 24,
-          }}
+          onPress={handleSave} disabled={saving}
+          style={{ backgroundColor: C.teal, borderRadius: 14, paddingVertical: 16, alignItems: "center", marginBottom: 24 }}
         >
-          {saving ? (
-            <ActivityIndicator color={C.white} />
-          ) : (
-            <Text style={{ color: C.white, fontWeight: "800", fontSize: 15 }}>
-              Save Changes
-            </Text>
+          {saving ? <ActivityIndicator color={C.white} /> : (
+            <Text style={{ color: C.white, fontWeight: "800", fontSize: 15 }}>Save Changes</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleLogout}
           style={{
-            backgroundColor: "rgba(220,38,38,0.08)",
-            borderRadius: 14,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            marginBottom: 24,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            borderWidth: 1,
-            borderColor: "rgba(220,38,38,0.2)",
+            backgroundColor: "rgba(220,38,38,0.08)", borderRadius: 14,
+            paddingVertical: 16, paddingHorizontal: 16, marginBottom: 24,
+            flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
+            borderWidth: 1, borderColor: "rgba(220,38,38,0.2)",
           }}
         >
           <Ionicons name="log-out-outline" size={18} color="#DC2626" />
-          <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>
-            Log Out
-          </Text>
+          <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 15 }}>Log Out</Text>
         </TouchableOpacity>
 
-        {/* Contract */}
-        <Section title="Contract Document" />
-        <View
-          style={{
-            backgroundColor: C.white,
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 24,
-          }}
-        >
-          {profile.contract_doc_url ? (
-            <>
-              <View
+        {/* Contract — hidden for superadmin */}
+        {!isSuperAdmin && (
+          <>
+            <Section title="Contract Document" />
+
+            {/* Instructions */}
+            <View style={{
+              backgroundColor: C.blueLt, borderRadius: 12, padding: 14, marginBottom: 12,
+              borderLeftWidth: 3, borderLeftColor: C.blue,
+            }}>
+              <Text style={{ color: C.blue, fontWeight: "800", fontSize: 13, marginBottom: 6 }}>
+                How to submit your contract
+              </Text>
+              <Text style={{ color: C.blue, fontSize: 12, lineHeight: 18 }}>
+                1. Download the official contract template using the button below.{"\n"}
+                2. Print, sign, and scan the document as a PDF.{"\n"}
+                3. Upload the signed PDF using the "Upload Contract" button.{"\n"}
+                4. Your contract will be reviewed by the team and verified shortly.
+              </Text>
+            </View>
+
+            <View style={{ backgroundColor: C.white, borderRadius: 16, padding: 16, marginBottom: 24 }}>
+              {/* Download template */}
+              <TouchableOpacity
+                onPress={downloadTemplate}
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                  marginBottom: 8,
+                  flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+                  backgroundColor: C.tealLt, borderRadius: 12, paddingVertical: 12, marginBottom: 12,
                 }}
               >
-                <Ionicons name="document-text" size={24} color={C.teal} />
-                <Text
-                  style={{
-                    color: C.dark,
-                    fontWeight: "700",
-                    fontSize: 14,
-                    flex: 1,
-                  }}
-                >
-                  Contract Uploaded
+                <Ionicons name="download-outline" size={16} color={C.teal} />
+                <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>
+                  Download Contract Template
                 </Text>
-                <View
-                  style={{
-                    backgroundColor: profile.contract_verified
-                      ? C.greenLt
-                      : C.orangeLt,
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: profile.contract_verified ? C.green : C.orange,
-                      fontWeight: "700",
-                      fontSize: 11,
-                    }}
-                  >
-                    {profile.contract_verified ? "Verified" : "Pending Review"}
+              </TouchableOpacity>
+
+              {/* Upload status */}
+              {profile.contract_doc_url ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <Ionicons name="document-text" size={24} color={C.teal} />
+                  <Text style={{ color: C.dark, fontWeight: "700", fontSize: 14, flex: 1 }}>
+                    Contract Uploaded
                   </Text>
+                  <View style={{
+                    backgroundColor: profile.contract_verified ? C.greenLt : C.orangeLt,
+                    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+                  }}>
+                    <Text style={{ color: profile.contract_verified ? C.green : C.orange, fontWeight: "700", fontSize: 11 }}>
+                      {profile.contract_verified ? "Verified" : "Pending Review"}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <Text style={{ color: C.muted, fontSize: 12 }} numberOfLines={1}>
-                {profile.contract_doc_url}
-              </Text>
-            </>
-          ) : (
-            <Text style={{ color: C.muted, fontSize: 13, marginBottom: 12 }}>
-              No contract uploaded yet.
-            </Text>
-          )}
-          <TouchableOpacity
-            onPress={pickContract}
-            disabled={contractLoading}
-            style={{
-              backgroundColor: C.bg,
-              borderRadius: 12,
-              paddingVertical: 12,
-              alignItems: "center",
-              marginTop: 12,
-            }}
-          >
-            {contractLoading ? (
-              <ActivityIndicator color={C.teal} />
-            ) : (
-              <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>
-                📄{" "}
-                {profile.contract_doc_url
-                  ? "Replace Contract"
-                  : "Upload Contract (PDF)"}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+              ) : (
+                <Text style={{ color: C.muted, fontSize: 13, marginBottom: 8 }}>
+                  No contract uploaded yet.
+                </Text>
+              )}
+
+              {/* Upload button */}
+              <TouchableOpacity
+                onPress={pickContract} disabled={contractLoading}
+                style={{ backgroundColor: C.bg, borderRadius: 12, paddingVertical: 12, alignItems: "center", marginTop: 4 }}
+              >
+                {contractLoading ? <ActivityIndicator color={C.teal} /> : (
+                  <Text style={{ color: C.teal, fontWeight: "700", fontSize: 13 }}>
+                    📄 {profile.contract_doc_url ? "Replace Contract" : "Upload Signed Contract (PDF)"}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -373,38 +316,19 @@ export default function AdminProfileScreen() {
 
 function Section({ title }: { title: string }) {
   return (
-    <Text
-      style={{
-        color: C.muted,
-        fontSize: 11,
-        fontWeight: "700",
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-        marginBottom: 10,
-      }}
-    >
+    <Text style={{
+      color: C.muted, fontSize: 11, fontWeight: "700",
+      textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10,
+    }}>
       {title}
     </Text>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 14 }}>
-      <Text
-        style={{
-          fontWeight: "700",
-          fontSize: 13,
-          color: C.mid,
-          marginBottom: 6,
-        }}
-      >
+      <Text style={{ fontWeight: "700", fontSize: 13, color: C.mid, marginBottom: 6 }}>
         {label}
       </Text>
       {children}
@@ -413,12 +337,8 @@ function Field({
 }
 
 const inputStyle = {
-  backgroundColor: C.white,
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  paddingVertical: 13,
-  fontSize: 15,
-  color: C.dark,
-  borderWidth: 1.5,
-  borderColor: C.border,
+  backgroundColor: C.white, borderRadius: 12,
+  paddingHorizontal: 14, paddingVertical: 13,
+  fontSize: 15, color: C.dark,
+  borderWidth: 1.5, borderColor: C.border,
 };

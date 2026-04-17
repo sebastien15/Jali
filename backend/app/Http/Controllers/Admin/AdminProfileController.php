@@ -91,6 +91,15 @@ class AdminProfileController extends Controller
         return response()->json(['profile_image_url' => $dataUri]);
     }
 
+    public function contractTemplate()
+    {
+        $url = env('CONTRACT_TEMPLATE_URL');
+        if (!$url) {
+            return response()->json(['message' => 'Template not configured.'], 404);
+        }
+        return redirect($url);
+    }
+
     public function uploadContract(Request $request)
     {
         $user = $request->user();

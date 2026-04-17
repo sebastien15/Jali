@@ -19,9 +19,14 @@ class ActivityLogController extends Controller
             $query->where("admin_id", $request->admin_id);
         }
 
-        // Filter by action type
+        // Filter by action type (accepts single or comma-separated values)
         if ($request->has("action")) {
-            $query->where("action", $request->action);
+            $actions = array_values(array_filter(explode(',', $request->action)));
+            if (count($actions) === 1) {
+                $query->where("action", $actions[0]);
+            } elseif (count($actions) > 1) {
+                $query->whereIn("action", $actions);
+            }
         }
 
         // Filter by entity type

@@ -1,4 +1,4 @@
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { ScrollView, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 
@@ -16,43 +16,39 @@ export function AgencyFilterBar({ agencies, selected, onChange }: Props) {
       horizontal
       showsHorizontalScrollIndicator={false}
       style={{ backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border }}
-      contentContainerStyle={{ flexGrow: 0 }}
+      contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 9, gap: 6, alignItems: "center" }}
     >
-      <View style={{ flexDirection: "row", gap: 6, paddingHorizontal: 14, paddingVertical: 9, alignItems: "center" }}>
-        {/* All chip */}
-        <TouchableOpacity
-          onPress={() => onChange(null)}
-          style={{
-            paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-            backgroundColor: selected === null ? C.blue : C.blueLt,
-            minWidth: 40, alignItems: "center",
-          }}
-        >
-          <Text style={{ color: selected === null ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
-            All
-          </Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => onChange(null)}
+        style={{
+          paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+          backgroundColor: selected === null ? C.blue : C.blueLt,
+        }}
+      >
+        <Text style={{ color: selected === null ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
+          All
+        </Text>
+      </TouchableOpacity>
 
-        {agencies.map(name => {
-          const active = selected === name;
-          return (
-            <TouchableOpacity
-              key={name}
-              onPress={() => onChange(active ? null : name)}
-              style={{
-                paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-                backgroundColor: active ? C.blue : C.blueLt,
-                flexDirection: "row", alignItems: "center", gap: 5,
-              }}
-            >
-              <Ionicons name="business-outline" size={11} color={active ? C.white : C.blue} />
-              <Text style={{ color: active ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
-                {name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {agencies.map(name => {
+        const active = selected === name;
+        return (
+          <TouchableOpacity
+            key={name}
+            onPress={() => onChange(active ? null : name)}
+            style={{
+              paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+              backgroundColor: active ? C.blue : C.blueLt,
+              flexDirection: "row", alignItems: "center", gap: 5,
+            }}
+          >
+            <Ionicons name="business-outline" size={11} color={active ? C.white : C.blue} />
+            <Text style={{ color: active ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
+              {name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
