@@ -135,6 +135,7 @@ export default function AdminDashboard() {
           alignItems: "center",
           backgroundColor: C.bg,
         }}
+        edges={["top", "left", "right"]}
       >
         <ActivityIndicator size="large" color={C.teal} />
       </SafeAreaView>
@@ -144,7 +145,7 @@ export default function AdminDashboard() {
   const bs = bookingStats?.by_status ?? {};
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top", "left", "right"]}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
       <AdminHeader title={t("admin.dashboard")} />

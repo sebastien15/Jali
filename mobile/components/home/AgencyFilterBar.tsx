@@ -23,11 +23,10 @@ export function AgencyFilterBar({ agencies, selected, onChange }: Props) {
           onPress={() => onChange(null)}
           style={{
             paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
-            backgroundColor: selected === null ? C.teal : C.bg,
-            borderWidth: selected === null ? 0 : 1.5, borderColor: C.border,
+            backgroundColor: selected === null ? C.blue : C.blueLt,
           }}
         >
-          <Text style={{ color: selected === null ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
+          <Text style={{ color: selected === null ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
             All
           </Text>
         </TouchableOpacity>
@@ -40,13 +39,12 @@ export function AgencyFilterBar({ agencies, selected, onChange }: Props) {
               onPress={() => onChange(active ? null : name)}
               style={{
                 paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
-                backgroundColor: active ? C.teal : C.bg,
-                borderWidth: active ? 0 : 1.5, borderColor: C.border,
+                backgroundColor: active ? C.blue : C.blueLt,
                 flexDirection: "row", alignItems: "center", gap: 5,
               }}
             >
-              <Ionicons name="business-outline" size={11} color={active ? C.white : C.mid} />
-              <Text style={{ color: active ? C.white : C.mid, fontWeight: "700", fontSize: 12 }}>
+              <Ionicons name="business-outline" size={11} color={active ? C.white : C.blue} />
+              <Text style={{ color: active ? C.white : C.blue, fontWeight: "700", fontSize: 12 }}>
                 {name}
               </Text>
             </TouchableOpacity>

@@ -33,7 +33,6 @@ export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
   const price = Number(trip.price);
   const fee = tripServiceFee(price);
   const total = price + fee;
-  const ratingLabel = trip.agency_rating > 0 ? trip.agency_rating.toFixed(1) : "New";
 
   const visibleDepartures = timeFilterMins != null
     ? trip.departures.filter(d => {
@@ -76,10 +75,6 @@ export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
 
       {/* Rating + fee */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-          <Ionicons name="star" size={12} color={C.yellow} />
-          <Text style={{ color: C.mid, fontWeight: "700", fontSize: 13 }}>{ratingLabel}</Text>
-        </View>
         <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12 }}>+{fee.toLocaleString()} fee</Text>
       </View>
 
@@ -95,15 +90,14 @@ export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
               onPress={() => onSelectDeparture(dep)}
               style={{
                 backgroundColor: C.blue,
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
+                borderRadius: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 6,
                 alignItems: "center",
-                minWidth: 72,
+                minWidth: 56,
               }}
             >
-              <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 15 }}>{dep.departure_time}</Text>
-              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 10, marginTop: 1 }}>~{dep.estimated_arrival_time}</Text>
+              <Text style={{ color: C.yellow, fontWeight: "900", fontSize: 13 }}>{dep.departure_time}</Text>
             </TouchableOpacity>
           ))}
         </View>
