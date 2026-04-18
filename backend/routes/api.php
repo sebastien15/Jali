@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\TripController;
 use App\Http\Controllers\AppAccessController;
 use App\Http\Controllers\Admin\CashoutController;
+use App\Http\Controllers\Admin\RolesController;
+use App\Http\Controllers\Admin\PermissionsController;
 
 // ── Access tracking — public (token optional, attached automatically if logged in) ──
 Route::post("/track-access", [AppAccessController::class, "store"]);
@@ -197,6 +199,17 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::middleware("permission:manage-users")->group(function () {
             Route::get("/users", [AdminUserController::class, "index"]);
             Route::patch("/users/{id}", [AdminUserController::class, "update"]);
+        });
+
+        // Roles & permissions management (superadmin only via manage-roles permission)
+        Route::middleware("permission:manage-roles")->group(function () {
+            Route::get("/roles", [RolesController::class, "index"]);
+            Route::post("/roles", [RolesController::class, "store"]);
+            Route::patch("/roles/{id}", [RolesController::class, "update"]);
+            Route::delete("/roles/{id}", [RolesController::class, "destroy"]);
+            Route::get("/roles/{id}/permissions", [RolesController::class, "showPermissions"]);
+            Route::put("/roles/{id}/permissions", [RolesController::class, "syncPermissions"]);
+            Route::get("/permissions", [PermissionsController::class, "index"]);
         });
 
         // Admin — agencies & trips

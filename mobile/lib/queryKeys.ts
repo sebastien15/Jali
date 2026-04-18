@@ -60,6 +60,9 @@ export const queryKeys = {
     appAccesses: (platform?: string) => ["admin", "appAccesses", { platform }] as const,
     appAccessStats: () => ["admin", "appAccesses", "stats"] as const,
     locations: () => ["admin", "locations"] as const,
+    roles: () => ["admin", "roles"] as const,
+    role: (id: number) => ["admin", "roles", id] as const,
+    permissions: () => ["admin", "permissions"] as const,
     analytics: {
       revenue: () => ["admin", "analytics", "revenue"] as const,
       bookings: () => ["admin", "analytics", "bookings"] as const,

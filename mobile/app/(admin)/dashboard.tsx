@@ -68,6 +68,7 @@ export default function AdminDashboard() {
       { label: t("admin.users"), icon: "people-outline" as const, route: "/(admin)/users", color: C.blue },
       { label: t("admin.stations"), icon: "location-outline" as const, route: "/(admin)/stations", color: C.orange },
       { label: t("admin.logs"), icon: "time-outline" as const, route: "/(admin)/logs", color: C.purple },
+      { label: "Roles", icon: "shield-outline" as const, route: "/(admin)/roles", color: C.teal },
     ] : []),
     // Locations (bus stops) — superadmin or manage-locations
     ...(isSuperAdmin || canManageLocations ? [
