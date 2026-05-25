@@ -30,7 +30,11 @@
       "Bash(curl -s https://jali.stoka.rw/backend/storage/logs/laravel.log)",
       "Bash(codegraph init:*)",
       "Bash(xargs cat *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "mcp__codegraph__codegraph_explore",
+      "Bash(python3 -c \"import sys, json; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('require',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(ssh -o ConnectTimeout=5 -o BatchMode=yes seba@jali.stoka.rw \"tail -80 /home2/seba/jali.stoka.rw/backend/storage/logs/laravel.log\")",
+      "Bash(ssh -o ConnectTimeout=8 -o BatchMode=yes -p 2222 seba@jali.stoka.rw \"tail -60 /home2/seba/jali.stoka.rw/backend/storage/logs/laravel.log\")"
     ]
   }
 }
