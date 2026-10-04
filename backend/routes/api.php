@@ -27,14 +27,16 @@ use App\Http\Controllers\Admin\PermissionsController;
 // ── Access tracking — public (token optional, attached automatically if logged in) ──
 Route::post("/track-access", [AppAccessController::class, "store"]);
 
-// ── Auth Routes (no token required) ──
-Route::post("/auth/login", [AuthController::class, "login"]);
-Route::post("/auth/login/google", [
-    AuthController::class,
-    "loginWithGoogle",
-]);
-Route::post("/auth/otp/request", [AuthController::class, "requestOtp"]);
-Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
+// ── Auth Routes (no token required; rate-limited per IP against brute force) ──
+Route::middleware("throttle:10,1")->group(function () {
+    Route::post("/auth/login", [AuthController::class, "login"]);
+    Route::post("/auth/login/google", [
+        AuthController::class,
+        "loginWithGoogle",
+    ]);
+    Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
+});
+Route::middleware("throttle:3,1")->post("/auth/otp/request", [AuthController::class, "requestOtp"]);
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {

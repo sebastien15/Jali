@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\SmsSender;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -123,25 +125,34 @@ class AuthController extends Controller
     /**
      * Request OTP for phone number
      */
-    public function requestOtp(Request $request)
+    public function requestOtp(Request $request, SmsSender $sms)
     {
-        $validator = Validator::make($request->all(), [
-            "phone" => "required|string",
-        ]);
-
-        if ($validator->fails()) {
+        $phone = $this->normalizePhone((string) $request->input("phone"));
+        if (!$phone) {
             return response()->json(
                 [
                     "error" => "Validation failed",
-                    "message" => $validator->errors(),
+                    "message" => ["phone" => ["Enter a valid Rwandan mobile number."]],
                 ],
                 422,
             );
         }
 
-        // TODO: Integrate with SMS provider (Twilio/Africa's Talking)
-        // For now, we just log it (in development, OTP is always "123456")
-        Log::info("[OTP] Requested for:", ["phone" => $request->phone]);
+        if (!$sms->isConfigured()) {
+            return response()->json(
+                ["error" => "Unavailable", "message" => "Phone login is not available yet."],
+                503,
+            );
+        }
+
+        $ttl = config("services.otp.ttl_minutes");
+        $code = (string) random_int(100000, 999999);
+        Cache::put(
+            $this->otpCacheKey($phone),
+            ["hash" => Hash::make($code), "attempts" => 0],
+            now()->addMinutes($ttl),
+        );
+        $sms->send($phone, "Your Jali code is {$code}. It expires in {$ttl} minutes.");
 
         return response()->json(["message" => "OTP sent"]);
     }
@@ -166,28 +177,75 @@ class AuthController extends Controller
             );
         }
 
-        // TODO: Verify OTP with SMS provider
-        // For development: accept "123456" as valid
-        if ($request->otp !== "123456") {
+        $phone = $this->normalizePhone($request->phone);
+        if (!$phone || !$this->otpIsValid($phone, $request->otp)) {
             return response()->json(
-                ["error" => "Unauthorized", "message" => "Invalid OTP"],
+                ["error" => "Unauthorized", "message" => "Invalid or expired OTP"],
                 401,
             );
         }
 
-        $user = User::with("role")->where("phone", $request->phone)->first();
+        $user = User::with("role")->where("phone", $phone)->first();
 
         if (!$user) {
             $userRole = Role::where("name", "user")->first();
             $user = User::create([
                 "name" => "User",
-                "phone" => $request->phone,
+                "phone" => $phone,
                 "role_id" => $userRole ? $userRole->id : null,
             ]);
             $user->load("role");
         }
 
         return $this->respondWithToken($user);
+    }
+
+    /**
+     * Check an OTP against the cached hash. Codes are single-use and the
+     * entry is dropped after too many wrong attempts.
+     */
+    protected function otpIsValid(string $phone, string $otp): bool
+    {
+        $devCode = config("services.otp.dev_code");
+        if ($devCode && app()->environment("local", "testing") && hash_equals((string) $devCode, $otp)) {
+            return true;
+        }
+
+        $key = $this->otpCacheKey($phone);
+        $entry = Cache::get($key);
+        if (!$entry) {
+            return false;
+        }
+
+        if (Hash::check($otp, $entry["hash"])) {
+            Cache::forget($key);
+            return true;
+        }
+
+        $entry["attempts"]++;
+        if ($entry["attempts"] >= config("services.otp.max_attempts")) {
+            Cache::forget($key);
+        } else {
+            Cache::put($key, $entry, now()->addMinutes(config("services.otp.ttl_minutes")));
+        }
+        return false;
+    }
+
+    protected function otpCacheKey(string $phone): string
+    {
+        return "otp:" . $phone;
+    }
+
+    /**
+     * Normalise Rwandan mobile numbers to +2507XXXXXXXX; null if invalid.
+     */
+    protected function normalizePhone(string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', "", $phone);
+        if (preg_match('/^(?:250|0)?(7\d{8})$/', $digits, $m)) {
+            return "+250" . $m[1];
+        }
+        return null;
     }
 
     /**

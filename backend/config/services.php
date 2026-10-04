@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+    ],
+
+    // Fixed OTP accepted ONLY when APP_ENV is local or testing (never in production).
+    'otp' => [
+        'dev_code' => env('OTP_DEV_CODE'),
+        'ttl_minutes' => 5,
+        'max_attempts' => 5,
+    ],
+
 ];
