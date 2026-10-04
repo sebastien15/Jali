@@ -32,6 +32,13 @@ class AdminStationController extends Controller
     public function index(Request $request)
     {
         $stations = AdminStation::with('user')->get()->map(fn($s) => $this->format($s));
+
+        // The public /stations list is used by passengers' station picker:
+        // never expose which staff member runs a station or their email.
+        if (!$request->user()->hasPermission('manage-admins')) {
+            $stations = $stations->map(fn ($s) => collect($s)->except(['admin_id', 'admin_name', 'admin_email'])->all());
+        }
+
         return response()->json($stations);
     }
 
