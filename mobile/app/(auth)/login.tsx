@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
 import { C } from "@/constants/theme";
 import api, { setApiToken, clearApiToken } from "@/lib/api";
 import { isDev } from "@/lib/env";
@@ -42,6 +42,13 @@ export default function LoginScreen() {
   const otpRef5 = useRef<TextInput>(null);
   const otpRefs = [otpRef0, otpRef1, otpRef2, otpRef3, otpRef4, otpRef5];
 
+  /** Undo a half-finished Google login so the next attempt starts clean. */
+  async function abortGoogleSession() {
+    clearApiToken();
+    await signOut(auth).catch(() => {});
+    await GoogleSignin.signOut().catch(() => {});
+  }
+
   async function signInWithGoogle() {
     if (isDev) {
       router.replace("/(tabs)");
@@ -58,25 +65,39 @@ export default function LoginScreen() {
       });
       await GoogleSignin.hasPlayServices();
       const { data } = await GoogleSignin.signIn();
-      const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
+      if (!data?.idToken) return; // user closed the Google account picker
+      const credential = GoogleAuthProvider.credential(data.idToken);
       await signInWithCredential(auth, credential);
 
-      // Get Laravel token via Google Firebase token
+      // Exchange the Firebase ID token for a Laravel API token. Without that
+      // token the app is unusable, so any failure here is a failed login.
+      let apiToken: string | undefined;
       try {
         const firebaseToken = await auth.currentUser?.getIdToken(true);
         if (firebaseToken) {
           const res = await api.post("/auth/login/google", {
             firebase_token: firebaseToken,
           });
-          if (res.data.token) await setApiToken(res.data.token);
+          apiToken = res.data?.token;
         }
       } catch (err: any) {
-        console.warn("Backend sync failed:", err?.response?.data?.message);
+        await abortGoogleSession();
+        if (!err?.response) setError(t("authErrors.noInternet"));
+        else setError(err.response.data?.message ?? t("authErrors.unknown"));
+        return;
       }
 
+      if (!apiToken) {
+        await abortGoogleSession();
+        setError(t("authErrors.unknown"));
+        return;
+      }
+
+      setApiToken(apiToken);
       router.replace("/(tabs)");
     } catch (e: any) {
-      Alert.alert(t("login.googleSignInFailed"), e.message);
+      await abortGoogleSession();
+      Alert.alert(t("login.googleSignInFailed"), e?.message);
     } finally {
       setGoogleLoading(false);
     }
