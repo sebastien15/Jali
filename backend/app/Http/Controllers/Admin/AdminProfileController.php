@@ -16,22 +16,10 @@ class AdminProfileController extends Controller
         $user = $request->user();
         $user->load(["location", "role.permissions"]);
 
-        Log::info("[AdminProfile] User data:", [
-            "id" => $user->id,
-            "name" => $user->name,
-            "role" => $user->role ? $user->role->name : "user",
-            "permissions" => $user->role
-                ? $user->role->permissions->pluck("name")->toArray()
-                : [],
-            "location" => $user->location ? $user->location->name : null,
-        ]);
-
         $station = \App\Models\AdminStation::where('user_id', $user->id)->first();
 
         // Earnings for cashout display — 50% of service fees on delivered bookings
-        $totalEarnings = \App\Models\Booking::where('confirmed_by', $user->id)
-            ->where('status', 'delivered')
-            ->sum(\Illuminate\Support\Facades\DB::raw('service_fee * 0.5'));
+        $totalEarnings = CashoutController::earnedBy($user);
 
         return response()->json([
             "id" => $user->id,
@@ -47,6 +35,7 @@ class AdminProfileController extends Controller
             "cashout_account_name" => $user->cashout_account_name,
             "cashout_bank_name" => $user->cashout_bank_name,
             "total_earnings" => (float) $totalEarnings,
+            "available_balance" => CashoutController::availableFor($user),
             "location" => $user->location,
             "assigned_station" => $station ? [
                 "id"   => $station->id,
@@ -87,8 +76,10 @@ class AdminProfileController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'image_base64' => ['required', 'string', function ($attr, $value, $fail) {
-                if (!str_starts_with($value, 'data:image/')) {
+            // Stored inline, so keep it small (the app sends ~20 KB 200×200 JPEGs).
+            // Raster formats only: an SVG data URI can carry script on web.
+            'image_base64' => ['required', 'string', 'max:307200', function ($attr, $value, $fail) {
+                if (!preg_match('#^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$#', $value)) {
                     $fail('Invalid image data.');
                 }
             }],
