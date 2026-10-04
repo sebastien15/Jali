@@ -25,7 +25,7 @@ use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\PermissionsController;
 
 // ── Access tracking — public (token optional, attached automatically if logged in) ──
-Route::post("/track-access", [AppAccessController::class, "store"]);
+Route::middleware("throttle:20,1")->post("/track-access", [AppAccessController::class, "store"]);
 
 // ── Auth Routes (no token required; rate-limited per IP against brute force) ──
 Route::middleware("throttle:10,1")->group(function () {
