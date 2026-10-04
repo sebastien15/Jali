@@ -13,6 +13,7 @@ interface SheetData {
   type: "bus" | "private" | "rental";
   item: any;
   days?: number;
+  /** Local calendar day as `Y-m-d` (see lib/date.ts). */
   travelDate?: string;
 }
 

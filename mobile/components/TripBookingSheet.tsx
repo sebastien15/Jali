@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import api from "@/lib/api";
 import { getApiToken } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Toast, ToastHandle } from "@/components/Toast";
+import { toYmd } from "@/lib/date";
 
 export type TripData = {
   id: number; // trip_departure_id — used as reference_id when booking
@@ -34,17 +35,16 @@ export type TripData = {
   price: number;
 };
 
-const BASE_DATE_OPTS = ["Today", "Tomorrow"];
-
 interface Props {
   trip: TripData;
   onClose: () => void;
   onConfirm: () => void;
-  travelDate?: string;
+  /** Day selected on the Home screen. */
+  travelDate?: Date;
 }
 
 export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toastRef = useRef<ToastHandle>(null);
 
   // Pre-fill passenger 1 with the user's profile name (cached from /me)
@@ -83,16 +83,30 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   const totalPrice = price * ticketCount;
   const total = totalPrice + fee;
 
-  // Normalise "Today · 07:00" → "Today" so it matches dateOpts without duplication
-  const normalizedDate = travelDate?.startsWith("Today")
-    ? "Today"
-    : travelDate?.startsWith("Tomorrow")
-      ? "Tomorrow"
-      : (travelDate ?? "Today");
-  const [selectedDate, setSelectedDate] = useState(normalizedDate);
-  const dateOpts = BASE_DATE_OPTS.includes(normalizedDate)
-    ? BASE_DATE_OPTS
-    : [normalizedDate, ...BASE_DATE_OPTS].filter(Boolean) as string[];
+  // Travel-day options: today, tomorrow, plus the day picked on Home if it is
+  // neither. Values are local `Y-m-d` (what the API stores); labels are display only.
+  const dateOpts = useMemo(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const opts = [
+      { value: toYmd(today), label: t("home.dateToday") },
+      { value: toYmd(tomorrow), label: t("home.dateTomorrow") },
+    ];
+    if (travelDate) {
+      const picked = toYmd(travelDate);
+      if (!opts.some(o => o.value === picked)) {
+        opts.unshift({
+          value: picked,
+          label: travelDate.toLocaleDateString(i18n.language, { month: "short", day: "numeric" }),
+        });
+      }
+    }
+    return opts;
+  }, [travelDate, t, i18n.language]);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    () => (travelDate ? toYmd(travelDate) : toYmd(new Date())),
+  );
 
   function updatePassengerName(index: number, name: string) {
     setPassengerNames(prev => {
@@ -343,15 +357,15 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
             {dateOpts.map(d => (
               <TouchableOpacity
-                key={d}
-                onPress={() => setSelectedDate(d)}
+                key={d.value}
+                onPress={() => setSelectedDate(d.value)}
                 style={{
                   paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
-                  backgroundColor: selectedDate === d ? C.blue : C.bg,
+                  backgroundColor: selectedDate === d.value ? C.blue : C.bg,
                 }}
               >
-                <Text style={{ color: selectedDate === d ? C.white : C.dark, fontWeight: "800", fontSize: 13 }}>
-                  {d}
+                <Text style={{ color: selectedDate === d.value ? C.white : C.dark, fontWeight: "800", fontSize: 13 }}>
+                  {d.label}
                 </Text>
               </TouchableOpacity>
             ))}
