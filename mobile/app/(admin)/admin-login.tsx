@@ -18,7 +18,9 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
-import api, { setApiToken, clearApiToken } from "@/lib/api";
+import api, { clearApiToken } from "@/lib/api";
+import { startSession } from "@/lib/session";
+import { isAdminRole } from "@/constants/roles";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
 import { useTranslation } from "react-i18next";
 
@@ -37,19 +39,33 @@ export default function AdminLoginScreen() {
         try {
           const token = await firebaseUser.getIdToken(true);
           const res = await api.post("/auth/login/google", { firebase_token: token });
-          if (res.data.token) {
-            setApiToken(res.data.token);
-            const role: string = res.data.user?.roles ?? "";
-            if (role === "superadmin" || role === "admin") {
-              await refetch();
-              router.replace("/(admin)/dashboard");
-            }
+          const role: string = res.data.user?.roles ?? "";
+          // Only an admin session may be resumed here — never store a
+          // plain user's token from the admin portal.
+          if (res.data.token && isAdminRole(role)) {
+            await startSession(res.data.token);
+            await refetch();
+            router.replace("/(admin)/dashboard");
           }
         } catch {}
       }
     });
     return () => unsub();
   }, []);
+
+  /** Shared by every login path: only admins/superadmins get a session here. */
+  async function finishAdminLogin(data: any) {
+    const role: string = data?.user?.roles ?? "";
+    if (data?.token && isAdminRole(role)) {
+      await startSession(data.token);
+      await refetch();
+      router.replace("/(admin)/dashboard");
+    } else {
+      setError(data?.token ? t("authErrors.noAdminAccess") : t("authErrors.unknown"));
+      clearApiToken();
+      try { await signOut(auth); } catch {}
+    }
+  }
 
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -74,20 +90,11 @@ export default function AdminLoginScreen() {
       return googleRes.data;
     },
     onSuccess: async (data) => {
-      const role: string = data.user?.roles ?? "";
-      if (role === "superadmin" || role === "admin") {
-        setApiToken(data.token);
-        await refetch();
-        router.replace("/(admin)/dashboard");
-      } else {
-        setError(t("authErrors.noAdminAccess"));
-        clearApiToken();
-        try { await signOut(auth); } catch {}
-      }
+      await finishAdminLogin(data);
     },
     onError: (e: any) => {
       if (e?.response?.status === 401 || e?.response?.status === 422) {
-        setError(e?.response?.data?.message ?? "Invalid credentials");
+        setError(e?.response?.data?.message ?? t("authErrors.invalidCredentials"));
       } else if (e?.code === "auth/network-request-failed") {
         setError(t("authErrors.noInternet"));
       } else {
@@ -108,20 +115,16 @@ export default function AdminLoginScreen() {
       return res.data;
     },
     onSuccess: async (data) => {
-      if (data.token) {
-        setApiToken(data.token);
-        await refetch();
-        router.replace("/(admin)/dashboard");
-      }
+      await finishAdminLogin(data);
     },
     onError: (e: any) => {
-      setError(e?.response?.data?.message ?? e?.message ?? "Google sign-in failed");
+      setError(e?.response?.data?.message ?? e?.message ?? t("login.googleSignInFailed"));
     },
   });
 
   function handleLogin() {
     if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
+      setError(t("login.emailPasswordRequired"));
       return;
     }
     setError(null);

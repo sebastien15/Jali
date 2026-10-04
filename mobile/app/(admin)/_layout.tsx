@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
+import { isAdminRole } from "@/constants/roles";
 import {
   AdminNavProvider,
   useAdminNav,
@@ -61,6 +62,12 @@ function TabsNavigator() {
 
   if (!user && !isLogin) {
     return <Redirect href="/(admin)/admin-login" />;
+  }
+
+  // Signed in but not an admin (e.g. via a jali:// deep link): send them back
+  // to the passenger app instead of rendering admin screens that 403.
+  if (user && !isAdminRole(user.roles) && !isLogin) {
+    return <Redirect href="/(tabs)" />;
   }
 
   return (

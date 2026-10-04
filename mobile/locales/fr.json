@@ -445,7 +445,8 @@
     "invalidCredentials": "Email ou mot de passe invalide.",
     "tooManyAttempts": "Trop de tentatives. Réessayez plus tard.",
     "noInternet": "Pas de connexion Internet.",
-    "unknown": "Une erreur est survenue. Veuillez réessayer."
+    "unknown": "Une erreur est survenue. Veuillez réessayer.",
+    "noAdminAccess": "Ce compte n'a pas d'accès administrateur."
   },
   "admin": {
     "superadmin": "Superadmin",

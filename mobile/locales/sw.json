@@ -445,7 +445,8 @@
     "invalidCredentials": "Barua pepe au nywila si sahihi.",
     "tooManyAttempts": "Majaribio mengi sana. Jaribu baadaye.",
     "noInternet": "Hakuna muunganisho wa intaneti.",
-    "unknown": "Hitilafu imetokea. Tafadhali jaribu tena."
+    "unknown": "Hitilafu imetokea. Tafadhali jaribu tena.",
+    "noAdminAccess": "Akaunti hii haina ruhusa ya msimamizi."
   },
   "admin": {
     "superadmin": "Superadmin",
