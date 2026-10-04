@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
 use App\Models\LocationChangeRequest;
@@ -77,16 +78,18 @@ class LocationChangeRequestController extends Controller
             );
         }
 
-        $changeReq->update([
-            "status" => "approved",
-            "superadmin_id" => $superadmin->id,
-            "approved_at" => now(),
-        ]);
+        DB::transaction(function () use ($changeReq, $superadmin) {
+            $changeReq->update([
+                "status" => "approved",
+                "superadmin_id" => $superadmin->id,
+                "approved_at" => now(),
+            ]);
 
-        // Update admin's location
-        $changeReq->admin->update([
-            "location_id" => $changeReq->to_location_id,
-        ]);
+            // Update admin's location
+            $changeReq->admin->forceFill([
+                "location_id" => $changeReq->to_location_id,
+            ])->save();
+        });
 
         ActivityLog::create([
             "admin_id" => $superadmin->id,

@@ -153,24 +153,20 @@ Route::middleware("auth:sanctum")->group(function () {
                 LocationController::class,
                 "destroy",
             ]);
-            Route::get("/location-requests", [
-                LocationChangeRequestController::class,
-                "index",
-            ]);
-            Route::post("/location-requests/{id}/approve", [
-                LocationChangeRequestController::class,
-                "approve",
-            ]);
-            Route::post("/location-requests/{id}/reject", [
-                LocationChangeRequestController::class,
-                "reject",
-            ]);
         });
 
         Route::middleware("permission:manage-locations")->post("/location-request", [
             LocationChangeRequestController::class,
             "store",
         ]);
+
+        // Approving location changes is a superadmin decision (manage-admins),
+        // otherwise a station admin could approve their own request.
+        Route::middleware("permission:manage-admins")->group(function () {
+            Route::get("/location-requests", [LocationChangeRequestController::class, "index"]);
+            Route::post("/location-requests/{id}/approve", [LocationChangeRequestController::class, "approve"]);
+            Route::post("/location-requests/{id}/reject", [LocationChangeRequestController::class, "reject"]);
+        });
 
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/logs", [ActivityLogController::class, "index"]);
