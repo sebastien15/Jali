@@ -66,7 +66,9 @@
     "logOut": "Ondoka",
     "deleteMyAccount": "Futa akaunti yangu",
     "error": "Hitilafu",
-    "deleteAccountFailed": "Hatukuweza kufuta akaunti yako. Tafadhali angalia muunganisho wako kisha ujaribu tena."
+    "deleteAccountFailed": "Hatukuweza kufuta akaunti yako. Tafadhali angalia muunganisho wako kisha ujaribu tena.",
+    "becomeDriverInfo": "Hali ya dereva ni kwa madereva walioidhinishwa na Jali. Wasiliana nasi ili uwe dereva.",
+    "contactJali": "Wasiliana na Jali"
   },
   "drive": {
     "driverMode": "Hali ya Dereva",

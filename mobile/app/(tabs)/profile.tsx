@@ -12,6 +12,7 @@ import api from "@/lib/api";
 import { endSession, clearLocalSession } from "@/lib/session";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
+import { useMe, isDriverRole } from "@/lib/useMe";
 import { setLanguage, getLanguage } from "@/lib/i18n";
 
 const APP_VERSION = "1.0.0";
@@ -30,9 +31,26 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { driverMode, setDriverMode, driverType, setDriverType } = useDriverMode();
 
+  const { data: me } = useMe();
+  const isDriver = isDriverRole(me);
+  const driverActive = driverMode && isDriver;
+
   function handleDriverToggle(value: boolean) {
     if (!value) {
       setDriverMode(false);
+      return;
+    }
+    // The driver role is granted by Jali (superadmin) — there is no
+    // self-service signup, and every /driver/* endpoint 403s without it.
+    if (!isDriver) {
+      Alert.alert(
+        t('profile.driverMode'),
+        t('profile.becomeDriverInfo'),
+        [
+          { text: t('profile.cancel'), style: "cancel" },
+          { text: t('profile.contactJali'), onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
+        ],
+      );
       return;
     }
     // Ask which role before enabling
@@ -244,30 +262,30 @@ export default function ProfileScreen() {
 
         {/* Driver Mode */}
         <View style={{
-          backgroundColor: driverMode ? C.tealLt : C.white,
+          backgroundColor: driverActive ? C.tealLt : C.white,
           borderRadius: 16, padding: 16, marginBottom: 16,
-          borderWidth: 2, borderColor: driverMode ? C.teal : C.border,
+          borderWidth: 2, borderColor: driverActive ? C.teal : C.border,
           flexDirection: "row", alignItems: "center", gap: 14,
         }}>
           <View style={{
-            backgroundColor: driverMode ? C.teal : C.bg,
+            backgroundColor: driverActive ? C.teal : C.bg,
             borderRadius: 12, width: 44, height: 44,
             alignItems: "center", justifyContent: "center",
           }}>
-            <Ionicons name="car" size={22} color={driverMode ? C.white : C.mid} />
+            <Ionicons name="car" size={22} color={driverActive ? C.white : C.mid} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "800", fontSize: 15, color: driverMode ? C.teal : C.dark }}>
+            <Text style={{ fontWeight: "800", fontSize: 15, color: driverActive ? C.teal : C.dark }}>
               {t('profile.driverMode')}
             </Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-              {driverMode
+              {driverActive
                 ? driverType === "rental" ? t('profile.fleetOwner') : t('profile.privateDriver')
                 : t('profile.switchToDrive')}
             </Text>
           </View>
           <Switch
-            value={driverMode}
+            value={driverActive}
             onValueChange={handleDriverToggle}
             trackColor={{ false: C.border, true: C.teal }}
             thumbColor={C.white}

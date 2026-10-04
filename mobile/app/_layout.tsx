@@ -11,6 +11,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { queryClient, persister } from "@/lib/queryClient";
 import api from "@/lib/api";
 import * as Location from "expo-location";
+import { DriverModeProvider } from "@/lib/DriverModeContext";
 
 function I18nWrapper({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -63,6 +64,7 @@ export default function RootLayout() {
       >
         <I18nWrapper>
           <AccessTracker />
+          <DriverModeProvider>
           <View style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
@@ -76,6 +78,7 @@ export default function RootLayout() {
             </Stack>
             <OfflineBanner />
           </View>
+          </DriverModeProvider>
         </I18nWrapper>
       </PersistQueryClientProvider>
     </SafeAreaProvider>
