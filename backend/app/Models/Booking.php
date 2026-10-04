@@ -11,6 +11,7 @@ class Booking extends Model
         "user_id",
         "location_id",
         "trip_id",
+        "trip_departure_id",
         "type",
         "reference_id",
         "title",
