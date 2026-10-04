@@ -17,68 +17,30 @@ use Illuminate\Support\Facades\DB;
 class BookingController extends Controller
 {
     /**
-     * List bookings — users see own, admins see location-scoped
+     * List the caller's own bookings (passenger view, every role).
+     * Admin queues live in /admin/bookings; driver passengers in /driver/trips.
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $query = Booking::query();
+        $query = Booking::where("user_id", $request->user()->id);
 
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            // Admin: only bookings for their location
-            if ($user->location_id) {
-                $query->where("location_id", $user->location_id);
-            } else {
-                return response()->json([]);
-            }
-        } elseif ($user->isDriver()) {
-            // Driver: bookings for their private cars or rental cars
-            $privateSeatIds = PrivateSeat::where("user_id", $user->id)->pluck(
-                "id",
-            );
-            $carRentalIds = CarRental::where("user_id", $user->id)->pluck("id");
-
-            $query->where(function ($q) use ($privateSeatIds, $carRentalIds) {
-                if ($privateSeatIds->isNotEmpty()) {
-                    $q->orWhere(function ($sq) use ($privateSeatIds) {
-                        $sq->where("type", "private")->whereIn(
-                            "reference_id",
-                            $privateSeatIds,
-                        );
-                    });
-                }
-                if ($carRentalIds->isNotEmpty()) {
-                    $q->orWhere(function ($sq) use ($carRentalIds) {
-                        $sq->where("type", "rental")->whereIn(
-                            "reference_id",
-                            $carRentalIds,
-                        );
-                    });
-                }
-            });
-        } else {
-            // Regular user: only own bookings
-            $query->where("user_id", $user->id);
-        }
-
-        if ($request->has("status")) {
+        if ($request->filled("status")) {
             $query->where("status", $request->status);
         }
 
-        $bookings = $query->with("user")->orderBy("created_at", "desc")->get();
-
-        $trips = $bookings->map(function ($booking) {
-            return [
-                "id" => $booking->id,
-                "type" => $booking->type,
-                "title" => $booking->title,
-                "sub" => $booking->sub,
-                "price" => $booking->price + $booking->service_fee,
-                "status" => $booking->status,
-                "ticket_photo_url" => $booking->ticket_photo_url,
-                "location_id" => $booking->location_id,
-            ];
-        });
+        $trips = $query->orderBy("created_at", "desc")->get()->map(fn ($booking) => [
+            "id" => $booking->id,
+            "type" => $booking->type,
+            "title" => $booking->title,
+            "sub" => $booking->sub,
+            "price" => $booking->price + $booking->service_fee,
+            "quantity" => $booking->quantity ?? 1,
+            "travel_date" => $booking->travel_date,
+            "status" => $booking->status,
+            "ticket_photo_url" => $booking->ticket_photo_url,
+            "location_id" => $booking->location_id,
+            "created_at" => $booking->created_at,
+        ]);
 
         return response()->json($trips);
     }
@@ -258,7 +220,8 @@ class BookingController extends Controller
         $user = $request->user();
         $booking = Booking::findOrFail($id);
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin()) {
+        $isOwner = (int) $booking->user_id === (int) $user->id;
+        if (!$isOwner && !($user->hasPermission("confirm-bookings") && $booking->isManageableBy($user))) {
             return response()->json(["error" => "Forbidden"], 403);
         }
 
@@ -268,6 +231,8 @@ class BookingController extends Controller
             "title" => $booking->title,
             "sub" => $booking->sub,
             "price" => $booking->price + $booking->service_fee,
+            "quantity" => $booking->quantity ?? 1,
+            "travel_date" => $booking->travel_date,
             "status" => $booking->status,
             "ticket_photo_url" => $booking->ticket_photo_url,
             "location_id" => $booking->location_id,
@@ -279,89 +244,19 @@ class BookingController extends Controller
      */
     public function claim(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
-        }
-
-        // Location scoping
-        if (!$user->isSuperAdmin() && $user->location_id) {
-            $booking = Booking::where("id", $id)
-                ->where("location_id", $user->location_id)
-                ->first();
-        } else {
-            $booking = Booking::find($id);
-        }
-
-        if (!$booking) {
-            return response()->json(["error" => "Booking not found"], 404);
-        }
-        if ($booking->status !== "pending") {
-            return response()->json(
-                ["error" => "Booking already claimed."],
-                422,
-            );
-        }
-
-        $booking->update(["status" => "taken"]);
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "booking_claimed",
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
-        ]);
-
-        return response()->json([
-            "status" => "taken",
-            "message" => "Booking claimed.",
-        ]);
+        return $this->moveTo($request, $id, "taken", "booking_claimed");
     }
 
     /**
-     * Admin uploads ticket photo → status: ticket_ready
+     * Admin attaches the ticket photo URL → status: ticket_ready
      */
     public function uploadTicket(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
-        }
-
         $validated = $request->validate([
-            "ticket_photo_url" => "required|string",
+            "ticket_photo_url" => "required|url|max:2048",
         ]);
 
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status !== "taken") {
-            return response()->json(
-                [
-                    "error" =>
-                        'Booking must be in "taken" status to upload ticket.',
-                ],
-                422,
-            );
-        }
-
-        $booking->update([
-            "status" => "ticket_ready",
-            "ticket_photo_url" => $validated["ticket_photo_url"],
-        ]);
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "ticket_uploaded",
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
-        ]);
-
-        return response()->json([
-            "status" => "ticket_ready",
-            "message" => "Ticket uploaded.",
-        ]);
+        return $this->moveTo($request, $id, "ticket_ready", "ticket_uploaded", $validated);
     }
 
     /**
@@ -369,36 +264,37 @@ class BookingController extends Controller
      */
     public function deliver(Request $request, $id)
     {
+        return $this->moveTo($request, $id, "delivered", "booking_delivered");
+    }
+
+    private function moveTo(Request $request, $id, string $status, string $action, array $extra = [])
+    {
         $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
+        $booking = Booking::find($id);
+
+        if (!$booking || !$booking->isManageableBy($user)) {
+            return response()->json(["error" => "Booking not found"], 404);
         }
 
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status !== "ticket_ready") {
+        $from = $booking->status;
+        if (!$booking->transitionTo($status, $user, $extra)) {
             return response()->json(
-                [
-                    "error" =>
-                        'Booking must be in "ticket_ready" status to deliver.',
-                ],
+                ["error" => "Invalid status change", "message" => "Cannot change a {$booking->fresh()->status} booking to {$status}."],
                 422,
             );
         }
 
-        $booking->update(["status" => "delivered"]);
-
         ActivityLog::create([
             "admin_id" => $user->id,
-            "action" => "booking_delivered",
+            "action" => $action,
             "entity_type" => "booking",
             "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
+            "details" => ["title" => $booking->title, "from" => $from, "to" => $status],
         ]);
 
         return response()->json([
-            "status" => "delivered",
-            "message" => "Booking delivered.",
+            "status" => $status,
+            "message" => "Booking updated.",
         ]);
     }
 }
