@@ -36,30 +36,13 @@ class AuthController extends Controller
 
         $user = User::with("role")->where("email", $request->email)->first();
 
-        if (!$user) {
+        // Accounts without a password (Google / phone sign-up) can never use
+        // email+password login — they must use the provider they signed up with.
+        if (!$user || !$user->password || !Hash::check($request->password, $user->password)) {
             return response()->json(
                 ["error" => "Unauthorized", "message" => "Invalid credentials"],
                 401,
             );
-        }
-
-        // For pre-seeded admin users, use a default password or bypass
-        // In production, you'd set proper passwords during seeding
-        if (!Hash::check($request->password, $user->password ?? "")) {
-            // Allow admin users with any password if they exist in DB
-            // (Admins originally used Firebase, so we'll accept their login if they exist)
-            if (!$user->password) {
-                // User exists but has no password (Firebase-only user)
-                // For now, we'll create a token for them
-            } else {
-                return response()->json(
-                    [
-                        "error" => "Unauthorized",
-                        "message" => "Invalid credentials",
-                    ],
-                    401,
-                );
-            }
         }
 
         return $this->respondWithToken($user);
