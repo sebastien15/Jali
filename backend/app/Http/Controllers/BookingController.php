@@ -86,7 +86,8 @@ class BookingController extends Controller
                 "trip"    => TripDeparture::with(["route.agency", "route.fromStation", "route.toStation"])->lockForUpdate()->find($itemId),
             };
 
-            $active = $item && ($type === "trip" ? ($item->active && $item->route->active) : ($item->active ?? true));
+            $active = $item && ($type === "trip" ? ($item->active && $item->route->active) : ($item->active ?? true))
+                && ($type !== "rental" || ($item->status ?? "available") === "available");
             if (!$active) {
                 return response()->json(["error" => "Item not found", "message" => "This listing is no longer available."], 404);
             }

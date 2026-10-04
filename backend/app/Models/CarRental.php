@@ -19,6 +19,8 @@ class CarRental extends Model
         'active',
         'amenities',
         'photos',
+        'status',
+        'notes',
     ];
 
     protected function casts(): array
