@@ -171,7 +171,7 @@
     "publishListing": "Tangaza Ingingo",
     "deleteListing": "Siba iyi ngendo",
     "required": "Birasabwa",
-    "selectDestination": "Nyamuneka hitamo aho ujya n'aho ufata.",
+    "selectDestination": "Hitamo aho ujya",
     "enterPrice": "Nyamuneka andika igiciro ku mwanya.",
     "error": "Ikosa",
     "saveListingError": "Ntibishoboye kubika ingingo.",
@@ -182,7 +182,6 @@
     "listingPublished": "Byatangajwe",
     "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
     "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
-    "selectDestination": "Hitamo aho ujya",
     "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
   },
   "driverSetup": {

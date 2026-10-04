@@ -171,7 +171,7 @@
     "publishListing": "Publish Listing",
     "deleteListing": "Delete this listing",
     "required": "Required",
-    "selectDestination": "Please select destination and pickup station.",
+    "selectDestination": "Select destination",
     "enterPrice": "Please enter a price per seat.",
     "error": "Error",
     "saveListingError": "Could not save listing.",
@@ -182,7 +182,6 @@
     "listingPublished": "Listed",
     "listingUpdatedDesc": "Your listing has been updated.",
     "listingPublishedDesc": "Your trip is now listed for passengers to book.",
-    "selectDestination": "Select destination",
     "groupPrice": "Group price: {{price}} RWF/seat"
   },
   "driverSetup": {

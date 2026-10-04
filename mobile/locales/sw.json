@@ -171,7 +171,7 @@
     "publishListing": "Chapisha Orodha",
     "deleteListing": "Futa safari hii",
     "required": "Inahitajika",
-    "selectDestination": "Tafadhali chagua marudio na mahali pa kupanda.",
+    "selectDestination": "Chagua marudio",
     "enterPrice": "Tafadhali weka bei kwa kiti.",
     "error": "Hitilafu",
     "saveListingError": "Haikuweza kuhifadhi orodha.",
@@ -182,7 +182,6 @@
     "listingPublished": "Imechapishwa",
     "listingUpdatedDesc": "Orodha yako imesasishwa.",
     "listingPublishedDesc": "Safari yako sasa imechapishwa kwa abiria kutemini.",
-    "selectDestination": "Chagua marudio",
     "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti"
   },
   "driverSetup": {

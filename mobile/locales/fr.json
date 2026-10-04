@@ -171,7 +171,7 @@
     "publishListing": "Publier le trajet",
     "deleteListing": "Supprimer ce trajet",
     "required": "Requis",
-    "selectDestination": "Veuillez sélectionner la destination et le point de prise en charge.",
+    "selectDestination": "Sélectionner la destination",
     "enterPrice": "Veuillez entrer un prix par place.",
     "error": "Erreur",
     "saveListingError": "Impossible de sauvegarder le trajet.",
@@ -182,7 +182,6 @@
     "listingPublished": "Publié",
     "listingUpdatedDesc": "Votre trajet a été mis à jour.",
     "listingPublishedDesc": "Votre trajet est maintenant disponible pour les passagers.",
-    "selectDestination": "Sélectionner la destination",
     "groupPrice": "Prix de groupe : {{price}} RWF/place"
   },
   "driverSetup": {
