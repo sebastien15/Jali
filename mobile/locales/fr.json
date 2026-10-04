@@ -183,7 +183,12 @@
     "listingPublished": "Publié",
     "listingUpdatedDesc": "Votre trajet a été mis à jour.",
     "listingPublishedDesc": "Votre trajet est maintenant disponible pour les passagers.",
-    "groupPrice": "Prix de groupe : {{price}} RWF/place"
+    "groupPrice": "Prix de groupe : {{price}} RWF/place",
+    "selectDestinationAndPickup": "Veuillez choisir une destination et un point de prise en charge.",
+    "deleteListingError": "Impossible de supprimer l'annonce.",
+    "dropOffPlaceholder": "ex. Près de l'entrée de l'Université de Huye",
+    "notesPlaceholder": "ex. Bagages dans le coffre, arrêt possible à Muhanga",
+    "seats": "places"
   },
   "driverSetup": {
     "fleetOwner": "Propriétaire de flotte",

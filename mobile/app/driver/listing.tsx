@@ -18,24 +18,34 @@ const DateTimePicker = (isDev || isTest)
   ? null
   : (require("@react-native-community/datetimepicker").default as React.ComponentType<any>);
 import {
-  CITIES, BUS_STATIONS, CAR_AMENITIES, CarAmenity, DriverListing,
+  CITIES, BUS_STATIONS, CAR_AMENITIES, CarAmenity, DriverListing, DriverListingPayload,
 } from "@/constants/data";
 import api from "@/lib/api";
+import { toYmd, parseYmd, formatYmd } from "@/lib/date";
+import { useTranslation } from "react-i18next";
 
 const DISCOUNT_PCTS = [5, 10, 15, 20];
 
-function formatDate(d: Date): string {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+function parseListingDate(s: string | null): Date | null {
+  const ymd = parseYmd(s);
+  if (ymd) return ymd;
+  // Legacy rows stored a display label like "Mon 5 Oct 2026"
+  const d = s ? new Date(s) : null;
+  return d && !isNaN(d.getTime()) ? d : null;
 }
 
-function parseDateString(s: string): Date {
-  const d = new Date(s);
-  return isNaN(d.getTime()) ? new Date() : d;
+/** First validation message from a Laravel 422, or its top-level message. */
+function apiErrorMessage(e: any): string | undefined {
+  const errors = e?.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    const first = Object.values(errors)[0];
+    if (Array.isArray(first) && first.length) return String(first[0]);
+  }
+  return e?.response?.data?.message;
 }
 
 export default function ListingScreen() {
+  const { t, i18n } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id ? parseInt(params.id) : null;
 
@@ -77,41 +87,42 @@ export default function ListingScreen() {
 
   const queryClient = useQueryClient();
 
+  // There is no GET /driver/listings/{id}: read the driver's list (usually
+  // already cached by the Drive tab) and pick the listing out of it.
   const { data: listing } = useQuery({
-    queryKey: queryKeys.driver.listing(editId!),
-    queryFn: () => api.get(`/driver/listings/${editId}`).then(r => r.data as DriverListing),
+    queryKey: queryKeys.driver.listings(),
+    queryFn: () => api.get("/driver/listings").then(r => r.data as DriverListing[]),
     enabled: !!editId,
     staleTime: 2 * 60_000,
     refetchOnWindowFocus: false,
-    initialData: () => {
-      if (!editId) return undefined;
-      const cached = queryClient.getQueryData<DriverListing[]>(queryKeys.driver.listings());
-      return cached?.find(l => l.id === editId) ?? undefined;
-    },
+    select: (list) => list.find(l => l.id === editId),
   });
 
-  // Sync form fields when listing data arrives
+  // Sync form fields once when the listing arrives (don't clobber edits on refetch)
+  const [hydratedId, setHydratedId] = useState<number | null>(null);
   useEffect(() => {
-    if (!listing) return;
+    if (!listing || hydratedId === listing.id) return;
+    setHydratedId(listing.id);
     setFrom(listing.from);
     setTo(listing.to);
-    setPickupStation(listing.pickupStation);
-    setDropLocation(listing.dropLocation);
-    if (listing.date) setDate(parseDateString(listing.date));
+    setPickupStation(listing.pickup_station ?? "");
+    setDropLocation(listing.drop_location ?? "");
+    const parsed = parseListingDate(listing.date);
+    if (parsed) setDate(parsed);
     if (listing.dep) {
-      const [h, m] = listing.dep.split(":");
+      const [h = "07", m = "00"] = listing.dep.split(":");
       setHour(h); setMinute(m); setPendingHour(h); setPendingMinute(m);
     }
     setSeats(String(listing.seats));
     setPrice(String(listing.price));
     setAmenities(listing.amenities ?? []);
-    setGroupDiscount(listing.groupDiscount ?? false);
-    setGroupMinSize(listing.groupMinSize ?? 3);
-    setGroupDiscountPct(listing.groupDiscountPct ?? 10);
-    setAllowCustomPickup(listing.allowCustomPickup ?? false);
-    setCustomPickupFee(String(listing.customPickupFee ?? ""));
+    setGroupDiscount(!!listing.group_discount);
+    setGroupMinSize(listing.group_min_size ?? 3);
+    setGroupDiscountPct(listing.group_discount_pct ?? 10);
+    setAllowCustomPickup(!!listing.allow_custom_pickup);
+    setCustomPickupFee(listing.custom_pickup_fee ? String(listing.custom_pickup_fee) : "");
     setNotes(listing.notes ?? "");
-  }, [listing]);
+  }, [listing, hydratedId]);
 
   const stations = BUS_STATIONS[from] ?? [];
   const dep = `${hour}:${minute}`;
@@ -130,48 +141,61 @@ export default function ListingScreen() {
 
   async function handleSave() {
     if (!to || !pickupStation) {
-      Alert.alert("Required", "Please select destination and pickup station.");
+      Alert.alert(t("listing.required"), t("listing.selectDestinationAndPickup"));
       return;
     }
-    if (!price) {
-      Alert.alert("Required", "Please enter a price per seat.");
+    const priceNum = parseInt(price, 10);
+    if (!price || isNaN(priceNum)) {
+      Alert.alert(t("listing.required"), t("listing.enterPrice"));
       return;
     }
     setSaving(true);
     try {
-      const payload: Omit<DriverListing, "id" | "active"> = {
-        from, to, pickupStation, dropLocation, date: formatDate(date), dep,
-        seats: parseInt(seats), price: parseInt(price), notes,
-        amenities, groupDiscount, groupMinSize, groupDiscountPct,
-        allowCustomPickup, customPickupFee: allowCustomPickup ? parseInt(customPickupFee) || 0 : 0,
+      // snake_case, exactly as PrivateSeatController@store/update validates
+      const payload: DriverListingPayload = {
+        from,
+        to,
+        pickup_station: pickupStation,
+        drop_location: dropLocation.trim() || null,
+        date: toYmd(date),
+        dep,
+        seats: parseInt(seats, 10),
+        price: priceNum,
+        notes: notes.trim() || null,
+        amenities,
+        group_discount: groupDiscount,
+        group_min_size: groupMinSize,
+        group_discount_pct: groupDiscountPct,
+        allow_custom_pickup: allowCustomPickup,
+        custom_pickup_fee: allowCustomPickup ? parseInt(customPickupFee, 10) || 0 : 0,
       };
       if (editId) await api.patch(`/driver/listings/${editId}`, payload);
       else await api.post("/driver/listings", payload);
       queryClient.invalidateQueries({ queryKey: queryKeys.driver.listings() });
       Alert.alert(
-        editId ? "Updated ✓" : "Listed ✓",
-        editId ? "Your listing has been updated." : "Your trip is now listed for passengers to book.",
-        [{ text: "OK", onPress: () => router.back() }],
+        `${editId ? t("listing.listingUpdated") : t("listing.listingPublished")} ✓`,
+        editId ? t("listing.listingUpdatedDesc") : t("listing.listingPublishedDesc"),
+        [{ text: t("common.ok"), onPress: () => router.back() }],
       );
-    } catch {
-      Alert.alert("Error", "Could not save listing.");
+    } catch (e: any) {
+      Alert.alert(t("listing.error"), apiErrorMessage(e) ?? t("listing.saveListingError"));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete() {
-    Alert.alert("Delete Listing", "Remove this trip listing?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("listing.deleteListingTitle"), t("listing.deleteListingConfirm"), [
+      { text: t("profile.cancel"), style: "cancel" },
       {
-        text: "Delete", style: "destructive",
+        text: t("common.delete"), style: "destructive",
         onPress: async () => {
           try {
             await api.delete(`/driver/listings/${editId}`);
             queryClient.invalidateQueries({ queryKey: queryKeys.driver.listings() });
             router.back();
-          } catch {
-            Alert.alert("Error", "Could not delete listing.");
+          } catch (e: any) {
+            Alert.alert(t("listing.error"), apiErrorMessage(e) ?? t("listing.deleteListingError"));
           }
         },
       },
@@ -192,9 +216,9 @@ export default function ListingScreen() {
           <Ionicons name="arrow-back" size={24} color={C.white} />
         </TouchableOpacity>
         <View>
-          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: "600" }}>Private Driver</Text>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: "600" }}>{t("listing.privateDriver")}</Text>
           <Text style={{ color: C.white, fontWeight: "900", fontSize: 20 }}>
-            {editId ? "Edit Listing" : "New Trip Listing"}
+            {editId ? t("listing.editListing") : t("listing.newTripListing")}
           </Text>
         </View>
       </View>
@@ -202,10 +226,10 @@ export default function ListingScreen() {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
 
         {/* ── ROUTE ─────────────────────────────────────── */}
-        <SectionHeader label="Route" icon="map-outline" />
+        <SectionHeader label={t("listing.route")} icon="map-outline" />
 
         {/* From */}
-        <Label>From</Label>
+        <Label>{t("listing.from")}</Label>
         <TouchableOpacity
           onPress={() => setCityPicker(cityPicker === "from" ? null : "from")}
           style={[rowInput, { marginBottom: 8 }]}
@@ -225,7 +249,7 @@ export default function ListingScreen() {
         {/* Pickup station */}
         {stations.length > 0 && (
           <>
-            <Label>Pickup Point</Label>
+            <Label>{t("listing.pickupPoint")}</Label>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
               {stations.map(s => (
                 <TouchableOpacity
@@ -247,13 +271,13 @@ export default function ListingScreen() {
         )}
 
         {/* To */}
-        <Label>To</Label>
+        <Label>{t("listing.to")}</Label>
         <TouchableOpacity
           onPress={() => setCityPicker(cityPicker === "to" ? null : "to")}
           style={[rowInput, { marginBottom: 8 }]}
         >
           <Text style={{ color: to ? C.dark : C.muted, fontSize: 14, fontWeight: to ? "700" : "400", flex: 1 }}>
-            {to || "Select destination"}
+            {to || t("listing.selectDestination")}
           </Text>
           <Ionicons name={cityPicker === "to" ? "chevron-up" : "chevron-down"} size={16} color={C.mid} />
         </TouchableOpacity>
@@ -267,37 +291,37 @@ export default function ListingScreen() {
         )}
 
         {/* Drop-off */}
-        <Label>Drop-off Area (optional)</Label>
+        <Label>{t("listing.dropOffArea")}</Label>
         <TextInput
           value={dropLocation}
           onChangeText={setDropLocation}
-          placeholder="e.g. Near Huye University gate"
+          placeholder={t("listing.dropOffPlaceholder")}
           style={inputStyle}
         />
 
         {/* ── SCHEDULE ──────────────────────────────────── */}
-        <SectionHeader label="Schedule" icon="time-outline" />
+        <SectionHeader label={t("listing.schedule")} icon="time-outline" />
 
-        <Label>Departure Date</Label>
+        <Label>{t("listing.departureDate")}</Label>
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
           style={[rowInput, { marginBottom: 14 }]}
         >
           <Ionicons name="calendar-outline" size={16} color={C.mid} style={{ marginRight: 8 }} />
           <Text style={{ color: C.dark, fontWeight: "700", fontSize: 15, flex: 1 }}>
-            {formatDate(date)}
+            {formatYmd(toYmd(date), i18n.language)}
           </Text>
-          <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>Change</Text>
+          <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>{t("listing.change")}</Text>
         </TouchableOpacity>
 
         {showDatePicker && (
           (isDev || isTest) ? (
             // Expo Go fallback — plain text input
             <TextInput
-              value={formatDate(date)}
+              defaultValue={toYmd(date)}
               onChangeText={(v) => {
-                const parsed = new Date(v);
-                if (!isNaN(parsed.getTime())) setDate(parsed);
+                const parsed = parseYmd(v);
+                if (parsed) setDate(parsed);
               }}
               placeholder="e.g. 2026-04-15"
               style={[inputStyle, { marginBottom: 14 }]}
@@ -327,11 +351,11 @@ export default function ListingScreen() {
               alignItems: "center", marginBottom: 14,
             }}
           >
-            <Text style={{ color: C.white, fontWeight: "800" }}>Confirm Date</Text>
+            <Text style={{ color: C.white, fontWeight: "800" }}>{t("listing.confirmDate")}</Text>
           </TouchableOpacity>
         )}
 
-        <Label>Departure Time</Label>
+        <Label>{t("listing.departureTime")}</Label>
         <TouchableOpacity
           onPress={() => { setPendingHour(hour); setPendingMinute(minute); setShowTimePicker(true); }}
           style={[rowInput, { marginBottom: 14 }]}
@@ -340,18 +364,18 @@ export default function ListingScreen() {
           <Text style={{ color: C.dark, fontWeight: "700", fontSize: 15, flex: 1 }}>
             {dep}
           </Text>
-          <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>Change</Text>
+          <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>{t("listing.change")}</Text>
         </TouchableOpacity>
 
         {/* ── CAPACITY & PRICING ────────────────────────── */}
-        <SectionHeader label="Capacity & Pricing" icon="cash-outline" />
+        <SectionHeader label={t("listing.capacityPricing")} icon="cash-outline" />
 
-        <Label>Available Seats</Label>
+        <Label>{t("listing.availableSeats")}</Label>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14 }}>
           <Stepper value={parseInt(seats)} min={1} max={6} onChange={v => setSeats(String(v))} />
         </View>
 
-        <Label>Price per Seat (RWF)</Label>
+        <Label>{t("listing.pricePerSeat")}</Label>
         <TextInput
           value={price} onChangeText={setPrice}
           placeholder="e.g. 8000" keyboardType="number-pad"
@@ -359,9 +383,9 @@ export default function ListingScreen() {
         />
 
         {/* ── CAR AMENITIES ─────────────────────────────── */}
-        <SectionHeader label="What's Available on This Trip" icon="sparkles-outline" />
+        <SectionHeader label={t("listing.available")} icon="sparkles-outline" />
         <Text style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>
-          Let passengers know what's in your car
+          {t("listing.amenitiesHint")}
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
           {CAR_AMENITIES.map(a => {
@@ -385,15 +409,15 @@ export default function ListingScreen() {
         </View>
 
         {/* ── GROUP DISCOUNT ────────────────────────────── */}
-        <SectionHeader label="Group Discount" icon="people-outline" />
+        <SectionHeader label={t("listing.groupDiscount")} icon="people-outline" />
         <View style={{
           backgroundColor: C.white, borderRadius: 14, padding: 14, marginBottom: groupDiscount ? 0 : 14,
           flexDirection: "row", alignItems: "center", justifyContent: "space-between",
         }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "700", fontSize: 14, color: C.dark }}>Offer group discount</Text>
+            <Text style={{ fontWeight: "700", fontSize: 14, color: C.dark }}>{t("listing.offerGroupDiscount")}</Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-              Reduce price when multiple seats booked together
+              {t("listing.groupDiscountDesc")}
             </Text>
           </View>
           <Switch
@@ -407,12 +431,12 @@ export default function ListingScreen() {
             backgroundColor: C.tealLt, borderRadius: 14, padding: 14, marginBottom: 14,
             borderWidth: 1.5, borderColor: C.teal,
           }}>
-            <Label>Min. group size to qualify</Label>
+            <Label>{t("listing.minGroupSize")}</Label>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14 }}>
               <Stepper value={groupMinSize} min={2} max={6} onChange={setGroupMinSize} />
             </View>
 
-            <Label>Discount percentage</Label>
+            <Label>{t("listing.discountPercentage")}</Label>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
               {DISCOUNT_PCTS.map(p => (
                 <TouchableOpacity
@@ -432,22 +456,22 @@ export default function ListingScreen() {
             </View>
             {price !== "" && (
               <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700", marginTop: 10 }}>
-                Group price: {Math.round(parseInt(price) * (1 - groupDiscountPct / 100)).toLocaleString()} RWF/seat
+                {t("listing.groupPrice", { price: Math.round((parseInt(price, 10) || 0) * (1 - groupDiscountPct / 100)).toLocaleString() })}
               </Text>
             )}
           </View>
         )}
 
         {/* ── DOOR PICKUP ───────────────────────────────── */}
-        <SectionHeader label="Door Pickup" icon="location-outline" />
+        <SectionHeader label={t("listing.doorPickup")} icon="location-outline" />
         <View style={{
           backgroundColor: C.white, borderRadius: 14, padding: 14, marginBottom: allowCustomPickup ? 0 : 14,
           flexDirection: "row", alignItems: "center", justifyContent: "space-between",
         }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "700", fontSize: 14, color: C.dark }}>Offer door pickup</Text>
+            <Text style={{ fontWeight: "700", fontSize: 14, color: C.dark }}>{t("listing.offerDoorPickup")}</Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-              Pick passengers up at their location (extra fee)
+              {t("listing.doorPickupDesc")}
             </Text>
           </View>
           <Switch
@@ -461,23 +485,23 @@ export default function ListingScreen() {
             backgroundColor: C.tealLt, borderRadius: 14, padding: 14, marginBottom: 14,
             borderWidth: 1.5, borderColor: C.teal,
           }}>
-            <Label>Extra fee for door pickup (RWF)</Label>
+            <Label>{t("listing.extraFee")}</Label>
             <TextInput
               value={customPickupFee} onChangeText={setCustomPickupFee}
               placeholder="e.g. 2000" keyboardType="number-pad"
               style={inputStyle}
             />
             <Text style={{ color: C.mid, fontSize: 12, marginTop: -8 }}>
-              This will be added on top of the seat price
+              {t("listing.extraFeeDesc")}
             </Text>
           </View>
         )}
 
         {/* ── NOTES ─────────────────────────────────────── */}
-        <SectionHeader label="Notes" icon="chatbubble-outline" />
+        <SectionHeader label={t("listing.notes")} icon="chatbubble-outline" />
         <TextInput
           value={notes} onChangeText={setNotes}
-          placeholder="e.g. Luggage in boot, stop in Muhanga allowed"
+          placeholder={t("listing.notesPlaceholder")}
           style={[inputStyle, { minHeight: 72 }]}
           multiline
         />
@@ -494,7 +518,7 @@ export default function ListingScreen() {
           {saving
             ? <ActivityIndicator color={C.white} />
             : <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
-                {editId ? "Update Listing ✓" : "Publish Listing ✓"}
+                {editId ? t("listing.updateListing") : t("listing.publishListing")} ✓
               </Text>
           }
         </TouchableOpacity>
@@ -504,7 +528,7 @@ export default function ListingScreen() {
             onPress={handleDelete}
             style={{ paddingVertical: 14, alignItems: "center", marginBottom: 32 }}
           >
-            <Text style={{ color: "#DC2626", fontSize: 14, fontWeight: "700" }}>Delete this listing</Text>
+            <Text style={{ color: "#DC2626", fontSize: 14, fontWeight: "700" }}>{t("listing.deleteListing")}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -519,7 +543,7 @@ export default function ListingScreen() {
           }}>
             <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginTop: 14, marginBottom: 16 }} />
             <Text style={{ textAlign: "center", fontWeight: "900", fontSize: 17, color: C.dark, marginBottom: 8 }}>
-              Departure Time
+              {t("listing.departureTime")}
             </Text>
             <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
               <View style={{ width: 100 }}>
@@ -554,7 +578,7 @@ export default function ListingScreen() {
               }}
             >
               <Text style={{ color: C.white, fontWeight: "900", fontSize: 16 }}>
-                Confirm — {pendingHour}:{pendingMinute}
+                {t("listing.confirmTime", { time: `${pendingHour}:${pendingMinute}` })}
               </Text>
             </TouchableOpacity>
           </View>

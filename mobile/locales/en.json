@@ -183,7 +183,12 @@
     "listingPublished": "Listed",
     "listingUpdatedDesc": "Your listing has been updated.",
     "listingPublishedDesc": "Your trip is now listed for passengers to book.",
-    "groupPrice": "Group price: {{price}} RWF/seat"
+    "groupPrice": "Group price: {{price}} RWF/seat",
+    "selectDestinationAndPickup": "Please select a destination and a pickup point.",
+    "deleteListingError": "Could not delete listing.",
+    "dropOffPlaceholder": "e.g. Near Huye University gate",
+    "notesPlaceholder": "e.g. Luggage in boot, stop in Muhanga allowed",
+    "seats": "seats"
   },
   "driverSetup": {
     "fleetOwner": "Fleet Owner",

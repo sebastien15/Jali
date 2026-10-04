@@ -183,7 +183,12 @@
     "listingPublished": "Imechapishwa",
     "listingUpdatedDesc": "Orodha yako imesasishwa.",
     "listingPublishedDesc": "Safari yako sasa imechapishwa kwa abiria kutemini.",
-    "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti"
+    "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti",
+    "selectDestinationAndPickup": "Tafadhali chagua unakoenda na mahali pa kuchukua abiria.",
+    "deleteListingError": "Imeshindikana kufuta tangazo.",
+    "dropOffPlaceholder": "mfano: Karibu na lango la Chuo Kikuu cha Huye",
+    "notesPlaceholder": "mfano: Mizigo kwenye buti, kusimama Muhanga kunaruhusiwa",
+    "seats": "viti"
   },
   "driverSetup": {
     "fleetOwner": "Mmiliki wa Floti",

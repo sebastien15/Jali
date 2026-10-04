@@ -72,24 +72,29 @@ export interface DriverCar {
   photos: { front?: string; side?: string; interior?: string; luggage?: string };
 }
 
-// ── Private driver listing interface ─────────────────────────────
+// ── Private driver listing (API shape, see PrivateSeatController) ─
+// Field names are snake_case exactly as the backend returns/accepts them.
 export interface DriverListing {
   id: number;
   from: string;
   to: string;
-  pickupStation: string;
-  dropLocation: string;
-  date: string;
+  pickup_station: string;
+  drop_location: string | null;
+  /** `Y-m-d` for listings created by current app versions; older rows hold a free-text label. */
+  date: string | null;
   dep: string;
   seats: number;
   price: number;
-  notes: string;
+  notes?: string | null;
   active: boolean;
-  amenities: CarAmenity[];
-  groupDiscount: boolean;
-  groupMinSize: number;
-  groupDiscountPct: number;
-  allowCustomPickup: boolean;
-  customPickupFee: number;
+  amenities: CarAmenity[] | null;
+  group_discount: boolean;
+  group_min_size: number | null;
+  group_discount_pct: number | null;
+  allow_custom_pickup: boolean;
+  custom_pickup_fee: number | null;
 }
+
+/** Body for POST/PATCH /driver/listings. */
+export type DriverListingPayload = Omit<DriverListing, "id" | "active">;
 

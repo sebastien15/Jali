@@ -183,7 +183,12 @@
     "listingPublished": "Byatangajwe",
     "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
     "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
-    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
+    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya",
+    "selectDestinationAndPickup": "Hitamo aho ujya n'aho uzafatira abagenzi.",
+    "deleteListingError": "Ntibyashobotse gusiba iri tangazo.",
+    "dropOffPlaceholder": "urugero: Hafi y'irembo rya Kaminuza ya Huye",
+    "notesPlaceholder": "urugero: Imizigo ijya mu ivalisi y'imodoka, guhagarara i Muhanga biremewe",
+    "seats": "imyanya"
   },
   "driverSetup": {
     "fleetOwner": "Nyiri Floti",
