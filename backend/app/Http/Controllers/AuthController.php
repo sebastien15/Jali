@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Kreait\Firebase\Factory;
+use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 
 class AuthController extends Controller
 {
@@ -71,55 +71,55 @@ class AuthController extends Controller
         }
 
         try {
-            $factory = (new Factory())->withServiceAccount(
-                config("firebase.projects.app.credentials"),
-            );
-            $auth = $factory->createAuth();
-            $verified = $auth->verifyIdToken($request->firebase_token);
-
-            $uid = $verified->claims()->get("sub");
-            $email = $verified->claims()->get("email");
-            $name = $verified->claims()->get("name") ?? "User";
-
-            $user = User::with("role")->where("firebase_uid", $uid)->first();
-
-            // First-time admin login: link pre-seeded user
-            if (!$user && $email) {
-                $preSeeded = User::where("email", $email)
-                    ->whereNull("firebase_uid")
-                    ->first();
-                if ($preSeeded) {
-                    $preSeeded->update(["firebase_uid" => $uid]);
-                    $preSeeded->load("role");
-                    $user = $preSeeded;
-                }
-            }
-
-            // Create new user
-            if (!$user) {
-                $userRole = Role::where("name", "user")->first();
-                $user = User::create([
-                    "firebase_uid" => $uid,
-                    "name" => $name,
-                    "email" => $email,
-                    "role_id" => $userRole ? $userRole->id : null,
-                ]);
-                $user->load("role");
-            }
-
-            return $this->respondWithToken($user);
-        } catch (\Exception $e) {
-            Log::error("[GoogleLogin] Failed:", [
-                "message" => $e->getMessage(),
-            ]);
+            $verified = app(FirebaseAuth::class)->verifyIdToken($request->firebase_token);
+        } catch (\Throwable $e) {
+            Log::warning("[GoogleLogin] Token rejected:", ["message" => $e->getMessage()]);
             return response()->json(
-                [
-                    "error" => "Unauthorized",
-                    "message" => "Invalid Google token",
-                ],
+                ["error" => "Unauthorized", "message" => "Invalid Google token"],
                 401,
             );
         }
+
+        $uid = $verified->claims()->get("sub");
+        $email = $verified->claims()->get("email");
+        $emailVerified = $verified->claims()->get("email_verified") === true;
+        $name = $verified->claims()->get("name") ?? "User";
+
+        $user = User::with("role")->where("firebase_uid", $uid)->first();
+
+        if (!$user && $email) {
+            $existing = User::where("email", $email)->first();
+            if ($existing) {
+                // Only link a Firebase identity to an existing account (e.g. a
+                // pre-provisioned admin) when Firebase has verified the email —
+                // otherwise anyone could register that address and take it over.
+                if (!$emailVerified || $existing->firebase_uid !== null) {
+                    return response()->json(
+                        [
+                            "error" => "Unauthorized",
+                            "message" => "This email is already registered. Sign in with your original method.",
+                        ],
+                        401,
+                    );
+                }
+                $existing->forceFill(["firebase_uid" => $uid])->save();
+                $user = $existing->load("role");
+            }
+        }
+
+        // Create new user
+        if (!$user) {
+            $userRole = Role::where("name", "user")->first();
+            $user = User::create([
+                "firebase_uid" => $uid,
+                "name" => $name,
+                "email" => $emailVerified ? $email : null,
+                "role_id" => $userRole ? $userRole->id : null,
+            ]);
+            $user->load("role");
+        }
+
+        return $this->respondWithToken($user);
     }
 
     /**
