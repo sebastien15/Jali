@@ -54,20 +54,14 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
   async function handleConfirm() {
     setLoading(true);
     try {
+      // Price, title and final fee are computed by the server from the listing.
       await api.post("/bookings", {
         type,
         reference_id: item.id,
-        price: isBus ? item.price : isPrivate ? item.price : item.price * days,
         service_fee: effectiveFee,
         payment_method: payMethod,
+        ...(isRental ? { days } : {}),
         ...(travelDate ? { travel_date: travelDate } : {}),
-        ...(isBus || isPrivate ? {
-          title: isBus ? `${item.agency} · ${item.from} → ${item.to}` : `${item.driver} · ${item.from} → ${item.to}`,
-          sub: isBus ? `Departs ${item.dep} · ${item.seats} seats` : `Departs ${item.dep}`,
-        } : {
-          title: item.name,
-          sub: `${item.type} · ${days} day${days > 1 ? "s" : ""}`,
-        }),
       });
       Alert.alert(
         t('components.bookingSheet.bookingSent'),

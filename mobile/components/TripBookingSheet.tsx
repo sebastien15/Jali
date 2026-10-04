@@ -126,8 +126,6 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
       await api.post("/bookings", {
         type: "trip",
         reference_id: trip.id,
-        price: totalPrice,
-        service_fee: fee,
         payment_method: payMethod,
         travel_date: selectedDate,
         quantity: ticketCount,
