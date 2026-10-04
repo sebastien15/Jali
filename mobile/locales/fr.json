@@ -441,7 +441,9 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "change": "Changer",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "accessDenied": "Accès refusé",
+    "accessDeniedMsg": "Vous n'avez pas l'autorisation d'effectuer cette action."
   },
   "authErrors": {
     "invalidCredentials": "Email ou mot de passe invalide.",

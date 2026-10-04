@@ -441,7 +441,9 @@
     "close": "Close",
     "confirm": "Confirm",
     "change": "Change",
-    "add": "Add"
+    "add": "Add",
+    "accessDenied": "Access denied",
+    "accessDeniedMsg": "You don't have permission for this action."
   },
   "authErrors": {
     "invalidCredentials": "Invalid email or password.",

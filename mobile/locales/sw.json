@@ -441,7 +441,9 @@
     "close": "Funga",
     "confirm": "Thibitisha",
     "change": "Badilisha",
-    "add": "Ongeza"
+    "add": "Ongeza",
+    "accessDenied": "Ufikiaji umekataliwa",
+    "accessDeniedMsg": "Huna ruhusa ya kufanya kitendo hiki."
   },
   "authErrors": {
     "invalidCredentials": "Barua pepe au nywila si sahihi.",

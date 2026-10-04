@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { isProd, isTest } from "@/lib/env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { clearQueryCache } from "@/lib/queryClient";
+import i18n from "i18next";
 
 const DEV_URL = "http://192.168.1.64:8000/api";
 const PROD_URL = "https://jali.stoka.rw/api";
@@ -33,6 +34,7 @@ api.interceptors.request.use(async (config) => {
 // Several queries usually fail with 401 at once when a session expires —
 // only the first one may clear state and redirect.
 let redirectingToLogin = false;
+let lastForbiddenAlertAt = 0;
 
 // Handle response errors globally
 api.interceptors.response.use(
@@ -52,10 +54,15 @@ api.interceptors.response.use(
         });
       }
     } else if (error.response?.status === 403) {
-      Alert.alert(
-        "Access Denied",
-        "You don't have permission for this action.",
-      );
+      // Parallel requests often 403 together — show one alert per burst.
+      const now = Date.now();
+      if (now - lastForbiddenAlertAt > 3000) {
+        lastForbiddenAlertAt = now;
+        Alert.alert(
+          i18n.t("common.accessDenied"),
+          error.response?.data?.message ?? i18n.t("common.accessDeniedMsg"),
+        );
+      }
     }
     return Promise.reject(error);
   },

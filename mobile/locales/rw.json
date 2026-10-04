@@ -441,7 +441,9 @@
     "close": "Funga",
     "confirm": "Emeza",
     "change": "Hindura",
-    "add": "Ongeraho"
+    "add": "Ongeraho",
+    "accessDenied": "Ntiwemerewe",
+    "accessDeniedMsg": "Ntufite uburenganzira bwo gukora iki gikorwa."
   },
   "authErrors": {
     "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
