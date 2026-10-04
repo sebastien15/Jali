@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
+use App\Models\AdminStation;
+use App\Models\CarRental;
+use App\Models\PrivateSeat;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -258,13 +262,46 @@ class AuthController extends Controller
     }
 
     /**
-     * Delete the authenticated user's account
+     * Delete the authenticated user's account.
+     *
+     * The row is anonymised rather than removed: a hard delete cascaded to
+     * the user's bookings, ratings and cashouts and — for a station agent —
+     * to their whole terminal with its routes and departures. Personal data
+     * is wiped, listings are deactivated, and every token is revoked.
      */
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
-        $user->tokens()->delete();
-        $user->delete();
+
+        if ($user->isSuperAdmin() && User::whereHas("role", fn ($q) => $q->where("name", "superadmin"))->count() <= 1) {
+            return response()->json(["message" => "The last superadmin account cannot be deleted."], 422);
+        }
+
+        DB::transaction(function () use ($user) {
+            $user->tokens()->delete();
+            AdminStation::where("user_id", $user->id)->update(["user_id" => null]);
+            PrivateSeat::where("user_id", $user->id)->update(["active" => false]);
+            CarRental::where("user_id", $user->id)->update(["active" => false]);
+
+            $user->forceFill([
+                "name" => "Deleted user",
+                "email" => null,
+                "phone" => null,
+                "password" => null,
+                "firebase_uid" => null,
+                "fcm_token" => null,
+                "profile_image_url" => null,
+                "whatsapp_number" => null,
+                "contract_doc_url" => null,
+                "cashout_method" => null,
+                "cashout_account_number" => null,
+                "cashout_account_name" => null,
+                "cashout_bank_name" => null,
+                "driver_profile" => null,
+                "role_id" => Role::where("name", "user")->value("id"),
+            ])->save();
+        });
+
         return response()->json(["message" => "Account deleted."]);
     }
 
