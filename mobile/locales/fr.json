@@ -65,7 +65,8 @@
     "privateDriver": "Conducteur privé — offre de trajets",
     "logOut": "Se déconnecter",
     "deleteMyAccount": "Supprimer mon compte",
-    "error": "Erreur"
+    "error": "Erreur",
+    "deleteAccountFailed": "Impossible de supprimer votre compte. Vérifiez votre connexion et réessayez."
   },
   "drive": {
     "driverMode": "Mode Conducteur",

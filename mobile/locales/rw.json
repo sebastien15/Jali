@@ -65,7 +65,8 @@
     "privateDriver": "Umushoferi bwite -- atanga ingendo",
     "logOut": "Sohoka",
     "deleteMyAccount": "Siba konti yanjye",
-    "error": "Ikosa"
+    "error": "Ikosa",
+    "deleteAccountFailed": "Ntitwashoboye gusiba konti yawe. Reba interineti yawe hanyuma wongere ugerageze."
   },
   "drive": {
     "driverMode": "Uburyo bwo Gutwara",

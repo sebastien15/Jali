@@ -65,7 +65,8 @@
     "privateDriver": "Dereva binafsi -- anatoa safari",
     "logOut": "Ondoka",
     "deleteMyAccount": "Futa akaunti yangu",
-    "error": "Hitilafu"
+    "error": "Hitilafu",
+    "deleteAccountFailed": "Hatukuweza kufuta akaunti yako. Tafadhali angalia muunganisho wako kisha ujaribu tena."
   },
   "drive": {
     "driverMode": "Hali ya Dereva",

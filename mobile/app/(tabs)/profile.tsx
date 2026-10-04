@@ -1,6 +1,8 @@
 import {
   View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, Switch, Linking, Platform,
+  ActivityIndicator,
 } from "react-native";
+import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -77,11 +79,43 @@ export default function ProfileScreen() {
     }
   }
 
+  const [deleting, setDeleting] = useState(false);
+
+  // Two-step destructive confirmation: deletion is permanent, so a single
+  // stray tap must never be enough.
   function handleDeleteAccount() {
-    doDeleteAccount();
+    if (deleting) return;
+    if (Platform.OS === "web") {
+      const ok =
+        typeof window !== "undefined" &&
+        window.confirm(`${t('profile.deleteAccountWarning')}\n\n${t('profile.deleteAccountDetails')}`);
+      if (ok) doDeleteAccount();
+      return;
+    }
+    Alert.alert(
+      t('profile.deleteAccount'),
+      t('profile.deleteAccountWarning'),
+      [
+        { text: t('profile.keepAccount'), style: "cancel" },
+        {
+          text: t('profile.deleteAccount'),
+          style: "destructive",
+          onPress: () =>
+            Alert.alert(
+              t('profile.areYouSure'),
+              t('profile.deleteAccountDetails'),
+              [
+                { text: t('profile.keepAccount'), style: "cancel" },
+                { text: t('profile.deleteEverything'), style: "destructive", onPress: doDeleteAccount },
+              ],
+            ),
+        },
+      ],
+    );
   }
 
   async function doDeleteAccount() {
+    setDeleting(true);
     try {
       await api.delete("/auth/me");
       await clearApiToken();
@@ -89,7 +123,17 @@ export default function ProfileScreen() {
       signOut(auth).catch(() => {});
       router.replace("/(auth)/login");
     } catch (e: any) {
-      console.log("[Profile] Delete account error:", e?.response?.status, e?.response?.data);
+      const status = e?.response?.status;
+      if (status === 401) {
+        Alert.alert(t('profile.pleaseSignInAgain'), t('profile.signInAgainDetails'));
+      } else {
+        Alert.alert(
+          t('profile.error'),
+          e?.response?.data?.message ?? t('profile.deleteAccountFailed'),
+        );
+      }
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -283,11 +327,16 @@ export default function ProfileScreen() {
         {/* Delete Account */}
         <TouchableOpacity
           onPress={handleDeleteAccount}
+          disabled={deleting}
           style={{ paddingVertical: 16, alignItems: "center", marginTop: 4 }}
         >
-          <Text style={{ color: C.muted, fontSize: 13, textDecorationLine: "underline" }}>
-            {t('profile.deleteMyAccount')}
-          </Text>
+          {deleting ? (
+            <ActivityIndicator color={C.muted} />
+          ) : (
+            <Text style={{ color: C.muted, fontSize: 13, textDecorationLine: "underline" }}>
+              {t('profile.deleteMyAccount')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View style={{ height: 16 }} />

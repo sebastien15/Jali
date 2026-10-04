@@ -65,7 +65,8 @@
     "privateDriver": "Private driver — offering trips",
     "logOut": "Log Out",
     "deleteMyAccount": "Delete my account",
-    "error": "Error"
+    "error": "Error",
+    "deleteAccountFailed": "We could not delete your account. Please check your connection and try again."
   },
   "drive": {
     "driverMode": "Driver Mode",
