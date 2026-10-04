@@ -18,7 +18,8 @@ import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
 import { C } from "@/constants/theme";
-import api, { setApiToken, clearApiToken } from "@/lib/api";
+import api, { clearApiToken } from "@/lib/api";
+import { startSession } from "@/lib/session";
 import { isDev } from "@/lib/env";
 
 export default function LoginScreen() {
@@ -93,7 +94,7 @@ export default function LoginScreen() {
         return;
       }
 
-      setApiToken(apiToken);
+      await startSession(apiToken);
       router.replace("/(tabs)");
     } catch (e: any) {
       await abortGoogleSession();
@@ -106,8 +107,8 @@ export default function LoginScreen() {
   const emailMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post("/auth/login", { email, password }),
-    onSuccess: (res) => {
-      setApiToken(res.data.token);
+    onSuccess: async (res) => {
+      await startSession(res.data.token);
       router.replace("/(tabs)");
     },
     onError: (e: any) => {

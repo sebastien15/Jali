@@ -8,16 +8,9 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "i18next";
 import { Suspense, useEffect, useState } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, persister } from "@/lib/queryClient";
 import api from "@/lib/api";
 import * as Location from "expo-location";
-
-const persister = createAsyncStoragePersister({
-  storage: AsyncStorage,
-  throttleTime: 1000,
-});
 
 function I18nWrapper({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);

@@ -8,9 +8,8 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
-import { GoogleSignin } from "@/lib/native/google-signin";
-import api, { clearApiToken, getApiToken } from "@/lib/api";
+import api from "@/lib/api";
+import { endSession, clearLocalSession } from "@/lib/session";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 import { setLanguage, getLanguage } from "@/lib/i18n";
@@ -67,16 +66,8 @@ export default function ProfileScreen() {
   }
 
   async function doLogout() {
-    const token = await getApiToken();
-    await clearApiToken();
-    GoogleSignin.signOut().catch(() => {});
-    signOut(auth).catch(() => {});
+    await endSession();
     router.replace("/(auth)/login");
-    if (token) {
-      api.post("/auth/logout", {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
-    }
   }
 
   const [deleting, setDeleting] = useState(false);
@@ -118,9 +109,7 @@ export default function ProfileScreen() {
     setDeleting(true);
     try {
       await api.delete("/auth/me");
-      await clearApiToken();
-      GoogleSignin.signOut().catch(() => {});
-      signOut(auth).catch(() => {});
+      await clearLocalSession();
       router.replace("/(auth)/login");
     } catch (e: any) {
       const status = e?.response?.status;
