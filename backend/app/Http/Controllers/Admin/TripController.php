@@ -38,6 +38,7 @@ class TripController extends Controller
             'active'          => 'boolean',
             'departure_time'  => 'nullable|date_format:H:i',
         ]);
+        $this->abortUnlessManagesStation($request->user(), (int) $validated['from_station_id']);
 
         $unique = AgencyRoute::where('agency_id', $validated['agency_id'])
             ->where('from_station_id', $validated['from_station_id'])
@@ -89,6 +90,7 @@ class TripController extends Controller
     public function update(Request $request, $id)
     {
         $route = AgencyRoute::findOrFail($id);
+        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
 
         $validated = $request->validate([
             'price'         => 'sometimes|integer|min:100',
@@ -96,6 +98,10 @@ class TripController extends Controller
             'duration_mins' => 'sometimes|integer|min:1|max:1440',
             'active'        => 'sometimes|boolean',
         ]);
+
+        if (($validated['active'] ?? false) && ($validated['price'] ?? $route->price) < 100) {
+            return response()->json(['error' => 'Set a price before activating this route.', 'message' => 'Set a price before activating this route.'], 422);
+        }
 
         $route->update($validated);
         $route->load(['agency', 'fromStation', 'toStation', 'departures']);
@@ -121,13 +127,9 @@ class TripController extends Controller
     public function destroy(Request $request, $id)
     {
         $route = AgencyRoute::with('departures')->findOrFail($id);
+        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
 
-        $departureIds = $route->departures->pluck('id');
-        $hasBookings = \App\Models\Booking::whereIn('trip_departure_id', $departureIds)
-            ->whereIn('status', ['pending', 'confirmed', 'taken', 'ticket_ready'])
-            ->exists();
-
-        if ($hasBookings) {
+        if ($this->hasActiveBookings($route->departures->pluck('id'))) {
             return response()->json(['error' => 'Cannot delete route with active bookings.'], 409);
         }
 
@@ -154,6 +156,7 @@ class TripController extends Controller
     public function addDeparture(Request $request, $id)
     {
         $route = AgencyRoute::findOrFail($id);
+        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
 
         $validated = $request->validate([
             'departure_time' => 'required|date_format:H:i',
@@ -200,12 +203,9 @@ class TripController extends Controller
     {
         $route     = AgencyRoute::findOrFail($routeId);
         $departure = TripDeparture::where('agency_route_id', $routeId)->findOrFail($departureId);
+        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
 
-        $hasBookings = \App\Models\Booking::where('trip_departure_id', $departure->id)
-            ->whereIn('status', ['pending', 'confirmed', 'taken', 'ticket_ready'])
-            ->exists();
-
-        if ($hasBookings) {
+        if ($this->hasActiveBookings([$departure->id])) {
             return response()->json(['error' => 'Cannot remove departure with active bookings.'], 409);
         }
 
