@@ -35,7 +35,7 @@ class User extends Authenticatable
 
     protected $hidden = ["password", "remember_token", "fcm_token"];
 
-    protected $casts = ["password" => "hashed"];
+    protected $casts = ["password" => "hashed", "driver_profile" => "array"];
 
     /**
      * Get the single role assigned to the user.
