@@ -1,9 +1,9 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import type { PRIVATE } from "@/constants/data";
+import type { PrivateSeatItem } from "@/constants/data";
 
-type PrivateItem = typeof PRIVATE[number];
+type PrivateItem = PrivateSeatItem;
 
 interface Props { item: PrivateItem; onPress: () => void; }
 

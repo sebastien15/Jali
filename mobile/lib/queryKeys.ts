@@ -38,19 +38,24 @@ export const queryKeys = {
     stats: () => ["driver", "stats"] as const,
     trips: () => ["driver", "trips"] as const,
     listings: () => ["driver", "listings"] as const,
-    listing: (id: number) => ["driver", "listings", id] as const,
     cars: () => ["driver", "cars"] as const,
+    profile: () => ["driver", "profile"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   admin: {
+    // `all*` prefixes are for invalidation: a key built with an `undefined`
+    // filter (["admin","bookings",{filter:undefined}]) does NOT prefix-match
+    // the filtered queries that are actually mounted.
+    allBookings: () => ["admin", "bookings"] as const,
+    allTrips: () => ["admin", "trips"] as const,
+    allLogs: () => ["admin", "logs"] as const,
+    allAppAccesses: () => ["admin", "appAccesses"] as const,
     bookings: (filter?: string) => ["admin", "bookings", { filter }] as const,
     booking: (id: string) => ["admin", "bookings", id] as const,
     users: () => ["admin", "users"] as const,
     user: (id: string) => ["admin", "users", id] as const,
     stations: () => ["admin", "stations"] as const,
-    buses: () => ["admin", "buses"] as const,
-    bus: (id: string) => ["admin", "buses", id] as const,
     agencies: () => ["admin", "agencies"] as const,
     trips: (filters?: object) => ["admin", "trips", filters] as const,
     logs: (action?: string) => ["admin", "logs", { action }] as const,

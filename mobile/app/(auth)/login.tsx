@@ -16,14 +16,19 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
 import { C } from "@/constants/theme";
-import api, { setApiToken, clearApiToken } from "@/lib/api";
+import api, { clearApiToken } from "@/lib/api";
+import { startSession } from "@/lib/session";
 import { isDev } from "@/lib/env";
+
+// Phone/OTP sign-in is not implemented yet (its button only said "coming
+// soon"). Keep the UI behind this flag and open on email + Google.
+const PHONE_LOGIN_ENABLED = false;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const [step, setStep] = useState<"phone" | "email" | "otp">("phone");
+  const [step, setStep] = useState<"phone" | "email" | "otp">(PHONE_LOGIN_ENABLED ? "phone" : "email");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,6 +47,13 @@ export default function LoginScreen() {
   const otpRef5 = useRef<TextInput>(null);
   const otpRefs = [otpRef0, otpRef1, otpRef2, otpRef3, otpRef4, otpRef5];
 
+  /** Undo a half-finished Google login so the next attempt starts clean. */
+  async function abortGoogleSession() {
+    clearApiToken();
+    await signOut(auth).catch(() => {});
+    await GoogleSignin.signOut().catch(() => {});
+  }
+
   async function signInWithGoogle() {
     if (isDev) {
       router.replace("/(tabs)");
@@ -58,25 +70,39 @@ export default function LoginScreen() {
       });
       await GoogleSignin.hasPlayServices();
       const { data } = await GoogleSignin.signIn();
-      const credential = GoogleAuthProvider.credential(data?.idToken ?? null);
+      if (!data?.idToken) return; // user closed the Google account picker
+      const credential = GoogleAuthProvider.credential(data.idToken);
       await signInWithCredential(auth, credential);
 
-      // Get Laravel token via Google Firebase token
+      // Exchange the Firebase ID token for a Laravel API token. Without that
+      // token the app is unusable, so any failure here is a failed login.
+      let apiToken: string | undefined;
       try {
         const firebaseToken = await auth.currentUser?.getIdToken(true);
         if (firebaseToken) {
           const res = await api.post("/auth/login/google", {
             firebase_token: firebaseToken,
           });
-          if (res.data.token) await setApiToken(res.data.token);
+          apiToken = res.data?.token;
         }
       } catch (err: any) {
-        console.warn("Backend sync failed:", err?.response?.data?.message);
+        await abortGoogleSession();
+        if (!err?.response) setError(t("authErrors.noInternet"));
+        else setError(err.response.data?.message ?? t("authErrors.unknown"));
+        return;
       }
 
+      if (!apiToken) {
+        await abortGoogleSession();
+        setError(t("authErrors.unknown"));
+        return;
+      }
+
+      await startSession(apiToken);
       router.replace("/(tabs)");
     } catch (e: any) {
-      Alert.alert(t("login.googleSignInFailed"), e.message);
+      await abortGoogleSession();
+      Alert.alert(t("login.googleSignInFailed"), e?.message);
     } finally {
       setGoogleLoading(false);
     }
@@ -85,8 +111,8 @@ export default function LoginScreen() {
   const emailMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post("/auth/login", { email, password }),
-    onSuccess: (res) => {
-      setApiToken(res.data.token);
+    onSuccess: async (res) => {
+      await startSession(res.data.token);
       router.replace("/(tabs)");
     },
     onError: (e: any) => {
@@ -120,6 +146,7 @@ export default function LoginScreen() {
     if (code.length < 6) return;
 
     setLoading(true);
+    if (!confirmation) return;
     try {
       await confirmation.confirm(code);
     } catch (e: any) {
@@ -184,7 +211,7 @@ export default function LoginScreen() {
       </View>
 
       <View style={{ flex: 1, padding: 28, gap: 16 }}>
-        {step !== "otp" && (
+        {PHONE_LOGIN_ENABLED && step !== "otp" && (
           <View
             style={{
               backgroundColor: C.white,
@@ -311,34 +338,7 @@ export default function LoginScreen() {
               <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
             </View>
 
-            <TouchableOpacity
-              onPress={signInWithGoogle}
-              disabled={googleLoading}
-              style={{
-                backgroundColor: C.white,
-                borderRadius: 16,
-                paddingVertical: 16,
-                alignItems: "center",
-                flexDirection: "row",
-                justifyContent: "center",
-                gap: 10,
-                borderWidth: 2,
-                borderColor: C.border,
-              }}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color={C.mid} />
-              ) : (
-                <>
-                  <Text style={{ fontSize: 20 }}>🌐</Text>
-                  <Text
-                    style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}
-                  >
-                    {t("login.continueWithGoogle")}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
+            <GoogleButton onPress={signInWithGoogle} loading={googleLoading} label={t("login.continueWithGoogle")} />
 
             <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
               {t("login.googleAvailable")}
@@ -447,6 +447,12 @@ export default function LoginScreen() {
               {t("login.emailLoginHint")}
             </Text>
 
+            <OrDivider label={t("login.or")} />
+
+            <GoogleButton onPress={signInWithGoogle} loading={googleLoading} label={t("login.continueWithGoogle")} />
+
+            <LegalNotice />
+
             <AdminPortalLink />
           </>
         ) : (
@@ -478,7 +484,7 @@ export default function LoginScreen() {
               ))}
             </View>
             <PrimaryBtn
-              label="✓ Verify & Enter"
+              label={`✓ ${t("login.verifyEnter")}`}
               color={C.green}
               onPress={verifyCode}
               loading={loading}
@@ -492,7 +498,7 @@ export default function LoginScreen() {
               <Text
                 style={{ textAlign: "center", color: C.muted, fontSize: 13 }}
               >
-                ← Change number
+                ← {t("login.changeNumber")}
               </Text>
             </TouchableOpacity>
           </>
@@ -504,15 +510,73 @@ export default function LoginScreen() {
 }
 
 function AdminPortalLink() {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={() => router.push("/(admin)/admin-login")}
       style={{ marginTop: 8, alignItems: "center" }}
     >
       <Text style={{ color: C.muted, fontSize: 12 }}>
-        Admin?{" "}
-        <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
+        {t("login.adminQuestion")}{" "}
+        <Text style={{ color: C.teal, fontWeight: "700" }}>{t("login.adminSignIn")}</Text>
       </Text>
+    </TouchableOpacity>
+  );
+}
+
+/** Terms & Privacy must be reachable before an account is created. */
+function LegalNotice() {
+  const { t } = useTranslation();
+  return (
+    <Text style={{ textAlign: "center", color: C.muted, fontSize: 12, lineHeight: 18 }}>
+      {t("login.agreePrefix")}{" "}
+      <Text onPress={() => router.push("/legal/terms")} style={{ color: C.blue, fontWeight: "700" }}>
+        {t("profile.termsConditions")}
+      </Text>
+      {" "}{t("login.and")}{" "}
+      <Text onPress={() => router.push("/legal/privacy")} style={{ color: C.blue, fontWeight: "700" }}>
+        {t("profile.privacyPolicy")}
+      </Text>
+      .
+    </Text>
+  );
+}
+
+function OrDivider({ label }: { label: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 }}>
+      <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+      <Text style={{ color: C.muted, fontSize: 13 }}>{label}</Text>
+      <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+    </View>
+  );
+}
+
+function GoogleButton({ onPress, loading, label }: { onPress: () => void; loading: boolean; label: string }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={loading}
+      style={{
+        backgroundColor: C.white,
+        borderRadius: 16,
+        paddingVertical: 16,
+        alignItems: "center",
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10,
+        borderWidth: 2,
+        borderColor: C.border,
+      }}
+    >
+      {loading ? (
+        <ActivityIndicator color={C.mid} />
+      ) : (
+        <>
+          <Text style={{ fontSize: 20 }}>🌐</Text>
+          <Text style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}>{label}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 }

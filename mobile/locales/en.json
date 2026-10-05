@@ -65,7 +65,11 @@
     "privateDriver": "Private driver — offering trips",
     "logOut": "Log Out",
     "deleteMyAccount": "Delete my account",
-    "error": "Error"
+    "error": "Error",
+    "deleteAccountFailed": "We could not delete your account. Please check your connection and try again.",
+    "becomeDriverInfo": "Driver mode is for drivers approved by Jali. Contact us to become a driver.",
+    "contactJali": "Contact Jali",
+    "defaultName": "Jali User"
   },
   "drive": {
     "driverMode": "Driver Mode",
@@ -101,7 +105,7 @@
   "trips": {
     "myTrips": "My Trips",
     "filterAll": "all",
-    "filterPending": "pending",
+    "filterPending": "In progress",
     "filterConfirmed": "confirmed",
     "filterCompleted": "completed",
     "retry": "Retry",
@@ -111,7 +115,13 @@
     "showAtStation": "Show at station",
     "view": "View",
     "awaitingConfirmation": "Awaiting confirmation — admin is arranging your ticket",
-    "close": "Close"
+    "close": "Close",
+    "filterReady": "Ticket ready",
+    "filterDelivered": "Delivered",
+    "filterCancelled": "Cancelled",
+    "loadFailed": "Failed to load trips",
+    "from": "From",
+    "to": "To"
   },
   "login": {
     "enterPhone": "Enter your Rwandan number",
@@ -135,7 +145,11 @@
     "googleAvailable": "Google sign-in is available for international travelers",
     "wrongCode": "Wrong code",
     "changeNumber": "Change number",
-    "googleSignInFailed": "Google sign-in failed"
+    "googleSignInFailed": "Google sign-in failed",
+    "agreePrefix": "By continuing you agree to Jali's",
+    "and": "and",
+    "adminQuestion": "Admin?",
+    "adminSignIn": "Sign in here"
   },
   "listing": {
     "privateDriver": "Private Driver",
@@ -171,7 +185,7 @@
     "publishListing": "Publish Listing",
     "deleteListing": "Delete this listing",
     "required": "Required",
-    "selectDestination": "Please select destination and pickup station.",
+    "selectDestination": "Select destination",
     "enterPrice": "Please enter a price per seat.",
     "error": "Error",
     "saveListingError": "Could not save listing.",
@@ -182,8 +196,12 @@
     "listingPublished": "Listed",
     "listingUpdatedDesc": "Your listing has been updated.",
     "listingPublishedDesc": "Your trip is now listed for passengers to book.",
-    "selectDestination": "Select destination",
-    "groupPrice": "Group price: {{price}} RWF/seat"
+    "groupPrice": "Group price: {{price}} RWF/seat",
+    "selectDestinationAndPickup": "Please select a destination and a pickup point.",
+    "deleteListingError": "Could not delete listing.",
+    "dropOffPlaceholder": "e.g. Near Huye University gate",
+    "notesPlaceholder": "e.g. Luggage in boot, stop in Muhanga allowed",
+    "seats": "seats"
   },
   "driverSetup": {
     "fleetOwner": "Fleet Owner",
@@ -212,7 +230,7 @@
     "allowedZones": "Allowed Zones",
     "insuranceExpiry": "Insurance Expiry",
     "docsUrl": "T&Cs / Insurance Doc URL",
-    "docsUrlHint": "Upload the doc to Firebase Storage and paste the URL here",
+    "docsUrlHint": "Paste a link to your insurance or T&Cs document (optional)",
     "saveChanges": "Save Changes",
     "saved": "Saved",
     "profileUpdated": "Your profile has been updated.",
@@ -226,7 +244,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "The document link must be a full web address starting with https://"
   },
   "fleet": {
     "fleetOwner": "Fleet Owner",
@@ -434,13 +453,17 @@
     "close": "Close",
     "confirm": "Confirm",
     "change": "Change",
-    "add": "Add"
+    "add": "Add",
+    "accessDenied": "Access denied",
+    "accessDeniedMsg": "You don't have permission for this action.",
+    "cancel": "Cancel"
   },
   "authErrors": {
     "invalidCredentials": "Invalid email or password.",
     "tooManyAttempts": "Too many attempts. Try again later.",
     "noInternet": "No internet connection.",
-    "unknown": "Something went wrong. Please try again."
+    "unknown": "Something went wrong. Please try again.",
+    "noAdminAccess": "This account does not have admin access."
   },
   "admin": {
     "superadmin": "Superadmin",
@@ -519,7 +542,9 @@
     "actionImage": "Uploaded profile image",
     "actionContract": "Uploaded contract",
     "actionLocationApproved": "Approved location change",
-    "actionLocationRejected": "Rejected location change"
+    "actionLocationRejected": "Rejected location change",
+    "gettingLocation": "Getting location…",
+    "useCurrentLocation": "Use current location"
   },
   "agencies": {
     "title": "Agencies",
@@ -612,7 +637,21 @@
     "statusCancelled": "Cancelled",
     "statusTaken": "Taken",
     "statusTicketReady": "Ticket Ready",
-    "statusDelivered": "Delivered"
+    "statusDelivered": "Delivered",
+    "claimedToast": "Booking claimed",
+    "deliveredToast": "Booking marked delivered",
+    "updatedToast": "Booking updated",
+    "ticketCount": "{{count}} tickets",
+    "booking": "Booking",
+    "notFound": "This booking is not in your station's list.",
+    "status": "Status",
+    "trip": "Trip",
+    "route": "Route",
+    "travelDate": "Travel date",
+    "tickets": "Tickets",
+    "passenger": "Passenger",
+    "email": "Email",
+    "price": "Total"
   },
   "rating": {
     "rateAgency": "Rate this Agency",
@@ -620,5 +659,29 @@
     "comment": "Comment (optional)",
     "submit": "Submit Rating",
     "success": "Thank you for your rating!"
+  },
+  "adminUsers": {
+    "editUser": "Edit User",
+    "role": "Role",
+    "saveRole": "Save Role",
+    "saved": "Saved",
+    "roleUpdated": "Role changed to {{role}}.",
+    "saveRoleFailed": "Could not change the role."
+  },
+  "adminCashout": {
+    "title": "Earnings & Cashout",
+    "available": "Available",
+    "noEarnings": "No earnings",
+    "noEarningsMsg": "You have no available balance to cash out.",
+    "requestCashout": "Request Cashout",
+    "request": "Request",
+    "confirmMsg": "Request cashout of {{amount}} RWF to {{destination}}?",
+    "submitted": "Submitted",
+    "submittedMsg": "Your cashout request has been submitted and will be processed soon.",
+    "failed": "Failed to submit request.",
+    "availableNow": "Available now: {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Bank",
+    "noMethod": "No cashout method set. Tap the settings icon to add one."
   }
 }

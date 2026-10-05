@@ -8,16 +8,10 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "i18next";
 import { Suspense, useEffect, useState } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, persister } from "@/lib/queryClient";
 import api from "@/lib/api";
 import * as Location from "expo-location";
-
-const persister = createAsyncStoragePersister({
-  storage: AsyncStorage,
-  throttleTime: 1000,
-});
+import { DriverModeProvider } from "@/lib/DriverModeContext";
 
 function I18nWrapper({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -70,19 +64,20 @@ export default function RootLayout() {
       >
         <I18nWrapper>
           <AccessTracker />
+          <DriverModeProvider>
           <View style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(admin)" />
-              <Stack.Screen name="legal/[doc]" options={{ presentation: "modal", headerShown: false }} />
-              <Stack.Screen name="driver/setup" options={{ presentation: "card", headerShown: false }} />
-              <Stack.Screen name="driver/fleet" options={{ presentation: "card", headerShown: false }} />
-              <Stack.Screen name="driver/listing" options={{ presentation: "card", headerShown: false }} />
+              {/* legal/ and driver/ have their own _layout, so their root route names are the folder names */}
+              <Stack.Screen name="legal" options={{ presentation: "modal", headerShown: false }} />
+              <Stack.Screen name="driver" options={{ presentation: "card", headerShown: false }} />
             </Stack>
             <OfflineBanner />
           </View>
+          </DriverModeProvider>
         </I18nWrapper>
       </PersistQueryClientProvider>
     </SafeAreaProvider>

@@ -1,8 +1,10 @@
 import { usePathname, Redirect } from "expo-router";
 import { Tabs } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
+import { isAdminRole } from "@/constants/roles";
 import {
   AdminNavProvider,
   useAdminNav,
@@ -42,6 +44,7 @@ function TabIcon({
 function TabsNavigator() {
   const { user, isSuperAdmin, loading } = useAdminNav();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const isLogin = pathname.includes("/admin-login");
 
   if (loading) {
@@ -63,6 +66,12 @@ function TabsNavigator() {
     return <Redirect href="/(admin)/admin-login" />;
   }
 
+  // Signed in but not an admin (e.g. via a jali:// deep link): send them back
+  // to the passenger app instead of rendering admin screens that 403.
+  if (user && !isAdminRole(user.roles) && !isLogin) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -75,8 +84,10 @@ function TabsNavigator() {
           backgroundColor: C.white,
           borderTopWidth: 1,
           borderTopColor: C.border,
-          height: isLogin ? 0 : 72,
-          paddingBottom: isLogin ? 0 : 8,
+          // Grow with the home-indicator / gesture-nav inset instead of a
+          // fixed height that puts labels under the system bar.
+          height: isLogin ? 0 : 64 + insets.bottom,
+          paddingBottom: isLogin ? 0 : Math.max(insets.bottom, 8),
           paddingTop: isLogin ? 0 : 4,
           display: isLogin ? "none" : "flex",
         },
@@ -142,14 +153,14 @@ function TabsNavigator() {
       {/* ── All other screens: navigable but hidden from tab bar ── */}
       <Tabs.Screen name="admin-login"      options={{ href: null }} />
       <Tabs.Screen name="locations/index" options={{ href: null }} />
-      <Tabs.Screen name="buses/index"     options={{ href: null }} />
-      <Tabs.Screen name="buses/[id]"      options={{ href: null }} />
       <Tabs.Screen name="bookings/[id]"   options={{ href: null }} />
       <Tabs.Screen name="users/index"     options={{ href: null }} />
       <Tabs.Screen name="users/[id]"      options={{ href: null }} />
       <Tabs.Screen name="logs/index"      options={{ href: null }} />
       <Tabs.Screen name="agencies/index"  options={{ href: null }} />
       <Tabs.Screen name="trips/index"     options={{ href: null }} />
+      <Tabs.Screen name="roles/index"     options={{ href: null }} />
+      <Tabs.Screen name="roles/[id]"      options={{ href: null }} />
     </Tabs>
   );
 }

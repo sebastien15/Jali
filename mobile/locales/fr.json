@@ -65,7 +65,11 @@
     "privateDriver": "Conducteur privé — offre de trajets",
     "logOut": "Se déconnecter",
     "deleteMyAccount": "Supprimer mon compte",
-    "error": "Erreur"
+    "error": "Erreur",
+    "deleteAccountFailed": "Impossible de supprimer votre compte. Vérifiez votre connexion et réessayez.",
+    "becomeDriverInfo": "Le mode chauffeur est réservé aux chauffeurs validés par Jali. Contactez-nous pour devenir chauffeur.",
+    "contactJali": "Contacter Jali",
+    "defaultName": "Utilisateur Jali"
   },
   "drive": {
     "driverMode": "Mode Conducteur",
@@ -101,7 +105,7 @@
   "trips": {
     "myTrips": "Mes trajets",
     "filterAll": "tous",
-    "filterPending": "en attente",
+    "filterPending": "En cours",
     "filterConfirmed": "confirmés",
     "filterCompleted": "terminés",
     "retry": "Réessayer",
@@ -111,7 +115,13 @@
     "showAtStation": "À montrer à la gare",
     "view": "Voir",
     "awaitingConfirmation": "En attente de confirmation — l'admin organise votre billet",
-    "close": "Fermer"
+    "close": "Fermer",
+    "filterReady": "Billet prêt",
+    "filterDelivered": "Remis",
+    "filterCancelled": "Annulés",
+    "loadFailed": "Impossible de charger les trajets",
+    "from": "De",
+    "to": "Vers"
   },
   "login": {
     "enterPhone": "Entrez votre numéro rwandais",
@@ -135,7 +145,11 @@
     "googleAvailable": "La connexion Google est disponible pour les voyageurs internationaux",
     "wrongCode": "Code incorrect",
     "changeNumber": "Changer de numéro",
-    "googleSignInFailed": "Échec de la connexion Google"
+    "googleSignInFailed": "Échec de la connexion Google",
+    "agreePrefix": "En continuant, vous acceptez les",
+    "and": "et la",
+    "adminQuestion": "Administrateur ?",
+    "adminSignIn": "Connectez-vous ici"
   },
   "listing": {
     "privateDriver": "Conducteur privé",
@@ -171,7 +185,7 @@
     "publishListing": "Publier le trajet",
     "deleteListing": "Supprimer ce trajet",
     "required": "Requis",
-    "selectDestination": "Veuillez sélectionner la destination et le point de prise en charge.",
+    "selectDestination": "Sélectionner la destination",
     "enterPrice": "Veuillez entrer un prix par place.",
     "error": "Erreur",
     "saveListingError": "Impossible de sauvegarder le trajet.",
@@ -182,8 +196,12 @@
     "listingPublished": "Publié",
     "listingUpdatedDesc": "Votre trajet a été mis à jour.",
     "listingPublishedDesc": "Votre trajet est maintenant disponible pour les passagers.",
-    "selectDestination": "Sélectionner la destination",
-    "groupPrice": "Prix de groupe : {{price}} RWF/place"
+    "groupPrice": "Prix de groupe : {{price}} RWF/place",
+    "selectDestinationAndPickup": "Veuillez choisir une destination et un point de prise en charge.",
+    "deleteListingError": "Impossible de supprimer l'annonce.",
+    "dropOffPlaceholder": "ex. Près de l'entrée de l'Université de Huye",
+    "notesPlaceholder": "ex. Bagages dans le coffre, arrêt possible à Muhanga",
+    "seats": "places"
   },
   "driverSetup": {
     "fleetOwner": "Propriétaire de flotte",
@@ -212,7 +230,7 @@
     "allowedZones": "Zones autorisées",
     "insuranceExpiry": "Expiration de l'assurance",
     "docsUrl": "T&Cs / URL du document d'assurance",
-    "docsUrlHint": "Téléchargez le document sur Firebase Storage et collez l'URL ici",
+    "docsUrlHint": "Collez le lien de votre assurance ou de vos conditions (facultatif)",
     "saveChanges": "Sauvegarder",
     "saved": "Sauvegardé",
     "profileUpdated": "Votre profil a été mis à jour.",
@@ -226,7 +244,8 @@
     "carTypeSedan": "Berline",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Le lien du document doit être une adresse web complète commençant par https://"
   },
   "fleet": {
     "fleetOwner": "Propriétaire de flotte",
@@ -434,13 +453,17 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "change": "Changer",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "accessDenied": "Accès refusé",
+    "accessDeniedMsg": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "cancel": "Annuler"
   },
   "authErrors": {
     "invalidCredentials": "Email ou mot de passe invalide.",
     "tooManyAttempts": "Trop de tentatives. Réessayez plus tard.",
     "noInternet": "Pas de connexion Internet.",
-    "unknown": "Une erreur est survenue. Veuillez réessayer."
+    "unknown": "Une erreur est survenue. Veuillez réessayer.",
+    "noAdminAccess": "Ce compte n'a pas d'accès administrateur."
   },
   "admin": {
     "superadmin": "Superadmin",
@@ -519,7 +542,9 @@
     "actionImage": "Image de profil téléchargée",
     "actionContract": "Contrat téléchargé",
     "actionLocationApproved": "Changement de lieu approuvé",
-    "actionLocationRejected": "Changement de lieu rejeté"
+    "actionLocationRejected": "Changement de lieu rejeté",
+    "gettingLocation": "Localisation en cours…",
+    "useCurrentLocation": "Utiliser ma position actuelle"
   },
   "agencies": {
     "title": "Agences",
@@ -612,7 +637,21 @@
     "statusCancelled": "Annulée",
     "statusTaken": "Prise en charge",
     "statusTicketReady": "Billet prêt",
-    "statusDelivered": "Livré"
+    "statusDelivered": "Livré",
+    "claimedToast": "Réservation prise en charge",
+    "deliveredToast": "Réservation marquée comme remise",
+    "updatedToast": "Réservation mise à jour",
+    "ticketCount": "{{count}} billets",
+    "booking": "Réservation",
+    "notFound": "Cette réservation n'est pas dans la liste de votre gare.",
+    "status": "Statut",
+    "trip": "Trajet",
+    "route": "Itinéraire",
+    "travelDate": "Date du voyage",
+    "tickets": "Billets",
+    "passenger": "Passager",
+    "email": "E-mail",
+    "price": "Total"
   },
   "rating": {
     "rateAgency": "Noter cette agence",
@@ -620,5 +659,29 @@
     "comment": "Commentaire (facultatif)",
     "submit": "Soumettre la note",
     "success": "Merci pour votre note !"
+  },
+  "adminUsers": {
+    "editUser": "Modifier l'utilisateur",
+    "role": "Rôle",
+    "saveRole": "Enregistrer le rôle",
+    "saved": "Enregistré",
+    "roleUpdated": "Rôle changé en {{role}}.",
+    "saveRoleFailed": "Impossible de changer le rôle."
+  },
+  "adminCashout": {
+    "title": "Gains et retraits",
+    "available": "Disponible",
+    "noEarnings": "Aucun gain",
+    "noEarningsMsg": "Vous n'avez aucun solde disponible à retirer.",
+    "requestCashout": "Demander un retrait",
+    "request": "Demander",
+    "confirmMsg": "Demander un retrait de {{amount}} RWF vers {{destination}} ?",
+    "submitted": "Envoyée",
+    "submittedMsg": "Votre demande de retrait a été envoyée et sera traitée bientôt.",
+    "failed": "Échec de l'envoi de la demande.",
+    "availableNow": "Disponible maintenant : {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Banque",
+    "noMethod": "Aucun moyen de retrait défini. Touchez l'icône des paramètres pour en ajouter un."
   }
 }

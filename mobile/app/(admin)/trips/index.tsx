@@ -156,7 +156,7 @@ export default function TripsScreen() {
         setSuccessMsg(t("adminTrips.updated"));
       }
       setRouteModal(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allTrips() });
     } catch (e: any) {
       Alert.alert("Error", e?.response?.data?.error ?? e?.response?.data?.message ?? "Failed");
     } finally {
@@ -174,7 +174,7 @@ export default function TripsScreen() {
           try {
             await api.delete(`/admin/trips/${route.id}`);
             setSuccessMsg(t("adminTrips.deleted"));
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
+            queryClient.invalidateQueries({ queryKey: queryKeys.admin.allTrips() });
           } catch (e: any) {
             Alert.alert("Error", e?.response?.data?.error ?? "Failed");
           }
@@ -191,7 +191,7 @@ export default function TripsScreen() {
       setNewDepTime("");
       setSuccessMsg("Departure added");
       // Refresh the route list and update the local depsModal
-      await queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.admin.allTrips() });
       const fresh = await api.get("/admin/trips", { params: { agency_id: depsModal.agency_id } }).then(r => r.data ?? []);
       const updated = fresh.find((r: RouteData) => r.id === depsModal.id);
       if (updated) setDepsModal(updated);
@@ -213,7 +213,7 @@ export default function TripsScreen() {
           try {
             await api.delete(`/admin/trips/${depsModal.id}/departures/${dep.id}`);
             setSuccessMsg("Departure removed");
-            await queryClient.invalidateQueries({ queryKey: queryKeys.admin.trips() });
+            await queryClient.invalidateQueries({ queryKey: queryKeys.admin.allTrips() });
             const fresh = await api.get("/admin/trips", { params: { agency_id: depsModal.agency_id } }).then(r => r.data ?? []);
             const updated = fresh.find((r: RouteData) => r.id === depsModal.id);
             if (updated) setDepsModal(updated);

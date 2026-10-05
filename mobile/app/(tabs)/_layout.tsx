@@ -1,8 +1,10 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { DriverModeProvider, useDriverMode } from "@/lib/DriverModeContext";
+import { useDriverMode } from "@/lib/DriverModeContext";
+import { useMe, isDriverRole } from "@/lib/useMe";
 import { usePushPermission } from "@/lib/usePushPermission";
 import ProtectedRoute from "@/lib/ProtectedRoute";
 
@@ -35,6 +37,11 @@ function TabIcon({
 
 function TabsNavigator() {
   const { driverMode } = useDriverMode();
+  const { data: me } = useMe();
+  // Driver endpoints are role-gated on the backend; never expose the tab
+  // to accounts that would only get 403s.
+  const showDrive = driverMode && isDriverRole(me);
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -48,8 +55,10 @@ function TabsNavigator() {
           backgroundColor: C.white,
           borderTopWidth: 1,
           borderTopColor: C.border,
-          height: 72,
-          paddingBottom: 8,
+          // Grow with the home-indicator / gesture-nav inset instead of a
+          // fixed height that puts labels under the system bar.
+          height: 64 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 4,
         },
       }}
@@ -73,7 +82,7 @@ function TabsNavigator() {
       />
       <Tabs.Screen
         name="drive"
-        options={driverMode ? {
+        options={showDrive ? {
           tabBarIcon: ({ focused }) => (
             <TabIcon icon="car-outline" iconFocused="car" focused={focused} />
           ),
@@ -99,10 +108,8 @@ function PushRegistrar() {
 export default function TabLayout() {
   return (
     <ProtectedRoute>
-      <DriverModeProvider>
-        <PushRegistrar />
-        <TabsNavigator />
-      </DriverModeProvider>
+      <PushRegistrar />
+      <TabsNavigator />
     </ProtectedRoute>
   );
 }

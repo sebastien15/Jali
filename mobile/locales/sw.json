@@ -65,7 +65,11 @@
     "privateDriver": "Dereva binafsi -- anatoa safari",
     "logOut": "Ondoka",
     "deleteMyAccount": "Futa akaunti yangu",
-    "error": "Hitilafu"
+    "error": "Hitilafu",
+    "deleteAccountFailed": "Hatukuweza kufuta akaunti yako. Tafadhali angalia muunganisho wako kisha ujaribu tena.",
+    "becomeDriverInfo": "Hali ya dereva ni kwa madereva walioidhinishwa na Jali. Wasiliana nasi ili uwe dereva.",
+    "contactJali": "Wasiliana na Jali",
+    "defaultName": "Mtumiaji wa Jali"
   },
   "drive": {
     "driverMode": "Hali ya Dereva",
@@ -101,7 +105,7 @@
   "trips": {
     "myTrips": "Safari Zangu",
     "filterAll": "zote",
-    "filterPending": "zinazosubiri",
+    "filterPending": "Inaendelea",
     "filterConfirmed": "zilizothibitishwa",
     "filterCompleted": "zilizokamilika",
     "retry": "Jaribu tena",
@@ -111,7 +115,13 @@
     "showAtStation": "Onyesha kwenye stesheni",
     "view": "Angalia",
     "awaitingConfirmation": "Inasubiri uthibitisho -- admin inatengeneza tikiti yako",
-    "close": "Funga"
+    "close": "Funga",
+    "filterReady": "Tiketi iko tayari",
+    "filterDelivered": "Imekabidhiwa",
+    "filterCancelled": "Zimeghairiwa",
+    "loadFailed": "Imeshindikana kupakia safari",
+    "from": "Kutoka",
+    "to": "Kwenda"
   },
   "login": {
     "enterPhone": "Weka nambari yako ya Rwanda",
@@ -135,7 +145,11 @@
     "googleAvailable": "Kuingia kwa Google kunapatikana kwa wasafiri wa kimataifa",
     "wrongCode": "Code si sahihi",
     "changeNumber": "Badilisha nambari",
-    "googleSignInFailed": "Kuingia kwa Google kumeshindikana"
+    "googleSignInFailed": "Kuingia kwa Google kumeshindikana",
+    "agreePrefix": "Kwa kuendelea unakubali",
+    "and": "na",
+    "adminQuestion": "Msimamizi?",
+    "adminSignIn": "Ingia hapa"
   },
   "listing": {
     "privateDriver": "Dereva Binafsi",
@@ -171,7 +185,7 @@
     "publishListing": "Chapisha Orodha",
     "deleteListing": "Futa safari hii",
     "required": "Inahitajika",
-    "selectDestination": "Tafadhali chagua marudio na mahali pa kupanda.",
+    "selectDestination": "Chagua marudio",
     "enterPrice": "Tafadhali weka bei kwa kiti.",
     "error": "Hitilafu",
     "saveListingError": "Haikuweza kuhifadhi orodha.",
@@ -182,8 +196,12 @@
     "listingPublished": "Imechapishwa",
     "listingUpdatedDesc": "Orodha yako imesasishwa.",
     "listingPublishedDesc": "Safari yako sasa imechapishwa kwa abiria kutemini.",
-    "selectDestination": "Chagua marudio",
-    "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti"
+    "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti",
+    "selectDestinationAndPickup": "Tafadhali chagua unakoenda na mahali pa kuchukua abiria.",
+    "deleteListingError": "Imeshindikana kufuta tangazo.",
+    "dropOffPlaceholder": "mfano: Karibu na lango la Chuo Kikuu cha Huye",
+    "notesPlaceholder": "mfano: Mizigo kwenye buti, kusimama Muhanga kunaruhusiwa",
+    "seats": "viti"
   },
   "driverSetup": {
     "fleetOwner": "Mmiliki wa Floti",
@@ -212,7 +230,7 @@
     "allowedZones": "Eneo Zinazoruhusiwa",
     "insuranceExpiry": "Mwisho wa Bima",
     "docsUrl": "Masharti / URL ya Hati ya Bima",
-    "docsUrlHint": "Pakia hati kwenye Firebase Storage na ubandike URL hapa",
+    "docsUrlHint": "Bandika kiungo cha hati ya bima au masharti yako (si lazima)",
     "saveChanges": "Hifadhi Mabadiliko",
     "saved": "Imehifadhiwa",
     "profileUpdated": "Profaili yako imesasishwa.",
@@ -226,7 +244,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Kiungo cha hati lazima kiwe anwani kamili ya wavuti inayoanza na https://"
   },
   "fleet": {
     "fleetOwner": "Mmiliki wa Floti",
@@ -434,13 +453,17 @@
     "close": "Funga",
     "confirm": "Thibitisha",
     "change": "Badilisha",
-    "add": "Ongeza"
+    "add": "Ongeza",
+    "accessDenied": "Ufikiaji umekataliwa",
+    "accessDeniedMsg": "Huna ruhusa ya kufanya kitendo hiki.",
+    "cancel": "Ghairi"
   },
   "authErrors": {
     "invalidCredentials": "Barua pepe au nywila si sahihi.",
     "tooManyAttempts": "Majaribio mengi sana. Jaribu baadaye.",
     "noInternet": "Hakuna muunganisho wa intaneti.",
-    "unknown": "Hitilafu imetokea. Tafadhali jaribu tena."
+    "unknown": "Hitilafu imetokea. Tafadhali jaribu tena.",
+    "noAdminAccess": "Akaunti hii haina ruhusa ya msimamizi."
   },
   "admin": {
     "superadmin": "Superadmin",
@@ -519,7 +542,9 @@
     "actionImage": "Picha imepakiwa",
     "actionContract": "Mkataba umepakiwa",
     "actionLocationApproved": "Mabadiliko ya eneo yameidhinishwa",
-    "actionLocationRejected": "Mabadiliko ya eneo yamekataliwa"
+    "actionLocationRejected": "Mabadiliko ya eneo yamekataliwa",
+    "gettingLocation": "Inatafuta mahali…",
+    "useCurrentLocation": "Tumia mahali nilipo sasa"
   },
   "agencies": {
     "title": "Mashirika",
@@ -612,7 +637,21 @@
     "statusCancelled": "Imeghairiwa",
     "statusTaken": "Imechukuliwa",
     "statusTicketReady": "Tikiti Tayari",
-    "statusDelivered": "Imetolewa"
+    "statusDelivered": "Imetolewa",
+    "claimedToast": "Uhifadhi umechukuliwa",
+    "deliveredToast": "Uhifadhi umewekwa kama umekabidhiwa",
+    "updatedToast": "Uhifadhi umesasishwa",
+    "ticketCount": "Tiketi {{count}}",
+    "booking": "Uhifadhi",
+    "notFound": "Uhifadhi huu haupo kwenye orodha ya kituo chako.",
+    "status": "Hali",
+    "trip": "Safari",
+    "route": "Njia",
+    "travelDate": "Tarehe ya safari",
+    "tickets": "Tiketi",
+    "passenger": "Abiria",
+    "email": "Barua pepe",
+    "price": "Jumla"
   },
   "rating": {
     "rateAgency": "Tathmini Shirika hili",
@@ -620,5 +659,29 @@
     "comment": "Maoni (hiari)",
     "submit": "Wasilisha Tathmini",
     "success": "Asante kwa tathmini yako!"
+  },
+  "adminUsers": {
+    "editUser": "Hariri mtumiaji",
+    "role": "Jukumu",
+    "saveRole": "Hifadhi jukumu",
+    "saved": "Imehifadhiwa",
+    "roleUpdated": "Jukumu limebadilishwa kuwa {{role}}.",
+    "saveRoleFailed": "Imeshindikana kubadilisha jukumu."
+  },
+  "adminCashout": {
+    "title": "Mapato na utoaji",
+    "available": "Inapatikana",
+    "noEarnings": "Hakuna mapato",
+    "noEarningsMsg": "Huna salio linalopatikana la kutoa.",
+    "requestCashout": "Omba kutoa pesa",
+    "request": "Omba",
+    "confirmMsg": "Omba kutoa {{amount}} RWF kwenda {{destination}}?",
+    "submitted": "Imetumwa",
+    "submittedMsg": "Ombi lako la kutoa pesa limetumwa na litashughulikiwa hivi karibuni.",
+    "failed": "Imeshindikana kutuma ombi.",
+    "availableNow": "Inapatikana sasa: {{amount}} RWF",
+    "mobileMoney": "Pesa kwa simu",
+    "bank": "Benki",
+    "noMethod": "Hakuna njia ya kutoa pesa. Gusa aikoni ya mipangilio ili kuongeza."
   }
 }

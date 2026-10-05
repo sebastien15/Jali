@@ -65,7 +65,11 @@
     "privateDriver": "Umushoferi bwite -- atanga ingendo",
     "logOut": "Sohoka",
     "deleteMyAccount": "Siba konti yanjye",
-    "error": "Ikosa"
+    "error": "Ikosa",
+    "deleteAccountFailed": "Ntitwashoboye gusiba konti yawe. Reba interineti yawe hanyuma wongere ugerageze.",
+    "becomeDriverInfo": "Uburyo bw'umushoferi ni ubw'abashoferi bemejwe na Jali. Twandikire kugira ngo ube umushoferi.",
+    "contactJali": "Vugana na Jali",
+    "defaultName": "Ukoresha Jali"
   },
   "drive": {
     "driverMode": "Uburyo bwo Gutwara",
@@ -101,7 +105,7 @@
   "trips": {
     "myTrips": "Ingendo zanjye",
     "filterAll": "zose",
-    "filterPending": "zitegereje",
+    "filterPending": "Biri gukorwaho",
     "filterConfirmed": "zemewe",
     "filterCompleted": "zarangiye",
     "retry": "Ongera ugerageze",
@@ -111,7 +115,13 @@
     "showAtStation": "Garagaza kuri station",
     "view": "Reba",
     "awaitingConfirmation": "Itegereje kwemezwa -- admin itegura itike yawe",
-    "close": "Funga"
+    "close": "Funga",
+    "filterReady": "Tike yabonetse",
+    "filterDelivered": "Byatanzwe",
+    "filterCancelled": "Byahagaritswe",
+    "loadFailed": "Ntibyashobotse kuzana ingendo",
+    "from": "Uva",
+    "to": "Ujya"
   },
   "login": {
     "enterPhone": "Andika numero yawe y'u Rwanda",
@@ -135,7 +145,11 @@
     "googleAvailable": "Kwinjira na Google biraboneka ku bashoferi mpuzamahanga",
     "wrongCode": "Code nabi",
     "changeNumber": "Hindura numero",
-    "googleSignInFailed": "Kwinjira na Google byanze"
+    "googleSignInFailed": "Kwinjira na Google byanze",
+    "agreePrefix": "Ukomeje, uba wemeye",
+    "and": "na",
+    "adminQuestion": "Uri umuyobozi?",
+    "adminSignIn": "Injira hano"
   },
   "listing": {
     "privateDriver": "Umushoferi Bwite",
@@ -171,7 +185,7 @@
     "publishListing": "Tangaza Ingingo",
     "deleteListing": "Siba iyi ngendo",
     "required": "Birasabwa",
-    "selectDestination": "Nyamuneka hitamo aho ujya n'aho ufata.",
+    "selectDestination": "Hitamo aho ujya",
     "enterPrice": "Nyamuneka andika igiciro ku mwanya.",
     "error": "Ikosa",
     "saveListingError": "Ntibishoboye kubika ingingo.",
@@ -182,8 +196,12 @@
     "listingPublished": "Byatangajwe",
     "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
     "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
-    "selectDestination": "Hitamo aho ujya",
-    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
+    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya",
+    "selectDestinationAndPickup": "Hitamo aho ujya n'aho uzafatira abagenzi.",
+    "deleteListingError": "Ntibyashobotse gusiba iri tangazo.",
+    "dropOffPlaceholder": "urugero: Hafi y'irembo rya Kaminuza ya Huye",
+    "notesPlaceholder": "urugero: Imizigo ijya mu ivalisi y'imodoka, guhagarara i Muhanga biremewe",
+    "seats": "imyanya"
   },
   "driverSetup": {
     "fleetOwner": "Nyiri Floti",
@@ -212,7 +230,7 @@
     "allowedZones": "Zones zemewe",
     "insuranceExpiry": "Iherezo ry'Ubwishingizi",
     "docsUrl": "T&Cs / URL y'Icyangombwa cy'Ubwishingizi",
-    "docsUrlHint": "Ohereza icyangombwa kuri Firebase Storage ukomeze URL hano",
+    "docsUrlHint": "Shyiramo umurongo w'inyandiko y'ubwishingizi cyangwa amabwiriza (si ngombwa)",
     "saveChanges": "Bika Ihinduka",
     "saved": "Byabitswe",
     "profileUpdated": "Profil yawe yahinduwe.",
@@ -226,7 +244,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Umurongo w'inyandiko ugomba kuba aderesi yuzuye itangirana na https://"
   },
   "fleet": {
     "fleetOwner": "Nyiri Floti",
@@ -434,13 +453,17 @@
     "close": "Funga",
     "confirm": "Emeza",
     "change": "Hindura",
-    "add": "Ongeraho"
+    "add": "Ongeraho",
+    "accessDenied": "Ntiwemerewe",
+    "accessDeniedMsg": "Ntufite uburenganzira bwo gukora iki gikorwa.",
+    "cancel": "Reka"
   },
   "authErrors": {
     "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
     "tooManyAttempts": "Ingerageza nyinshi. Ongera ugerageze nyuma.",
     "noInternet": "Nta murongo wa internet.",
-    "unknown": "Ikosa ryabaye. Ongera ugerageze."
+    "unknown": "Ikosa ryabaye. Ongera ugerageze.",
+    "noAdminAccess": "Iyi konti ntifite uburenganzira bwo kuyobora."
   },
   "admin": {
     "superadmin": "Superadmin",
@@ -519,7 +542,9 @@
     "actionImage": "Ifoto yoherejwe",
     "actionContract": "Amasezerano yoherejwe",
     "actionLocationApproved": "Impinduka y'aho yemejwe",
-    "actionLocationRejected": "Impinduka y'aho yananzwe"
+    "actionLocationRejected": "Impinduka y'aho yananzwe",
+    "gettingLocation": "Turimo gushaka aho uri…",
+    "useCurrentLocation": "Koresha aho ndi ubu"
   },
   "agencies": {
     "title": "Amasosiyete",
@@ -612,7 +637,21 @@
     "statusCancelled": "Byasizwe",
     "statusTaken": "Bifashwe",
     "statusTicketReady": "Itike Iteguwe",
-    "statusDelivered": "Byatanzwe"
+    "statusDelivered": "Byatanzwe",
+    "claimedToast": "Ubusabe bwafashwe",
+    "deliveredToast": "Ubusabe bwanditswe ko bwatanzwe",
+    "updatedToast": "Ubusabe bwavuguruwe",
+    "ticketCount": "Amatike {{count}}",
+    "booking": "Ubusabe",
+    "notFound": "Ubu busabe ntibuboneka ku rutonde rwa gare yawe.",
+    "status": "Uko bihagaze",
+    "trip": "Urugendo",
+    "route": "Inzira",
+    "travelDate": "Itariki y'urugendo",
+    "tickets": "Amatike",
+    "passenger": "Umugenzi",
+    "email": "Imeyili",
+    "price": "Igiteranyo"
   },
   "rating": {
     "rateAgency": "Pima iyi Sosiyete",
@@ -620,5 +659,29 @@
     "comment": "Ibitekerezo (bidasabwa)",
     "submit": "Ohereza Igipimo",
     "success": "Murakoze guha igipimo!"
+  },
+  "adminUsers": {
+    "editUser": "Hindura ukoresha",
+    "role": "Inshingano",
+    "saveRole": "Bika inshingano",
+    "saved": "Byabitswe",
+    "roleUpdated": "Inshingano yahinduwe iba {{role}}.",
+    "saveRoleFailed": "Ntibyashobotse guhindura inshingano."
+  },
+  "adminCashout": {
+    "title": "Inyungu no kubikuza",
+    "available": "Ibiboneka",
+    "noEarnings": "Nta nyungu",
+    "noEarningsMsg": "Nta mafaranga ufite ashobora kubikuzwa.",
+    "requestCashout": "Saba kubikuza",
+    "request": "Saba",
+    "confirmMsg": "Usaba kubikuza {{amount}} RWF kuri {{destination}}?",
+    "submitted": "Byoherejwe",
+    "submittedMsg": "Ubusabe bwawe bwo kubikuza bwoherejwe, buzakorwaho vuba.",
+    "failed": "Kohereza ubusabe byanze.",
+    "availableNow": "Ibiboneka ubu: {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Banki",
+    "noMethod": "Nta buryo bwo kubikuza bwashyizweho. Kanda ku kimenyetso cy'igenamiterere ubwongeremo."
   }
 }

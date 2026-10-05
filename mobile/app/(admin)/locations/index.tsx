@@ -21,6 +21,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
+import { useTranslation } from "react-i18next";
 
 type LocationType = "bus_station" | "custom";
 
@@ -67,6 +68,7 @@ const EMPTY_FORM = {
 };
 
 export default function LocationsScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -391,10 +393,10 @@ export default function LocationsScreen() {
               <Text style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}>Decimal degrees · e.g. latitude -1.944648, longitude 30.061088</Text>
               <TouchableOpacity
                 onPress={pickCurrentLocation} disabled={locating}
-                style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: C.card, borderWidth: 1, borderColor: C.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 10, opacity: locating ? 0.6 : 1 }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: C.white, borderWidth: 1, borderColor: C.teal, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 10, opacity: locating ? 0.6 : 1 }}
               >
-                {locating ? <ActivityIndicator size="small" color={C.primary} /> : <Ionicons name="navigate" size={14} color={C.primary} />}
-                <Text style={{ color: C.primary, fontSize: 13, fontWeight: "600" }}>{locating ? "Getting location…" : "Use current location"}</Text>
+                {locating ? <ActivityIndicator size="small" color={C.teal} /> : <Ionicons name="navigate" size={14} color={C.teal} />}
+                <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>{locating ? t("admin.gettingLocation") : t("admin.useCurrentLocation")}</Text>
               </TouchableOpacity>
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <View style={{ flex: 1 }}>

@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { DriverListing, DriverCar } from "@/constants/data";
+import { formatYmd } from "@/lib/date";
 
 interface RentalCardProps {
   driverCars: DriverCar[];
@@ -65,7 +66,7 @@ interface PrivateListingsProps {
 }
 
 export function PrivateListingsCard({ driverListings }: PrivateListingsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <View style={{ marginBottom: 20 }}>
@@ -119,7 +120,7 @@ export function PrivateListingsCard({ driverListings }: PrivateListingsProps) {
               {l.from} → {l.to}
             </Text>
             <Text style={{ color: C.mid, fontSize: 12, marginTop: 2 }}>
-              {l.date} · {l.dep} · {l.seats} seats ·{" "}
+              {formatYmd(l.date, i18n.language)} · {l.dep} · {l.seats} {t("listing.seats")} ·{" "}
               {l.price.toLocaleString()} RWF
             </Text>
           </View>

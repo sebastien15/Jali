@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,8 +20,9 @@ import api from "@/lib/api";
 import { getApiToken } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Toast, ToastHandle } from "@/components/Toast";
+import { toYmd } from "@/lib/date";
 
-type TripData = {
+export type TripData = {
   id: number; // trip_departure_id — used as reference_id when booking
   agency_id?: number;
   agency_name: string;
@@ -34,17 +35,16 @@ type TripData = {
   price: number;
 };
 
-const BASE_DATE_OPTS = ["Today", "Tomorrow"];
-
 interface Props {
   trip: TripData;
   onClose: () => void;
   onConfirm: () => void;
-  travelDate?: string;
+  /** Day selected on the Home screen. */
+  travelDate?: Date;
 }
 
 export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toastRef = useRef<ToastHandle>(null);
 
   // Pre-fill passenger 1 with the user's profile name (cached from /me)
@@ -83,16 +83,30 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   const totalPrice = price * ticketCount;
   const total = totalPrice + fee;
 
-  // Normalise "Today · 07:00" → "Today" so it matches dateOpts without duplication
-  const normalizedDate = travelDate?.startsWith("Today")
-    ? "Today"
-    : travelDate?.startsWith("Tomorrow")
-      ? "Tomorrow"
-      : (travelDate ?? "Today");
-  const [selectedDate, setSelectedDate] = useState(normalizedDate);
-  const dateOpts = BASE_DATE_OPTS.includes(normalizedDate)
-    ? BASE_DATE_OPTS
-    : [normalizedDate, ...BASE_DATE_OPTS].filter(Boolean) as string[];
+  // Travel-day options: today, tomorrow, plus the day picked on Home if it is
+  // neither. Values are local `Y-m-d` (what the API stores); labels are display only.
+  const dateOpts = useMemo(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const opts = [
+      { value: toYmd(today), label: t("home.dateToday") },
+      { value: toYmd(tomorrow), label: t("home.dateTomorrow") },
+    ];
+    if (travelDate) {
+      const picked = toYmd(travelDate);
+      if (!opts.some(o => o.value === picked)) {
+        opts.unshift({
+          value: picked,
+          label: travelDate.toLocaleDateString(i18n.language, { month: "short", day: "numeric" }),
+        });
+      }
+    }
+    return opts;
+  }, [travelDate, t, i18n.language]);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    () => (travelDate ? toYmd(travelDate) : toYmd(new Date())),
+  );
 
   function updatePassengerName(index: number, name: string) {
     setPassengerNames(prev => {
@@ -112,8 +126,16 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
     });
   }
 
+  // Once a booking succeeds the sheet is "spent": the button stays disabled so
+  // a second tap can't create a duplicate booking.
+  const [booked, setBooked] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
   async function handleBook() {
-    if (!payMethod) return;
+    if (!payMethod || loading || booked) return;
 
     const token = await getApiToken();
     if (!token) {
@@ -131,17 +153,30 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
         quantity: ticketCount,
         passenger_names: passengerNames.map(n => n.trim()).filter(Boolean),
       });
+      setBooked(true);
       toastRef.current?.show({ message: t("booking.bookingSentToast"), type: "success" });
-      setTimeout(() => {
-        setShowRating(true);
-        onConfirm();
-      }, 2600);
+      if (trip.agency_id) {
+        // Keep the sheet mounted so the rating prompt can show; it closes the
+        // sheet (onConfirm) when dismissed or submitted.
+        closeTimer.current = setTimeout(() => setShowRating(true), 1200);
+      } else {
+        closeTimer.current = setTimeout(onConfirm, 2600);
+      }
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? t("components.bookingSheet.tryAgain");
       toastRef.current?.show({ message: msg, type: "error" });
     } finally {
       setLoading(false);
     }
+  }
+
+  // After a successful booking, any way of closing must go through onConfirm
+  // so the parent refreshes trips and "My Trips".
+  const handleClose = booked ? onConfirm : onClose;
+
+  function finishRating() {
+    setShowRating(false);
+    onConfirm();
   }
 
   async function submitRating() {
@@ -151,20 +186,19 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
         stars: rating,
         comment: comment || null,
       });
-      toastRef.current?.show({ message: t("rating.success"), type: "success" });
     } catch {
       // rating is optional
     }
-    setShowRating(false);
+    finishRating();
   }
 
   return (
-    <Modal visible animationType="slide" transparent>
+    <Modal visible animationType="slide" transparent onRequestClose={handleClose}>
       {/* Backdrop */}
       <TouchableOpacity
         style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
         activeOpacity={1}
-        onPress={onClose}
+        onPress={handleClose}
       />
 
       {/* Sheet */}
@@ -343,15 +377,15 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
             {dateOpts.map(d => (
               <TouchableOpacity
-                key={d}
-                onPress={() => setSelectedDate(d)}
+                key={d.value}
+                onPress={() => setSelectedDate(d.value)}
                 style={{
                   paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
-                  backgroundColor: selectedDate === d ? C.blue : C.bg,
+                  backgroundColor: selectedDate === d.value ? C.blue : C.bg,
                 }}
               >
-                <Text style={{ color: selectedDate === d ? C.white : C.dark, fontWeight: "800", fontSize: 13 }}>
-                  {d}
+                <Text style={{ color: selectedDate === d.value ? C.white : C.dark, fontWeight: "800", fontSize: 13 }}>
+                  {d.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -384,9 +418,9 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
           {/* Book Now */}
           <TouchableOpacity
             onPress={handleBook}
-            disabled={loading || !payMethod}
+            disabled={loading || !payMethod || booked}
             style={{
-              backgroundColor: loading || !payMethod ? C.border : C.blue,
+              backgroundColor: loading || !payMethod ? C.border : booked ? C.green : C.blue,
               borderRadius: 16, paddingVertical: 18, alignItems: "center", marginBottom: 12,
             }}
           >
@@ -395,6 +429,10 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
                 <ActivityIndicator color="#fff" size="small" />
                 <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>{t("booking.bookingInProgress")}</Text>
               </View>
+            ) : booked ? (
+              <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
+                ✓ {t("booking.bookingSentToast")}
+              </Text>
             ) : (
               <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
                 {t("booking.bookNow")} →
@@ -403,13 +441,13 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
           </TouchableOpacity>
 
           {/* Cancel */}
-          <TouchableOpacity onPress={onClose} style={{ paddingVertical: 14, alignItems: "center" }}>
+          <TouchableOpacity onPress={handleClose} style={{ paddingVertical: 14, alignItems: "center" }}>
             <Text style={{ color: C.muted, fontWeight: "700", fontSize: 14 }}>{t("common.close")}</Text>
           </TouchableOpacity>
         </ScrollView>
 
         {/* Rating modal */}
-        <Modal visible={showRating} animationType="slide" transparent>
+        <Modal visible={showRating} animationType="slide" transparent onRequestClose={finishRating}>
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
             <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
               <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
@@ -439,7 +477,7 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
               />
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <TouchableOpacity
-                  onPress={() => setShowRating(false)}
+                  onPress={finishRating}
                   style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: C.bg, alignItems: "center" }}
                 >
                   <Text style={{ color: C.mid, fontWeight: "700" }}>{t("common.close")}</Text>

@@ -13,8 +13,10 @@ import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import { useTranslation } from "react-i18next";
 
 export default function AdminAnalyticsScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useAdminNav();
 
@@ -154,6 +156,12 @@ export default function AdminAnalyticsScreen() {
                 color={C.teal}
                 icon="✅"
               />
+              <StatusBadge
+                label={t("adminBookings.statusCancelled")}
+                value={bookings?.by_status?.cancelled ?? 0}
+                color={C.muted}
+                icon="❌"
+              />
             </View>
 
             {/* ── By Type — superadmin only ── */}
@@ -161,9 +169,14 @@ export default function AdminAnalyticsScreen() {
               <>
                 <Label text="By Transport Type" />
                 <View style={{ flexDirection: "row", gap: 10 }}>
-                  <StatCard label="Bus"     value={bookings?.by_type?.bus ?? 0}     color={C.blue} />
-                  <StatCard label="Rental"  value={bookings?.by_type?.rental ?? 0}  color={C.teal} />
-                  <StatCard label="Private" value={bookings?.by_type?.private ?? 0} color={C.orange} />
+                  {/* Bus-company trips are booked as type "trip"; "bus" is the legacy type */}
+                  <StatCard
+                    label={t("admin.bus")}
+                    value={(bookings?.by_type?.trip ?? 0) + (bookings?.by_type?.bus ?? 0)}
+                    color={C.blue}
+                  />
+                  <StatCard label={t("admin.rental")}  value={bookings?.by_type?.rental ?? 0}  color={C.teal} />
+                  <StatCard label={t("admin.private")} value={bookings?.by_type?.private ?? 0} color={C.orange} />
                 </View>
               </>
             )}

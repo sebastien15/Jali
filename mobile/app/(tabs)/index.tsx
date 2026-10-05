@@ -6,7 +6,7 @@ import * as Location from "expo-location";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
 import { TripResult, TripDeparture } from "@/components/TripCard";
-import { TripBookingSheet } from "@/components/TripBookingSheet";
+import { TripBookingSheet, TripData } from "@/components/TripBookingSheet";
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
@@ -16,21 +16,9 @@ import { PrivateResults } from "@/components/home/PrivateResults";
 import { RentalResults } from "@/components/home/RentalResults";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { toYmd } from "@/lib/date";
 
 type Mode = "bus" | "private" | "rental";
-
-function formatDateLabel(d: Date): string {
-  const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
-  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
-  const timeSuffix = hasTime
-    ? ` · ${d.toLocaleTimeString("en-RW", { hour: "2-digit", minute: "2-digit" })}`
-    : "";
-  if (d.toDateString() === today.toDateString()) return `Today${timeSuffix}`;
-  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow${timeSuffix}`;
-  return `${d.toLocaleDateString("en-RW", { month: "short", day: "numeric" })}${timeSuffix}`;
-}
 
 export default function HomeScreen() {
   const queryClient = useQueryClient();
@@ -45,8 +33,8 @@ export default function HomeScreen() {
   const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
 
   const [sheet, setSheet]             = useState<any>(null);
-  const [tripSheet, setTripSheet]     = useState<TripResult | null>(null);
-  const [tripSheetDate, setTripSheetDate] = useState<string>("");
+  const [tripSheet, setTripSheet]     = useState<TripData | null>(null);
+  const [tripSheetDate, setTripSheetDate] = useState<Date | null>(null);
 
   // User location — best-effort, doesn't block rendering
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -59,7 +47,8 @@ export default function HomeScreen() {
     });
   }, []);
 
-  const dateParam = selectedDate.toISOString().split("T")[0];
+  // Local calendar day — toISOString() would shift local midnight to the previous UTC day
+  const dateParam = toYmd(selectedDate);
   const todaySelected = selectedDate.toDateString() === new Date().toDateString();
   const timeSet = selectedDate.getHours() !== 0 || selectedDate.getMinutes() !== 0;
 
@@ -165,9 +154,12 @@ export default function HomeScreen() {
     return [...bookedFirst, ...rest];
   }, [trips, bookedAgencyNames]);
 
-  const timeFilterMins = todaySelected && timeSet
-    ? selectedDate.getHours() * 60 + selectedDate.getMinutes()
-    : undefined;
+  // For today, never offer departures that have already left: filter from the
+  // later of "now" and the time the user picked.
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const pickedMins = timeSet ? selectedDate.getHours() * 60 + selectedDate.getMinutes() : 0;
+  const timeFilterMins = todaySelected ? Math.max(nowMins, pickedMins) : undefined;
 
   const filteredTrips = useMemo(() => trips.filter((trip: TripResult) => {
     if (agencyFilter && trip.agency_name !== agencyFilter) return false;
@@ -194,7 +186,7 @@ export default function HomeScreen() {
       estimated_arrival_time: departure.estimated_arrival_time,
       price: trip.price,
     });
-    setTripSheetDate(formatDateLabel(selectedDate));
+    setTripSheetDate(selectedDate);
   }
 
   function afterBooking() {
@@ -237,7 +229,7 @@ export default function HomeScreen() {
           <PrivateResults
             items={privateSeats} loading={loading} error={error}
             from={from} to={to}
-            onPress={item => setSheet({ type: "private", item, travelDate: formatDateLabel(selectedDate) })}
+            onPress={item => setSheet({ type: "private", item, travelDate: dateParam })}
             onRetry={refetchActive}
             fetchNextPage={privateQuery.fetchNextPage}
             hasNextPage={!!privateQuery.hasNextPage}
@@ -248,7 +240,7 @@ export default function HomeScreen() {
           <RentalResults
             cars={cars} loading={loading} error={error}
             days={rentalDays} onChangeDays={setRentalDays}
-            onPress={(car, days) => setSheet({ type: "rental", item: car, days, travelDate: formatDateLabel(selectedDate) })}
+            onPress={(car, days) => setSheet({ type: "rental", item: car, days, travelDate: dateParam })}
             onRetry={refetchActive}
           />
         )}
@@ -265,9 +257,9 @@ export default function HomeScreen() {
       {tripSheet && (
         <TripBookingSheet
           trip={tripSheet}
-          travelDate={tripSheetDate}
-          onClose={() => { setTripSheet(null); setTripSheetDate(""); }}
-          onConfirm={() => { setTripSheet(null); setTripSheetDate(""); afterBooking(); }}
+          travelDate={tripSheetDate ?? undefined}
+          onClose={() => { setTripSheet(null); setTripSheetDate(null); }}
+          onConfirm={() => { setTripSheet(null); setTripSheetDate(null); afterBooking(); }}
         />
       )}
       </View>

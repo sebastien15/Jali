@@ -1,22 +1,31 @@
 import {
   View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, Switch, Linking, Platform,
+  ActivityIndicator,
 } from "react-native";
+import { useState } from "react";
+import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
-import { GoogleSignin } from "@/lib/native/google-signin";
-import api, { clearApiToken, getApiToken } from "@/lib/api";
+import api from "@/lib/api";
+import { endSession, clearLocalSession } from "@/lib/session";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
+import { useMe, isDriverRole } from "@/lib/useMe";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Trip } from "@/constants/data";
 import { setLanguage, getLanguage } from "@/lib/i18n";
 
-const APP_VERSION = "1.0.0";
+// Single source of truth: app.json "version"
+const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
 const PLAY_STORE_URL   = "market://details?id=com.jali.app";
-const APP_STORE_URL    = "https://apps.apple.com/app/jali/id0000000000"; // update when live
+// Set to the real App Store URL once the iOS app is published; while null the
+// "Rate Jali" item is hidden on iOS instead of opening a dead link.
+const APP_STORE_URL: string | null = null;
 
 type MenuItem = {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -29,9 +38,35 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { driverMode, setDriverMode, driverType, setDriverType } = useDriverMode();
 
+  const { data: me } = useMe();
+  // Stats come from the user's own bookings (shared cache with My Trips)
+  const { data: myBookings = [] } = useQuery({
+    queryKey: queryKeys.bookings.mine(),
+    queryFn: () => api.get("/bookings").then(r => (r.data ?? []) as Trip[]),
+    staleTime: 60_000,
+  });
+  const tripCount = myBookings.filter(b => b.status !== "cancelled").length;
+  const inProgressCount = myBookings.filter(b => b.status === "pending" || b.status === "taken").length;
+  const readyCount = myBookings.filter(b => b.status === "ticket_ready").length;
+  const isDriver = isDriverRole(me);
+  const driverActive = driverMode && isDriver;
+
   function handleDriverToggle(value: boolean) {
     if (!value) {
       setDriverMode(false);
+      return;
+    }
+    // The driver role is granted by Jali (superadmin) — there is no
+    // self-service signup, and every /driver/* endpoint 403s without it.
+    if (!isDriver) {
+      Alert.alert(
+        t('profile.driverMode'),
+        t('profile.becomeDriverInfo'),
+        [
+          { text: t('profile.cancel'), style: "cancel" },
+          { text: t('profile.contactJali'), onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
+        ],
+      );
       return;
     }
     // Ask which role before enabling
@@ -65,31 +100,63 @@ export default function ProfileScreen() {
   }
 
   async function doLogout() {
-    const token = await getApiToken();
-    await clearApiToken();
-    GoogleSignin.signOut().catch(() => {});
-    signOut(auth).catch(() => {});
+    await endSession();
     router.replace("/(auth)/login");
-    if (token) {
-      api.post("/auth/logout", {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
-    }
   }
 
+  const [deleting, setDeleting] = useState(false);
+
+  // Two-step destructive confirmation: deletion is permanent, so a single
+  // stray tap must never be enough.
   function handleDeleteAccount() {
-    doDeleteAccount();
+    if (deleting) return;
+    if (Platform.OS === "web") {
+      const ok =
+        typeof window !== "undefined" &&
+        window.confirm(`${t('profile.deleteAccountWarning')}\n\n${t('profile.deleteAccountDetails')}`);
+      if (ok) doDeleteAccount();
+      return;
+    }
+    Alert.alert(
+      t('profile.deleteAccount'),
+      t('profile.deleteAccountWarning'),
+      [
+        { text: t('profile.keepAccount'), style: "cancel" },
+        {
+          text: t('profile.deleteAccount'),
+          style: "destructive",
+          onPress: () =>
+            Alert.alert(
+              t('profile.areYouSure'),
+              t('profile.deleteAccountDetails'),
+              [
+                { text: t('profile.keepAccount'), style: "cancel" },
+                { text: t('profile.deleteEverything'), style: "destructive", onPress: doDeleteAccount },
+              ],
+            ),
+        },
+      ],
+    );
   }
 
   async function doDeleteAccount() {
+    setDeleting(true);
     try {
       await api.delete("/auth/me");
-      await clearApiToken();
-      GoogleSignin.signOut().catch(() => {});
-      signOut(auth).catch(() => {});
+      await clearLocalSession();
       router.replace("/(auth)/login");
     } catch (e: any) {
-      console.log("[Profile] Delete account error:", e?.response?.status, e?.response?.data);
+      const status = e?.response?.status;
+      if (status === 401) {
+        Alert.alert(t('profile.pleaseSignInAgain'), t('profile.signInAgainDetails'));
+      } else {
+        Alert.alert(
+          t('profile.error'),
+          e?.response?.data?.message ?? t('profile.deleteAccountFailed'),
+        );
+      }
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -115,13 +182,9 @@ export default function ProfileScreen() {
     );
   }
 
+  // (A "Notifications" settings item had a no-op handler; it returns once
+  // there are notification preferences to manage.)
   const MENU: MenuItem[] = [
-    {
-      icon: "notifications-outline",
-      label: t('profile.notifications'),
-      sub: t('profile.notificationsSub'),
-      onPress: () => {},
-    },
     {
       icon: "language-outline",
       label: t('profile.language'),
@@ -134,15 +197,15 @@ export default function ProfileScreen() {
       sub: t('profile.helpSub'),
       onPress: () => Linking.openURL(SUPPORT_WHATSAPP),
     },
-    {
-      icon: "star-outline",
+    ...(Platform.OS === "ios" && !APP_STORE_URL ? [] : [{
+      icon: "star-outline" as const,
       label: t('profile.rateJali'),
       sub: t('profile.rateSub'),
       onPress: () => {
-        const url = Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL;
-        Linking.openURL(url);
+        const url = Platform.OS === "ios" ? APP_STORE_URL! : PLAY_STORE_URL;
+        Linking.openURL(url).catch(() => {});
       },
-    },
+    }]),
     {
       icon: "document-text-outline",
       label: t('profile.faq'),
@@ -186,16 +249,20 @@ export default function ProfileScreen() {
           </View>
           <View>
             <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-              {auth.currentUser?.displayName ?? "Jali User"}
+              {me?.name || auth.currentUser?.displayName || t('profile.defaultName')}
             </Text>
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>
-              {auth.currentUser?.email ?? auth.currentUser?.phoneNumber ?? ""}
+              {me?.email ?? me?.phone ?? auth.currentUser?.email ?? ""}
             </Text>
           </View>
         </View>
 
         <View style={{ flexDirection: "row", gap: 10 }}>
-          {[{ v: "0", l: t('profile.trips') }, { v: "—", l: t('profile.rating') }, { v: "0", l: t('profile.pending') }].map((s, i) => (
+          {[
+            { v: String(tripCount), l: t('profile.trips') },
+            { v: String(readyCount), l: t('trips.filterReady') },
+            { v: String(inProgressCount), l: t('profile.pending') },
+          ].map((s, i) => (
             <View key={i} style={{
               flex: 1, backgroundColor: "rgba(255,255,255,0.15)",
               borderRadius: 12, paddingVertical: 10, alignItems: "center",
@@ -211,30 +278,30 @@ export default function ProfileScreen() {
 
         {/* Driver Mode */}
         <View style={{
-          backgroundColor: driverMode ? C.tealLt : C.white,
+          backgroundColor: driverActive ? C.tealLt : C.white,
           borderRadius: 16, padding: 16, marginBottom: 16,
-          borderWidth: 2, borderColor: driverMode ? C.teal : C.border,
+          borderWidth: 2, borderColor: driverActive ? C.teal : C.border,
           flexDirection: "row", alignItems: "center", gap: 14,
         }}>
           <View style={{
-            backgroundColor: driverMode ? C.teal : C.bg,
+            backgroundColor: driverActive ? C.teal : C.bg,
             borderRadius: 12, width: 44, height: 44,
             alignItems: "center", justifyContent: "center",
           }}>
-            <Ionicons name="car" size={22} color={driverMode ? C.white : C.mid} />
+            <Ionicons name="car" size={22} color={driverActive ? C.white : C.mid} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "800", fontSize: 15, color: driverMode ? C.teal : C.dark }}>
+            <Text style={{ fontWeight: "800", fontSize: 15, color: driverActive ? C.teal : C.dark }}>
               {t('profile.driverMode')}
             </Text>
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-              {driverMode
+              {driverActive
                 ? driverType === "rental" ? t('profile.fleetOwner') : t('profile.privateDriver')
                 : t('profile.switchToDrive')}
             </Text>
           </View>
           <Switch
-            value={driverMode}
+            value={driverActive}
             onValueChange={handleDriverToggle}
             trackColor={{ false: C.border, true: C.teal }}
             thumbColor={C.white}
@@ -283,11 +350,16 @@ export default function ProfileScreen() {
         {/* Delete Account */}
         <TouchableOpacity
           onPress={handleDeleteAccount}
+          disabled={deleting}
           style={{ paddingVertical: 16, alignItems: "center", marginTop: 4 }}
         >
-          <Text style={{ color: C.muted, fontSize: 13, textDecorationLine: "underline" }}>
-            {t('profile.deleteMyAccount')}
-          </Text>
+          {deleting ? (
+            <ActivityIndicator color={C.muted} />
+          ) : (
+            <Text style={{ color: C.muted, fontSize: 13, textDecorationLine: "underline" }}>
+              {t('profile.deleteMyAccount')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View style={{ height: 16 }} />
