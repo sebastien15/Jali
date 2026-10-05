@@ -107,7 +107,7 @@ export default function DriverRatesScreen() {
         <View style={{ padding: 24, alignItems: "center", gap: 14 }}>
           <Ionicons name="car-outline" size={40} color={C.muted} />
           <Text style={{ color: C.mid, fontSize: 15, textAlign: "center" }}>{t("ride.rates.noVehicle")}</Text>
-          <TouchableOpacity onPress={() => router.push("/driver/setup")} accessibilityLabel={t("ride.rates.openSetup")}
+          <TouchableOpacity onPress={() => router.push("/driver/vehicles")} accessibilityLabel={t("ride.rates.openSetup")}
             style={{ backgroundColor: C.teal, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 12 }}>
             <Text style={{ color: C.white, fontWeight: "800" }}>{t("ride.rates.openSetup")}</Text>
           </TouchableOpacity>
@@ -132,8 +132,14 @@ export default function DriverRatesScreen() {
           </View>
         ) : null}
 
+        <TouchableOpacity onPress={() => router.push("/driver/vehicles")} accessibilityLabel={t("ride.vehicles.title")}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <Ionicons name="car-outline" size={16} color={C.teal} />
+          <Text style={{ color: C.teal, fontWeight: "800" }}>{data.vehicle.model} · {data.vehicle.plate}</Text>
+          <Ionicons name="chevron-forward" size={14} color={C.teal} />
+        </TouchableOpacity>
         <Text style={{ color: C.mid, fontSize: 12, marginBottom: 12 }}>
-          {data.vehicle.model} · {data.vehicle.plate} · {t("ride.rates.allowed", { min: g.per_km_min, max: g.per_km_max, minFareMax: g.min_fare_max })}
+          {t("ride.rates.allowed", { min: g.per_km_min, max: g.per_km_max, minFareMax: g.min_fare_max })}
         </Text>
 
         <View style={{ backgroundColor: C.white, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: C.border }}>

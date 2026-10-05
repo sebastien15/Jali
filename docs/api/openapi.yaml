@@ -115,6 +115,124 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /driver/vehicles:
+    get:
+      tags: [Driver]
+      operationId: listVehicles
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: My vehicles (active first)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Vehicle" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Driver]
+      operationId: createVehicle
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: Add a vehicle (the first one becomes active)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/VehicleInput"
+                - required: [class, model, plate, seats, insurance_expiry]
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Vehicle" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/vehicles/{id}:
+    parameters:
+      - $ref: "#/components/parameters/VehicleId"
+    patch:
+      tags: [Driver]
+      operationId: updateVehicle
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: Edit one of my vehicles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VehicleInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Vehicle" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Driver]
+      operationId: deleteVehicle
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: Remove one of my vehicles
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/vehicles/{id}/activate:
+    parameters:
+      - $ref: "#/components/parameters/VehicleId"
+    post:
+      tags: [Driver]
+      operationId: activateVehicle
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: Make this the vehicle riders see (others become inactive)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Vehicle" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/vehicles/{id}/photos:
+    parameters:
+      - $ref: "#/components/parameters/VehicleId"
+    post:
+      tags: [Driver]
+      operationId: uploadVehiclePhoto
+      x-jali-story: S1.3
+      x-jali-permission: apply-as-driver
+      summary: Upload or replace one vehicle photo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [slot, photo]
+              properties:
+                slot: { type: string, enum: [front, side, interior, luggage] }
+                photo: { type: string, format: binary, description: "jpg/png/webp/heic, max 8 MB" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Vehicle" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   # ── Driver pricing & presence (planned) ─────────────────────────────────
   /driver/rates:
     get:
@@ -531,6 +649,11 @@ components:
       description: Sanctum personal access token from `/auth/login` or `/auth/login/google`.
 
   parameters:
+    VehicleId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
     RideId:
       name: id
       in: path
@@ -564,6 +687,14 @@ components:
             type: object
             properties:
               error: { type: string }
+    NotFound:
+      description: Not found (or not yours)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
     Conflict:
       description: Invalid state transition or resource already taken
       content:
@@ -618,7 +749,7 @@ components:
       properties:
         id: { type: integer }
         class: { $ref: "#/components/schemas/VehicleClass" }
-        body_type: { type: [string, "null"], enum: [Sedan, SUV, Minivan, Pickup, null] }
+        body_type: { type: [string, "null"], enum: [Sedan, SUV, Minivan, Pickup, Hatchback, Motorcycle, null] }
         make: { type: [string, "null"] }
         model: { type: string }
         color: { type: [string, "null"] }
@@ -626,11 +757,40 @@ components:
         plate: { type: string, description: "Normalised: uppercase, single spaces" }
         seats: { type: integer }
         amenities: { type: [array, "null"], items: { type: string } }
-        photos: { type: [array, "null"], items: { type: string } }
+        photos:
+          oneOf:
+            - type: "null"
+            - type: array
+              maxItems: 0
+              description: Empty list when no photo was uploaded yet
+            - $ref: "#/components/schemas/VehiclePhotos"
         insurance_expiry: { type: [string, "null"], format: date }
         rental_price_day: { type: [integer, "null"] }
         rental_caution: { type: [integer, "null"] }
         is_active: { type: boolean }
+
+    VehiclePhotos:
+      type: object
+      description: Public URLs per photo slot; `front` is required before going online
+      properties:
+        front: { type: string }
+        side: { type: string }
+        interior: { type: string }
+        luggage: { type: string }
+
+    VehicleInput:
+      type: object
+      properties:
+        class: { $ref: "#/components/schemas/VehicleClass" }
+        body_type: { type: [string, "null"], enum: [Sedan, SUV, Minivan, Pickup, Hatchback, Motorcycle, null] }
+        make: { type: [string, "null"], maxLength: 50 }
+        model: { type: string, maxLength: 100 }
+        color: { type: [string, "null"], maxLength: 30 }
+        year: { type: [integer, "null"], minimum: 1980 }
+        plate: { type: string, maxLength: 20 }
+        seats: { type: integer, minimum: 1, maximum: 60, description: "Moto: at most 2" }
+        amenities: { type: [array, "null"], items: { type: string } }
+        insurance_expiry: { type: string, format: date }
 
     DriverProfileResponse:
       type: object

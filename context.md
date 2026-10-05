@@ -337,6 +337,14 @@ PATCH /admin/stations/{id}
 GET   /admin/bookings
 PATCH /admin/bookings/{id}
 
+# perm: apply-as-driver (every role) — driver onboarding
+GET    /driver/vehicles           my vehicles (active first)
+POST   /driver/vehicles           add (first becomes active); plate unique, insurance date required
+PATCH  /driver/vehicles/{id}      edit own vehicle (404 for others')
+DELETE /driver/vehicles/{id}
+POST   /driver/vehicles/{id}/activate   the one vehicle riders see
+POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|luggage, photo
+
 # perm: offer-rides — driver-set prices for the active vehicle (validated vs guardrails)
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates

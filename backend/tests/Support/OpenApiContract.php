@@ -56,7 +56,8 @@ class OpenApiContract
         Assert::assertArrayHasKey($status, $responses, "Contract for $method $path does not document status $status");
 
         // Resolve a $ref to components/responses into a JSON pointer
-        $pointer = '#/paths/' . self::escape($path) . "/$method/responses/$status";
+        // Path segment is JSON-pointer escaped, then URL-encoded ({id} braces aren't valid in a URI fragment)
+        $pointer = '#/paths/' . rawurlencode(self::escape($path)) . "/$method/responses/$status";
         $resp = $responses[$status];
         if (isset($resp['$ref'])) {
             $pointer = $resp['$ref'];

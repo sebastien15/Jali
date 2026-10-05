@@ -20,7 +20,7 @@ class ApiContractTest extends TestCase
 
     /** Route prefixes owned by the contract: every route under them must be documented. */
     private const CONTRACT_PREFIXES = [
-        'api/me', 'api/driver/profile', 'api/driver/rates', 'api/driver/presence',
+        'api/me', 'api/driver/profile', 'api/driver/vehicles', 'api/driver/rates', 'api/driver/presence',
         'api/driver/ride-requests', 'api/rides', 'api/admin/settings/rides',
     ];
 
