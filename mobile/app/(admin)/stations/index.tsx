@@ -616,17 +616,17 @@ export default function AdminStationsScreen() {
                 disabled={locating}
                 style={{
                   flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start",
-                  backgroundColor: C.card, borderWidth: 1, borderColor: C.primary,
+                  backgroundColor: C.white, borderWidth: 1, borderColor: C.teal,
                   borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 10,
                   opacity: locating ? 0.6 : 1,
                 }}
               >
                 {locating ? (
-                  <ActivityIndicator size="small" color={C.primary} />
+                  <ActivityIndicator size="small" color={C.teal} />
                 ) : (
-                  <Ionicons name="navigate" size={14} color={C.primary} />
+                  <Ionicons name="navigate" size={14} color={C.teal} />
                 )}
-                <Text style={{ color: C.primary, fontSize: 13, fontWeight: "600" }}>
+                <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>
                   {locating ? "Getting location…" : "Use current location"}
                 </Text>
               </TouchableOpacity>

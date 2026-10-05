@@ -1,0 +1,41 @@
+name: Mobile Checks
+
+on:
+  pull_request:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-checks.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      # package-lock.json is out of sync with package.json on main (e.g. expo-localization@^55
+      # pulls SDK 55 packages into an SDK 54 app), so `npm ci` fails. Switch back to `npm ci`
+      # once the lock file is regenerated.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --ignore-scripts
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+      - name: TypeScript
+        run: npx tsc --noEmit

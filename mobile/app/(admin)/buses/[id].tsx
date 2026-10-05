@@ -125,7 +125,13 @@ export default function AdminBusFormScreen() {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default" as any }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default" }: {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder?: string;
+  keyboardType?: React.ComponentProps<typeof TextInput>["keyboardType"];
+}) {
   return (
     <View style={{ marginBottom: 14 }}>
       <Text style={{ fontWeight: "700", fontSize: 13, color: C.mid, marginBottom: 6 }}>{label}</Text>

@@ -21,7 +21,7 @@ import { getApiToken } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Toast, ToastHandle } from "@/components/Toast";
 
-type TripData = {
+export type TripData = {
   id: number; // trip_departure_id — used as reference_id when booking
   agency_id?: number;
   agency_name: string;
