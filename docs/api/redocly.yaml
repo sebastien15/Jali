@@ -1,0 +1,7 @@
+extends:
+  - recommended
+rules:
+  # Jali is proprietary; no public license
+  info-license: off
+  # 401/403 apply to every authenticated operation and are documented once in info.description
+  operation-4xx-response: off

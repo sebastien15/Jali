@@ -1,0 +1,91 @@
+asyncapi: 3.0.0
+info:
+  title: Jali realtime events
+  version: 0.1.0
+  description: |
+    Events pushed to the mobile app over WebSockets (Laravel Reverb, story S12.1).
+    Until Reverb ships, the same payloads are fetched by polling `GET /rides/active`
+    and `GET /driver/ride-requests` (see openapi.yaml). Status: planned.
+    Payload schemas reuse openapi.yaml components so both files stay consistent.
+
+servers:
+  production:
+    host: ws.jali.rw
+    protocol: wss
+    description: Laravel Reverb (Pusher protocol); private channels authorised with the Sanctum token
+
+channels:
+  ride:
+    address: private-ride.{rideId}
+    description: The rider and the assigned driver of one ride
+    parameters:
+      rideId:
+        description: Ride id
+    messages:
+      rideStatusChanged:
+        $ref: "#/components/messages/RideStatusChanged"
+      driverLocation:
+        $ref: "#/components/messages/DriverLocation"
+  driver:
+    address: private-driver.{driverId}
+    description: One driver's personal channel
+    parameters:
+      driverId:
+        description: User id of the driver
+    messages:
+      dispatchOffered:
+        $ref: "#/components/messages/DispatchOffered"
+      dispatchWithdrawn:
+        $ref: "#/components/messages/DispatchWithdrawn"
+
+operations:
+  receiveRideStatus:
+    action: receive
+    channel: { $ref: "#/channels/ride" }
+    messages:
+      - $ref: "#/channels/ride/messages/rideStatusChanged"
+  receiveDriverLocation:
+    action: receive
+    channel: { $ref: "#/channels/ride" }
+    messages:
+      - $ref: "#/channels/ride/messages/driverLocation"
+  receiveDispatch:
+    action: receive
+    channel: { $ref: "#/channels/driver" }
+    messages:
+      - $ref: "#/channels/driver/messages/dispatchOffered"
+      - $ref: "#/channels/driver/messages/dispatchWithdrawn"
+
+components:
+  messages:
+    RideStatusChanged:
+      name: ride.status
+      summary: Any ride state transition (accepted, arrived, in_progress, completed, cancelled…)
+      payload:
+        $ref: "./openapi.yaml#/components/schemas/Ride"
+    DriverLocation:
+      name: ride.driver_location
+      summary: Driver position every few seconds after accept
+      payload:
+        type: object
+        required: [lat, lng, at]
+        properties:
+          lat: { type: number }
+          lng: { type: number }
+          heading: { type: [number, "null"] }
+          eta_min: { type: [integer, "null"] }
+          at: { type: string, format: date-time }
+    DispatchOffered:
+      name: dispatch.offered
+      summary: A new ride request for this driver
+      payload:
+        $ref: "./openapi.yaml#/components/schemas/RideRequestCard"
+    DispatchWithdrawn:
+      name: dispatch.withdrawn
+      summary: Request taken by another driver, cancelled or expired — remove the card
+      payload:
+        type: object
+        required: [ride_id, reason]
+        properties:
+          ride_id: { type: integer }
+          reason: { type: string, enum: [taken, cancelled, expired] }

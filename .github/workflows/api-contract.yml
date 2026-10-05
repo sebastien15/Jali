@@ -1,0 +1,34 @@
+name: API Contract
+
+on:
+  pull_request:
+    paths:
+      - "docs/api/**"
+      - "mobile/lib/apiSchema.ts"
+      - ".github/workflows/api-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Lint OpenAPI spec
+        working-directory: ./docs/api
+        run: npx -y @redocly/cli@1 lint openapi.yaml
+
+      - name: Generated mobile types are up to date
+        run: |
+          npx -y openapi-typescript@7.13.0 docs/api/openapi.yaml -o /tmp/apiSchema.ts
+          diff -u mobile/lib/apiSchema.ts /tmp/apiSchema.ts || {
+            echo "::error::mobile/lib/apiSchema.ts is stale — run 'npm run api:types' in mobile/ and commit"
+            exit 1
+          }
