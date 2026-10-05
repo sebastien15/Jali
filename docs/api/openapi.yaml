@@ -737,6 +737,130 @@ paths:
         "201": { $ref: "#/components/responses/Message" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /admin/drivers:
+    get:
+      tags: [Admin rides]
+      operationId: listDriverApplications
+      x-jali-story: S1.4
+      x-jali-permission: verify-drivers
+      summary: Driver applications by status, oldest submission first
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, verified, rejected, suspended], default: pending }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [user_id, name, phone, services, status, submitted_at]
+                  properties:
+                    user_id: { type: integer }
+                    name: { type: [string, "null"] }
+                    phone: { type: [string, "null"] }
+                    services: { type: array, items: { $ref: "#/components/schemas/DriverService" } }
+                    status: { type: string, enum: [pending, verified, rejected, suspended] }
+                    submitted_at: { type: [string, "null"], format: date-time }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/drivers/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [Admin rides]
+      operationId: getDriverApplication
+      x-jali-story: S1.4
+      x-jali-permission: verify-drivers
+      summary: Full application with documents, vehicles and prices
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverApplication" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/drivers/{userId}/verify:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Admin rides]
+      operationId: verifyDriver
+      x-jali-story: S1.4
+      x-jali-permission: verify-drivers
+      summary: Approve a pending application (documents approved; riders get the driver role; push sent)
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverApplication" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /admin/drivers/{userId}/reject:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Admin rides]
+      operationId: rejectDriver
+      x-jali-story: S1.4
+      x-jali-permission: verify-drivers
+      summary: Reject with a reason, optionally per document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 500 }
+                documents:
+                  type: object
+                  description: "Document type → reason, e.g. {\"selfie\": \"Face not visible\"}"
+                  additionalProperties: { type: string }
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverApplication" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/drivers/{userId}/suspend:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Admin rides]
+      operationId: suspendDriver
+      x-jali-story: S1.4
+      x-jali-permission: verify-drivers
+      summary: Suspend a driver (cannot go online or accept rides)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 500 }
+      responses:
+        "200":
+          description: Suspended
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverApplication" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/settings/rides:
     get:
       tags: [Admin rides]
@@ -781,6 +905,11 @@ components:
       description: Sanctum personal access token from `/auth/login` or `/auth/login/google`.
 
   parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: integer }
     DocumentId:
       name: id
       in: path
@@ -954,6 +1083,31 @@ components:
               id: { type: [integer, "null"] }
               file_url: { type: [string, "null"], description: "Send the bearer token when loading it" }
               updated_at: { type: [string, "null"], format: date-time }
+
+    DriverApplication:
+      type: object
+      required: [user, status, submitted_at, verified_at, rejection_reason, services, licence, checklist, documents, vehicles, rates]
+      properties:
+        user:
+          type: object
+          required: [id, name, email, phone, role]
+          properties:
+            id: { type: integer }
+            name: { type: [string, "null"] }
+            email: { type: [string, "null"] }
+            phone: { type: [string, "null"] }
+            role: { type: string }
+            profile_image_url: { type: [string, "null"] }
+        status: { type: string, enum: [pending, verified, rejected, suspended] }
+        submitted_at: { type: [string, "null"], format: date-time }
+        verified_at: { type: [string, "null"], format: date-time }
+        rejection_reason: { type: [string, "null"] }
+        services: { type: array, items: { $ref: "#/components/schemas/DriverService" } }
+        licence: { $ref: "#/components/schemas/DriverOnboarding/properties/licence" }
+        checklist: { $ref: "#/components/schemas/DriverOnboarding/properties/steps" }
+        documents: { $ref: "#/components/schemas/DriverOnboarding/properties/documents" }
+        vehicles: { type: array, items: { $ref: "#/components/schemas/Vehicle" } }
+        rates: { type: array, items: { $ref: "#/components/schemas/DriverRates" } }
 
     VehiclePhotos:
       type: object

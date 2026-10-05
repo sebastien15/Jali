@@ -356,6 +356,13 @@ POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|lugga
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates
 
+# perm: verify-drivers (admin, superadmin) — driver verification queue
+GET   /admin/drivers?status=pending|verified|rejected|suspended   oldest submission first
+GET   /admin/drivers/{userId}     application: licence, checklist, documents, vehicles, prices
+POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approved; push
+POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
+POST  /admin/drivers/{userId}/suspend   {reason}; push
+
 # perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
 GET   /admin/settings/rides
 PUT   /admin/settings/rides
