@@ -472,10 +472,13 @@ paths:
     get:
       tags: [Rides]
       operationId: getNearbyDrivers
-      x-jali-status: planned
       x-jali-story: S3.2
       x-jali-permission: request-rides
-      summary: Online drivers near the pickup, each with their own quote for this trip
+      summary: Online drivers near the pickup, each with their own price for this trip (closest first)
+      description: |
+        Only verified drivers whose heartbeat is within presence_ttl_sec, whose active vehicle matches
+        the class filter and whose prices are within the current limits. Positions are rounded to ~100 m;
+        no phone numbers. At most 50 drivers.
       parameters:
         - { name: lat, in: query, required: true, schema: { type: number } }
         - { name: lng, in: query, required: true, schema: { type: number } }
@@ -488,8 +491,21 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: "#/components/schemas/NearbyDriver" }
+                type: object
+                required: [trip, drivers]
+                properties:
+                  trip:
+                    type: object
+                    required: [distance_km, est_minutes]
+                    properties:
+                      distance_km: { type: number }
+                      est_minutes: { type: integer }
+                  drivers:
+                    type: array
+                    items: { $ref: "#/components/schemas/NearbyDriver" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
   /rides/estimate:
     post:
@@ -1296,16 +1312,18 @@ components:
         trips: { type: integer }
         eta_min: { type: integer }
         distance_km: { type: number }
-        quote: { type: integer, description: "What the rider pays for this trip, incl. Jali fee" }
+        quote: { type: integer, description: "What the rider pays for this trip, incl. Jali fee and pickup surcharge" }
         per_km: { type: integer }
         vehicle:
           type: object
+          required: [class, model, color, seats, amenities, photo]
           properties:
             class: { $ref: "#/components/schemas/VehicleClass" }
             model: { type: string }
             color: { type: [string, "null"] }
             seats: { type: integer }
             amenities: { type: array, items: { type: string } }
+            photo: { type: [string, "null"], description: Front photo URL }
         approx_location:
           description: Rounded to ~100 m until a ride is accepted
           type: object
