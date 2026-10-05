@@ -14,7 +14,7 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
       },
       {
         heading: "How does the service fee work?",
-        body: "Jali charges a small service fee of 300–500 RWF per booking based on your distance to the nearest bus station. This fee covers our operational costs and is shown clearly before you confirm payment.",
+        body: "Jali charges a service fee per booking, shown clearly before you confirm. Bus company tickets: 5% of the ticket price (minimum 500 RWF, maximum 3,000 RWF). Private seats: 300–500 RWF depending on your distance to the departure station. Car rentals: 300 RWF. The fee covers our operational costs.",
       },
       {
         heading: "When will I receive my ticket?",
@@ -30,7 +30,7 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
       },
       {
         heading: "How do I become a driver?",
-        body: "Go to Profile and toggle on Driver Mode. You will be able to offer private seats on your regular routes and earn money from passengers. Your vehicle details and zone can be set in the Driver Dashboard.",
+        body: "Driver accounts are approved by Jali. Contact us through Help & Support in your Profile; once your account is approved you can switch on Driver Mode, offer private seats on your regular routes and set your vehicle details in the Driver Dashboard.",
       },
       {
         heading: "How do I contact support?",
@@ -60,7 +60,7 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
       },
       {
         heading: "4. Service Fee",
-        body: "A non-refundable service fee of 300–500 RWF is charged per booking. This fee covers platform costs and is disclosed before payment.",
+        body: "A non-refundable service fee is charged per booking and disclosed before payment: 5% of the ticket price for bus company tickets (minimum 500 RWF, maximum 3,000 RWF), 300–500 RWF for private seats depending on distance to the departure station, and 300 RWF for car rentals. This fee covers platform costs.",
       },
       {
         heading: "5. Cancellations & Refunds",

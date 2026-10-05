@@ -52,7 +52,10 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
     ? item.price + effectiveFee
     : item.price * days + 300;
 
+  const feePending = (isBus || isPrivate) && feeLoading;
+
   async function handleConfirm() {
+    if (loading || feePending) return;
     setLoading(true);
     try {
       // Price, title and final fee are computed by the server from the listing.
@@ -161,7 +164,7 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
 
           {/* Payment method */}
           <Text style={{ fontWeight: "700", fontSize: 13, color: C.muted, marginBottom: 10, letterSpacing: 0.5 }}>
-            PAY WITH
+            {t('components.bookingSheet.payWith')}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
             {PAY_METHODS.map(m => {
@@ -191,16 +194,18 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
           {/* Confirm button */}
           <TouchableOpacity
             onPress={handleConfirm}
-            disabled={loading}
+            // Never submit while the distance fee is still being computed:
+            // the fallback fee would be sent while a spinner is shown.
+            disabled={loading || feePending}
             style={{
-              backgroundColor: color, borderRadius: 16,
+              backgroundColor: feePending ? C.border : color, borderRadius: 16,
               paddingVertical: 18, alignItems: "center",
             }}
           >
             <Text style={{ color: isBus ? C.yellow : C.white, fontWeight: "900", fontSize: 17 }}>
               {loading
-                ? "Sending request..."
-                : `Request Booking via ${payMethod} →`}
+                ? t('components.bookingSheet.sendingRequest')
+                : `${t('components.bookingSheet.requestBooking', { method: payMethod })} →`}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -226,16 +231,17 @@ function FeeLine({ fee, loading, distanceKm, permissionDenied, stationCity }: {
   permissionDenied: boolean;
   stationCity: string;
 }) {
+  const { t } = useTranslation();
   const hint = permissionDenied
-    ? "📍 Enable location for accurate fee"
+    ? `📍 ${t('components.bookingSheet.enableLocation')}`
     : distanceKm !== null
-    ? `📍 ${distanceKm} km from ${stationCity} station`
-    : "📍 Detecting your location...";
+    ? `📍 ${t('components.bookingSheet.kmFromStation', { km: distanceKm, city: stationCity })}`
+    : `📍 ${t('components.bookingSheet.detectingLocation')}`;
 
   return (
     <View style={{ marginBottom: 6 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ color: C.mid, fontSize: 14, fontWeight: "600" }}>Service fee</Text>
+        <Text style={{ color: C.mid, fontSize: 14, fontWeight: "600" }}>{t('components.bookingSheet.serviceFee')}</Text>
         {loading
           ? <ActivityIndicator size="small" color={C.blue} />
           : <Text style={{ color: C.dark, fontSize: 14, fontWeight: "700" }}>{fee.toLocaleString()} RWF</Text>
