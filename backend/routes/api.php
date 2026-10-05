@@ -6,6 +6,7 @@ use App\Http\Controllers\PushTokenController;
 use App\Http\Controllers\DriverRateController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DriverOnboardingController;
+use App\Http\Controllers\DriverPresenceController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\BookingController;
@@ -80,6 +81,12 @@ Route::middleware("auth:sanctum")->group(function () {
             BookingController::class,
             "deliver",
         ]);
+    });
+
+    // Online/offline + location heartbeat — story S5.1
+    Route::middleware("permission:offer-rides")->prefix("driver")->group(function () {
+        Route::get("/presence", [DriverPresenceController::class, "show"]);
+        Route::post("/presence", [DriverPresenceController::class, "update"]);
     });
 
     // Driver verification queue — story S1.4

@@ -721,6 +721,24 @@
       "submitted": "Ubusabe bwoherejwe ✓",
       "error": "Habaye ikibazo. Ongera ugerageze.",
       "required": "Birakenewe"
+    },
+    "presence": {
+      "online": "Uri ku murongo",
+      "offline": "Nturi ku murongo",
+      "goOnline": "Jya ku murongo",
+      "goOffline": "Va ku murongo",
+      "keepOpen": "Siga Jali ifunguye igihe uri ku murongo kugira ngo abagenzi bakubone.",
+      "since": "Ku murongo kuva {{time}}",
+      "missing": "Mbere yo kujya ku murongo:",
+      "locationDenied": "Emera aho uherereye kugira ngo abagenzi bakubone.",
+      "not_verified": "Ubusabe bwawe ntiburemezwa",
+      "suspended": "Konti yawe y'umushoferi yahagaritswe",
+      "no_active_vehicle": "Ongeraho kandi uhitemo ikinyabiziga cyawe",
+      "insurance_expired": "Ubwishingizi bw'ikinyabiziga cyawe bwararangiye",
+      "no_vehicle_photo": "Ongeraho ifoto y'imbere y'ikinyabiziga",
+      "no_rates": "Shyiraho ibiciro byawe",
+      "rates_outside_limits": "Hindura ibiciro byawe bihuze n'imbibi za Jali",
+      "fix": "Kosora"
     }
   }
 }

@@ -405,13 +405,30 @@ paths:
         "422": { $ref: "#/components/responses/ValidationError" }
 
   /driver/presence:
+    get:
+      tags: [Driver rides]
+      operationId: getDriverPresence
+      x-jali-story: S5.1
+      x-jali-permission: offer-rides
+      summary: Am I online, and what blocks me from going online?
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverPresenceState" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
     post:
       tags: [Driver rides]
       operationId: postDriverPresence
-      x-jali-status: planned
       x-jali-story: S5.1
       x-jali-permission: offer-rides
-      summary: Online/offline heartbeat with position (every 5–10 s while online)
+      summary: Go online/offline; while online send this heartbeat with the position every 5–10 s
+      description: |
+        Going online is refused (online=false with blocked_reasons) until the driver is verified and the
+        active vehicle has valid insurance, a front photo and prices within the limits. Without a heartbeat
+        for presence_ttl_sec the driver is treated as offline.
       requestBody:
         required: true
         content:
@@ -421,23 +438,18 @@ paths:
               required: [online]
               properties:
                 online: { type: boolean }
-                lat: { type: number }
-                lng: { type: number }
-                heading: { type: [number, "null"] }
-                vehicle_id: { type: integer }
+                lat: { type: [number, "null"], description: Required when online }
+                lng: { type: [number, "null"], description: Required when online }
+                heading: { type: [number, "null"], minimum: 0, maximum: 360 }
       responses:
         "200":
           description: Presence stored
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  online: { type: boolean }
-                  blocked_reasons:
-                    type: array
-                    description: Why the driver cannot go online (unverified, no rates, insurance expired, commission owed…)
-                    items: { type: string }
+              schema: { $ref: "#/components/schemas/DriverPresenceState" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
   /driver/ride-requests:
     get:
@@ -1199,6 +1211,18 @@ components:
         pickup_free_km: { type: number, minimum: 0, default: 2 }
         pickup_per_km: { type: integer, minimum: 0, default: 0 }
         night_multiplier: { type: number, minimum: 1, maximum: 2, default: 1 }
+
+    DriverPresenceState:
+      type: object
+      required: [online, online_since, blocked_reasons]
+      properties:
+        online: { type: boolean }
+        online_since: { type: [string, "null"], format: date-time }
+        blocked_reasons:
+          type: array
+          items:
+            type: string
+            enum: [not_verified, suspended, no_active_vehicle, insurance_expired, no_vehicle_photo, no_rates, rates_outside_limits]
 
     DriverRatesResponse:
       type: object
