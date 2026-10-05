@@ -86,7 +86,7 @@ class AuthController extends Controller
         }
 
         try {
-            $factory = new Factory()->withServiceAccount(
+            $factory = (new Factory())->withServiceAccount(
                 config("firebase.projects.app.credentials"),
             );
             $auth = $factory->createAuth();

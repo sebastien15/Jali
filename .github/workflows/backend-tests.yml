@@ -65,3 +65,7 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: ""
         run: php artisan migrate --force
+
+      - name: Run tests
+        working-directory: ./backend
+        run: php artisan test
