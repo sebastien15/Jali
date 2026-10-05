@@ -7,6 +7,7 @@ use App\Http\Controllers\DriverRateController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DriverOnboardingController;
 use App\Http\Controllers\DriverPresenceController;
+use App\Http\Controllers\RideController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\BookingController;
@@ -81,6 +82,11 @@ Route::middleware("auth:sanctum")->group(function () {
             BookingController::class,
             "deliver",
         ]);
+    });
+
+    // Rider: on-demand rides — RIDE_HAILING_PLAN.md §4–5
+    Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
+        Route::get("/nearby", [RideController::class, "nearby"]);
     });
 
     // Online/offline + location heartbeat — story S5.1

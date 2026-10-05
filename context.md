@@ -356,6 +356,11 @@ POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|lugga
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates
 
+# perm: request-rides — rider side of on-demand rides
+GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
+      verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
+      closest first, max 50, positions rounded to ~100 m, no phone numbers
+
 # perm: offer-rides (verified drivers) — online/offline (story S5.1)
 GET   /driver/presence            { online, online_since, blocked_reasons[] }
 POST  /driver/presence            { online, lat, lng, heading } — heartbeat every ~8 s while online
