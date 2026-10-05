@@ -35,6 +35,8 @@ class Agency extends Model
 
     public function getAverageRatingAttribute(): float
     {
-        return round($this->ratings()->avg('stars') ?? 0, 1);
+        // Use eager-loaded ratings when present (trip search loads them) to avoid a query per agency.
+        $avg = $this->relationLoaded('ratings') ? $this->ratings->avg('stars') : $this->ratings()->avg('stars');
+        return round($avg ?? 0, 1);
     }
 }
