@@ -155,6 +155,8 @@ function TabsNavigator() {
       <Tabs.Screen name="logs/index"      options={{ href: null }} />
       <Tabs.Screen name="agencies/index"  options={{ href: null }} />
       <Tabs.Screen name="trips/index"     options={{ href: null }} />
+      <Tabs.Screen name="roles/index"     options={{ href: null }} />
+      <Tabs.Screen name="roles/[id]"      options={{ href: null }} />
     </Tabs>
   );
 }
