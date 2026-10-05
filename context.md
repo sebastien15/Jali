@@ -338,6 +338,13 @@ GET   /admin/bookings
 PATCH /admin/bookings/{id}
 
 # perm: apply-as-driver (every role) — driver onboarding
+GET    /driver/onboarding         checklist (services, profile, licence, documents, vehicle, rates) + status
+PUT    /driver/onboarding/services
+PUT    /driver/onboarding/licence expired licence → 422
+POST   /driver/onboarding/submit  → status pending (resubmit after rejection allowed)
+POST   /driver/documents          multipart type+file → private 'local' disk
+GET    /driver/documents/{id}/file owner or verify-drivers only (404 otherwise)
+GET    /driver/profile · PATCH /driver/profile · GET/PUT /driver/rates (applicants can set prices)
 GET    /driver/vehicles           my vehicles (active first)
 POST   /driver/vehicles           add (first becomes active); plate unique, insurance date required
 PATCH  /driver/vehicles/{id}      edit own vehicle (404 for others')
@@ -399,6 +406,7 @@ app/Models/
 ├── Location.php           { name, city }
 ├── LocationChangeRequest.php  admin location change requests
 ├── ActivityLog.php        admin activity trail
+├── DriverDocument.php     licence front/back, national ID, selfie, insurance (private files)
 ├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
 ├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
 ├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)

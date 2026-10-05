@@ -36,6 +36,7 @@ class DriverProfile extends Model
             'languages'          => 'array',
             'licence_expiry'     => 'date:Y-m-d',
             'verified_at'        => 'datetime',
+            'submitted_at'       => 'datetime',
             'rating_avg'         => 'float',
         ];
     }

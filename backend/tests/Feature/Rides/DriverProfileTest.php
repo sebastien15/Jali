@@ -132,11 +132,16 @@ class DriverProfileTest extends TestCase
     }
 
     /** @test */
-    public function profile_requires_driver_permission_and_auth()
+    public function profile_requires_sign_in_and_the_apply_as_driver_permission()
     {
         $this->getJson('/api/driver/profile')->assertStatus(401);
 
+        // Riders can fill in their driver profile while applying
         Sanctum::actingAs($this->makeUser('user'));
+        $this->getJson('/api/driver/profile')->assertOk();
+
+        // An account without any role has no permissions at all
+        Sanctum::actingAs(User::create(['name' => 'No role']));
         $this->getJson('/api/driver/profile')->assertStatus(403);
         $this->patchJson('/api/driver/profile', $this->setupPayload)->assertStatus(403);
     }

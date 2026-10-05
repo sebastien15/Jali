@@ -43,6 +43,7 @@ export const queryKeys = {
     profile: () => ["driver", "profile"] as const,
     rates: () => ["driver", "rates"] as const,
     vehicles: () => ["driver", "vehicles"] as const,
+    onboarding: () => ["driver", "onboarding"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────

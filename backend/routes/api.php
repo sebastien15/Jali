@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PushTokenController;
 use App\Http\Controllers\DriverRateController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\DriverOnboardingController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -94,12 +95,21 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::delete("/vehicles/{id}", [VehicleController::class, "destroy"])->whereNumber("id");
         Route::post("/vehicles/{id}/activate", [VehicleController::class, "activate"])->whereNumber("id");
         Route::post("/vehicles/{id}/photos", [VehicleController::class, "uploadPhoto"])->whereNumber("id");
-    });
 
-    // Driver-set ride prices — RIDE_HAILING_PLAN.md §3.1
-    Route::middleware("permission:offer-rides")->group(function () {
-        Route::get("/driver/rates", [DriverRateController::class, "show"]);
-        Route::put("/driver/rates", [DriverRateController::class, "update"]);
+        Route::get("/onboarding", [DriverOnboardingController::class, "show"]);
+        Route::put("/onboarding/services", [DriverOnboardingController::class, "services"]);
+        Route::put("/onboarding/licence", [DriverOnboardingController::class, "licence"]);
+        Route::post("/onboarding/submit", [DriverOnboardingController::class, "submit"]);
+        Route::post("/documents", [DriverOnboardingController::class, "uploadDocument"]);
+        // Owner or verify-drivers only — checked in the controller (404 otherwise)
+        Route::get("/documents/{id}/file", [DriverOnboardingController::class, "documentFile"])->whereNumber("id");
+
+        Route::get("/profile", [DriverController::class, "profile"]);
+        Route::patch("/profile", [DriverController::class, "updateProfile"]);
+
+        // Applicants set prices before verification; going online still needs offer-rides (S5.1)
+        Route::get("/rates", [DriverRateController::class, "show"]);
+        Route::put("/rates", [DriverRateController::class, "update"]);
     });
 
     // Driver routes
@@ -108,11 +118,6 @@ Route::middleware("auth:sanctum")->group(function () {
         ->group(function () {
             Route::get("/stats", [DriverController::class, "stats"]);
             Route::get("/trips", [DriverController::class, "trips"]);
-            Route::get("/profile", [DriverController::class, "profile"]);
-            Route::patch("/profile", [
-                DriverController::class,
-                "updateProfile",
-            ]);
             Route::get("/listings", [
                 PrivateSeatController::class,
                 "driverListings",
