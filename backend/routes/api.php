@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PushTokenController;
 use App\Http\Controllers\DriverRateController;
+use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -83,6 +84,16 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:manage-ride-pricing")->group(function () {
         Route::get("/admin/settings/rides", [RideSettingsController::class, "show"]);
         Route::put("/admin/settings/rides", [RideSettingsController::class, "update"]);
+    });
+
+    // Driver onboarding — any signed-in user can apply (stories S1.1–S1.3)
+    Route::middleware("permission:apply-as-driver")->prefix("driver")->group(function () {
+        Route::get("/vehicles", [VehicleController::class, "index"]);
+        Route::post("/vehicles", [VehicleController::class, "store"]);
+        Route::patch("/vehicles/{id}", [VehicleController::class, "update"])->whereNumber("id");
+        Route::delete("/vehicles/{id}", [VehicleController::class, "destroy"])->whereNumber("id");
+        Route::post("/vehicles/{id}/activate", [VehicleController::class, "activate"])->whereNumber("id");
+        Route::post("/vehicles/{id}/photos", [VehicleController::class, "uploadPhoto"])->whereNumber("id");
     });
 
     // Driver-set ride prices — RIDE_HAILING_PLAN.md §3.1

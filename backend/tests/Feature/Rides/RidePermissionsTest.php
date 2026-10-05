@@ -18,6 +18,7 @@ class RidePermissionsTest extends TestCase
         'verify-drivers'      => ['superadmin' => true, 'admin' => true,  'user' => false, 'driver' => false],
         'manage-rides'        => ['superadmin' => true, 'admin' => true,  'user' => false, 'driver' => false],
         'manage-ride-pricing' => ['superadmin' => true, 'admin' => false, 'user' => false, 'driver' => false],
+        'apply-as-driver'     => ['superadmin' => true, 'admin' => true,  'user' => true,  'driver' => true],
     ];
 
     /** @test */
@@ -45,8 +46,9 @@ class RidePermissionsTest extends TestCase
         foreach (['superadmin', 'admin', 'user', 'driver'] as $name) {
             Role::firstOrCreate(['name' => $name]);
         }
-        $migration = require database_path('migrations/2026_10_05_000001_add_ride_permissions.php');
-        $migration->up();
+        foreach (['2026_10_05_000001_add_ride_permissions', '2026_10_05_000005_add_apply_as_driver_permission'] as $file) {
+            (require database_path("migrations/$file.php"))->up();
+        }
 
         $this->assertMatrix();
     }

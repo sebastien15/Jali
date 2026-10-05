@@ -60,6 +60,82 @@ export interface paths {
         patch: operations["updateDriverProfile"];
         trace?: never;
     };
+    "/driver/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My vehicles (active first) */
+        get: operations["listVehicles"];
+        put?: never;
+        /** Add a vehicle (the first one becomes active) */
+        post: operations["createVehicle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/vehicles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove one of my vehicles */
+        delete: operations["deleteVehicle"];
+        options?: never;
+        head?: never;
+        /** Edit one of my vehicles */
+        patch: operations["updateVehicle"];
+        trace?: never;
+    };
+    "/driver/vehicles/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make this the vehicle riders see (others become inactive) */
+        post: operations["activateVehicle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/vehicles/{id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or replace one vehicle photo */
+        post: operations["uploadVehiclePhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/driver/rates": {
         parameters: {
             query?: never;
@@ -360,7 +436,7 @@ export interface components {
             id: number;
             class: components["schemas"]["VehicleClass"];
             /** @enum {string|null} */
-            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | null;
+            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Motorcycle" | null;
             make?: string | null;
             model: string;
             color?: string | null;
@@ -369,12 +445,34 @@ export interface components {
             plate: string;
             seats: number;
             amenities?: string[] | null;
-            photos?: string[] | null;
+            photos?: null | unknown[] | components["schemas"]["VehiclePhotos"];
             /** Format: date */
             insurance_expiry?: string | null;
             rental_price_day?: number | null;
             rental_caution?: number | null;
             is_active: boolean;
+        };
+        /** @description Public URLs per photo slot; `front` is required before going online */
+        VehiclePhotos: {
+            front?: string;
+            side?: string;
+            interior?: string;
+            luggage?: string;
+        };
+        VehicleInput: {
+            class?: components["schemas"]["VehicleClass"];
+            /** @enum {string|null} */
+            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Motorcycle" | null;
+            make?: string | null;
+            model?: string;
+            color?: string | null;
+            year?: number | null;
+            plate?: string;
+            /** @description Moto: at most 2 */
+            seats?: number;
+            amenities?: string[] | null;
+            /** Format: date */
+            insurance_expiry?: string;
         };
         DriverProfileResponse: {
             user: {
@@ -632,6 +730,17 @@ export interface components {
                 };
             };
         };
+        /** @description Not found (or not yours) */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message?: string;
+                };
+            };
+        };
         /** @description Invalid state transition or resource already taken */
         Conflict: {
             headers: {
@@ -659,6 +768,7 @@ export interface components {
         };
     };
     parameters: {
+        VehicleId: number;
         RideId: number;
     };
     requestBodies: never;
@@ -768,6 +878,157 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listVehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleInput"] & unknown;
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Message"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    activateVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    uploadVehiclePhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @enum {string} */
+                    slot: "front" | "side" | "interior" | "luggage";
+                    /**
+                     * Format: binary
+                     * @description jpg/png/webp/heic, max 8 MB
+                     */
+                    photo: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };
     };
