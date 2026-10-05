@@ -306,6 +306,20 @@ class AuthController extends Controller
     }
 
     /**
+     * Register the device's Expo push token for booking notifications.
+     */
+    public function savePushToken(Request $request)
+    {
+        $data = $request->validate([
+            "token" => ["required", "string", "max:255", "regex:/^ExponentPushToken\[[A-Za-z0-9_-]+\]$/"],
+        ]);
+
+        $request->user()->forceFill(["fcm_token" => $data["token"]])->save();
+
+        return response()->json(["ok" => true]);
+    }
+
+    /**
      * Get current user profile
      */
     public function me(Request $request)

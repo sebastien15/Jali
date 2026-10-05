@@ -73,6 +73,19 @@ class Booking extends Model
         'ticket_ready' => ['ticket_ready', 'delivered'],
     ];
 
+    private function notifyPassenger(): void
+    {
+        $message = match ($this->status) {
+            'taken'        => ['Booking confirmed', "We're getting your ticket for {$this->title}."],
+            'ticket_ready' => ['Your ticket is ready', "Tap to view your ticket for {$this->title}."],
+            'cancelled'    => ['Booking cancelled', "Your booking for {$this->title} was cancelled."],
+            default        => null,
+        };
+        if ($message) {
+            app(\App\Services\PushNotifier::class)->send($this->user, $message[0], $message[1], ['booking_id' => $this->id]);
+        }
+    }
+
     public function canTransitionTo(string $status): bool
     {
         return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
@@ -100,6 +113,7 @@ class Booking extends Model
 
         if ($updated) {
             $this->refresh();
+            $this->notifyPassenger();
         }
         return (bool) $updated;
     }

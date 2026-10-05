@@ -51,6 +51,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::get("/me", [AuthController::class, "me"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
     Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
+    Route::post("/me/push-token", [AuthController::class, "savePushToken"]);
 
     // Bookings
     Route::get("/bookings", [BookingController::class, "index"]);
