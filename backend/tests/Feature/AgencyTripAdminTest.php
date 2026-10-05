@@ -84,4 +84,12 @@ class AgencyTripAdminTest extends TestCase
         $this->patchJson("/api/admin/trips/{$id}", ['active' => true])->assertStatus(422);
         $this->patchJson("/api/admin/trips/{$id}", ['active' => true, 'price' => 3000])->assertOk();
     }
+
+    public function test_agency_and_route_detail_endpoints_work(): void
+    {
+        $this->actingAsRole('superadmin');
+
+        $this->getJson("/api/admin/agencies/{$this->route->agency_id}")->assertOk()->assertJsonPath('id', $this->route->agency_id);
+        $this->getJson("/api/admin/trips/{$this->route->id}")->assertOk()->assertJsonPath('id', $this->route->id);
+    }
 }

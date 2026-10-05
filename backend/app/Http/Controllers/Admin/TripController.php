@@ -23,6 +23,12 @@ class TripController extends Controller
         return response()->json($routes->map(fn($r) => $this->formatRoute($r)));
     }
 
+    public function show($id)
+    {
+        $route = AgencyRoute::with(['agency', 'fromStation', 'toStation', 'departures'])->findOrFail($id);
+        return response()->json($this->formatRoute($route));
+    }
+
     /**
      * Create a new agency route (optionally with a first departure time).
      */

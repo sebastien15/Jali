@@ -40,6 +40,12 @@ class AgencyController extends Controller
         ]));
     }
 
+    public function show($id)
+    {
+        $agency = Agency::with(['routes.fromStation', 'routes.toStation', 'ratings'])->findOrFail($id);
+        return response()->json($this->formatAgency($agency));
+    }
+
     /**
      * Create a new agency.
      */
