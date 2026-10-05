@@ -83,6 +83,7 @@ Route::middleware("auth:sanctum")->group(function () {
         ->group(function () {
             Route::get("/stats", [DriverController::class, "stats"]);
             Route::get("/trips", [DriverController::class, "trips"]);
+            Route::get("/profile", [DriverController::class, "profile"]);
             Route::patch("/profile", [
                 DriverController::class,
                 "updateProfile",

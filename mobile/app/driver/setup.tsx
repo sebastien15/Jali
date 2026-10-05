@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StatusBar, Alert, ActivityIndicator, Image,
@@ -11,7 +11,9 @@ import { C } from "@/constants/theme";
 import { useDriverMode, DriverType } from "@/lib/DriverModeContext";
 import { auth } from "@/lib/firebase";
 import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 const CAR_TYPES = ["Sedan", "SUV", "Minivan", "Pickup"] as const;
@@ -23,6 +25,18 @@ const PHOTO_SLOTS: { key: PhotoSlot; label: string; icon: React.ComponentProps<t
   { key: "interior", label: "Interior",       icon: "grid-outline" },
   { key: "luggage",  label: "Luggage Space",  icon: "briefcase-outline" },
 ];
+
+type DriverProfileResponse = {
+  user: { name: string | null; phone: string | null };
+  profile: { allowed_zones: string[]; docs_url: string | null } | null;
+  vehicle: {
+    model: string; plate: string; seats: number; body_type: string | null;
+    amenities: string[] | null; insurance_expiry: string | null;
+    rental_price_day: number | null; rental_caution: number | null;
+  } | null;
+};
+
+type FieldErrors = Partial<Record<string, string>>;
 
 export default function DriverSetupScreen() {
   const { driverType } = useDriverMode();
@@ -44,6 +58,43 @@ export default function DriverSetupScreen() {
   const [photos, setPhotos]         = useState<Record<PhotoSlot, string | null>>({
     front: null, side: null, interior: null, luggage: null,
   });
+  const [errors, setErrors]         = useState<FieldErrors>({});
+
+  const queryClient = useQueryClient();
+  const { data: saved, isLoading } = useQuery({
+    queryKey: queryKeys.driver.profile(),
+    queryFn: () => api.get<DriverProfileResponse>("/driver/profile").then(r => r.data),
+    staleTime: 5 * 60_000,
+  });
+
+  // Pre-fill the form once with what the server already has
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!saved || prefilled.current) return;
+    prefilled.current = true;
+    if (saved.user.name) setName(saved.user.name);
+    if (saved.user.phone) setPhone(saved.user.phone);
+    if (saved.profile) {
+      const idx = saved.profile.allowed_zones
+        .map(z => ZONES.indexOf(z))
+        .filter(i => i >= 0);
+      if (idx.length) setZones(idx);
+      setDocsUrl(saved.profile.docs_url ?? "");
+    }
+    const v = saved.vehicle;
+    if (v) {
+      setCarModel(v.model);
+      setPlate(v.plate);
+      setSeats(String(v.seats));
+      if (v.body_type && (CAR_TYPES as readonly string[]).includes(v.body_type)) {
+        setCarType(v.body_type as typeof CAR_TYPES[number]);
+      }
+      setAmenities((v.amenities ?? []) as CarAmenity[]);
+      setInsExpiry(v.insurance_expiry ?? "");
+      setPriceDay(v.rental_price_day != null ? String(v.rental_price_day) : "");
+      setCaution(v.rental_caution != null ? String(v.rental_caution) : "");
+    }
+  }, [saved]);
 
   function toggleZone(i: number) {
     setZones(z => z.includes(i) ? z.filter(x => x !== i) : [...z, i]);
@@ -76,6 +127,7 @@ export default function DriverSetupScreen() {
       return;
     }
     setSaving(true);
+    setErrors({});
     try {
       await api.patch("/driver/profile", {
         name,
@@ -90,11 +142,22 @@ export default function DriverSetupScreen() {
         docs_url: docsUrl,
         amenities,
       });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.driver.profile() });
       Alert.alert("Saved ✓", "Your profile has been updated.", [
         { text: "OK", onPress: () => router.back() },
       ]);
-    } catch {
-      Alert.alert("Error", "Could not save. Please try again.");
+    } catch (err: any) {
+      const fieldErrors = err?.response?.status === 422 ? err.response.data?.errors : null;
+      if (fieldErrors) {
+        const first: FieldErrors = {};
+        for (const [key, messages] of Object.entries(fieldErrors)) {
+          first[key] = Array.isArray(messages) ? String(messages[0]) : String(messages);
+        }
+        setErrors(first);
+        Alert.alert("Check your details", Object.values(first)[0] ?? "Some fields are invalid.");
+      } else {
+        Alert.alert("Error", "Could not save. Please try again.");
+      }
     } finally {
       setSaving(false);
     }
@@ -122,6 +185,12 @@ export default function DriverSetupScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {isLoading ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <ActivityIndicator size="small" color={C.teal} />
+            <Text style={{ color: C.muted, fontSize: 12 }}>Loading your saved details…</Text>
+          </View>
+        ) : null}
 
         {/* Section: Profile */}
         <SectionHeader label="My Profile" icon="person-outline" />
@@ -145,7 +214,7 @@ export default function DriverSetupScreen() {
         {/* Section: Vehicle */}
         <SectionHeader label="My Vehicle" icon="car-outline" />
 
-        <Field label="Car Model">
+        <Field label="Car Model" error={errors.car_model}>
           <TextInput
             value={carModel} onChangeText={setCarModel}
             placeholder="e.g. Toyota Hiace"
@@ -153,7 +222,7 @@ export default function DriverSetupScreen() {
           />
         </Field>
 
-        <Field label="Plate Number">
+        <Field label="Plate Number" error={errors.plate}>
           <TextInput
             value={plate} onChangeText={setPlate}
             placeholder="e.g. RAB 123A"
@@ -181,7 +250,7 @@ export default function DriverSetupScreen() {
           </View>
         </Field>
 
-        <Field label="Number of Seats">
+        <Field label="Number of Seats" error={errors.seats}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <TouchableOpacity
               onPress={() => setSeats(s => String(Math.max(1, parseInt(s) - 1)))}
@@ -321,15 +390,16 @@ export default function DriverSetupScreen() {
           </View>
         </Field>
 
-        <Field label="Insurance Expiry">
+        <Field label="Insurance Expiry" error={errors.insurance_expiry}>
           <TextInput
             value={insExpiry} onChangeText={setInsExpiry}
-            placeholder="e.g. Dec 2025"
+            placeholder="YYYY-MM-DD, e.g. 2026-12-31"
+            keyboardType="numbers-and-punctuation"
             style={styles.input}
           />
         </Field>
 
-        <Field label="T&Cs / Insurance Doc URL">
+        <Field label="T&Cs / Insurance Doc URL" error={errors.docs_url}>
           <TextInput
             value={docsUrl} onChangeText={setDocsUrl}
             placeholder="Paste Firebase Storage link"
@@ -371,11 +441,14 @@ function SectionHeader({ label, icon }: { label: string; icon: React.ComponentPr
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 14 }}>
       <Text style={{ fontWeight: "700", fontSize: 13, color: C.mid, marginBottom: 6 }}>{label}</Text>
       {children}
+      {error ? (
+        <Text style={{ color: C.orange, fontSize: 12, fontWeight: "600", marginTop: 4 }}>{error}</Text>
+      ) : null}
     </View>
   );
 }

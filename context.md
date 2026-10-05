@@ -291,7 +291,8 @@ POST   /bookings/{id}/deliver     Mark delivered
 # perm: create-private-seats (driver routes)
 GET    /driver/stats
 GET    /driver/trips
-PATCH  /driver/profile
+GET    /driver/profile            Driver profile + active vehicle + vehicles
+PATCH  /driver/profile            Saves setup.tsx data (name, zones, docs, active vehicle)
 GET    /driver/listings
 POST   /driver/listings
 PATCH  /driver/listings/{id}
@@ -380,6 +381,8 @@ app/Models/
 ├── Location.php           { name, city }
 ├── LocationChangeRequest.php  admin location change requests
 ├── ActivityLog.php        admin activity trail
+├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
+├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price
 └── AdminStation.php       admin ↔ station assignments
 ```
 
