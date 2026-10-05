@@ -6,7 +6,19 @@ import { Platform } from "react-native";
 import type { TFunction } from "i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import type { QueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
+
+/**
+ * Refresh everything a booking change affects: the queues, the dashboard /
+ * analytics counts and the admin profile (earnings, available balance).
+ */
+export function invalidateAfterBookingChange(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.all() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+}
 
 // Backend messages that have a translation; anything else is shown verbatim.
 const BACKEND_ERROR_KEYS: Record<string, string> = {

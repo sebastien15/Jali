@@ -69,6 +69,7 @@ export const queryKeys = {
     role: (id: number) => ["admin", "roles", id] as const,
     permissions: () => ["admin", "permissions"] as const,
     analytics: {
+      all: () => ["admin", "analytics"] as const,
       revenue: () => ["admin", "analytics", "revenue"] as const,
       bookings: () => ["admin", "analytics", "bookings"] as const,
       earnings: () => ["admin", "analytics", "earnings"] as const,

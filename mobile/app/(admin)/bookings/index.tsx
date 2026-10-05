@@ -20,6 +20,7 @@ import { Toast, ToastHandle } from "@/components/Toast";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   resolveBookingError, statusChangeMessage, changeBookingStatus, pickAndUploadTicket,
+  invalidateAfterBookingChange,
 } from "@/lib/adminBookings";
 
 type BookingStatus = "pending" | "cancelled" | "taken" | "ticket_ready" | "delivered";
@@ -80,7 +81,7 @@ export default function AdminBookingsScreen() {
       toastRef.current?.show({ message: resolveBookingError(e, t), type: "error" });
     } finally {
       // Also on error: a 422 "just updated by someone else" means our list is stale
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
+      invalidateAfterBookingChange(queryClient);
       setActionLoading(null);
     }
   }
@@ -91,7 +92,7 @@ export default function AdminBookingsScreen() {
       const uploaded = await pickAndUploadTicket(id);
       if (!uploaded) return;
       toastRef.current?.show({ message: t("adminBookings.ticketUploaded"), type: "success" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
+      invalidateAfterBookingChange(queryClient);
     } catch (e: any) {
       toastRef.current?.show({
         message: resolveBookingError(e, t, "adminBookings.uploadTicketFailed"),

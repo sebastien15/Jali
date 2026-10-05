@@ -15,6 +15,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { formatYmd } from "@/lib/date";
 import {
   resolveBookingError, statusChangeMessage, changeBookingStatus, pickAndUploadTicket,
+  invalidateAfterBookingChange,
 } from "@/lib/adminBookings";
 
 const STATUS_META: Record<string, { key: string; color: string; bg: string }> = {
@@ -54,7 +55,7 @@ export default function AdminBookingDetailScreen() {
   });
 
   function refresh() {
-    queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
+    invalidateAfterBookingChange(queryClient);
   }
 
   async function handleStatus(status: "taken" | "delivered") {
