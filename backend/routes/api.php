@@ -9,6 +9,7 @@ use App\Http\Controllers\DriverOnboardingController;
 use App\Http\Controllers\DriverPresenceController;
 use App\Http\Controllers\RideController;
 use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\DriverRideController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\BookingController;
@@ -88,6 +89,21 @@ Route::middleware("auth:sanctum")->group(function () {
     // Rider: on-demand rides — RIDE_HAILING_PLAN.md §4–5
     Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
         Route::get("/nearby", [RideController::class, "nearby"]);
+        Route::get("/", [RideController::class, "index"]);
+        Route::post("/", [RideController::class, "store"]);
+        Route::get("/active", [RideController::class, "active"]);
+        Route::get("/{id}", [RideController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/cancel", [RideController::class, "cancel"])->whereNumber("id");
+        Route::post("/{id}/rate", [RideController::class, "rate"])->whereNumber("id");
+    });
+    // Driver side of a ride — stories S5.2, S4.1, S4.2, S4.4
+    Route::middleware("permission:offer-rides")->group(function () {
+        Route::get("/driver/ride-requests", [DriverRideController::class, "requests"]);
+        Route::post("/rides/{id}/accept", [DriverRideController::class, "accept"])->whereNumber("id");
+        Route::post("/rides/{id}/decline", [DriverRideController::class, "decline"])->whereNumber("id");
+        Route::post("/rides/{id}/arrive", [DriverRideController::class, "arrive"])->whereNumber("id");
+        Route::post("/rides/{id}/start", [DriverRideController::class, "start"])->whereNumber("id");
+        Route::post("/rides/{id}/complete", [DriverRideController::class, "complete"])->whereNumber("id");
     });
     Route::middleware(["permission:request-rides", "throttle:60,1"])->prefix("places")->group(function () {
         Route::get("/search", [PlaceController::class, "search"]);
