@@ -268,9 +268,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Am I online, and what blocks me from going online? */
+        get: operations["getDriverPresence"];
         put?: never;
-        /** Online/offline heartbeat with position (every 5–10 s while online) */
+        /**
+         * Go online/offline; while online send this heartbeat with the position every 5–10 s
+         * @description Going online is refused (online=false with blocked_reasons) until the driver is verified and the
+         *     active vehicle has valid insurance, a front photo and prices within the limits. Without a heartbeat
+         *     for presence_ttl_sec the driver is treated as offline.
+         */
         post: operations["postDriverPresence"];
         delete?: never;
         options?: never;
@@ -781,6 +787,12 @@ export interface components {
             pickup_per_km: number;
             /** @default 1 */
             night_multiplier: number;
+        };
+        DriverPresenceState: {
+            online: boolean;
+            /** Format: date-time */
+            online_since: string | null;
+            blocked_reasons: ("not_verified" | "suspended" | "no_active_vehicle" | "insurance_expired" | "no_vehicle_photo" | "no_rates" | "rates_outside_limits")[];
         };
         DriverRatesResponse: {
             vehicle: null | {
@@ -1498,6 +1510,28 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    getDriverPresence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverPresenceState"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     postDriverPresence: {
         parameters: {
             query?: never;
@@ -1509,10 +1543,11 @@ export interface operations {
             content: {
                 "application/json": {
                     online: boolean;
-                    lat?: number;
-                    lng?: number;
+                    /** @description Required when online */
+                    lat?: number | null;
+                    /** @description Required when online */
+                    lng?: number | null;
                     heading?: number | null;
-                    vehicle_id?: number;
                 };
             };
         };
@@ -1523,13 +1558,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        online?: boolean;
-                        /** @description Why the driver cannot go online (unverified, no rates, insurance expired, commission owed…) */
-                        blocked_reasons?: string[];
-                    };
+                    "application/json": components["schemas"]["DriverPresenceState"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listRideRequests: {

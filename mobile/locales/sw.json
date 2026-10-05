@@ -721,6 +721,24 @@
       "submitted": "Ombi limetumwa ✓",
       "error": "Kuna tatizo. Jaribu tena.",
       "required": "Inahitajika"
+    },
+    "presence": {
+      "online": "Uko mtandaoni",
+      "offline": "Uko nje ya mtandao",
+      "goOnline": "Ingia mtandaoni",
+      "goOffline": "Toka mtandaoni",
+      "keepOpen": "Acha Jali wazi ukiwa mtandaoni ili abiria wakupate.",
+      "since": "Mtandaoni tangu {{time}}",
+      "missing": "Kabla ya kuingia mtandaoni:",
+      "locationDenied": "Ruhusu eneo ili abiria wakupate.",
+      "not_verified": "Ombi lako la udereva bado halijaidhinishwa",
+      "suspended": "Akaunti yako ya dereva imesimamishwa",
+      "no_active_vehicle": "Ongeza na uchague gari lako",
+      "insurance_expired": "Bima ya gari lako imeisha",
+      "no_vehicle_photo": "Ongeza picha ya mbele ya gari",
+      "no_rates": "Weka bei zako",
+      "rates_outside_limits": "Rekebisha bei zako ziendane na viwango vya Jali",
+      "fix": "Rekebisha"
     }
   }
 }

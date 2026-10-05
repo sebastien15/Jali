@@ -356,6 +356,13 @@ POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|lugga
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates
 
+# perm: offer-rides (verified drivers) — online/offline (story S5.1)
+GET   /driver/presence            { online, online_since, blocked_reasons[] }
+POST  /driver/presence            { online, lat, lng, heading } — heartbeat every ~8 s while online
+      blocked when: not verified / suspended / no active vehicle / insurance expired /
+      no front photo / no rates / rates outside limits. Offline after presence_ttl_sec without heartbeat.
+      Scheduler: `rides:expire-presence` every minute (needs cron → php artisan schedule:run)
+
 # perm: verify-drivers (admin, superadmin) — driver verification queue
 GET   /admin/drivers?status=pending|verified|rejected|suspended   oldest submission first
 GET   /admin/drivers/{userId}     application: licence, checklist, documents, vehicles, prices
@@ -415,6 +422,7 @@ app/Models/
 ├── ActivityLog.php        admin activity trail
 ├── DriverDocument.php     licence front/back, national ID, selfie, insurance (private files)
 ├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
+├── DriverPresence.php     online flag + last position per driver (scope live() = within TTL)
 ├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
 ├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)
 ├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price

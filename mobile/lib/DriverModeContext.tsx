@@ -22,6 +22,8 @@ interface DriverModeCtx {
   driverType: DriverType;
   /** false until the saved state has been read from storage */
   hydrated: boolean;
+  /** Permission names from /me (empty until loaded or for signed-out users) */
+  permissions: string[];
   setDriverMode: (v: boolean) => void;
   setDriverType: (t: DriverType) => void;
 }
@@ -30,6 +32,7 @@ const DriverModeContext = createContext<DriverModeCtx>({
   driverMode: false,
   driverType: null,
   hydrated: false,
+  permissions: [],
   setDriverMode: () => {},
   setDriverType: () => {},
 });
@@ -43,16 +46,16 @@ function typeFromServices(services: string[] | undefined): DriverType {
   return match ?? null;
 }
 
-async function canDrive(): Promise<boolean> {
+async function fetchPermissions(): Promise<string[]> {
   const me = await api.get("/me").then(r => r.data?.user ?? r.data);
-  const permissions: string[] = me?.permissions ?? [];
-  return DRIVER_PERMISSIONS.some(p => permissions.includes(p));
+  return me?.permissions ?? [];
 }
 
 export function DriverModeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Stored>({ driverMode: false, driverType: null });
   const [hydrated, setHydrated] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   // 1) Restore what this phone remembers, 2) fill gaps from the server (new phone / reinstall)
   useEffect(() => {
@@ -70,8 +73,10 @@ export function DriverModeProvider({ children }: { children: ReactNode }) {
       setHydrated(true);
 
       try {
-        if (!(await canDrive())) return;
+        const perms = await fetchPermissions();
         if (cancelled) return;
+        setPermissions(perms);
+        if (!DRIVER_PERMISSIONS.some(p => perms.includes(p))) return;
         setIsDriver(true);
         if (local?.driverType) return;
         const profile = await api.get("/driver/profile").then(r => r.data?.profile);
@@ -113,7 +118,7 @@ export function DriverModeProvider({ children }: { children: ReactNode }) {
   }, [persist, isDriver]);
 
   return (
-    <DriverModeContext.Provider value={{ ...state, hydrated, setDriverMode, setDriverType }}>
+    <DriverModeContext.Provider value={{ ...state, hydrated, permissions, setDriverMode, setDriverType }}>
       {children}
     </DriverModeContext.Provider>
   );

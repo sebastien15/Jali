@@ -721,6 +721,24 @@
       "submitted": "Application sent ✓",
       "error": "Something went wrong. Please try again.",
       "required": "Required"
+    },
+    "presence": {
+      "online": "You're online",
+      "offline": "You're offline",
+      "goOnline": "Go online",
+      "goOffline": "Go offline",
+      "keepOpen": "Keep Jali open while online so riders can find you.",
+      "since": "Online since {{time}}",
+      "missing": "Before you can go online:",
+      "locationDenied": "Allow location access so riders can find you.",
+      "not_verified": "Your driver application isn't approved yet",
+      "suspended": "Your driver account is suspended",
+      "no_active_vehicle": "Add and select your vehicle",
+      "insurance_expired": "Your vehicle insurance has expired",
+      "no_vehicle_photo": "Add a front photo of your vehicle",
+      "no_rates": "Set your ride prices",
+      "rates_outside_limits": "Update your prices to fit Jali's limits",
+      "fix": "Fix"
     }
   }
 }
