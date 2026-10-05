@@ -7,6 +7,7 @@ use App\Http\Controllers\DriverRateController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DriverOnboardingController;
 use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\CarRentalController;
@@ -79,6 +80,15 @@ Route::middleware("auth:sanctum")->group(function () {
             BookingController::class,
             "deliver",
         ]);
+    });
+
+    // Driver verification queue — story S1.4
+    Route::middleware("permission:verify-drivers")->prefix("admin/drivers")->group(function () {
+        Route::get("/", [AdminDriverController::class, "index"]);
+        Route::get("/{userId}", [AdminDriverController::class, "show"])->whereNumber("userId");
+        Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
+        Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");
+        Route::post("/{userId}/suspend", [AdminDriverController::class, "suspend"])->whereNumber("userId");
     });
 
     // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3

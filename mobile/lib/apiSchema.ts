@@ -497,6 +497,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driver applications by status, oldest submission first */
+        get: operations["listDriverApplications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        /** Full application with documents, vehicles and prices */
+        get: operations["getDriverApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending application (documents approved; riders get the driver role; push sent) */
+        post: operations["verifyDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject with a reason, optionally per document */
+        post: operations["rejectDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend a driver (cannot go online or accept rides) */
+        post: operations["suspendDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings/rides": {
         parameters: {
             query?: never;
@@ -591,6 +684,29 @@ export interface components {
                 /** Format: date-time */
                 updated_at: string | null;
             }[];
+        };
+        DriverApplication: {
+            user: {
+                id: number;
+                name: string | null;
+                email: string | null;
+                phone: string | null;
+                role: string;
+                profile_image_url?: string | null;
+            };
+            /** @enum {string} */
+            status: "pending" | "verified" | "rejected" | "suspended";
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** Format: date-time */
+            verified_at: string | null;
+            rejection_reason: string | null;
+            services: components["schemas"]["DriverService"][];
+            licence: components["schemas"]["DriverOnboarding"]["licence"];
+            checklist: components["schemas"]["DriverOnboarding"]["steps"];
+            documents: components["schemas"]["DriverOnboarding"]["documents"];
+            vehicles: components["schemas"]["Vehicle"][];
+            rates: components["schemas"]["DriverRates"][];
         };
         /** @description Public URLs per photo slot; `front` is required before going online */
         VehiclePhotos: {
@@ -908,6 +1024,7 @@ export interface components {
         };
     };
     parameters: {
+        UserId: number;
         DocumentId: number;
         VehicleId: number;
         RideId: number;
@@ -1751,6 +1868,150 @@ export interface operations {
         responses: {
             201: components["responses"]["Message"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    listDriverApplications: {
+        parameters: {
+            query?: {
+                status?: "pending" | "verified" | "rejected" | "suspended";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user_id: number;
+                        name: string | null;
+                        phone: string | null;
+                        services: components["schemas"]["DriverService"][];
+                        /** @enum {string} */
+                        status: "pending" | "verified" | "rejected" | "suspended";
+                        /** Format: date-time */
+                        submitted_at: string | null;
+                    }[];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getDriverApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    verifyDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Verified */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rejectDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    /** @description Document type → reason, e.g. {"selfie": "Face not visible"} */
+                    documents?: {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Rejected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    suspendDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Suspended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
         };
     };
     getRideSettings: {
