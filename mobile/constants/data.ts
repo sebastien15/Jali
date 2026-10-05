@@ -21,17 +21,24 @@ export const CAR_AMENITIES = [
 ] as const;
 export type CarAmenity = typeof CAR_AMENITIES[number];
 
-export type TripStatus = "pending" | "confirmed" | "completed";
-export type TripType = "bus" | "rental" | "private";
+/** Booking lifecycle as enforced by the backend (BookingController / AdminBookingController). */
+export type TripStatus = "pending" | "taken" | "ticket_ready" | "delivered" | "cancelled";
+/** Bus-company trips are created as "trip"; "bus" is the legacy bus listing type. */
+export type TripType = "trip" | "bus" | "rental" | "private";
 
+/** An item of GET /bookings (the caller's own bookings). */
 export interface Trip {
   id: number;
   type: TripType;
   title: string;
-  sub: string;
+  sub?: string | null;
   price: number;
+  service_fee?: number;
   status: TripStatus;
-  ticketPhotoUrl?: string;
+  quantity?: number | null;
+  travel_date?: string | null;
+  created_at?: string;
+  ticket_photo_url?: string | null;
 }
 
 export const PAY_METHODS = ["MTN MoMo", "Airtel Money", "Card"] as const;

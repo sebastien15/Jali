@@ -104,7 +104,7 @@
   "trips": {
     "myTrips": "My Trips",
     "filterAll": "all",
-    "filterPending": "pending",
+    "filterPending": "In progress",
     "filterConfirmed": "confirmed",
     "filterCompleted": "completed",
     "retry": "Retry",
@@ -114,7 +114,11 @@
     "showAtStation": "Show at station",
     "view": "View",
     "awaitingConfirmation": "Awaiting confirmation — admin is arranging your ticket",
-    "close": "Close"
+    "close": "Close",
+    "filterReady": "Ticket ready",
+    "filterDelivered": "Delivered",
+    "filterCancelled": "Cancelled",
+    "loadFailed": "Failed to load trips"
   },
   "login": {
     "enterPhone": "Enter your Rwandan number",

@@ -104,7 +104,7 @@
   "trips": {
     "myTrips": "Ingendo zanjye",
     "filterAll": "zose",
-    "filterPending": "zitegereje",
+    "filterPending": "Biri gukorwaho",
     "filterConfirmed": "zemewe",
     "filterCompleted": "zarangiye",
     "retry": "Ongera ugerageze",
@@ -114,7 +114,11 @@
     "showAtStation": "Garagaza kuri station",
     "view": "Reba",
     "awaitingConfirmation": "Itegereje kwemezwa -- admin itegura itike yawe",
-    "close": "Funga"
+    "close": "Funga",
+    "filterReady": "Tike yabonetse",
+    "filterDelivered": "Byatanzwe",
+    "filterCancelled": "Byahagaritswe",
+    "loadFailed": "Ntibyashobotse kuzana ingendo"
   },
   "login": {
     "enterPhone": "Andika numero yawe y'u Rwanda",
