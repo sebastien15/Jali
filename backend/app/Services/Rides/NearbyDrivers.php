@@ -5,6 +5,7 @@ namespace App\Services\Rides;
 use App\Models\DriverPresence;
 use App\Models\DriverProfile;
 use App\Models\DriverRate;
+use App\Models\Ride;
 use Carbon\CarbonInterface;
 
 /**
@@ -42,6 +43,8 @@ class NearbyDrivers
             ->whereBetween('lat', [$lat - $dLat, $lat + $dLat])
             ->whereBetween('lng', [$lng - $dLng, $lng + $dLng])
             ->when($excludeUserId, fn ($q) => $q->where('user_id', '!=', $excludeUserId))
+            // Drivers with a pending request or an ongoing ride are busy
+            ->whereNotIn('user_id', Ride::whereIn('status', Ride::ACTIVE)->whereNotNull('driver_id')->select('driver_id'))
             ->whereHas('driver.driverProfile', fn ($q) => $q->where('verification_status', DriverProfile::STATUS_VERIFIED))
             ->whereHas('vehicle', fn ($q) => $q->where('is_active', true)->when($class, fn ($q) => $q->where('class', $class)))
             ->with(['driver.driverProfile', 'vehicle'])

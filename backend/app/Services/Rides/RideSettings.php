@@ -31,6 +31,8 @@ class RideSettings
             'nearby_radius_km'    => 5,
             'presence_ttl_sec'    => 60,
             'request_timeout_sec' => 30,
+            'cancel_fee'          => 500,   // charged when the rider cancels after the free waiting time
+            'free_wait_min'       => 5,
         ];
     }
 
@@ -76,6 +78,8 @@ class RideSettings
             'nearby_radius_km'    => 'sometimes|numeric|min:0.5|max:50',
             'presence_ttl_sec'    => 'sometimes|integer|min:15|max:600',
             'request_timeout_sec' => 'sometimes|integer|min:10|max:300',
+            'cancel_fee'          => 'sometimes|integer|min:0|max:10000',
+            'free_wait_min'       => 'sometimes|integer|min:0|max:30',
         ];
         foreach (array_keys(self::defaults()['vehicle_classes']) as $class) {
             $rules["vehicle_classes.$class"] = 'sometimes|array';

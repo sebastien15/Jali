@@ -365,6 +365,13 @@ GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_
       verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
       closest first, max 50, positions rounded to ~100 m, no phone numbers
 
+POST  /rides                      {mode:"pick", driver_id, pickup{lat,lng,address}, dropoff{…}, payment_method}
+                                   → price computed server-side and locked (rate_snapshot); 409 if busy/unavailable
+GET   /rides                      my rides as rider (paginated)
+GET   /rides/active               current ride as rider or driver, or JSON null — poll during a trip
+GET   /rides/{id}                 rider or assigned driver only (404 otherwise); PIN only for the rider
+POST  /rides/{id}/cancel          {reason} — rider: requested/accepted/arrived (fee after free wait); driver: accepted/arrived
+POST  /rides/{id}/rate            {stars, tags?, comment?} once per person, after completion
 GET   /places/search?q&lat&lng   Rwanda places (Nominatim, cached 1 day, 60/min)
 GET   /places/reverse?lat&lng    readable address (falls back to coordinates)
 
@@ -374,6 +381,13 @@ POST  /driver/presence            { online, lat, lng, heading } — heartbeat ev
       blocked when: not verified / suspended / no active vehicle / insurance expired /
       no front photo / no rates / rates outside limits. Offline after presence_ttl_sec without heartbeat.
       Scheduler: `rides:expire-presence` every minute (needs cron → php artisan schedule:run)
+
+GET   /driver/ride-requests       request cards (pickup area only, earnings after commission, expires_at)
+POST  /rides/{id}/accept          atomic — 409 if taken/expired
+POST  /rides/{id}/decline · /arrive · /start {pin} (5 wrong → 423 + flagged) · /complete {payment_method}
+      Ride states: requested → accepted → arrived → in_progress → completed | declined | expired | cancelled_by_*
+      Every transition writes ride_events (append-only) and pushes the other party.
+      Scheduler: `rides:expire-requests` every minute (requests also expire lazily when read)
 
 # perm: verify-drivers (admin, superadmin) — driver verification queue
 GET   /admin/drivers?status=pending|verified|rejected|suspended   oldest submission first
@@ -435,6 +449,8 @@ app/Models/
 ├── DriverDocument.php     licence front/back, national ID, selfie, insurance (private files)
 ├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
 ├── DriverPresence.php     online flag + last position per driver (scope live() = within TTL)
+├── Ride.php               on-demand ride (state machine in Services/Rides/RideService.php)
+├── RideDispatch.php       who was offered a ride · RideEvent.php append-only audit · RideRating.php
 ├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
 ├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)
 ├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price
