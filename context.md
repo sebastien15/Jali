@@ -149,11 +149,13 @@ type AdminUser = {
 #### `lib/DriverModeContext.tsx`
 ```ts
 // Provider: wraps (tabs)/* via (tabs)/_layout.tsx
-// In-memory only — resets on app restart
+// Persisted in AsyncStorage ("jali_driver_mode"), cleared by clearApiToken() on logout.
+// On a new phone, restored from GET /driver/profile → profile.services (drivers only).
+// setDriverType also saves the service to the server (PATCH /driver/profile { services }).
 
 // Hook: useDriverMode()
-{ driverMode: boolean, driverType: "private"|"rental"|null,
-  setDriverMode, setDriverType }
+{ driverMode: boolean, driverType: "private"|"rental"|"ride"|"hire"|null,
+  hydrated: boolean, setDriverMode, setDriverType }
 
 // Drive tab in (tabs)/_layout.tsx is hidden unless driverMode === true
 ```

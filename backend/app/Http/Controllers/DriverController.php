@@ -109,6 +109,8 @@ class DriverController extends Controller
         $validated = $request->validate([
             'name'             => 'sometimes|string|max:255',
             'fcm_token'        => 'sometimes|string',
+            'services'         => 'sometimes|array',
+            'services.*'       => 'string|distinct|in:ride,hire,private_seat,rental',
             'allowed_zones'    => 'sometimes|array',
             'allowed_zones.*'  => 'string|max:100',
             'docs_url'         => 'sometimes|nullable|url|max:2048',
@@ -131,7 +133,7 @@ class DriverController extends Controller
         DB::transaction(function () use ($user, $vehicle, $validated) {
             $user->update(array_intersect_key($validated, array_flip(['name', 'fcm_token'])));
 
-            $profileData = array_intersect_key($validated, array_flip(['allowed_zones', 'docs_url']));
+            $profileData = array_intersect_key($validated, array_flip(['services', 'allowed_zones', 'docs_url']));
             $profile = $user->driverProfile()->firstOrCreate([]);
             if ($profileData) {
                 $profile->update($profileData);
