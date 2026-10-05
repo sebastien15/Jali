@@ -635,5 +635,13 @@
     "comment": "Comment (optional)",
     "submit": "Submit Rating",
     "success": "Thank you for your rating!"
+  },
+  "adminUsers": {
+    "editUser": "Edit User",
+    "role": "Role",
+    "saveRole": "Save Role",
+    "saved": "Saved",
+    "roleUpdated": "Role changed to {{role}}.",
+    "saveRoleFailed": "Could not change the role."
   }
 }

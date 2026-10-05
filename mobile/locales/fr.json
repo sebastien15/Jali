@@ -635,5 +635,13 @@
     "comment": "Commentaire (facultatif)",
     "submit": "Soumettre la note",
     "success": "Merci pour votre note !"
+  },
+  "adminUsers": {
+    "editUser": "Modifier l'utilisateur",
+    "role": "Rôle",
+    "saveRole": "Enregistrer le rôle",
+    "saved": "Enregistré",
+    "roleUpdated": "Rôle changé en {{role}}.",
+    "saveRoleFailed": "Impossible de changer le rôle."
   }
 }

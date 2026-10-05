@@ -635,5 +635,13 @@
     "comment": "Maoni (hiari)",
     "submit": "Wasilisha Tathmini",
     "success": "Asante kwa tathmini yako!"
+  },
+  "adminUsers": {
+    "editUser": "Hariri mtumiaji",
+    "role": "Jukumu",
+    "saveRole": "Hifadhi jukumu",
+    "saved": "Imehifadhiwa",
+    "roleUpdated": "Jukumu limebadilishwa kuwa {{role}}.",
+    "saveRoleFailed": "Imeshindikana kubadilisha jukumu."
   }
 }

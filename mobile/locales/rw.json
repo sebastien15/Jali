@@ -635,5 +635,13 @@
     "comment": "Ibitekerezo (bidasabwa)",
     "submit": "Ohereza Igipimo",
     "success": "Murakoze guha igipimo!"
+  },
+  "adminUsers": {
+    "editUser": "Hindura ukoresha",
+    "role": "Inshingano",
+    "saveRole": "Bika inshingano",
+    "saved": "Byabitswe",
+    "roleUpdated": "Inshingano yahinduwe iba {{role}}.",
+    "saveRoleFailed": "Ntibyashobotse guhindura inshingano."
   }
 }

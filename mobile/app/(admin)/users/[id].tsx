@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
@@ -26,16 +27,18 @@ const ALL_ROLES = [
 type Role = (typeof ALL_ROLES)[number];
 
 const ROLE_COLOR: Record<Role, string> = {
-  [ROLES.SUPERADMIN]: "#7C3AED",
+  [ROLES.SUPERADMIN]: C.purple,
   [ROLES.ADMIN]: C.teal,
   [ROLES.DRIVER]: C.blue,
   [ROLES.USER]: C.mid,
 };
 
 export default function AdminUserDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const [roles, setRoles] = useState<Role[]>([]);
+  // AdminUserController returns and accepts a single `role` name.
+  const [role, setRole] = useState<Role | null>(null);
   const [saving, setSaving] = useState(false);
 
   const { data: user, isLoading } = useQuery({
@@ -54,25 +57,25 @@ export default function AdminUserDetailScreen() {
     },
   });
 
-  // Sync roles from fetched user
+  // Sync role from fetched user
   useEffect(() => {
-    if (user) setRoles(user.roles ?? []);
+    if (user?.role) setRole(user.role as Role);
   }, [user]);
 
-  function toggleRole(role: Role) {
-    setRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
-    );
-  }
+  const unchanged = !role || role === user?.role;
 
   async function handleSave() {
+    if (unchanged) return;
     setSaving(true);
     try {
-      await api.patch(`/admin/users/${id}`, { roles });
-      Alert.alert("Saved", "Roles updated.");
+      const res = await api.patch(`/admin/users/${id}`, { role });
+      queryClient.setQueryData(queryKeys.admin.user(id!), (prev: any) => ({ ...(prev ?? {}), ...res.data }));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-    } catch {
-      Alert.alert("Error", "Could not save roles.");
+      Alert.alert(t("adminUsers.saved"), t("adminUsers.roleUpdated", { role: res.data?.role ?? role }));
+    } catch (e: any) {
+      // 422: "You cannot change your own role." / "Cannot demote the last superadmin."
+      Alert.alert(t("admin.error"), e?.response?.data?.message ?? t("adminUsers.saveRoleFailed"));
+      if (user?.role) setRole(user.role as Role);
     } finally {
       setSaving(false);
     }
@@ -97,7 +100,7 @@ export default function AdminUserDetailScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.teal} />
 
-      <AdminHeader title="Edit User" showBack />
+      <AdminHeader title={t("adminUsers.editUser")} showBack />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {/* User info */}
@@ -138,7 +141,7 @@ export default function AdminUserDetailScreen() {
             marginBottom: 10,
           }}
         >
-          Roles
+          {t("adminUsers.role")}
         </Text>
         <View
           style={{
@@ -154,13 +157,13 @@ export default function AdminUserDetailScreen() {
           }}
         >
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            {ALL_ROLES.map((role) => {
-              const active = roles.includes(role);
-              const color = ROLE_COLOR[role];
+            {ALL_ROLES.map((r) => {
+              const active = role === r;
+              const color = ROLE_COLOR[r];
               return (
                 <TouchableOpacity
-                  key={role}
-                  onPress={() => toggleRole(role)}
+                  key={r}
+                  onPress={() => setRole(r)}
                   style={{
                     paddingHorizontal: 16,
                     paddingVertical: 10,
@@ -177,8 +180,8 @@ export default function AdminUserDetailScreen() {
                       fontSize: 13,
                     }}
                   >
-                    {active ? "✓ " : ""}
-                    {role}
+                    {active ? "● " : "○ "}
+                    {r}
                   </Text>
                 </TouchableOpacity>
               );
@@ -188,9 +191,9 @@ export default function AdminUserDetailScreen() {
 
         <TouchableOpacity
           onPress={handleSave}
-          disabled={saving}
+          disabled={saving || unchanged}
           style={{
-            backgroundColor: C.teal,
+            backgroundColor: unchanged ? C.border : C.teal,
             borderRadius: 16,
             paddingVertical: 18,
             alignItems: "center",
@@ -201,7 +204,7 @@ export default function AdminUserDetailScreen() {
             <ActivityIndicator color={C.white} />
           ) : (
             <Text style={{ color: C.white, fontWeight: "900", fontSize: 17 }}>
-              Save Roles
+              {t("adminUsers.saveRole")}
             </Text>
           )}
         </TouchableOpacity>
