@@ -578,3 +578,15 @@ in `AppAccessController`).
 3. **Who can be a ride driver:** any verified private car owner, or only licensed taxi/moto operators (regulatory)?
 4. **Hire-a-Driver insurance:** who is liable if the hired driver damages the customer's car? (Needs a terms clause in `legal/`.)
 5. **Cities:** Kigali only at launch, or also Musanze/Rubavu/Huye?
+
+---
+
+## 15. International Experience — "Feels Like Uber/DiDi"
+
+Visitors (tourists, business travellers, NGO staff) must be able to use Jali on arrival
+without learning anything new. Backlog: epic **E9** in `docs/ride-hailing/USER_STORIES.md`.
+
+- Familiar flow: *Where to?* → class cards with price & ETA → driver list/map → driver card with plate → receipt & rating.
+- Device language by default (EN/FR/RW/SW), any country code for phone login, email/Google/**Apple** sign-in.
+- Approximate home-currency price next to RWF; international cards in phase 2.
+- Quick chat phrases shown in each side's language; email/PDF receipts; airport pickup with flight number.
