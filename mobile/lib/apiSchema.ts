@@ -60,6 +60,110 @@ export interface paths {
         patch: operations["updateDriverProfile"];
         trace?: never;
     };
+    "/driver/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Application checklist, status, licence and documents */
+        get: operations["getDriverOnboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose what I offer */
+        put: operations["putDriverServices"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/licence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Driving licence details (an expired licence is rejected) */
+        put: operations["putDriverLicence"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the application for admin review (all required steps must be done) */
+        post: operations["submitDriverApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or replace a verification document (stored privately) */
+        post: operations["uploadDriverDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["DocumentId"];
+            };
+            cookie?: never;
+        };
+        /** The document file — only for its owner or users with verify-drivers (404 otherwise) */
+        get: operations["getDriverDocumentFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/driver/vehicles": {
         parameters: {
             query?: never;
@@ -452,6 +556,42 @@ export interface components {
             rental_caution?: number | null;
             is_active: boolean;
         };
+        /** @enum {string} */
+        DriverService: "ride" | "hire" | "private_seat" | "rental";
+        /** @enum {string} */
+        DriverDocumentType: "licence_front" | "licence_back" | "national_id" | "selfie" | "insurance";
+        DriverOnboarding: {
+            /** @enum {string} */
+            status: "draft" | "pending" | "verified" | "rejected" | "suspended";
+            can_submit: boolean;
+            steps: {
+                /** @enum {string} */
+                key: "services" | "profile" | "licence" | "documents" | "vehicle" | "rates";
+                done: boolean;
+                required: boolean;
+            }[];
+            services: components["schemas"]["DriverService"][];
+            rejection_reason: string | null;
+            licence: {
+                licence_no: string | null;
+                licence_categories: string[];
+                /** Format: date */
+                licence_expiry: string | null;
+                national_id_no: string | null;
+            };
+            documents: {
+                type: components["schemas"]["DriverDocumentType"];
+                required: boolean;
+                /** @enum {string} */
+                status: "missing" | "uploaded" | "approved" | "rejected";
+                rejection_reason: string | null;
+                id: number | null;
+                /** @description Send the bearer token when loading it */
+                file_url: string | null;
+                /** Format: date-time */
+                updated_at: string | null;
+            }[];
+        };
         /** @description Public URLs per photo slot; `front` is required before going online */
         VehiclePhotos: {
             front?: string;
@@ -768,6 +908,7 @@ export interface components {
         };
     };
     parameters: {
+        DocumentId: number;
         VehicleId: number;
         RideId: number;
     };
@@ -879,6 +1020,165 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    getDriverOnboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putDriverServices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    services: components["schemas"]["DriverService"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    putDriverLicence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    licence_no: string;
+                    licence_categories: ("A" | "B" | "C" | "C1" | "D" | "D1" | "E" | "F")[];
+                    /** Format: date */
+                    licence_expiry: string;
+                    national_id_no?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    submitDriverApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Submitted — status becomes pending */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    uploadDriverDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    type: components["schemas"]["DriverDocumentType"];
+                    /**
+                     * Format: binary
+                     * @description jpg/png/webp/heic/pdf, max 10 MB
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getDriverDocumentFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["DocumentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/*": unknown;
+                    "application/pdf": unknown;
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     listVehicles: {

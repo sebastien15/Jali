@@ -94,15 +94,18 @@ class DriverRatesTest extends TestCase
     }
 
     /** @test */
-    public function only_drivers_can_set_ride_rates()
+    public function applicants_can_set_rates_but_accounts_without_permission_cannot()
     {
         $this->getJson('/api/driver/rates')->assertStatus(401);
 
-        foreach (['user', 'admin'] as $role) {
-            Sanctum::actingAs($this->user($role));
-            $this->getJson('/api/driver/rates')->assertStatus(403);
-            $this->putJson('/api/driver/rates', $this->rates)->assertStatus(403);
-        }
+        $applicant = $this->user('user');
+        $this->withCar($applicant);
+        Sanctum::actingAs($applicant);
+        $this->putJson('/api/driver/rates', $this->rates)->assertOk();
+
+        Sanctum::actingAs(User::create(['name' => 'No role']));
+        $this->getJson('/api/driver/rates')->assertStatus(403);
+        $this->putJson('/api/driver/rates', $this->rates)->assertStatus(403);
     }
 
     /** @test */

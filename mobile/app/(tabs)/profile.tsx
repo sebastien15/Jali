@@ -117,6 +117,12 @@ export default function ProfileScreen() {
 
   const MENU: MenuItem[] = [
     {
+      icon: "car-sport-outline",
+      label: t('ride.onboarding.menu'),
+      sub: t('ride.onboarding.menuSub'),
+      onPress: () => router.push("/driver/onboarding"),
+    },
+    {
       icon: "notifications-outline",
       label: t('profile.notifications'),
       sub: t('profile.notificationsSub'),
