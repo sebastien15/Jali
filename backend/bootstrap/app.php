@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             "permission" => \App\Http\Middleware\CheckPermission::class,
         ]);
+        // There is no web "login" route: never build a redirect for API guests
+        // (doing so threw RouteNotFoundException → 500 instead of a JSON 401).
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is("api/*") ? null : "/");
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Always return JSON for API routes — prevents redirect to non-existent 'login' route

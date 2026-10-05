@@ -14,6 +14,11 @@ class AuthTest extends TestCase
         $this->getJson('/api/me')->assertStatus(401);
     }
 
+    public function test_guest_without_json_accept_header_gets_401_not_500(): void
+    {
+        $this->get('/api/trips')->assertStatus(401);
+    }
+
     public function test_invalid_token_is_rejected(): void
     {
         $this->withHeaders(['Authorization' => 'Bearer invalid_token'])
