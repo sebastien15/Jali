@@ -15,7 +15,7 @@ A Rwandan transport booking app. Users browse and book buses, private cars, and 
 ```
 Jali/
 ├── mobile/     React Native (Expo Router) — iOS & Android
-├── backend/    Laravel 11 REST API
+├── backend/    Laravel 12 REST API (PHP 8.3+)
 └── context.md  ← this file
 ```
 
@@ -45,7 +45,7 @@ isDev / isTest / isProd
 ```
 
 API base URL (`lib/api.ts`):
-- Dev:  `https://jali.stoka.rw/backend/public/api`
+- Dev:  `https://jali.stoka.rw/api`
 - Prod: `https://api.jali.rw/api`
 - Override: `EXPO_PUBLIC_API_URL`
 
@@ -248,25 +248,23 @@ isAdminRole(role: string): boolean  // true for admin | superadmin
 
 ---
 
-## Backend (Laravel 11)
+## Backend (Laravel 12)
 
 ### Tech Stack
-- Laravel 11 + Laravel Sanctum (personal access tokens)
+- Laravel 12 + Laravel Sanctum (personal access tokens, expire after SANCTUM_EXPIRATION minutes, default 30 days)
 - SQLite (dev database at `database/database.sqlite`)
 - `kreait/firebase-php` for Firebase token verification
 - Middleware: `CheckPermission` (`app/Http/Middleware/CheckPermission.php`)
 
 ### API Routes (`routes/api.php`)
 
-#### Public (no auth)
+#### Public (no auth, throttled)
 ```
-GET  /buses
-GET  /car-rentals
-GET  /private-seats
+POST /track-access                app-open tracking (token optional)
 POST /auth/login                  email + password → Sanctum token
 POST /auth/login/google           firebase_token → Sanctum token
-POST /auth/otp/request            phone OTP request (dev: always returns success)
-POST /auth/otp/verify             OTP verify (dev: "123456" accepted)
+POST /auth/otp/request            sends a random 6-digit code via SmsSender (503 in prod until an SMS driver exists)
+POST /auth/otp/verify             single-use hashed code, 5 min, 5 attempts; OTP_DEV_CODE only in local/testing
 ```
 
 #### Protected — `auth:sanctum`
@@ -419,7 +417,9 @@ Run: `php artisan db:seed` or `php artisan migrate:fresh --seed`
 - **Firebase credentials**: `storage/app/firebase-credentials.json`
 - **CORS**: `config/cors.php` — must allow the mobile app origin in prod
 - **Sanctum**: `config/sanctum.php` — stateless token auth only (no cookie sessions)
-- **OTP**: dev mode accepts `"123456"` — real SMS (Twilio/Africa's Talking) is TODO
+- **OTP**: codes are random and hashed in cache; `OTP_DEV_CODE` works only when APP_ENV is local/testing. Real SMS provider is TODO in `app/Services/SmsSender.php`
+- **Bookings**: server computes price/fee/title/location; status flow pending → taken → ticket_ready → delivered (+ cancelled) via `Booking::transitionTo()`; admin visibility via `Booking::scopeManageableBy()` (superadmin all, station admin = own admin_stations, none if no station)
+- **Tests**: `php artisan test` (in-memory SQLite) + `tests/e2e/smoke.php` against `php artisan serve`
 
 ---
 

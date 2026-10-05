@@ -8,7 +8,7 @@
 ```
 Jali/
 ├── mobile/          React Native (Expo SDK 54, Expo Router v6, NativeWind v4)
-├── backend/         Laravel 11 REST API (Sanctum, SQLite dev / MySQL prod)
+├── backend/         Laravel 12 REST API, PHP 8.3+ (Sanctum, SQLite dev / MySQL prod)
 ├── context.md       ← FULL reference: routes, auth flow, API, models, guards
 └── CLAUDE.md        ← this file (TOC only, ≤60 lines)
 ```
