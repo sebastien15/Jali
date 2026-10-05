@@ -10,6 +10,7 @@ import { TripBookingSheet, type TripData } from "@/components/TripBookingSheet";
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
+import { RideNowBar } from "@/components/home/RideNowBar";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/components/home/PrivateResults";
@@ -213,6 +214,8 @@ export default function HomeScreen() {
         onSwap={() => { const tmp = from; setFrom(to); setTo(tmp); }}
         selectedDate={selectedDate} onDateChange={setSelectedDate}
       />
+
+      <RideNowBar />
 
       <ModeTabs mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />
 

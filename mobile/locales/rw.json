@@ -739,6 +739,41 @@
       "no_rates": "Shyiraho ibiciro byawe",
       "rates_outside_limits": "Hindura ibiciro byawe bihuze n'imbibi za Jali",
       "fix": "Kosora"
+    },
+    "where": {
+      "bar": "Urugendo ubu — ujya he?",
+      "barSub": "Hitamo umushoferi n'igiciro",
+      "title": "Ujya he?",
+      "pickup": "Aho bagufatira",
+      "destination": "Ujya he?",
+      "currentLocation": "Aho uri ubu",
+      "locating": "Turashaka aho uri…",
+      "noLocation": "Aho uherereye harafunze — andika aho bagufatira",
+      "recent": "Ibiheruka",
+      "noResults": "Nta hantu habonetse",
+      "searchHint": "Andika nibura inyuguti 2",
+      "changePickup": "Hindura aho bagufatira"
+    },
+    "nearby": {
+      "title": "Hitamo umushoferi wawe",
+      "tripInfo": "km {{km}} · iminota {{min}}",
+      "cheapest": "Gihendutse",
+      "closest": "Hafi cyane",
+      "topRated": "Bakunzwe",
+      "all": "Byose",
+      "moto": "Moto",
+      "car": "Imodoka",
+      "comfort": "Imodoka nziza",
+      "van": "Van",
+      "away": "iminota {{min}}",
+      "trips": "ingendo {{count}}",
+      "perKm": "{{price}}/km",
+      "empty": "Nta mushoferi uri hafi ubu",
+      "emptySub": "Gerageza ubundi bwoko bw'ikinyabiziga cyangwa wongere urebe nyuma y'umunota.",
+      "retry": "Ongera urebe",
+      "request": "Saba {{name}}",
+      "seats": "imyanya {{count}}",
+      "priceNote": "Igiciro gikubiyemo kuza kugufata n'amafaranga ya Jali. Gihagarara iyo usabye."
     }
   }
 }

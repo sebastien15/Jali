@@ -468,6 +468,47 @@ paths:
                 items: { $ref: "#/components/schemas/RideRequestCard" }
 
   # ── Rider ───────────────────────────────────────────────────────────────
+  /places/search:
+    get:
+      tags: [Rides]
+      operationId: searchPlaces
+      x-jali-story: S3.1
+      x-jali-permission: request-rides
+      summary: Places in Rwanda matching the text, biased around the rider (max 60/min)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 120 } }
+        - { name: lat, in: query, schema: { type: number } }
+        - { name: lng, in: query, schema: { type: number } }
+      responses:
+        "200":
+          description: OK (empty list when nothing matches or the provider is down)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PlaceResult" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /places/reverse:
+    get:
+      tags: [Rides]
+      operationId: reverseGeocode
+      x-jali-story: S3.1
+      x-jali-permission: request-rides
+      summary: Readable address for a position (falls back to coordinates)
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number } }
+        - { name: lng, in: query, required: true, schema: { type: number } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlaceResult" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /rides/nearby:
     get:
       tags: [Rides]
@@ -1285,6 +1326,15 @@ components:
               driver_fare: { type: integer }
               service_fee: { type: integer }
               total: { type: integer }
+
+    PlaceResult:
+      type: object
+      required: [name, address, lat, lng]
+      properties:
+        name: { type: string }
+        address: { type: string }
+        lat: { type: number }
+        lng: { type: number }
 
     TripPoints:
       type: object

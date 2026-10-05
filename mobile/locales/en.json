@@ -739,6 +739,41 @@
       "no_rates": "Set your ride prices",
       "rates_outside_limits": "Update your prices to fit Jali's limits",
       "fix": "Fix"
+    },
+    "where": {
+      "bar": "Ride now — where to?",
+      "barSub": "Pick your driver and price",
+      "title": "Where to?",
+      "pickup": "Pickup",
+      "destination": "Where to?",
+      "currentLocation": "Current location",
+      "locating": "Finding your location…",
+      "noLocation": "Location is off — type your pickup",
+      "recent": "Recent",
+      "noResults": "No places found",
+      "searchHint": "Type at least 2 letters",
+      "changePickup": "Change pickup"
+    },
+    "nearby": {
+      "title": "Choose your driver",
+      "tripInfo": "{{km}} km · about {{min}} min",
+      "cheapest": "Cheapest",
+      "closest": "Closest",
+      "topRated": "Top rated",
+      "all": "All",
+      "moto": "Moto",
+      "car": "Car",
+      "comfort": "Comfort",
+      "van": "Van",
+      "away": "{{min}} min away",
+      "trips": "{{count}} trips",
+      "perKm": "{{price}}/km",
+      "empty": "No drivers nearby right now",
+      "emptySub": "Try another vehicle type or check again in a minute.",
+      "retry": "Check again",
+      "request": "Request {{name}}",
+      "seats": "{{count}} seats",
+      "priceNote": "Price includes pickup and Jali fee. It's locked when you request."
     }
   }
 }

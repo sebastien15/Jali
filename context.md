@@ -97,6 +97,10 @@ app/
 │   ├── fleet.tsx              Driver's car fleet management
 │   └── listing.tsx            Create/edit a private seat listing
 │
+├── ride/                      On-demand rides (rider) — ProtectedRoute layout
+│   ├── index.tsx              "Where to?": GPS pickup (reverse geocode), destination search, recents
+│   └── nearby.tsx             Nearby drivers with own price: sort Closest/Cheapest/Top rated, class chips
+│
 └── legal/[doc].tsx            Legal docs viewer (modal presentation)
 ```
 
@@ -360,6 +364,9 @@ PUT   /driver/rates
 GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
       verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
       closest first, max 50, positions rounded to ~100 m, no phone numbers
+
+GET   /places/search?q&lat&lng   Rwanda places (Nominatim, cached 1 day, 60/min)
+GET   /places/reverse?lat&lng    readable address (falls back to coordinates)
 
 # perm: offer-rides (verified drivers) — online/offline (story S5.1)
 GET   /driver/presence            { online, online_since, blocked_reasons[] }
