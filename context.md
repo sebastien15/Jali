@@ -186,7 +186,10 @@ type AdminUser = {
 - Service fee calculation logic + hook
 
 #### `lib/usePushPermission.ts`
-- Push notification permission request (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
+- Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
+- Tapping a notification routes by `data.screen` (`routeForNotification`)
+- Backend sends through `App\Services\PushService::send($user, $title, $body, ['screen' => ..., 'id' => ...])`
+  (Expo tokens → Expo push API; raw FCM tokens → Firebase). Never throws.
 
 ---
 
@@ -272,6 +275,8 @@ POST /auth/otp/verify             OTP verify (dev: "123456" accepted)
 #### Protected — `auth:sanctum`
 ```
 GET  /me                          Current user (id, name, email, phone, roles, permissions, location)
+POST   /me/push-token             Register device push token (Expo or FCM) — any auth user
+DELETE /me/push-token             Remove push token (also cleared on logout)
 POST /auth/logout                 Revoke current token
 
 GET  /bookings                    User's bookings

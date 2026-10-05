@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\User;
+use App\Services\PushService;
 use Illuminate\Http\Request;
-use Kreait\Firebase\Factory;
 
 class TicketController extends Controller
 {
-    public function upload(Request $request, $id)
+    public function upload(Request $request, PushService $push, $id)
     {
         $user = $request->user();
 
@@ -29,42 +28,16 @@ class TicketController extends Controller
             'status' => 'confirmed',
         ]);
 
-        // Send FCM push notification to user
-        $this->sendPushNotification($booking->user, 'Your ticket is ready', 'Tap to view your ticket for your trip');
+        $push->send(
+            $booking->user,
+            'Your ticket is ready',
+            'Tap to view your ticket for your trip',
+            ['screen' => 'booking', 'id' => $booking->id],
+        );
 
         return response()->json([
             'data' => $booking,
             'message' => 'Ticket uploaded and booking confirmed',
         ]);
-    }
-
-    /**
-     * Send FCM push notification to a user
-     */
-    private function sendPushNotification(User $user, string $title, string $body): void
-    {
-        if (!$user->fcm_token) {
-            return;
-        }
-
-        try {
-            $factory = (new Factory)
-                ->withServiceAccount(config('firebase.projects.app.credentials'));
-
-            $messaging = $factory->createMessaging();
-
-            $message = [
-                'token' => $user->fcm_token,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-            ];
-
-            $messaging->send($message);
-        } catch (\Exception $e) {
-            // Log error but don't fail the request
-            \Log::error('FCM push notification failed: ' . $e->getMessage());
-        }
     }
 }

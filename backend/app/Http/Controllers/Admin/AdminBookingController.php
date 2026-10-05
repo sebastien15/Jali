@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
+use App\Services\PushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -169,6 +170,15 @@ class AdminBookingController extends Controller
             'entity_id'   => $booking->id,
             'details'     => ['title' => $booking->title, 'url' => $url],
         ]);
+
+        if ($booking->user) {
+            app(PushService::class)->send(
+                $booking->user,
+                'Your ticket is ready',
+                'Tap to view your ticket for your trip',
+                ['screen' => 'booking', 'id' => $booking->id],
+            );
+        }
 
         return response()->json([
             'ticket_photo_url' => $url,
