@@ -8,8 +8,12 @@ import i18n from "i18next";
 
 const DEV_URL = "http://192.168.1.64:8000/api";
 const PROD_URL = "https://jali.stoka.rw/api";
+// The LAN fallback is only ever used for an explicit dev build.
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? (isProd ? PROD_URL : DEV_URL);
+  process.env.EXPO_PUBLIC_API_URL || (isProd ? PROD_URL : DEV_URL);
+if (!process.env.EXPO_PUBLIC_API_URL && isProd) {
+  console.warn(`[api] EXPO_PUBLIC_API_URL is not set — using ${PROD_URL}`);
+}
 
 const TOKEN_KEY = "jali_api_token";
 
