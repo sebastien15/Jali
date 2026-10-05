@@ -119,7 +119,9 @@
     "filterReady": "Billet prêt",
     "filterDelivered": "Remis",
     "filterCancelled": "Annulés",
-    "loadFailed": "Impossible de charger les trajets"
+    "loadFailed": "Impossible de charger les trajets",
+    "from": "De",
+    "to": "Vers"
   },
   "login": {
     "enterPhone": "Entrez votre numéro rwandais",
@@ -453,7 +455,8 @@
     "change": "Changer",
     "add": "Ajouter",
     "accessDenied": "Accès refusé",
-    "accessDeniedMsg": "Vous n'avez pas l'autorisation d'effectuer cette action."
+    "accessDeniedMsg": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "cancel": "Annuler"
   },
   "authErrors": {
     "invalidCredentials": "Email ou mot de passe invalide.",

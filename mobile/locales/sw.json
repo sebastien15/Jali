@@ -119,7 +119,9 @@
     "filterReady": "Tiketi iko tayari",
     "filterDelivered": "Imekabidhiwa",
     "filterCancelled": "Zimeghairiwa",
-    "loadFailed": "Imeshindikana kupakia safari"
+    "loadFailed": "Imeshindikana kupakia safari",
+    "from": "Kutoka",
+    "to": "Kwenda"
   },
   "login": {
     "enterPhone": "Weka nambari yako ya Rwanda",
@@ -453,7 +455,8 @@
     "change": "Badilisha",
     "add": "Ongeza",
     "accessDenied": "Ufikiaji umekataliwa",
-    "accessDeniedMsg": "Huna ruhusa ya kufanya kitendo hiki."
+    "accessDeniedMsg": "Huna ruhusa ya kufanya kitendo hiki.",
+    "cancel": "Ghairi"
   },
   "authErrors": {
     "invalidCredentials": "Barua pepe au nywila si sahihi.",

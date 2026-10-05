@@ -119,7 +119,9 @@
     "filterReady": "Ticket ready",
     "filterDelivered": "Delivered",
     "filterCancelled": "Cancelled",
-    "loadFailed": "Failed to load trips"
+    "loadFailed": "Failed to load trips",
+    "from": "From",
+    "to": "To"
   },
   "login": {
     "enterPhone": "Enter your Rwandan number",
@@ -453,7 +455,8 @@
     "change": "Change",
     "add": "Add",
     "accessDenied": "Access denied",
-    "accessDeniedMsg": "You don't have permission for this action."
+    "accessDeniedMsg": "You don't have permission for this action.",
+    "cancel": "Cancel"
   },
   "authErrors": {
     "invalidCredentials": "Invalid email or password.",

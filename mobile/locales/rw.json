@@ -119,7 +119,9 @@
     "filterReady": "Tike yabonetse",
     "filterDelivered": "Byatanzwe",
     "filterCancelled": "Byahagaritswe",
-    "loadFailed": "Ntibyashobotse kuzana ingendo"
+    "loadFailed": "Ntibyashobotse kuzana ingendo",
+    "from": "Uva",
+    "to": "Ujya"
   },
   "login": {
     "enterPhone": "Andika numero yawe y'u Rwanda",
@@ -453,7 +455,8 @@
     "change": "Hindura",
     "add": "Ongeraho",
     "accessDenied": "Ntiwemerewe",
-    "accessDeniedMsg": "Ntufite uburenganzira bwo gukora iki gikorwa."
+    "accessDeniedMsg": "Ntufite uburenganzira bwo gukora iki gikorwa.",
+    "cancel": "Reka"
   },
   "authErrors": {
     "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
