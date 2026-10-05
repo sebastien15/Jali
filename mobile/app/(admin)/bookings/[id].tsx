@@ -34,7 +34,7 @@ export default function AdminBookingDetailScreen() {
     staleTime: 30_000,
     initialData: () => {
       // Try to seed from any already-cached booking list
-      for (const [, data] of queryClient.getQueriesData<any[]>({ queryKey: queryKeys.admin.bookings() })) {
+      for (const [, data] of queryClient.getQueriesData<any[]>({ queryKey: queryKeys.admin.allBookings() })) {
         if (Array.isArray(data)) {
           const found = data.find(b => String(b.id) === id);
           if (found) return found;
@@ -53,7 +53,7 @@ export default function AdminBookingDetailScreen() {
     setSaving(true);
     try {
       await api.patch(`/admin/bookings/${id}`, { status: "confirmed" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
     } catch {
       Alert.alert("Error", "Could not confirm booking.");
     } finally {
@@ -67,7 +67,7 @@ export default function AdminBookingDetailScreen() {
     try {
       await api.patch(`/admin/bookings/${id}`, { ticket_photo_url: ticketUrl.trim() });
       Alert.alert("Saved", "Ticket URL saved.");
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
     } catch {
       Alert.alert("Error", "Could not save ticket URL.");
     } finally {

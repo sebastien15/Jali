@@ -44,6 +44,13 @@ export const queryKeys = {
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   admin: {
+    // `all*` prefixes are for invalidation: a key built with an `undefined`
+    // filter (["admin","bookings",{filter:undefined}]) does NOT prefix-match
+    // the filtered queries that are actually mounted.
+    allBookings: () => ["admin", "bookings"] as const,
+    allTrips: () => ["admin", "trips"] as const,
+    allLogs: () => ["admin", "logs"] as const,
+    allAppAccesses: () => ["admin", "appAccesses"] as const,
     bookings: (filter?: string) => ["admin", "bookings", { filter }] as const,
     booking: (id: string) => ["admin", "bookings", id] as const,
     users: () => ["admin", "users"] as const,

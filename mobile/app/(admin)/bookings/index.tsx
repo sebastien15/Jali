@@ -99,7 +99,7 @@ export default function AdminBookingsScreen() {
     try {
       await api.patch(`/admin/bookings/${id}`, { status });
       toastRef.current?.show({ message: t("adminBookings.statusDelivered"), type: "success" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
     } catch (e: any) {
       toastRef.current?.show({ message: resolveError(e), type: "error" });
     } finally {
@@ -151,7 +151,7 @@ export default function AdminBookingsScreen() {
       });
 
       toastRef.current?.show({ message: t("adminBookings.ticketUploaded"), type: "success" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.allBookings() });
     } catch (e: any) {
       const msg = e?.response?.data?.message;
       const key = BACKEND_ERROR_KEYS[msg ?? ""];
