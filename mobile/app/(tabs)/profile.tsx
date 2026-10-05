@@ -13,6 +13,9 @@ import { endSession, clearLocalSession } from "@/lib/session";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 import { useMe, isDriverRole } from "@/lib/useMe";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Trip } from "@/constants/data";
 import { setLanguage, getLanguage } from "@/lib/i18n";
 
 const APP_VERSION = "1.0.0";
@@ -32,6 +35,15 @@ export default function ProfileScreen() {
   const { driverMode, setDriverMode, driverType, setDriverType } = useDriverMode();
 
   const { data: me } = useMe();
+  // Stats come from the user's own bookings (shared cache with My Trips)
+  const { data: myBookings = [] } = useQuery({
+    queryKey: queryKeys.bookings.mine(),
+    queryFn: () => api.get("/bookings").then(r => (r.data ?? []) as Trip[]),
+    staleTime: 60_000,
+  });
+  const tripCount = myBookings.filter(b => b.status !== "cancelled").length;
+  const inProgressCount = myBookings.filter(b => b.status === "pending" || b.status === "taken").length;
+  const readyCount = myBookings.filter(b => b.status === "ticket_ready").length;
   const isDriver = isDriverRole(me);
   const driverActive = driverMode && isDriver;
 
@@ -237,16 +249,20 @@ export default function ProfileScreen() {
           </View>
           <View>
             <Text style={{ color: C.white, fontWeight: "900", fontSize: 22 }}>
-              {auth.currentUser?.displayName ?? "Jali User"}
+              {me?.name || auth.currentUser?.displayName || t('profile.defaultName')}
             </Text>
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>
-              {auth.currentUser?.email ?? auth.currentUser?.phoneNumber ?? ""}
+              {me?.email ?? me?.phone ?? auth.currentUser?.email ?? ""}
             </Text>
           </View>
         </View>
 
         <View style={{ flexDirection: "row", gap: 10 }}>
-          {[{ v: "0", l: t('profile.trips') }, { v: "—", l: t('profile.rating') }, { v: "0", l: t('profile.pending') }].map((s, i) => (
+          {[
+            { v: String(tripCount), l: t('profile.trips') },
+            { v: String(readyCount), l: t('trips.filterReady') },
+            { v: String(inProgressCount), l: t('profile.pending') },
+          ].map((s, i) => (
             <View key={i} style={{
               flex: 1, backgroundColor: "rgba(255,255,255,0.15)",
               borderRadius: 12, paddingVertical: 10, alignItems: "center",

@@ -68,7 +68,8 @@
     "error": "Hitilafu",
     "deleteAccountFailed": "Hatukuweza kufuta akaunti yako. Tafadhali angalia muunganisho wako kisha ujaribu tena.",
     "becomeDriverInfo": "Hali ya dereva ni kwa madereva walioidhinishwa na Jali. Wasiliana nasi ili uwe dereva.",
-    "contactJali": "Wasiliana na Jali"
+    "contactJali": "Wasiliana na Jali",
+    "defaultName": "Mtumiaji wa Jali"
   },
   "drive": {
     "driverMode": "Hali ya Dereva",

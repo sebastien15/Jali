@@ -68,7 +68,8 @@
     "error": "Error",
     "deleteAccountFailed": "We could not delete your account. Please check your connection and try again.",
     "becomeDriverInfo": "Driver mode is for drivers approved by Jali. Contact us to become a driver.",
-    "contactJali": "Contact Jali"
+    "contactJali": "Contact Jali",
+    "defaultName": "Jali User"
   },
   "drive": {
     "driverMode": "Driver Mode",

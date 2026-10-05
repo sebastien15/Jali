@@ -68,7 +68,8 @@
     "error": "Erreur",
     "deleteAccountFailed": "Impossible de supprimer votre compte. Vérifiez votre connexion et réessayez.",
     "becomeDriverInfo": "Le mode chauffeur est réservé aux chauffeurs validés par Jali. Contactez-nous pour devenir chauffeur.",
-    "contactJali": "Contacter Jali"
+    "contactJali": "Contacter Jali",
+    "defaultName": "Utilisateur Jali"
   },
   "drive": {
     "driverMode": "Mode Conducteur",

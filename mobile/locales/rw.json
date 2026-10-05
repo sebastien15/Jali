@@ -68,7 +68,8 @@
     "error": "Ikosa",
     "deleteAccountFailed": "Ntitwashoboye gusiba konti yawe. Reba interineti yawe hanyuma wongere ugerageze.",
     "becomeDriverInfo": "Uburyo bw'umushoferi ni ubw'abashoferi bemejwe na Jali. Twandikire kugira ngo ube umushoferi.",
-    "contactJali": "Vugana na Jali"
+    "contactJali": "Vugana na Jali",
+    "defaultName": "Ukoresha Jali"
   },
   "drive": {
     "driverMode": "Uburyo bwo Gutwara",
