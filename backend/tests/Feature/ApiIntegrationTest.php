@@ -358,6 +358,6 @@ class ApiIntegrationTest extends TestCase
         $this->assertEquals(Permission::count(), $superadmin->permissions()->count());
 
         $user = Role::where('name', 'user')->first();
-        $this->assertEquals(2, $user->permissions()->count());
+        $this->assertEquals(3, $user->permissions()->count());
     }
 }
