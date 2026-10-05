@@ -26,6 +26,7 @@ Jali/
 | TanStack migration plan | Mobile | `TANSTACK_PLAN.md` |
 | Ride-hailing & hire-a-driver plan | Full stack | `RIDE_HAILING_PLAN.md` |
 | Ride-hailing user stories (backlog) | Full stack | `docs/ride-hailing/USER_STORIES.md` |
+| Multi-agent rules for ride stories | Full stack | `docs/ride-hailing/AI_AGENTS_GUIDE.md` |
 
 ## Quick Rules
 

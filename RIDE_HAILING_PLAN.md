@@ -542,6 +542,8 @@ in `AppAccessController`).
 
 ## 13. Delivery Phases
 
+> The complete backlog (129 stories, 3 levels, dependency waves) is in `docs/ride-hailing/USER_STORIES.md` — it supersedes the checklists below.
+
 ### Phase 0 — Foundations (fix + prep)
 - [ ] `driver_profiles`, `vehicles` tables; fix `PUT /driver/profile` so setup.tsx data is saved
 - [ ] Persist `DriverModeContext` (AsyncStorage + hydrate from server)
