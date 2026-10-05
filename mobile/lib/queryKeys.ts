@@ -33,6 +33,14 @@ export const queryKeys = {
     detail: (id: string) => ["bookings", id] as const,
   },
 
+  // ── On-demand rides ───────────────────────────────────────────────────────
+  rides: {
+    nearby: (q: object | null) => ["rides", "nearby", q] as const,
+    active: () => ["rides", "active"] as const,
+    detail: (id: number) => ["rides", id] as const,
+    mine: () => ["rides", "mine"] as const,
+  },
+
   // ── Driver ────────────────────────────────────────────────────────────────
   driver: {
     stats: () => ["driver", "stats"] as const,

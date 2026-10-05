@@ -301,6 +301,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/places/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Places in Rwanda matching the text, biased around the rider (max 60/min) */
+        get: operations["searchPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readable address for a position (falls back to coordinates) */
+        get: operations["reverseGeocode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rides/nearby": {
         parameters: {
             query?: never;
@@ -308,7 +342,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Online drivers near the pickup, each with their own quote for this trip */
+        /**
+         * Online drivers near the pickup, each with their own price for this trip (closest first)
+         * @description Only verified drivers whose heartbeat is within presence_ttl_sec, whose active vehicle matches
+         *     the class filter and whose prices are within the current limits. Positions are rounded to ~100 m;
+         *     no phone numbers. At most 50 drivers.
+         */
         get: operations["getNearbyDrivers"];
         put?: never;
         post?: never;
@@ -823,6 +862,12 @@ export interface components {
                 total: number;
             }[];
         };
+        PlaceResult: {
+            name: string;
+            address: string;
+            lat: number;
+            lng: number;
+        };
         TripPoints: {
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
@@ -841,15 +886,17 @@ export interface components {
             trips?: number;
             eta_min: number;
             distance_km: number;
-            /** @description What the rider pays for this trip, incl. Jali fee */
+            /** @description What the rider pays for this trip, incl. Jali fee and pickup surcharge */
             quote: number;
             per_km?: number;
             vehicle: {
-                class?: components["schemas"]["VehicleClass"];
-                model?: string;
-                color?: string | null;
-                seats?: number;
-                amenities?: string[];
+                class: components["schemas"]["VehicleClass"];
+                model: string;
+                color: string | null;
+                seats: number;
+                amenities: string[];
+                /** @description Front photo URL */
+                photo: string | null;
             };
             /** @description Rounded to ~100 m until a ride is accepted */
             approx_location: {
@@ -1586,6 +1633,57 @@ export interface operations {
             };
         };
     };
+    searchPlaces: {
+        parameters: {
+            query: {
+                q: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK (empty list when nothing matches or the provider is down) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResult"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    reverseGeocode: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     getNearbyDrivers: {
         parameters: {
             query: {
@@ -1607,9 +1705,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NearbyDriver"][];
+                    "application/json": {
+                        trip: {
+                            distance_km: number;
+                            est_minutes: number;
+                        };
+                        drivers: components["schemas"]["NearbyDriver"][];
+                    };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     estimateRide: {

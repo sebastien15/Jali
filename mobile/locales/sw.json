@@ -739,6 +739,41 @@
       "no_rates": "Weka bei zako",
       "rates_outside_limits": "Rekebisha bei zako ziendane na viwango vya Jali",
       "fix": "Rekebisha"
+    },
+    "where": {
+      "bar": "Safari sasa — unaenda wapi?",
+      "barSub": "Chagua dereva na bei yako",
+      "title": "Unaenda wapi?",
+      "pickup": "Kuchukuliwa",
+      "destination": "Unaenda wapi?",
+      "currentLocation": "Mahali ulipo",
+      "locating": "Tunatafuta mahali ulipo…",
+      "noLocation": "Eneo limezimwa — andika mahali pa kuchukuliwa",
+      "recent": "Za karibuni",
+      "noResults": "Hakuna mahali palipopatikana",
+      "searchHint": "Andika angalau herufi 2",
+      "changePickup": "Badilisha mahali pa kuchukuliwa"
+    },
+    "nearby": {
+      "title": "Chagua dereva wako",
+      "tripInfo": "km {{km}} · takriban dakika {{min}}",
+      "cheapest": "Bei nafuu",
+      "closest": "Karibu zaidi",
+      "topRated": "Bora zaidi",
+      "all": "Zote",
+      "moto": "Pikipiki",
+      "car": "Gari",
+      "comfort": "Starehe",
+      "van": "Van",
+      "away": "dakika {{min}}",
+      "trips": "safari {{count}}",
+      "perKm": "{{price}}/km",
+      "empty": "Hakuna dereva karibu sasa",
+      "emptySub": "Jaribu aina nyingine ya gari au angalia tena baada ya dakika moja.",
+      "retry": "Angalia tena",
+      "request": "Omba {{name}}",
+      "seats": "viti {{count}}",
+      "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba."
     }
   }
 }
