@@ -154,9 +154,12 @@ export default function HomeScreen() {
     return [...bookedFirst, ...rest];
   }, [trips, bookedAgencyNames]);
 
-  const timeFilterMins = todaySelected && timeSet
-    ? selectedDate.getHours() * 60 + selectedDate.getMinutes()
-    : undefined;
+  // For today, never offer departures that have already left: filter from the
+  // later of "now" and the time the user picked.
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const pickedMins = timeSet ? selectedDate.getHours() * 60 + selectedDate.getMinutes() : 0;
+  const timeFilterMins = todaySelected ? Math.max(nowMins, pickedMins) : undefined;
 
   const filteredTrips = useMemo(() => trips.filter((trip: TripResult) => {
     if (agencyFilter && trip.agency_name !== agencyFilter) return false;
