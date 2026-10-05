@@ -2,6 +2,8 @@
 # Creates the Jali Ride user stories as GitHub issues (epics first, then stories linked to them).
 # Generated from docs/ride-hailing/stories — do not edit by hand.
 # Usage: scripts/create-ride-issues.sh [owner/repo]   (requires: gh auth login)
+# NOTE: sebastien15/Jali already has these issues (#4-#155, see scripts/ride_backlog/issues.json).
+#       Only run this against a fresh repository or fork.
 set -euo pipefail
 REPO="${1:-sebastien15/Jali}"
 DIR="$(cd "$(dirname "$0")/.." && pwd)/docs/ride-hailing/stories"

@@ -3,7 +3,7 @@
 
 Usage: python3 scripts/ride_backlog/generate.py   (edit stories here, never the generated files)
 """
-import os, textwrap
+import os, json
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 OUT = f"{ROOT}/docs/ride-hailing"
@@ -554,6 +554,11 @@ for s in S:
     manifest.append(("story", s[0], f"{s[0]} {s[2]}", labels, fn, s[1]))
 FILE = {m[1]: m[4] for m in manifest}
 
+# GitHub issue numbers, once created (scripts/ride_backlog/issues.json)
+_iss = os.path.join(os.path.dirname(os.path.abspath(__file__)), "issues.json")
+ISSUE = json.load(open(_iss)) if os.path.exists(_iss) else {}
+def iss(k): return f"[#{ISSUE[k]}](https://github.com/sebastien15/Jali/issues/{ISSUE[k]})" if k in ISSUE else "—"
+
 # overview
 nw = max(WAVE.values())
 by_phase = {}
@@ -562,7 +567,7 @@ for m in manifest:
         ph = m[3][2]; by_phase[ph] = by_phase.get(ph, 0) + 1
 ov = ["# Jali Ride & Hire-a-Driver — User Stories", "",
       f"> Full backlog for the on-demand products described in `{PLAN}` — the best features of Uber, DiDi, Bolt, inDrive, Careem and Grab, plus Jali's own driver-set pricing.",
-      "> Each story has acceptance criteria and becomes one GitHub issue (`scripts/create-ride-issues.sh`).", "",
+      "> Each story has acceptance criteria and is tracked as a GitHub issue (column *Issue*; epics are parent issues with the stories as sub-issues).", "",
       f"**{len(EPICS)} epics · {len(S)} stories · {nw} dependency waves**", "",
       "| Level | Phase label | Stories | Meaning |", "|---|---|---|---|",
       f"| 1 — MVP | `phase-0`, `phase-1` | {by_phase.get('phase-0',0) + by_phase.get('phase-1',0)} | Rides work end-to-end, safely, in one city |",
@@ -576,10 +581,10 @@ for w in range(1, nw + 1):
     ov.append(f"- **Wave {w}** ({len(ids)}): " + ", ".join(f"[{i}](stories/{FILE[i]})" for i in ids))
 ov.append("")
 for e in EPICS:
-    ov += [f"## {e[0]} — {e[1]}  `{e[2]}`", "", e[3], "", "| ID | Story | Wave | Depends on | Inspired by |", "|---|---|---|---|---|"]
+    ov += [f"## {e[0]} — {e[1]}  `{e[2]}` · {iss(e[0])}", "", e[3], "", "| ID | Issue | Story | Wave | Depends on | Inspired by |", "|---|---|---|---|---|---|"]
     for s in S:
         if s[1] == e[0]:
-            ov.append(f"| [{s[0]}](stories/{FILE[s[0]]}) | {s[2]} | {WAVE[s[0]]} | {', '.join(DEPS.get(s[0], [])) or '—'} | {SRC.get(s[0], '—')} |")
+            ov.append(f"| [{s[0]}](stories/{FILE[s[0]]}) | {iss(s[0])} | {s[2]} | {WAVE[s[0]]} | {', '.join(DEPS.get(s[0], [])) or '—'} | {SRC.get(s[0], '—')} |")
     ov.append("")
 open(f"{OUT}/USER_STORIES.md", "w").write("\n".join(ov))
 
@@ -588,6 +593,8 @@ sh = ['#!/usr/bin/env bash',
       '# Creates the Jali Ride user stories as GitHub issues (epics first, then stories linked to them).',
       '# Generated from docs/ride-hailing/stories — do not edit by hand.',
       '# Usage: scripts/create-ride-issues.sh [owner/repo]   (requires: gh auth login)',
+      '# NOTE: sebastien15/Jali already has these issues (#4-#155, see scripts/ride_backlog/issues.json).',
+      '#       Only run this against a fresh repository or fork.',
       'set -euo pipefail',
       'REPO="${1:-sebastien15/Jali}"',
       'DIR="$(cd "$(dirname "$0")/.." && pwd)/docs/ride-hailing/stories"',
