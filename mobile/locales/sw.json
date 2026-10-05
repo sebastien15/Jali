@@ -627,7 +627,21 @@
     "statusCancelled": "Imeghairiwa",
     "statusTaken": "Imechukuliwa",
     "statusTicketReady": "Tikiti Tayari",
-    "statusDelivered": "Imetolewa"
+    "statusDelivered": "Imetolewa",
+    "claimedToast": "Uhifadhi umechukuliwa",
+    "deliveredToast": "Uhifadhi umewekwa kama umekabidhiwa",
+    "updatedToast": "Uhifadhi umesasishwa",
+    "ticketCount": "Tiketi {{count}}",
+    "booking": "Uhifadhi",
+    "notFound": "Uhifadhi huu haupo kwenye orodha ya kituo chako.",
+    "status": "Hali",
+    "trip": "Safari",
+    "route": "Njia",
+    "travelDate": "Tarehe ya safari",
+    "tickets": "Tiketi",
+    "passenger": "Abiria",
+    "email": "Barua pepe",
+    "price": "Jumla"
   },
   "rating": {
     "rateAgency": "Tathmini Shirika hili",

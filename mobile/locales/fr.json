@@ -627,7 +627,21 @@
     "statusCancelled": "Annulée",
     "statusTaken": "Prise en charge",
     "statusTicketReady": "Billet prêt",
-    "statusDelivered": "Livré"
+    "statusDelivered": "Livré",
+    "claimedToast": "Réservation prise en charge",
+    "deliveredToast": "Réservation marquée comme remise",
+    "updatedToast": "Réservation mise à jour",
+    "ticketCount": "{{count}} billets",
+    "booking": "Réservation",
+    "notFound": "Cette réservation n'est pas dans la liste de votre gare.",
+    "status": "Statut",
+    "trip": "Trajet",
+    "route": "Itinéraire",
+    "travelDate": "Date du voyage",
+    "tickets": "Billets",
+    "passenger": "Passager",
+    "email": "E-mail",
+    "price": "Total"
   },
   "rating": {
     "rateAgency": "Noter cette agence",

@@ -627,7 +627,21 @@
     "statusCancelled": "Byasizwe",
     "statusTaken": "Bifashwe",
     "statusTicketReady": "Itike Iteguwe",
-    "statusDelivered": "Byatanzwe"
+    "statusDelivered": "Byatanzwe",
+    "claimedToast": "Ubusabe bwafashwe",
+    "deliveredToast": "Ubusabe bwanditswe ko bwatanzwe",
+    "updatedToast": "Ubusabe bwavuguruwe",
+    "ticketCount": "Amatike {{count}}",
+    "booking": "Ubusabe",
+    "notFound": "Ubu busabe ntibuboneka ku rutonde rwa gare yawe.",
+    "status": "Uko bihagaze",
+    "trip": "Urugendo",
+    "route": "Inzira",
+    "travelDate": "Itariki y'urugendo",
+    "tickets": "Amatike",
+    "passenger": "Umugenzi",
+    "email": "Imeyili",
+    "price": "Igiteranyo"
   },
   "rating": {
     "rateAgency": "Pima iyi Sosiyete",

@@ -627,7 +627,21 @@
     "statusCancelled": "Cancelled",
     "statusTaken": "Taken",
     "statusTicketReady": "Ticket Ready",
-    "statusDelivered": "Delivered"
+    "statusDelivered": "Delivered",
+    "claimedToast": "Booking claimed",
+    "deliveredToast": "Booking marked delivered",
+    "updatedToast": "Booking updated",
+    "ticketCount": "{{count}} tickets",
+    "booking": "Booking",
+    "notFound": "This booking is not in your station's list.",
+    "status": "Status",
+    "trip": "Trip",
+    "route": "Route",
+    "travelDate": "Travel date",
+    "tickets": "Tickets",
+    "passenger": "Passenger",
+    "email": "Email",
+    "price": "Total"
   },
   "rating": {
     "rateAgency": "Rate this Agency",
