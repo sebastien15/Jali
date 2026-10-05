@@ -337,6 +337,10 @@ PATCH /admin/stations/{id}
 GET   /admin/bookings
 PATCH /admin/bookings/{id}
 
+# perm: offer-rides — driver-set prices for the active vehicle (validated vs guardrails)
+GET   /driver/rates               rates + guardrails + service fee + price preview
+PUT   /driver/rates
+
 # perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
 GET   /admin/settings/rides
 PUT   /admin/settings/rides
@@ -388,6 +392,8 @@ app/Models/
 ├── LocationChangeRequest.php  admin location change requests
 ├── ActivityLog.php        admin activity trail
 ├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
+├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
+├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)
 ├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price
 └── AdminStation.php       admin ↔ station assignments
 ```

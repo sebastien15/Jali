@@ -171,7 +171,7 @@
     "publishListing": "Publier le trajet",
     "deleteListing": "Supprimer ce trajet",
     "required": "Requis",
-    "selectDestination": "Veuillez sélectionner la destination et le point de prise en charge.",
+    "selectDestination": "Sélectionner la destination",
     "enterPrice": "Veuillez entrer un prix par place.",
     "error": "Erreur",
     "saveListingError": "Impossible de sauvegarder le trajet.",
@@ -182,7 +182,6 @@
     "listingPublished": "Publié",
     "listingUpdatedDesc": "Votre trajet a été mis à jour.",
     "listingPublishedDesc": "Votre trajet est maintenant disponible pour les passagers.",
-    "selectDestination": "Sélectionner la destination",
     "groupPrice": "Prix de groupe : {{price}} RWF/place"
   },
   "driverSetup": {
@@ -620,5 +619,30 @@
     "comment": "Commentaire (facultatif)",
     "submit": "Soumettre la note",
     "success": "Merci pour votre note !"
+  },
+  "ride": {
+    "rates": {
+      "title": "Mes tarifs de course",
+      "subtitle": "Vous fixez votre prix. Les passagers le voient avant de vous choisir.",
+      "noVehicle": "Ajoutez d'abord votre véhicule dans Ma configuration.",
+      "openSetup": "Ouvrir Ma configuration",
+      "baseFare": "Prise en charge",
+      "perKm": "Prix par km",
+      "perMin": "Par minute (trafic, facultatif)",
+      "minFare": "Course minimum",
+      "pickupFreeKm": "Distance d'approche gratuite (km)",
+      "pickupPerKm": "Approche par km supplémentaire",
+      "nightMultiplier": "Tarif de nuit ×  (22h–5h)",
+      "allowed": "Autorisé : {{min}}–{{max}} RWF par km · course minimum jusqu'à {{minFareMax}} RWF",
+      "preview": "Ce que paient les passagers",
+      "previewTrip": "Trajet de {{km}} km",
+      "youEarn": "Vous gagnez {{amount}} après {{pct}} % de commission",
+      "outOfBand": "Les limites de prix Jali ont changé. Mettez vos tarifs à jour pour continuer à recevoir des courses.",
+      "save": "Enregistrer",
+      "saved": "Tarifs enregistrés ✓",
+      "error": "Échec de l'enregistrement. Réessayez.",
+      "cardTitle": "Tarifs des courses à la demande",
+      "cardSub": "Fixez votre propre prix au km"
+    }
   }
 }

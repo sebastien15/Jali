@@ -171,7 +171,7 @@
     "publishListing": "Chapisha Orodha",
     "deleteListing": "Futa safari hii",
     "required": "Inahitajika",
-    "selectDestination": "Tafadhali chagua marudio na mahali pa kupanda.",
+    "selectDestination": "Chagua marudio",
     "enterPrice": "Tafadhali weka bei kwa kiti.",
     "error": "Hitilafu",
     "saveListingError": "Haikuweza kuhifadhi orodha.",
@@ -182,7 +182,6 @@
     "listingPublished": "Imechapishwa",
     "listingUpdatedDesc": "Orodha yako imesasishwa.",
     "listingPublishedDesc": "Safari yako sasa imechapishwa kwa abiria kutemini.",
-    "selectDestination": "Chagua marudio",
     "groupPrice": "Bei ya kikundi: {{price}} RWF/kiti"
   },
   "driverSetup": {
@@ -620,5 +619,30 @@
     "comment": "Maoni (hiari)",
     "submit": "Wasilisha Tathmini",
     "success": "Asante kwa tathmini yako!"
+  },
+  "ride": {
+    "rates": {
+      "title": "Bei zangu za safari",
+      "subtitle": "Wewe ndiye unaamua bei. Abiria wanaiona kabla ya kukuomba.",
+      "noVehicle": "Kwanza ongeza gari lako kwenye Mipangilio Yangu.",
+      "openSetup": "Fungua Mipangilio Yangu",
+      "baseFare": "Nauli ya kuanzia",
+      "perKm": "Bei kwa km",
+      "perMin": "Kwa dakika (msongamano, si lazima)",
+      "minFare": "Nauli ya chini",
+      "pickupFreeKm": "Umbali wa kumfuata bila malipo (km)",
+      "pickupPerKm": "Malipo ya kumfuata kwa km ya ziada",
+      "nightMultiplier": "Bei ya usiku ×  (22:00–05:00)",
+      "allowed": "Inaruhusiwa: {{min}}–{{max}} RWF kwa km · nauli ya chini hadi {{minFareMax}} RWF",
+      "preview": "Abiria watalipa",
+      "previewTrip": "Safari ya km {{km}}",
+      "youEarn": "Utapata {{amount}} baada ya kamisheni ya {{pct}}%",
+      "outOfBand": "Viwango vya bei vya Jali vimebadilika. Sasisha bei zako ili uendelee kupata safari.",
+      "save": "Hifadhi bei",
+      "saved": "Bei zimehifadhiwa ✓",
+      "error": "Imeshindikana kuhifadhi. Jaribu tena.",
+      "cardTitle": "Bei za safari za papo hapo",
+      "cardSub": "Weka bei yako kwa km"
+    }
   }
 }

@@ -171,7 +171,7 @@
     "publishListing": "Tangaza Ingingo",
     "deleteListing": "Siba iyi ngendo",
     "required": "Birasabwa",
-    "selectDestination": "Nyamuneka hitamo aho ujya n'aho ufata.",
+    "selectDestination": "Hitamo aho ujya",
     "enterPrice": "Nyamuneka andika igiciro ku mwanya.",
     "error": "Ikosa",
     "saveListingError": "Ntibishoboye kubika ingingo.",
@@ -182,7 +182,6 @@
     "listingPublished": "Byatangajwe",
     "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
     "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
-    "selectDestination": "Hitamo aho ujya",
     "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
   },
   "driverSetup": {
@@ -620,5 +619,30 @@
     "comment": "Ibitekerezo (bidasabwa)",
     "submit": "Ohereza Igipimo",
     "success": "Murakoze guha igipimo!"
+  },
+  "ride": {
+    "rates": {
+      "title": "Ibiciro byanjye by'urugendo",
+      "subtitle": "Ni wowe ugena igiciro. Abagenzi bakibona mbere yo kugusaba.",
+      "noVehicle": "Banza wongere imodoka yawe muri Igenamiterere ryanjye.",
+      "openSetup": "Fungura Igenamiterere ryanjye",
+      "baseFare": "Igiciro fatizo",
+      "perKm": "Igiciro kuri km",
+      "perMin": "Ku munota (umubyigano, si ngombwa)",
+      "minFare": "Igiciro gito ntarengwa",
+      "pickupFreeKm": "Intera yo gufata umugenzi ku buntu (km)",
+      "pickupPerKm": "Igiciro cyo gufata umugenzi kuri km y'inyongera",
+      "nightMultiplier": "Igiciro cya nijoro ×  (22:00–05:00)",
+      "allowed": "Byemewe: {{min}}–{{max}} RWF kuri km · igiciro gito kugeza kuri {{minFareMax}} RWF",
+      "preview": "Icyo abagenzi bishyura",
+      "previewTrip": "Urugendo rwa km {{km}}",
+      "youEarn": "Uzabona {{amount}} nyuma ya komisiyo ya {{pct}}%",
+      "outOfBand": "Imbibi z'ibiciro za Jali zahindutse. Vugurura ibiciro byawe kugira ngo ukomeze kubona ingendo.",
+      "save": "Bika ibiciro",
+      "saved": "Ibiciro byabitswe ✓",
+      "error": "Ntibyashobotse kubika. Ongera ugerageze.",
+      "cardTitle": "Ibiciro by'ingendo zihita",
+      "cardSub": "Shyiraho igiciro cyawe kuri km"
+    }
   }
 }

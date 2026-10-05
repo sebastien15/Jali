@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\PlatformSetting;
+use App\Services\PushService;
+use App\Services\Rides\RateGuardrails;
 use App\Services\Rides\RideSettings;
 use Illuminate\Http\Request;
 
@@ -19,7 +21,7 @@ class RideSettingsController extends Controller
     }
 
     /** PUT /admin/settings/rides — full or partial update */
-    public function update(Request $request)
+    public function update(Request $request, PushService $push)
     {
         $user = $request->user();
         abort_unless($user->isSuperAdmin(), 403);
@@ -34,13 +36,14 @@ class RideSettingsController extends Controller
         }
 
         [$old, $new] = RideSettings::update($validated, $user);
+        $flagged = RateGuardrails::flagOutOfBand($push);
 
         ActivityLog::create([
             'admin_id'    => $user->id,
             'action'      => 'ride_settings_updated',
             'entity_type' => 'platform_setting',
             'entity_id'   => PlatformSetting::where('key', RideSettings::KEY)->value('id'),
-            'details'     => ['old' => $old, 'new' => $new],
+            'details'     => ['old' => $old, 'new' => $new, 'drivers_flagged' => $flagged],
         ]);
 
         return response()->json($new);
