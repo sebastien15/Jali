@@ -140,4 +140,18 @@ class DriverProfileTest extends TestCase
         $this->getJson('/api/driver/profile')->assertStatus(403);
         $this->patchJson('/api/driver/profile', $this->setupPayload)->assertStatus(403);
     }
+
+    /** @test */
+    public function offered_services_are_saved_and_validated()
+    {
+        Sanctum::actingAs($this->driver);
+
+        $this->patchJson('/api/driver/profile', ['services' => ['rental', 'ride']])
+            ->assertOk()
+            ->assertJsonPath('profile.services', ['rental', 'ride']);
+
+        $this->patchJson('/api/driver/profile', ['services' => ['teleport']])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['services.0']);
+    }
 }
