@@ -536,3 +536,9 @@ export default function MyScreen() {
 | `manage-locations` | Yes | Yes | No | No |
 | `view-station-analytics` | Yes | Yes | No | No |
 | `manage-agencies` | Yes | Yes | No | No |
+| `request-rides` | Yes | Yes | Yes | Yes |
+| `offer-rides` | Yes | No | No | Yes |
+| `offer-driver-hire` | Yes | No | No | Yes |
+| `verify-drivers` | Yes | Yes | No | No |
+| `manage-rides` | Yes | Yes | No | No |
+| `manage-ride-pricing` | Yes | No | No | No |

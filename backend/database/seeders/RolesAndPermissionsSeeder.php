@@ -34,6 +34,23 @@ class RolesAndPermissionsSeeder extends Seeder
             );
         }
 
+        // On-demand rides & hire-a-driver (RIDE_HAILING_PLAN.md §8)
+        $ridePermissions = [
+            'request-rides' => 'Request on-demand rides and hire drivers',
+            'offer-rides' => 'Go online and accept ride requests',
+            'offer-driver-hire' => 'Offer hire-a-driver services',
+            'verify-drivers' => 'Review and verify driver applications',
+            'manage-rides' => 'Monitor rides and handle disputes',
+            'manage-ride-pricing' => 'Configure ride pricing guardrails',
+        ];
+
+        foreach ($ridePermissions as $name => $desc) {
+            Permission::firstOrCreate(
+                ['name' => $name],
+                ['description' => $desc, 'category' => 'Rides']
+            );
+        }
+
         // Create roles
         $superadmin = Role::firstOrCreate(
             ['name' => 'superadmin'],
@@ -59,16 +76,19 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::whereIn('name', [
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
                 'view-analytics', 'view-station-analytics', 'manage-agencies',
-                'manage-locations',
+                'manage-locations', 'request-rides', 'verify-drivers', 'manage-rides',
             ])->get()
         );
 
         $user->permissions()->sync(
-            Permission::whereIn('name', ['create-bookings', 'view-own-bookings'])->get()
+            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides'])->get()
         );
 
         $driver->permissions()->sync(
-            Permission::whereIn('name', ['create-private-seats', 'view-own-earnings'])->get()
+            Permission::whereIn('name', [
+                'create-private-seats', 'view-own-earnings',
+                'request-rides', 'offer-rides', 'offer-driver-hire',
+            ])->get()
         );
     }
 }
