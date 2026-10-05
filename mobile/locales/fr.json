@@ -534,7 +534,9 @@
     "actionImage": "Image de profil téléchargée",
     "actionContract": "Contrat téléchargé",
     "actionLocationApproved": "Changement de lieu approuvé",
-    "actionLocationRejected": "Changement de lieu rejeté"
+    "actionLocationRejected": "Changement de lieu rejeté",
+    "gettingLocation": "Localisation en cours…",
+    "useCurrentLocation": "Utiliser ma position actuelle"
   },
   "agencies": {
     "title": "Agences",

@@ -534,7 +534,9 @@
     "actionImage": "Picha imepakiwa",
     "actionContract": "Mkataba umepakiwa",
     "actionLocationApproved": "Mabadiliko ya eneo yameidhinishwa",
-    "actionLocationRejected": "Mabadiliko ya eneo yamekataliwa"
+    "actionLocationRejected": "Mabadiliko ya eneo yamekataliwa",
+    "gettingLocation": "Inatafuta mahali…",
+    "useCurrentLocation": "Tumia mahali nilipo sasa"
   },
   "agencies": {
     "title": "Mashirika",

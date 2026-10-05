@@ -534,7 +534,9 @@
     "actionImage": "Uploaded profile image",
     "actionContract": "Uploaded contract",
     "actionLocationApproved": "Approved location change",
-    "actionLocationRejected": "Rejected location change"
+    "actionLocationRejected": "Rejected location change",
+    "gettingLocation": "Getting location…",
+    "useCurrentLocation": "Use current location"
   },
   "agencies": {
     "title": "Agencies",

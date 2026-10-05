@@ -534,7 +534,9 @@
     "actionImage": "Ifoto yoherejwe",
     "actionContract": "Amasezerano yoherejwe",
     "actionLocationApproved": "Impinduka y'aho yemejwe",
-    "actionLocationRejected": "Impinduka y'aho yananzwe"
+    "actionLocationRejected": "Impinduka y'aho yananzwe",
+    "gettingLocation": "Turimo gushaka aho uri…",
+    "useCurrentLocation": "Koresha aho ndi ubu"
   },
   "agencies": {
     "title": "Amasosiyete",
