@@ -71,10 +71,9 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(admin)" />
-              <Stack.Screen name="legal/[doc]" options={{ presentation: "modal", headerShown: false }} />
-              <Stack.Screen name="driver/setup" options={{ presentation: "card", headerShown: false }} />
-              <Stack.Screen name="driver/fleet" options={{ presentation: "card", headerShown: false }} />
-              <Stack.Screen name="driver/listing" options={{ presentation: "card", headerShown: false }} />
+              {/* legal/ and driver/ have their own _layout, so their root route names are the folder names */}
+              <Stack.Screen name="legal" options={{ presentation: "modal", headerShown: false }} />
+              <Stack.Screen name="driver" options={{ presentation: "card", headerShown: false }} />
             </Stack>
             <OfflineBanner />
           </View>
