@@ -219,7 +219,7 @@
     "allowedZones": "Zones autorisées",
     "insuranceExpiry": "Expiration de l'assurance",
     "docsUrl": "T&Cs / URL du document d'assurance",
-    "docsUrlHint": "Téléchargez le document sur Firebase Storage et collez l'URL ici",
+    "docsUrlHint": "Collez le lien de votre assurance ou de vos conditions (facultatif)",
     "saveChanges": "Sauvegarder",
     "saved": "Sauvegardé",
     "profileUpdated": "Votre profil a été mis à jour.",
@@ -233,7 +233,8 @@
     "carTypeSedan": "Berline",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Le lien du document doit être une adresse web complète commençant par https://"
   },
   "fleet": {
     "fleetOwner": "Propriétaire de flotte",

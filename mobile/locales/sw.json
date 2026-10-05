@@ -219,7 +219,7 @@
     "allowedZones": "Eneo Zinazoruhusiwa",
     "insuranceExpiry": "Mwisho wa Bima",
     "docsUrl": "Masharti / URL ya Hati ya Bima",
-    "docsUrlHint": "Pakia hati kwenye Firebase Storage na ubandike URL hapa",
+    "docsUrlHint": "Bandika kiungo cha hati ya bima au masharti yako (si lazima)",
     "saveChanges": "Hifadhi Mabadiliko",
     "saved": "Imehifadhiwa",
     "profileUpdated": "Profaili yako imesasishwa.",
@@ -233,7 +233,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Kiungo cha hati lazima kiwe anwani kamili ya wavuti inayoanza na https://"
   },
   "fleet": {
     "fleetOwner": "Mmiliki wa Floti",

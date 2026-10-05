@@ -219,7 +219,7 @@
     "allowedZones": "Zones zemewe",
     "insuranceExpiry": "Iherezo ry'Ubwishingizi",
     "docsUrl": "T&Cs / URL y'Icyangombwa cy'Ubwishingizi",
-    "docsUrlHint": "Ohereza icyangombwa kuri Firebase Storage ukomeze URL hano",
+    "docsUrlHint": "Shyiramo umurongo w'inyandiko y'ubwishingizi cyangwa amabwiriza (si ngombwa)",
     "saveChanges": "Bika Ihinduka",
     "saved": "Byabitswe",
     "profileUpdated": "Profil yawe yahinduwe.",
@@ -233,7 +233,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Umurongo w'inyandiko ugomba kuba aderesi yuzuye itangirana na https://"
   },
   "fleet": {
     "fleetOwner": "Nyiri Floti",

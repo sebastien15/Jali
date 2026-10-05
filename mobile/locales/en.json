@@ -219,7 +219,7 @@
     "allowedZones": "Allowed Zones",
     "insuranceExpiry": "Insurance Expiry",
     "docsUrl": "T&Cs / Insurance Doc URL",
-    "docsUrlHint": "Upload the doc to Firebase Storage and paste the URL here",
+    "docsUrlHint": "Paste a link to your insurance or T&Cs document (optional)",
     "saveChanges": "Save Changes",
     "saved": "Saved",
     "profileUpdated": "Your profile has been updated.",
@@ -233,7 +233,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "The document link must be a full web address starting with https://"
   },
   "fleet": {
     "fleetOwner": "Fleet Owner",
