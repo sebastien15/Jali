@@ -149,8 +149,6 @@ function TabsNavigator() {
       {/* ── All other screens: navigable but hidden from tab bar ── */}
       <Tabs.Screen name="admin-login"      options={{ href: null }} />
       <Tabs.Screen name="locations/index" options={{ href: null }} />
-      <Tabs.Screen name="buses/index"     options={{ href: null }} />
-      <Tabs.Screen name="buses/[id]"      options={{ href: null }} />
       <Tabs.Screen name="bookings/[id]"   options={{ href: null }} />
       <Tabs.Screen name="users/index"     options={{ href: null }} />
       <Tabs.Screen name="users/[id]"      options={{ href: null }} />
