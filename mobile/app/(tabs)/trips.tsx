@@ -115,10 +115,10 @@ export default function TripsScreen() {
           >
             <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
               <View style={{
-                backgroundColor: TYPE_COLOR[trip.type], borderRadius: 14,
+                backgroundColor: TYPE_COLOR[trip.type as TripType], borderRadius: 14,
                 width: 46, height: 46, alignItems: "center", justifyContent: "center",
               }}>
-                <Text style={{ fontSize: 22 }}>{TYPE_ICON[trip.type]}</Text>
+                <Text style={{ fontSize: 22 }}>{TYPE_ICON[trip.type as TripType]}</Text>
               </View>
 
               <View style={{ flex: 1 }}>
@@ -131,7 +131,7 @@ export default function TripsScreen() {
                   {trip.price.toLocaleString()} RWF
                 </Text>
                 <View style={{
-                  backgroundColor: STATUS_COLOR[trip.status],
+                  backgroundColor: STATUS_COLOR[trip.status as TripStatus],
                   borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4,
                 }}>
                   <Text style={{
