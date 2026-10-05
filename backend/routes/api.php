@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PushTokenController;
+use App\Http\Controllers\DriverRateController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -82,6 +83,12 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:manage-ride-pricing")->group(function () {
         Route::get("/admin/settings/rides", [RideSettingsController::class, "show"]);
         Route::put("/admin/settings/rides", [RideSettingsController::class, "update"]);
+    });
+
+    // Driver-set ride prices — RIDE_HAILING_PLAN.md §3.1
+    Route::middleware("permission:offer-rides")->group(function () {
+        Route::get("/driver/rates", [DriverRateController::class, "show"]);
+        Route::put("/driver/rates", [DriverRateController::class, "update"]);
     });
 
     // Driver routes

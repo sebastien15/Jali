@@ -120,23 +120,24 @@ paths:
     get:
       tags: [Driver]
       operationId: getDriverRates
-      x-jali-status: planned
       x-jali-story: S2.1
       x-jali-permission: offer-rides
-      summary: My ride rates for the active vehicle
+      summary: My ride rates for the active vehicle, the guardrails that apply, and a price preview
       responses:
         "200":
           description: OK
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/DriverRates" }
+              schema: { $ref: "#/components/schemas/DriverRatesResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
     put:
       tags: [Driver]
       operationId: putDriverRates
-      x-jali-status: planned
       x-jali-story: S2.1
       x-jali-permission: offer-rides
-      summary: Set my ride rates (validated against guardrails for the vehicle class)
+      summary: Set my ride rates (validated against the guardrails for my vehicle class)
+      description: Rates are snapshotted when a ride is requested, so changes never affect rides already quoted.
       requestBody:
         required: true
         content:
@@ -147,7 +148,9 @@ paths:
           description: Saved
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/DriverRates" }
+              schema: { $ref: "#/components/schemas/DriverRatesResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
   /driver/presence:
@@ -695,6 +698,53 @@ components:
         pickup_free_km: { type: number, minimum: 0, default: 2 }
         pickup_per_km: { type: integer, minimum: 0, default: 0 }
         night_multiplier: { type: number, minimum: 1, maximum: 2, default: 1 }
+
+    DriverRatesResponse:
+      type: object
+      required: [vehicle, rates, out_of_band, guardrails, service_fee, commission_pct, preview]
+      properties:
+        vehicle:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [id, class, model, plate]
+              properties:
+                id: { type: integer }
+                class: { $ref: "#/components/schemas/VehicleClass" }
+                model: { type: string }
+                plate: { type: string }
+        rates:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/DriverRates"
+        out_of_band:
+          type: boolean
+          description: True when guardrails changed and these rates must be updated
+        guardrails:
+          type: object
+          required: [per_km_min, per_km_max, min_fare_max]
+          properties:
+            per_km_min: { type: integer }
+            per_km_max: { type: integer }
+            min_fare_max: { type: integer }
+        service_fee:
+          type: object
+          required: [type, amount]
+          properties:
+            type: { type: string, enum: [flat, percent] }
+            amount: { type: number }
+        commission_pct: { type: number }
+        preview:
+          type: array
+          description: Daytime price for sample trips (no pickup surcharge)
+          items:
+            type: object
+            required: [km, driver_fare, service_fee, total]
+            properties:
+              km: { type: number }
+              driver_fare: { type: integer }
+              service_fee: { type: integer }
+              total: { type: integer }
 
     TripPoints:
       type: object

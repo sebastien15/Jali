@@ -171,7 +171,7 @@
     "publishListing": "Publish Listing",
     "deleteListing": "Delete this listing",
     "required": "Required",
-    "selectDestination": "Please select destination and pickup station.",
+    "selectDestination": "Select destination",
     "enterPrice": "Please enter a price per seat.",
     "error": "Error",
     "saveListingError": "Could not save listing.",
@@ -182,7 +182,6 @@
     "listingPublished": "Listed",
     "listingUpdatedDesc": "Your listing has been updated.",
     "listingPublishedDesc": "Your trip is now listed for passengers to book.",
-    "selectDestination": "Select destination",
     "groupPrice": "Group price: {{price}} RWF/seat"
   },
   "driverSetup": {
@@ -620,5 +619,30 @@
     "comment": "Comment (optional)",
     "submit": "Submit Rating",
     "success": "Thank you for your rating!"
+  },
+  "ride": {
+    "rates": {
+      "title": "My ride prices",
+      "subtitle": "You decide your price. Riders see it before they request you.",
+      "noVehicle": "Add your vehicle in My Setup first.",
+      "openSetup": "Open My Setup",
+      "baseFare": "Base fare",
+      "perKm": "Price per km",
+      "perMin": "Per minute (traffic, optional)",
+      "minFare": "Minimum fare",
+      "pickupFreeKm": "Free pickup distance (km)",
+      "pickupPerKm": "Pickup charge per extra km",
+      "nightMultiplier": "Night price ×  (22:00–05:00)",
+      "allowed": "Allowed: {{min}}–{{max}} RWF per km · minimum fare up to {{minFareMax}} RWF",
+      "preview": "What riders pay",
+      "previewTrip": "{{km}} km trip",
+      "youEarn": "You earn {{amount}} after {{pct}}% commission",
+      "outOfBand": "Jali price limits changed. Update your prices to keep receiving rides.",
+      "save": "Save prices",
+      "saved": "Prices saved ✓",
+      "error": "Could not save. Please try again.",
+      "cardTitle": "On-demand ride prices",
+      "cardSub": "Set your own price per km"
+    }
   }
 }

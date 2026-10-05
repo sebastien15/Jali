@@ -67,9 +67,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My ride rates for the active vehicle */
+        /** My ride rates for the active vehicle, the guardrails that apply, and a price preview */
         get: operations["getDriverRates"];
-        /** Set my ride rates (validated against guardrails for the vehicle class) */
+        /**
+         * Set my ride rates (validated against the guardrails for my vehicle class)
+         * @description Rates are snapshotted when a ride is requested, so changes never affect rides already quoted.
+         */
         put: operations["putDriverRates"];
         post?: never;
         delete?: never;
@@ -425,6 +428,35 @@ export interface components {
             /** @default 1 */
             night_multiplier: number;
         };
+        DriverRatesResponse: {
+            vehicle: null | {
+                id: number;
+                class: components["schemas"]["VehicleClass"];
+                model: string;
+                plate: string;
+            };
+            rates: null | components["schemas"]["DriverRates"];
+            /** @description True when guardrails changed and these rates must be updated */
+            out_of_band: boolean;
+            guardrails: {
+                per_km_min: number;
+                per_km_max: number;
+                min_fare_max: number;
+            };
+            service_fee: {
+                /** @enum {string} */
+                type: "flat" | "percent";
+                amount: number;
+            };
+            commission_pct: number;
+            /** @description Daytime price for sample trips (no pickup surcharge) */
+            preview: {
+                km: number;
+                driver_fare: number;
+                service_fee: number;
+                total: number;
+            }[];
+        };
         TripPoints: {
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
@@ -754,9 +786,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DriverRates"];
+                    "application/json": components["schemas"]["DriverRatesResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     putDriverRates: {
@@ -778,9 +812,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DriverRates"];
+                    "application/json": components["schemas"]["DriverRatesResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
         };
     };

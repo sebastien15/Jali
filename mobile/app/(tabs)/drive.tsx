@@ -27,6 +27,7 @@ import { DriverTypeBanner } from "@/components/driver/DriverTypeBanner";
 import { WeekSummaryCard } from "@/components/driver/WeekSummaryCard";
 import {
   FleetActionCard,
+  RidePricesCard,
   PrivateListingsCard,
 } from "@/components/driver/DriverActionCard";
 import { PickupZones } from "@/components/driver/PickupZones";
@@ -147,6 +148,9 @@ export default function DriveScreen() {
         ) : (
           <PrivateListingsCard driverListings={driverListings} />
         )}
+
+        {/* On-demand rides: driver-set prices */}
+        <RidePricesCard />
 
         {/* Pickup zones */}
         <PickupZones activeZones={activeZones} onToggleZone={toggleZone} />

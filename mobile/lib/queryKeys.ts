@@ -41,6 +41,7 @@ export const queryKeys = {
     listing: (id: number) => ["driver", "listings", id] as const,
     cars: () => ["driver", "cars"] as const,
     profile: () => ["driver", "profile"] as const,
+    rates: () => ["driver", "rates"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
