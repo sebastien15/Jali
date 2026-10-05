@@ -1,10 +1,7 @@
 import { Stack } from "expo-router";
-import ProtectedRoute from "@/lib/ProtectedRoute";
 
+// Public on purpose: Terms, Privacy and FAQ must be readable before signing
+// up (store requirement), so no ProtectedRoute here.
 export default function LegalLayout() {
-  return (
-    <ProtectedRoute>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ProtectedRoute>
-  );
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

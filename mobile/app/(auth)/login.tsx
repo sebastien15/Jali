@@ -22,9 +22,13 @@ import api, { clearApiToken } from "@/lib/api";
 import { startSession } from "@/lib/session";
 import { isDev } from "@/lib/env";
 
+// Phone/OTP sign-in is not implemented yet (its button only said "coming
+// soon"). Keep the UI behind this flag and open on email + Google.
+const PHONE_LOGIN_ENABLED = false;
+
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const [step, setStep] = useState<"phone" | "email" | "otp">("phone");
+  const [step, setStep] = useState<"phone" | "email" | "otp">(PHONE_LOGIN_ENABLED ? "phone" : "email");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -142,6 +146,7 @@ export default function LoginScreen() {
     if (code.length < 6) return;
 
     setLoading(true);
+    if (!confirmation) return;
     try {
       await confirmation.confirm(code);
     } catch (e: any) {
@@ -206,7 +211,7 @@ export default function LoginScreen() {
       </View>
 
       <View style={{ flex: 1, padding: 28, gap: 16 }}>
-        {step !== "otp" && (
+        {PHONE_LOGIN_ENABLED && step !== "otp" && (
           <View
             style={{
               backgroundColor: C.white,
@@ -333,34 +338,7 @@ export default function LoginScreen() {
               <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
             </View>
 
-            <TouchableOpacity
-              onPress={signInWithGoogle}
-              disabled={googleLoading}
-              style={{
-                backgroundColor: C.white,
-                borderRadius: 16,
-                paddingVertical: 16,
-                alignItems: "center",
-                flexDirection: "row",
-                justifyContent: "center",
-                gap: 10,
-                borderWidth: 2,
-                borderColor: C.border,
-              }}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color={C.mid} />
-              ) : (
-                <>
-                  <Text style={{ fontSize: 20 }}>🌐</Text>
-                  <Text
-                    style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}
-                  >
-                    {t("login.continueWithGoogle")}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
+            <GoogleButton onPress={signInWithGoogle} loading={googleLoading} label={t("login.continueWithGoogle")} />
 
             <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
               {t("login.googleAvailable")}
@@ -469,6 +447,12 @@ export default function LoginScreen() {
               {t("login.emailLoginHint")}
             </Text>
 
+            <OrDivider label={t("login.or")} />
+
+            <GoogleButton onPress={signInWithGoogle} loading={googleLoading} label={t("login.continueWithGoogle")} />
+
+            <LegalNotice />
+
             <AdminPortalLink />
           </>
         ) : (
@@ -500,7 +484,7 @@ export default function LoginScreen() {
               ))}
             </View>
             <PrimaryBtn
-              label="✓ Verify & Enter"
+              label={`✓ ${t("login.verifyEnter")}`}
               color={C.green}
               onPress={verifyCode}
               loading={loading}
@@ -514,7 +498,7 @@ export default function LoginScreen() {
               <Text
                 style={{ textAlign: "center", color: C.muted, fontSize: 13 }}
               >
-                ← Change number
+                ← {t("login.changeNumber")}
               </Text>
             </TouchableOpacity>
           </>
@@ -526,15 +510,73 @@ export default function LoginScreen() {
 }
 
 function AdminPortalLink() {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={() => router.push("/(admin)/admin-login")}
       style={{ marginTop: 8, alignItems: "center" }}
     >
       <Text style={{ color: C.muted, fontSize: 12 }}>
-        Admin?{" "}
-        <Text style={{ color: C.teal, fontWeight: "700" }}>Sign in here</Text>
+        {t("login.adminQuestion")}{" "}
+        <Text style={{ color: C.teal, fontWeight: "700" }}>{t("login.adminSignIn")}</Text>
       </Text>
+    </TouchableOpacity>
+  );
+}
+
+/** Terms & Privacy must be reachable before an account is created. */
+function LegalNotice() {
+  const { t } = useTranslation();
+  return (
+    <Text style={{ textAlign: "center", color: C.muted, fontSize: 12, lineHeight: 18 }}>
+      {t("login.agreePrefix")}{" "}
+      <Text onPress={() => router.push("/legal/terms")} style={{ color: C.blue, fontWeight: "700" }}>
+        {t("profile.termsConditions")}
+      </Text>
+      {" "}{t("login.and")}{" "}
+      <Text onPress={() => router.push("/legal/privacy")} style={{ color: C.blue, fontWeight: "700" }}>
+        {t("profile.privacyPolicy")}
+      </Text>
+      .
+    </Text>
+  );
+}
+
+function OrDivider({ label }: { label: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 }}>
+      <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+      <Text style={{ color: C.muted, fontSize: 13 }}>{label}</Text>
+      <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
+    </View>
+  );
+}
+
+function GoogleButton({ onPress, loading, label }: { onPress: () => void; loading: boolean; label: string }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={loading}
+      style={{
+        backgroundColor: C.white,
+        borderRadius: 16,
+        paddingVertical: 16,
+        alignItems: "center",
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10,
+        borderWidth: 2,
+        borderColor: C.border,
+      }}
+    >
+      {loading ? (
+        <ActivityIndicator color={C.mid} />
+      ) : (
+        <>
+          <Text style={{ fontSize: 20 }}>🌐</Text>
+          <Text style={{ fontWeight: "700", color: C.dark, fontSize: 15 }}>{label}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 }

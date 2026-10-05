@@ -142,7 +142,11 @@
     "googleAvailable": "Kwinjira na Google biraboneka ku bashoferi mpuzamahanga",
     "wrongCode": "Code nabi",
     "changeNumber": "Hindura numero",
-    "googleSignInFailed": "Kwinjira na Google byanze"
+    "googleSignInFailed": "Kwinjira na Google byanze",
+    "agreePrefix": "Ukomeje, uba wemeye",
+    "and": "na",
+    "adminQuestion": "Uri umuyobozi?",
+    "adminSignIn": "Injira hano"
   },
   "listing": {
     "privateDriver": "Umushoferi Bwite",

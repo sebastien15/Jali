@@ -142,7 +142,11 @@
     "googleAvailable": "Kuingia kwa Google kunapatikana kwa wasafiri wa kimataifa",
     "wrongCode": "Code si sahihi",
     "changeNumber": "Badilisha nambari",
-    "googleSignInFailed": "Kuingia kwa Google kumeshindikana"
+    "googleSignInFailed": "Kuingia kwa Google kumeshindikana",
+    "agreePrefix": "Kwa kuendelea unakubali",
+    "and": "na",
+    "adminQuestion": "Msimamizi?",
+    "adminSignIn": "Ingia hapa"
   },
   "listing": {
     "privateDriver": "Dereva Binafsi",

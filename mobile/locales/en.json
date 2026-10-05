@@ -142,7 +142,11 @@
     "googleAvailable": "Google sign-in is available for international travelers",
     "wrongCode": "Wrong code",
     "changeNumber": "Change number",
-    "googleSignInFailed": "Google sign-in failed"
+    "googleSignInFailed": "Google sign-in failed",
+    "agreePrefix": "By continuing you agree to Jali's",
+    "and": "and",
+    "adminQuestion": "Admin?",
+    "adminSignIn": "Sign in here"
   },
   "listing": {
     "privateDriver": "Private Driver",

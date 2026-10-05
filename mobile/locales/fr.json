@@ -142,7 +142,11 @@
     "googleAvailable": "La connexion Google est disponible pour les voyageurs internationaux",
     "wrongCode": "Code incorrect",
     "changeNumber": "Changer de numéro",
-    "googleSignInFailed": "Échec de la connexion Google"
+    "googleSignInFailed": "Échec de la connexion Google",
+    "agreePrefix": "En continuant, vous acceptez les",
+    "and": "et la",
+    "adminQuestion": "Administrateur ?",
+    "adminSignIn": "Connectez-vous ici"
   },
   "listing": {
     "privateDriver": "Conducteur privé",
