@@ -79,6 +79,33 @@ export interface DriverCar {
   photos: { front?: string; side?: string; interior?: string; luggage?: string };
 }
 
+// ── Public catalog items ─────────────────────────────────────────
+/** Item of GET /private-seats (PrivateSeat model). */
+export interface PrivateSeatItem {
+  id: number;
+  driver: string;
+  from: string;
+  to: string;
+  pickup_station?: string | null;
+  dep: string;
+  date?: string | null;
+  price: number;
+  seats: number;
+  rating?: number | string | null;
+}
+
+/** Item of GET /car-rentals (CarRental model). */
+export interface CarRentalItem {
+  id: number;
+  name: string;
+  type: string;
+  plate: string;
+  price: number; // per day
+  caution?: number | null;
+  seats: number;
+  rating?: number | string | null;
+}
+
 // ── Private driver listing (API shape, see PrivateSeatController) ─
 // Field names are snake_case exactly as the backend returns/accepts them.
 export interface DriverListing {

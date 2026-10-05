@@ -1,9 +1,9 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import type { CARS } from "@/constants/data";
+import type { CarRentalItem } from "@/constants/data";
 
-type Car = typeof CARS[number];
+type Car = CarRentalItem;
 
 interface Props { car: Car; days: number; onPress: () => void; }
 
