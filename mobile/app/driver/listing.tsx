@@ -335,7 +335,7 @@ export default function ListingScreen() {
                 mode="date"
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 minimumDate={new Date()}
-                onChange={(_, selected) => {
+                onChange={(_: unknown, selected?: Date) => {
                   setShowDatePicker(Platform.OS === "ios");
                   if (selected) setDate(selected);
                 }}
