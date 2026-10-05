@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\AgencyRating;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 
 class AgencyRatingController extends Controller
@@ -19,6 +20,16 @@ class AgencyRatingController extends Controller
             'stars'   => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ]);
+
+        // Only passengers who actually booked this agency may rate it.
+        $hasBooked = Booking::where('user_id', $request->user()->id)
+            ->where('type', 'trip')
+            ->where('status', '!=', 'cancelled')
+            ->whereHas('departure.route', fn ($q) => $q->where('agency_id', $agency->id))
+            ->exists();
+        if (!$hasBooked) {
+            return response()->json(['message' => 'You can rate an agency after booking a trip with it.'], 403);
+        }
 
         $rating = AgencyRating::updateOrCreate(
             [
