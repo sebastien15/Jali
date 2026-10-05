@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
+import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,10 +19,13 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { Trip } from "@/constants/data";
 import { setLanguage, getLanguage } from "@/lib/i18n";
 
-const APP_VERSION = "1.0.0";
+// Single source of truth: app.json "version"
+const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
 const PLAY_STORE_URL   = "market://details?id=com.jali.app";
-const APP_STORE_URL    = "https://apps.apple.com/app/jali/id0000000000"; // update when live
+// Set to the real App Store URL once the iOS app is published; while null the
+// "Rate Jali" item is hidden on iOS instead of opening a dead link.
+const APP_STORE_URL: string | null = null;
 
 type MenuItem = {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -178,13 +182,9 @@ export default function ProfileScreen() {
     );
   }
 
+  // (A "Notifications" settings item had a no-op handler; it returns once
+  // there are notification preferences to manage.)
   const MENU: MenuItem[] = [
-    {
-      icon: "notifications-outline",
-      label: t('profile.notifications'),
-      sub: t('profile.notificationsSub'),
-      onPress: () => {},
-    },
     {
       icon: "language-outline",
       label: t('profile.language'),
@@ -197,15 +197,15 @@ export default function ProfileScreen() {
       sub: t('profile.helpSub'),
       onPress: () => Linking.openURL(SUPPORT_WHATSAPP),
     },
-    {
-      icon: "star-outline",
+    ...(Platform.OS === "ios" && !APP_STORE_URL ? [] : [{
+      icon: "star-outline" as const,
       label: t('profile.rateJali'),
       sub: t('profile.rateSub'),
       onPress: () => {
-        const url = Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL;
-        Linking.openURL(url);
+        const url = Platform.OS === "ios" ? APP_STORE_URL! : PLAY_STORE_URL;
+        Linking.openURL(url).catch(() => {});
       },
-    },
+    }]),
     {
       icon: "document-text-outline",
       label: t('profile.faq'),

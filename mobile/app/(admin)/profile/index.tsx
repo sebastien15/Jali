@@ -116,28 +116,32 @@ export default function AdminProfileScreen() {
   function pickLanguage() {
     const current = getLanguage();
     Alert.alert(
-      "Language",
-      "Choose your preferred language",
+      t("profile.language"),
+      t("profile.languageSub"),
       [
         ...LANGUAGES.map(lang => ({
           text: current === lang.code ? `✓ ${lang.label}` : lang.label,
           onPress: () => setLanguage(lang.code),
         })),
-        { text: "Cancel", style: "cancel" as const },
+        { text: t("admin.cancel"), style: "cancel" as const },
       ]
     );
   }
 
   const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help.";
   const PLAY_STORE_URL = "market://details?id=com.jali.app";
-  const APP_STORE_URL = "https://apps.apple.com/app/jali/id0000000000";
+  // Real App Store URL goes here once the iOS app is live; until then the
+  // item is hidden on iOS rather than opening a dead link.
+  const APP_STORE_URL: string | null = null;
 
   const SETTINGS_MENU = [
-    { icon: "language-outline" as const, label: "Language", sub: "Kinyarwanda / English / Français", onPress: pickLanguage },
-    { icon: "help-circle-outline" as const, label: "Help & Support", sub: "WhatsApp · Mon–Sat 8am–6pm", onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
-    { icon: "star-outline" as const, label: "Rate Jali", sub: "Share your feedback", onPress: () => Linking.openURL(Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL) },
-    { icon: "shield-checkmark-outline" as const, label: "Privacy Policy", sub: "How we handle your data", onPress: () => router.push("/legal/privacy") },
-    { icon: "reader-outline" as const, label: "Terms & Conditions", sub: "Usage terms", onPress: () => router.push("/legal/terms") },
+    { icon: "language-outline" as const, label: t("profile.language"), sub: t("profile.languageSub"), onPress: pickLanguage },
+    { icon: "help-circle-outline" as const, label: t("profile.helpSupport"), sub: t("profile.helpSub"), onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
+    ...(Platform.OS === "ios" && !APP_STORE_URL ? [] : [
+      { icon: "star-outline" as const, label: t("profile.rateJali"), sub: t("profile.rateSub"), onPress: () => { Linking.openURL(Platform.OS === "ios" ? APP_STORE_URL! : PLAY_STORE_URL).catch(() => {}); } },
+    ]),
+    { icon: "shield-checkmark-outline" as const, label: t("profile.privacyPolicy"), sub: t("profile.privacySub"), onPress: () => router.push("/legal/privacy") },
+    { icon: "reader-outline" as const, label: t("profile.termsConditions"), sub: t("profile.termsSub"), onPress: () => router.push("/legal/terms") },
   ];
 
   async function saveCashoutPreference() {
