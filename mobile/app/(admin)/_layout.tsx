@@ -1,6 +1,7 @@
 import { usePathname, Redirect } from "expo-router";
 import { Tabs } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { isAdminRole } from "@/constants/roles";
@@ -43,6 +44,7 @@ function TabIcon({
 function TabsNavigator() {
   const { user, isSuperAdmin, loading } = useAdminNav();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const isLogin = pathname.includes("/admin-login");
 
   if (loading) {
@@ -82,8 +84,10 @@ function TabsNavigator() {
           backgroundColor: C.white,
           borderTopWidth: 1,
           borderTopColor: C.border,
-          height: isLogin ? 0 : 72,
-          paddingBottom: isLogin ? 0 : 8,
+          // Grow with the home-indicator / gesture-nav inset instead of a
+          // fixed height that puts labels under the system bar.
+          height: isLogin ? 0 : 64 + insets.bottom,
+          paddingBottom: isLogin ? 0 : Math.max(insets.bottom, 8),
           paddingTop: isLogin ? 0 : 4,
           display: isLogin ? "none" : "flex",
         },
