@@ -57,7 +57,7 @@ class AdminBookingController extends Controller
                 'confirmed_at'      => $b->confirmed_at,
                 'created_at'        => $b->created_at,
                 // Trip-specific
-                'trip_departure'    => $b->departure?->departure_time,
+                'trip_departure'    => $b->departure ? substr($b->departure->departure_time, 0, 5) : null,
                 'trip_arrival'      => $b->departure && $route ? $b->departure->estimatedArrival() : null,
                 'agency_name'       => $route?->agency?->name,
             ];
