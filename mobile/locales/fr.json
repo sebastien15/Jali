@@ -657,5 +657,21 @@
     "saved": "Enregistré",
     "roleUpdated": "Rôle changé en {{role}}.",
     "saveRoleFailed": "Impossible de changer le rôle."
+  },
+  "adminCashout": {
+    "title": "Gains et retraits",
+    "available": "Disponible",
+    "noEarnings": "Aucun gain",
+    "noEarningsMsg": "Vous n'avez aucun solde disponible à retirer.",
+    "requestCashout": "Demander un retrait",
+    "request": "Demander",
+    "confirmMsg": "Demander un retrait de {{amount}} RWF vers {{destination}} ?",
+    "submitted": "Envoyée",
+    "submittedMsg": "Votre demande de retrait a été envoyée et sera traitée bientôt.",
+    "failed": "Échec de l'envoi de la demande.",
+    "availableNow": "Disponible maintenant : {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Banque",
+    "noMethod": "Aucun moyen de retrait défini. Touchez l'icône des paramètres pour en ajouter un."
   }
 }

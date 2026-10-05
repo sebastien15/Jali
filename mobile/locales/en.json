@@ -657,5 +657,21 @@
     "saved": "Saved",
     "roleUpdated": "Role changed to {{role}}.",
     "saveRoleFailed": "Could not change the role."
+  },
+  "adminCashout": {
+    "title": "Earnings & Cashout",
+    "available": "Available",
+    "noEarnings": "No earnings",
+    "noEarningsMsg": "You have no available balance to cash out.",
+    "requestCashout": "Request Cashout",
+    "request": "Request",
+    "confirmMsg": "Request cashout of {{amount}} RWF to {{destination}}?",
+    "submitted": "Submitted",
+    "submittedMsg": "Your cashout request has been submitted and will be processed soon.",
+    "failed": "Failed to submit request.",
+    "availableNow": "Available now: {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Bank",
+    "noMethod": "No cashout method set. Tap the settings icon to add one."
   }
 }

@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as DocumentPicker from "expo-document-picker";
@@ -135,8 +136,8 @@ export default function AdminProfileScreen() {
     { icon: "language-outline" as const, label: "Language", sub: "Kinyarwanda / English / Français", onPress: pickLanguage },
     { icon: "help-circle-outline" as const, label: "Help & Support", sub: "WhatsApp · Mon–Sat 8am–6pm", onPress: () => Linking.openURL(SUPPORT_WHATSAPP) },
     { icon: "star-outline" as const, label: "Rate Jali", sub: "Share your feedback", onPress: () => Linking.openURL(Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL) },
-    { icon: "shield-checkmark-outline" as const, label: "Privacy Policy", sub: "How we handle your data", onPress: () => {} },
-    { icon: "reader-outline" as const, label: "Terms & Conditions", sub: "Usage terms", onPress: () => {} },
+    { icon: "shield-checkmark-outline" as const, label: "Privacy Policy", sub: "How we handle your data", onPress: () => router.push("/legal/privacy") },
+    { icon: "reader-outline" as const, label: "Terms & Conditions", sub: "Usage terms", onPress: () => router.push("/legal/terms") },
   ];
 
   async function saveCashoutPreference() {
@@ -166,27 +167,41 @@ export default function AdminProfileScreen() {
     }
   }
 
+  // available_balance = earnings minus cashouts already requested; the
+  // backend rejects any request above it (422 {message, available}).
+  const availableBalance: number = Number(profile?.available_balance ?? 0);
+
   async function requestCashout() {
-    const available = profile.total_earnings ?? 0;
+    const available = availableBalance;
     if (available <= 0) {
-      Alert.alert("No earnings", "You have no available earnings to cash out.");
+      Alert.alert(t("adminCashout.noEarnings"), t("adminCashout.noEarningsMsg"));
       return;
     }
+    const destination = profile.cashout_method === "bank"
+      ? `${profile.cashout_bank_name} (${profile.cashout_account_number})`
+      : `${t("adminCashout.mobileMoney")} (${profile.cashout_account_number})`;
     Alert.alert(
-      "Request Cashout",
-      `Request cashout of ${available.toLocaleString()} RWF to ${profile.cashout_method === "bank" ? `${profile.cashout_bank_name} (${profile.cashout_account_number})` : `Mobile (${profile.cashout_account_number})`}?`,
+      t("adminCashout.requestCashout"),
+      t("adminCashout.confirmMsg", { amount: available.toLocaleString(), destination }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("admin.cancel"), style: "cancel" },
         {
-          text: "Request",
+          text: t("adminCashout.request"),
           onPress: async () => {
             setRequestingCashout(true);
             try {
               await api.post("/admin/cashout/requests", { amount: available });
-              Alert.alert("Submitted", "Your cashout request has been submitted and will be processed soon.");
+              Alert.alert(t("adminCashout.submitted"), t("adminCashout.submittedMsg"));
             } catch (e: any) {
-              Alert.alert("Error", e?.response?.data?.message ?? "Failed to submit request.");
+              const data = e?.response?.data ?? {};
+              const msg = data.available != null
+                ? `${data.message ?? ""}\n${t("adminCashout.availableNow", { amount: Number(data.available).toLocaleString() })}`
+                : data.message ?? t("adminCashout.failed");
+              Alert.alert(t("admin.error"), msg);
             } finally {
+              // Balance changes either way — refetch it
+              queryClient.invalidateQueries({ queryKey: queryKeys.adminProfile() });
+              queryClient.invalidateQueries({ queryKey: queryKeys.admin.cashoutRequests() });
               setRequestingCashout(false);
             }
           },
@@ -351,13 +366,13 @@ export default function AdminProfileScreen() {
         )}
 
         {/* Cashout */}
-        <Section title="Earnings & Cashout" />
+        <Section title={t("adminCashout.title")} />
         <View style={{ backgroundColor: C.white, borderRadius: 16, padding: 16, marginBottom: 24 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Available</Text>
+              <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>{t("adminCashout.available")}</Text>
               <Text style={{ color: C.teal, fontWeight: "900", fontSize: 24 }}>
-                {(profile.total_earnings ?? 0).toLocaleString()}
+                {availableBalance.toLocaleString()}
                 <Text style={{ fontSize: 13, fontWeight: "600", color: C.muted }}> RWF</Text>
               </Text>
             </View>
@@ -382,28 +397,28 @@ export default function AdminProfileScreen() {
               <Ionicons name={profile.cashout_method === "bank" ? "card-outline" : "phone-portrait-outline"} size={16} color={C.teal} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: C.dark, fontWeight: "700", fontSize: 13 }}>
-                  {profile.cashout_method === "bank" ? profile.cashout_bank_name ?? "Bank" : "Mobile Money"}
+                  {profile.cashout_method === "bank" ? profile.cashout_bank_name ?? t("adminCashout.bank") : t("adminCashout.mobileMoney")}
                 </Text>
                 <Text style={{ color: C.muted, fontSize: 12 }}>{profile.cashout_account_number}</Text>
               </View>
             </View>
           ) : (
             <Text style={{ color: C.muted, fontSize: 13, marginBottom: 12 }}>
-              No cashout method set. Tap the settings icon to add one.
+              {t("adminCashout.noMethod")}
             </Text>
           )}
 
           <TouchableOpacity
             onPress={requestCashout}
-            disabled={requestingCashout || !profile.cashout_method}
+            disabled={requestingCashout || !profile.cashout_method || availableBalance <= 0}
             style={{
-              backgroundColor: profile.cashout_method ? C.teal : C.border,
+              backgroundColor: profile.cashout_method && availableBalance > 0 ? C.teal : C.border,
               borderRadius: 12, paddingVertical: 13, alignItems: "center",
             }}
           >
             {requestingCashout ? <ActivityIndicator color={C.white} /> : (
               <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
-                Request Cashout
+                {t("adminCashout.requestCashout")}
               </Text>
             )}
           </TouchableOpacity>

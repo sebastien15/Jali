@@ -657,5 +657,21 @@
     "saved": "Imehifadhiwa",
     "roleUpdated": "Jukumu limebadilishwa kuwa {{role}}.",
     "saveRoleFailed": "Imeshindikana kubadilisha jukumu."
+  },
+  "adminCashout": {
+    "title": "Mapato na utoaji",
+    "available": "Inapatikana",
+    "noEarnings": "Hakuna mapato",
+    "noEarningsMsg": "Huna salio linalopatikana la kutoa.",
+    "requestCashout": "Omba kutoa pesa",
+    "request": "Omba",
+    "confirmMsg": "Omba kutoa {{amount}} RWF kwenda {{destination}}?",
+    "submitted": "Imetumwa",
+    "submittedMsg": "Ombi lako la kutoa pesa limetumwa na litashughulikiwa hivi karibuni.",
+    "failed": "Imeshindikana kutuma ombi.",
+    "availableNow": "Inapatikana sasa: {{amount}} RWF",
+    "mobileMoney": "Pesa kwa simu",
+    "bank": "Benki",
+    "noMethod": "Hakuna njia ya kutoa pesa. Gusa aikoni ya mipangilio ili kuongeza."
   }
 }

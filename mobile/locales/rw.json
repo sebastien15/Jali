@@ -657,5 +657,21 @@
     "saved": "Byabitswe",
     "roleUpdated": "Inshingano yahinduwe iba {{role}}.",
     "saveRoleFailed": "Ntibyashobotse guhindura inshingano."
+  },
+  "adminCashout": {
+    "title": "Inyungu no kubikuza",
+    "available": "Ibiboneka",
+    "noEarnings": "Nta nyungu",
+    "noEarningsMsg": "Nta mafaranga ufite ashobora kubikuzwa.",
+    "requestCashout": "Saba kubikuza",
+    "request": "Saba",
+    "confirmMsg": "Usaba kubikuza {{amount}} RWF kuri {{destination}}?",
+    "submitted": "Byoherejwe",
+    "submittedMsg": "Ubusabe bwawe bwo kubikuza bwoherejwe, buzakorwaho vuba.",
+    "failed": "Kohereza ubusabe byanze.",
+    "availableNow": "Ibiboneka ubu: {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Banki",
+    "noMethod": "Nta buryo bwo kubikuza bwashyizweho. Kanda ku kimenyetso cy'igenamiterere ubwongeremo."
   }
 }
