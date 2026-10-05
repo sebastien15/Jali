@@ -11,7 +11,8 @@ const EXPO_PROJECT_ID = "2dd83387-a796-4ed0-841a-2093ecd11fcf";
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
     }),
