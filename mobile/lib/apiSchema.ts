@@ -321,9 +321,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Pricing guardrails, commission, radius and timeouts */
+        /** Pricing guardrails, commission, radius and timeouts (defaults until saved) */
         get: operations["getRideSettings"];
-        /** Update pricing guardrails and dispatch settings */
+        /** Update pricing guardrails and dispatch settings (partial updates allowed) */
         put: operations["putRideSettings"];
         post?: never;
         delete?: never;
@@ -520,7 +520,7 @@ export interface components {
             /** Format: date-time */
             expires_at: string;
         };
-        /** @description payment_settings.config.rides (RIDE_HAILING_PLAN.md §3.3) */
+        /** @description platform_settings `rides` (RIDE_HAILING_PLAN.md §3.3). Responses always contain every field; PUT accepts any subset. */
         RideSettings: {
             vehicle_classes: {
                 [key: string]: {
@@ -532,7 +532,7 @@ export interface components {
             /** @default 1.3 */
             road_factor: number;
             commission_pct: number;
-            service_fee?: {
+            service_fee: {
                 /** @enum {string} */
                 type?: "flat" | "percent";
                 amount?: number;
@@ -543,6 +543,26 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+        };
+        /** @description Any subset of RideSettings; a vehicle class must be sent complete */
+        RideSettingsUpdate: {
+            vehicle_classes?: {
+                [key: string]: {
+                    per_km_min: number;
+                    per_km_max: number;
+                    min_fare_max: number;
+                };
+            };
+            road_factor?: number;
+            commission_pct?: number;
+            service_fee?: {
+                /** @enum {string} */
+                type: "flat" | "percent";
+                amount: number;
+            };
+            nearby_radius_km?: number;
+            presence_ttl_sec?: number;
+            request_timeout_sec?: number;
         };
     };
     responses: {
@@ -1154,6 +1174,8 @@ export interface operations {
                     "application/json": components["schemas"]["RideSettings"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     putRideSettings: {
@@ -1165,7 +1187,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RideSettings"];
+                "application/json": components["schemas"]["RideSettingsUpdate"];
             };
         };
         responses: {
@@ -1178,6 +1200,8 @@ export interface operations {
                     "application/json": components["schemas"]["RideSettings"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
         };
     };

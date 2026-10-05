@@ -62,6 +62,7 @@ export const queryKeys = {
     appAccessStats: () => ["admin", "appAccesses", "stats"] as const,
     locations: () => ["admin", "locations"] as const,
     roles: () => ["admin", "roles"] as const,
+    rideSettings: () => ["admin", "settings", "rides"] as const,
     role: (id: number) => ["admin", "roles", id] as const,
     permissions: () => ["admin", "permissions"] as const,
     analytics: {

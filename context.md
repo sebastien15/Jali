@@ -337,6 +337,10 @@ PATCH /admin/stations/{id}
 GET   /admin/bookings
 PATCH /admin/bookings/{id}
 
+# perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
+GET   /admin/settings/rides
+PUT   /admin/settings/rides
+
 # perm: manage-users
 GET   /admin/users
 PATCH /admin/users/{id}

@@ -488,34 +488,36 @@ paths:
     get:
       tags: [Admin rides]
       operationId: getRideSettings
-      x-jali-status: planned
       x-jali-story: S2.2
       x-jali-permission: manage-ride-pricing
-      summary: Pricing guardrails, commission, radius and timeouts
+      summary: Pricing guardrails, commission, radius and timeouts (defaults until saved)
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RideSettings" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
     put:
       tags: [Admin rides]
       operationId: putRideSettings
-      summary: Update pricing guardrails and dispatch settings
-      x-jali-status: planned
+      summary: Update pricing guardrails and dispatch settings (partial updates allowed)
       x-jali-story: S2.2
       x-jali-permission: manage-ride-pricing
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/RideSettings" }
+            schema: { $ref: "#/components/schemas/RideSettingsUpdate" }
       responses:
         "200":
           description: Saved
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RideSettings" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
@@ -799,8 +801,8 @@ components:
 
     RideSettings:
       type: object
-      description: payment_settings.config.rides (RIDE_HAILING_PLAN.md §3.3)
-      required: [vehicle_classes, commission_pct]
+      description: platform_settings `rides` (RIDE_HAILING_PLAN.md §3.3). Responses always contain every field; PUT accepts any subset.
+      required: [vehicle_classes, road_factor, commission_pct, service_fee, nearby_radius_km, presence_ttl_sec, request_timeout_sec]
       properties:
         vehicle_classes:
           type: object
@@ -820,3 +822,28 @@ components:
         nearby_radius_km: { type: number, default: 5 }
         presence_ttl_sec: { type: integer, default: 60 }
         request_timeout_sec: { type: integer, default: 30 }
+
+    RideSettingsUpdate:
+      description: Any subset of RideSettings; a vehicle class must be sent complete
+      type: object
+      properties:
+        vehicle_classes:
+          type: object
+          additionalProperties:
+            type: object
+            required: [per_km_min, per_km_max, min_fare_max]
+            properties:
+              per_km_min: { type: integer, minimum: 0 }
+              per_km_max: { type: integer, minimum: 0 }
+              min_fare_max: { type: integer, minimum: 0 }
+        road_factor: { type: number, minimum: 1, maximum: 3 }
+        commission_pct: { type: number, minimum: 0, maximum: 50 }
+        service_fee:
+          type: object
+          required: [type, amount]
+          properties:
+            type: { type: string, enum: [flat, percent] }
+            amount: { type: number, minimum: 0 }
+        nearby_radius_km: { type: number, minimum: 0.5, maximum: 50 }
+        presence_ttl_sec: { type: integer, minimum: 15, maximum: 600 }
+        request_timeout_sec: { type: integer, minimum: 10, maximum: 300 }

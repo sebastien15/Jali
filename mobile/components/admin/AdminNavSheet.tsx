@@ -26,6 +26,7 @@ const SUPERADMIN_ITEMS: NavItem[] = [
   { label: "Stations", icon: "location-outline", route: "/(admin)/stations/index" },
   { label: "Logs", icon: "time-outline", route: "/(admin)/logs/index" },
   { label: "Users", icon: "people-outline", route: "/(admin)/users/index" },
+  { label: "Ride pricing", icon: "pricetags-outline", route: "/(admin)/settings/rides" },
 ];
 
 export function AdminNavSheet() {
