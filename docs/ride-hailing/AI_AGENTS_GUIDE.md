@@ -3,12 +3,15 @@
 Jali Ride is built by several AI agents working in parallel. These rules keep their work
 consistent so the result feels like **one** app, not many.
 
+> **Release / architecture direction:** read [the shared plan](../RELEASE_PLAN.md) before selecting service-scope, release-order, pricing, module-boundary or shared-UX work. It records passenger transport plus cargo (batch TBD), modular architecture and one-account customer/provider UX; detailed navigation examples remain proposals. Dependency waves below govern implementation dependencies, not public launch order. Select only user-authorized work; flag material deviations and honor explicit owner-approved changes. The plan does not authorize taking issues or implementing future batches.
+
 ## 1. Pick a story
 1. Open `USER_STORIES.md` → *Build order — dependency waves*.
 2. Take a story whose **Depends on** stories are all merged. Stories in the same wave can run in parallel.
 3. Comment on the GitHub issue that you're taking it (one agent per story).
 
 ## 2. Read before coding
+- [Batch release, architecture & rollout migration plan](../RELEASE_PLAN.md) (scope, zero Jali fees, sequence, modular boundaries, shared UX and deviation rules)
 - `CLAUDE.md` → `context.md` (guards, roles, conventions)
 - `RIDE_HAILING_PLAN.md` (architecture, data model, state machine, API list)
 - The story file in `stories/` (acceptance criteria are the definition of done)
