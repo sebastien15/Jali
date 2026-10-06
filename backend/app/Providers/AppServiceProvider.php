@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Modules\Payments\Contracts\MoneyRecorder::class, \App\Modules\Payments\Application\DriverLedger::class);
         $this->app->bind(\App\Modules\Payments\Contracts\ProviderDebtLimit::class, \App\Modules\Payments\Application\DriverLedger::class);
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderReputation::class, \App\Modules\Providers\Application\DriverRating::class);
+        $this->app->bind(\App\Modules\Providers\Contracts\ProviderDisplay::class, \App\Modules\Providers\Application\DisplayName::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\ReceiptMailer::class, \App\Modules\Payments\Application\Receipts::class);
         $this->app->bind(\App\Modules\Notifications\Contracts\SmsSender::class, \App\Modules\Notifications\Infrastructure\SmsService::class);
 
         // Generic /bookings: one dispatcher, one handler per booking type. Owning services

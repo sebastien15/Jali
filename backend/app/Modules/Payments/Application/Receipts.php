@@ -5,12 +5,13 @@ namespace App\Modules\Payments\Application;
 use App\Mail\TripReceipt;
 use App\Models\DriverHire;
 use App\Models\Ride;
+use App\Modules\Payments\Contracts\ReceiptMailer;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
 /** Trip receipts for rides and hires — email + printable page (story S9.6) */
-class Receipts
+class Receipts implements ReceiptMailer
 {
     public const COMPANY = ['name' => 'Jali', 'address' => 'Kigali, Rwanda', 'email' => 'support@jali.rw', 'web' => 'https://jali.stoka.rw'];
 
@@ -65,6 +66,11 @@ class Receipts
     public static function url(string $type, int $id): string
     {
         return URL::temporarySignedRoute('receipt', now()->addDays(30), ['type' => $type, 'id' => $id]);
+    }
+
+    public function emailReceipt(string $type, Ride|DriverHire $trip): bool
+    {
+        return self::email($type, $trip);
     }
 
     /** Email the customer when they have an email address; never throws */

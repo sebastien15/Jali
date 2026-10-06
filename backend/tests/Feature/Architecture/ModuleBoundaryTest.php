@@ -21,6 +21,25 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], self::violations(app_path('Modules'), require app_path('Modules/boundaries.php')));
     }
 
+    /**
+     * Ride internals still live in app/Services/Rides until M03-Rides. Modules
+     * (hire, safety, ...) must use shared contracts instead (M03-Hire).
+     */
+    public function test_modules_do_not_use_ride_internals_left_in_app_services(): void
+    {
+        $found = [];
+        foreach ((new Finder())->files()->in(app_path('Modules'))->name('*.php') as $file) {
+            $code = str_replace('\\\\', '\\', $file->getContents());
+            if (preg_match_all('/App\\\\Services\\\\Rides\\\\\w+/', $code, $refs)) {
+                foreach ($refs[0] as $fqcn) {
+                    $found[] = str_replace('\\', '/', $file->getRelativePathname()) . ": $fqcn";
+                }
+            }
+        }
+
+        $this->assertSame([], $found);
+    }
+
     public function test_the_check_detects_forbidden_references(): void
     {
         $root = sys_get_temp_dir() . '/jali-boundary-' . uniqid();

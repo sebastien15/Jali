@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Services\Hire;
+namespace App\Modules\DriverHire\Application;
 
-use App\Models\DriverHireSetting;
-use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 use Carbon\CarbonInterface;
 
 /**
@@ -31,7 +30,7 @@ class HireQuote
             $driver += $rate['out_of_town_fee'] * $days;
         }
         $driver = self::roundUp($driver);
-        $fee = (int) RideSettings::hire()['service_fee'];
+        $fee = (int) self::settings()['service_fee'];
 
         return ['driver_total' => $driver, 'service_fee' => $fee, 'total' => $driver + $fee, 'billable_hours' => $billableHours, 'days' => $days];
     }
@@ -55,11 +54,17 @@ class HireQuote
         $bookedMinutes = $start->diffInMinutes($end);
         $expectedEnd = $end->max($checkIn->copy()->addMinutes($bookedMinutes));
         $minutes = (int) max(0, floor($expectedEnd->diffInMinutes($checkOut, false)));
-        if ($minutes <= (int) RideSettings::hire()['overtime_grace_min']) {
+        if ($minutes <= (int) self::settings()['overtime_grace_min']) {
             return ['minutes' => 0, 'amount' => 0];
         }
 
         return ['minutes' => $minutes, 'amount' => self::roundUp($minutes / 60 * $rate['overtime_per_hour'])];
+    }
+
+    /** Current hire limits and fees from the shared pricing policy */
+    public static function settings(): array
+    {
+        return app(PricingPolicy::class)->hireSettings();
     }
 
     public static function roundUp(float $amount): int
@@ -70,7 +75,7 @@ class HireQuote
     /** Validation rules for a driver's hire prices against the superadmin limits (story S6.1) */
     public static function rateRules(): array
     {
-        $g = RideSettings::hire();
+        $g = self::settings();
 
         return [
             'hourly_rate'       => "required|integer|min:{$g['hourly_min']}|max:{$g['hourly_max']}",
@@ -85,7 +90,7 @@ class HireQuote
 
     public static function rateMessages(): array
     {
-        $g = RideSettings::hire();
+        $g = self::settings();
         $rwf = fn (int $n) => number_format($n) . ' RWF';
 
         return [

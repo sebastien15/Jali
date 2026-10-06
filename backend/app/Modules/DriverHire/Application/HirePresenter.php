@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Hire;
+namespace App\Modules\DriverHire\Application;
 
 use App\Models\DriverHire;
 use App\Models\HireRating;
 use App\Models\User;
-use App\Services\Rides\NearbyDrivers;
+use App\Modules\Providers\Contracts\ProviderDisplay;
 
 /**
  * JSON shape of a hire for one viewer (contract schema "DriverHire").
@@ -20,6 +20,7 @@ class HirePresenter
         $booked = in_array($hire->status, DriverHire::BOOKED, true);
         $profile = $hire->driver->driverProfile;
         $service = app(HireService::class);
+        $display = app(ProviderDisplay::class);
 
         return [
             'id'              => $hire->id,
@@ -48,7 +49,7 @@ class HirePresenter
             'expires_at'      => $hire->status === DriverHire::REQUESTED ? $hire->expires_at?->toIso8601String() : null,
             'driver' => [
                 'id'               => $hire->driver_id,
-                'name'             => NearbyDrivers::displayName($hire->driver->name),
+                'name'             => $display->displayName($hire->driver->name),
                 'photo'            => preg_match('#^https?://#', (string) $hire->driver->profile_image_url) ? $hire->driver->profile_image_url : null,
                 'rating'           => (float) ($profile?->rating_avg ?? 0),
                 'years_experience' => $profile?->years_experience,
@@ -56,7 +57,7 @@ class HirePresenter
                 'phone'            => $isCustomer && $booked ? $hire->driver->phone : null,
             ],
             'customer' => $isCustomer ? null : [
-                'name'  => NearbyDrivers::displayName($hire->customer->name),
+                'name'  => $display->displayName($hire->customer->name),
                 'phone' => $booked ? $hire->customer->phone : null,
             ],
             'my_rating'      => HireRating::where(['driver_hire_id' => $hire->id, 'from_user_id' => $viewer->id])->value('stars'),

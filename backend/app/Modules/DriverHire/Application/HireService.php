@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services\Hire;
+namespace App\Modules\DriverHire\Application;
 
 use App\Models\DriverHire;
 use App\Models\HireRating;
 use App\Models\User;
 use App\Modules\Payments\Contracts\MoneyRecorder;
-use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Payments\Contracts\ReceiptMailer;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
 use App\Services\PushService;
 use Carbon\CarbonInterface;
@@ -22,8 +23,13 @@ class HireService
     public const CUSTOMER_CANCEL_REASONS = ['changed_plans', 'found_another_driver', 'driver_asked_to_cancel', 'booked_by_mistake', 'other'];
     public const DRIVER_CANCEL_REASONS = ['not_available', 'customer_asked_to_cancel', 'too_far', 'unsafe', 'other'];
 
-    public function __construct(private PushService $push)
-    {
+    public function __construct(
+        private PushService $push,
+        private PricingPolicy $pricing,
+        private MoneyRecorder $money,
+        private ReceiptMailer $receipts,
+        private ProviderReputation $reputation,
+    ) {
     }
 
     /** POST /driver-hire — price and end time are computed here, never taken from the client */
@@ -33,7 +39,7 @@ class HireService
         $rate = $settings->snapshot();
         $quote = HireQuote::quote($rate, $data['duration_type'], (int) $data['duration_value'], $data['trip_type']);
         $end = HireQuote::endAt($start, $data['duration_type'], (int) $data['duration_value'], $settings->daily_hours);
-        $hire = RideSettings::hire();
+        $hire = $this->pricing->hireSettings();
 
         if (!HireAvailability::isFree($driver->id, $start, $end)) {
             throw new HttpException(409, 'This driver is no longer free at that time. Choose another driver.');
@@ -134,8 +140,8 @@ class HireService
             'payment_method'   => $paymentMethod,
         ], 'This hire is not in progress.');
         \App\Models\DriverProfile::where('user_id', $driver->id)->increment('trips_count');
-        app(MoneyRecorder::class)->recordHire($hire);   // S7.2
-        \App\Modules\Payments\Application\Receipts::email('hire', $hire);   // S9.6
+        $this->money->recordHire($hire);   // S7.2
+        $this->receipts->emailReceipt('hire', $hire);   // S9.6
 
         $this->push->send($hire->customer, 'Hire completed',
             sprintf('Total %s RWF%s. Tap to rate your driver.', number_format($hire->final_total),
@@ -168,13 +174,19 @@ class HireService
         return $hire;
     }
 
+    /** Cancel reasons the user may give for this hire: customer or driver list */
+    public function cancelReasons(DriverHire $hire, User $user): array
+    {
+        return $hire->customer_id === $user->id ? self::CUSTOMER_CANCEL_REASONS : self::DRIVER_CANCEL_REASONS;
+    }
+
     /** Fee the customer owes if they cancel now (0 = free) */
     public function cancelFee(DriverHire $hire): int
     {
         if ($hire->status !== DriverHire::ACCEPTED) {
             return 0;
         }
-        $settings = RideSettings::hire();
+        $settings = $this->pricing->hireSettings();
         if (now()->lt($hire->start_at->copy()->subHours((int) $settings['free_cancel_hours']))) {
             return 0;
         }
@@ -198,7 +210,7 @@ class HireService
                 'stars' => $stars, 'tags' => $tags ?: null, 'comment' => $comment,
             ]);
             if ($to === $hire->driver_id) {
-                app(ProviderReputation::class)->refreshProviderRating($to);
+                $this->reputation->refreshProviderRating($to);
             }
 
             return $rating;
@@ -216,6 +228,19 @@ class HireService
         }
 
         return (bool) $done;
+    }
+
+    /** Expire every overdue request (all drivers, or one driver's); returns how many expired */
+    public function expireOverdue(?int $driverId = null): int
+    {
+        $count = 0;
+        DriverHire::where('status', DriverHire::REQUESTED)->where('expires_at', '<', now())
+            ->when($driverId, fn ($q) => $q->where('driver_id', $driverId))
+            ->each(function (DriverHire $hire) use (&$count) {
+                $count += (int) $this->expire($hire);
+            });
+
+        return $count;
     }
 
     public function expireIfLate(DriverHire $hire): bool

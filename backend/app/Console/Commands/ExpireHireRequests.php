@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\DriverHire;
-use App\Services\Hire\HireService;
+use App\Modules\DriverHire\Application\HireService;
 use Illuminate\Console\Command;
 
 /** Hire requests the driver didn't answer in time become "expired" (story S6.4). */
@@ -14,10 +13,7 @@ class ExpireHireRequests extends Command
 
     public function handle(HireService $hires): int
     {
-        $count = 0;
-        DriverHire::where('status', DriverHire::REQUESTED)->where('expires_at', '<', now())->each(function (DriverHire $hire) use ($hires, &$count) {
-            $count += (int) $hires->expire($hire);
-        });
+        $count = $hires->expireOverdue();
         $this->info("$count hire request(s) expired");
 
         return self::SUCCESS;

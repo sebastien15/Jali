@@ -7,8 +7,8 @@ use App\Models\Ride;
 use App\Models\RideEvent;
 use App\Models\User;
 use App\Services\PushService;
-use App\Services\Rides\NearbyDrivers;
 use App\Modules\Notifications\Contracts\SmsSender;
+use App\Modules\Providers\Contracts\ProviderDisplay;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -53,7 +53,7 @@ class SafetyService
             'active'       => $ride->isActive(),
             'rider'        => ['first_name' => Str::before(trim((string) $ride->rider?->name), ' ') ?: 'Rider'],
             'driver'       => $ride->driver ? [
-                'name'  => NearbyDrivers::displayName($ride->driver->name),
+                'name'  => app(ProviderDisplay::class)->displayName($ride->driver->name),
                 'photo' => preg_match('#^https?://#', (string) $ride->driver->profile_image_url) ? $ride->driver->profile_image_url : null,
             ] : null,
             'vehicle'      => $ride->vehicle ? [

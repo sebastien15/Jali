@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Hire;
+namespace App\Modules\DriverHire\Application;
 
 use App\Models\DriverAvailability;
 use App\Models\DriverHire;
