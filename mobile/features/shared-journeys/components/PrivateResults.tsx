@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { PrivateCard } from "@/components/PrivateCard";
+import { PrivateCard } from "./PrivateCard";
 import { StationObj } from "@/components/StationPicker";
 
 interface Props {

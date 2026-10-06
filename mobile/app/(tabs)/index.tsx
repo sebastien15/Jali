@@ -15,7 +15,7 @@ import { HireDriverBar } from "@/components/home/HireDriverBar";
 import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";
-import { PrivateResults } from "@/components/home/PrivateResults";
+import { PrivateResults } from "@/features/shared-journeys";
 import { RentalResults } from "@/features/rentals";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
