@@ -741,7 +741,8 @@
       "no_vehicle_photo": "Ongeraho ifoto y'imbere y'ikinyabiziga",
       "no_rates": "Shyiraho ibiciro byawe",
       "rates_outside_limits": "Hindura ibiciro byawe bihuze n'imbibi za Jali",
-      "fix": "Kosora"
+      "fix": "Kosora",
+      "commission_owed": "Ishyura ibyo ufitiye Jali"
     },
     "where": {
       "bar": "Urugendo ubu — ujya he?",
@@ -830,7 +831,8 @@
       "tag_Friendly": "Arakira neza",
       "tag_Knows the way": "Azi inzira",
       "tag_On time": "Yaje ku gihe",
-      "tag_Polite": "Afite ikinyabupfura"
+      "tag_Polite": "Afite ikinyabupfura",
+      "payMomoTo": "Ishyura umushoferi wawe kuri MoMo"
     },
     "driverTrip": {
       "newRequest": "Ubusabe bushya bw'urugendo",
@@ -1047,5 +1049,39 @@
       "empty": "Nta bukode urakora",
       "error": "Ntibyashobotse kuzana ubukode bwawe"
     }
+  },
+  "earnings": {
+    "title": "Ibyo winjije",
+    "today": "Uyu munsi",
+    "week": "Iki cyumweru",
+    "month": "Uku kwezi",
+    "net": "Winjije (nyuma ya komisiyo)",
+    "tripsLabel": "Ingendo",
+    "collected": "Byishyuwe n'abakiliya",
+    "commission": "Komisiyo n'amafaranga ya Jali",
+    "owed": "Ufitiye Jali",
+    "blocked": "Ufitiye Jali arenze {{max}}. Ishyura kugira ngo wongere ujye ku murongo.",
+    "pending": "Ubwishyu bwawe bwa {{amount}} butegereje kwemezwa.",
+    "payTo": "Bwohereze kuri MoMo {{number}} ({{name}}), hanyuma wandike nimero y'ubwishyu.",
+    "payToSupport": "Ishyura Jali kuri MoMo (saba nimero ubufasha), hanyuma wandike nimero y'ubwishyu.",
+    "amount": "Amafaranga (RWF)",
+    "reference": "Nimero y'ubwishyu bwa MoMo",
+    "settle": "Narishyuye",
+    "settleSent": "Murakoze — turemeza ubwishyu bwanyu vuba.",
+    "cashout": "Bikuza {{amount}} kuri MoMo yanjye",
+    "cashoutSent": "Gusaba kubikuza byoherejwe.",
+    "myMomo": "MoMo yanjye y'abagenzi",
+    "myMomoHint": "Abagenzi bahisemo MoMo babona iyi nimero urugendo rurangiye.",
+    "momoNumber": "Nimero ya MoMo",
+    "momoName": "Izina kuri MoMo",
+    "history": "Amateka",
+    "empty": "Nta rugendo urakora.",
+    "trips_one": "Urugendo {{count}}",
+    "trips_other": "Ingendo {{count}}",
+    "type_earning": "Ibyavuye mu rugendo",
+    "type_commission": "Komisiyo n'amafaranga",
+    "type_settlement": "Ubwishyu kuri Jali",
+    "type_payout": "Kubikuza",
+    "type_adjustment": "Ihinduka"
   }
 }

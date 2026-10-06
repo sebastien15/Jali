@@ -741,7 +741,8 @@
       "no_vehicle_photo": "Ajoutez une photo de face du véhicule",
       "no_rates": "Fixez vos tarifs",
       "rates_outside_limits": "Ajustez vos tarifs aux limites de Jali",
-      "fix": "Corriger"
+      "fix": "Corriger",
+      "commission_owed": "Réglez ce que vous devez à Jali"
     },
     "where": {
       "bar": "Course maintenant — où allez-vous ?",
@@ -830,7 +831,8 @@
       "tag_Friendly": "Sympathique",
       "tag_Knows the way": "Connaît le chemin",
       "tag_On time": "À l'heure",
-      "tag_Polite": "Poli"
+      "tag_Polite": "Poli",
+      "payMomoTo": "Payez votre chauffeur par MoMo"
     },
     "driverTrip": {
       "newRequest": "Nouvelle demande",
@@ -1047,5 +1049,39 @@
       "empty": "Aucune location",
       "error": "Impossible de charger vos locations"
     }
+  },
+  "earnings": {
+    "title": "Gains",
+    "today": "Aujourd'hui",
+    "week": "Cette semaine",
+    "month": "Ce mois",
+    "net": "Vous avez gagné (après commission)",
+    "tripsLabel": "Courses",
+    "collected": "Encaissé des clients",
+    "commission": "Commission + frais Jali",
+    "owed": "Vous devez à Jali",
+    "blocked": "Vous devez plus de {{max}}. Réglez pour repasser en ligne.",
+    "pending": "Votre paiement de {{amount}} attend confirmation.",
+    "payTo": "Envoyez-le par MoMo au {{number}} ({{name}}), puis saisissez l'ID de transaction.",
+    "payToSupport": "Payez par MoMo à Jali (demandez le numéro au support), puis saisissez l'ID de transaction.",
+    "amount": "Montant (RWF)",
+    "reference": "ID de transaction MoMo",
+    "settle": "J'ai payé",
+    "settleSent": "Merci — nous confirmerons votre paiement bientôt.",
+    "cashout": "Retirer {{amount}} sur mon MoMo",
+    "cashoutSent": "Retrait demandé.",
+    "myMomo": "Mon MoMo pour les passagers",
+    "myMomoHint": "Les passagers qui choisissent MoMo voient ce numéro en fin de course.",
+    "momoNumber": "Numéro MoMo",
+    "momoName": "Nom sur MoMo",
+    "history": "Historique",
+    "empty": "Pas encore de course.",
+    "trips_one": "{{count}} course",
+    "trips_other": "{{count}} courses",
+    "type_earning": "Gain de course",
+    "type_commission": "Commission et frais",
+    "type_settlement": "Paiement à Jali",
+    "type_payout": "Retrait",
+    "type_adjustment": "Ajustement"
   }
 }

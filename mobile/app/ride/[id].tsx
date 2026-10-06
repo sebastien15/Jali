@@ -144,6 +144,14 @@ export default function RiderTripScreen() {
           </View>
         ) : null}
 
+        {ride.driver?.momo ? (
+          <View style={{ backgroundColor: C.yellow, borderRadius: 18, padding: 16, marginTop: 12 }}>
+            <Text style={{ fontWeight: "800", color: C.dark }}>{t("ride.trip.payMomoTo")}</Text>
+            <Text style={{ fontWeight: "900", fontSize: 22, color: C.dark, marginTop: 2 }}>{ride.driver.momo.number}</Text>
+            {ride.driver.momo.name ? <Text style={{ color: C.dark }}>{ride.driver.momo.name}</Text> : null}
+          </View>
+        ) : null}
+
         {ride.start_pin && ["accepted", "arrived"].includes(ride.status) ? (
           <View style={{ backgroundColor: C.dark, borderRadius: 18, padding: 16, marginTop: 12, alignItems: "center" }}>
             <Text style={{ color: C.muted, fontWeight: "700" }}>{t("ride.trip.pin")}</Text>

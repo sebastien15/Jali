@@ -408,6 +408,14 @@ POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approve
 POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
 POST  /admin/drivers/{userId}/suspend   {reason}; push
 
+# Driver money (S5.4, S7.1, S7.2) — perm: offer-rides · admin: manage-rides
+GET   /driver/earnings            periods today|week|month {trips, collected, earnings, commission}, balance, owed, blocked, ledger…
+POST  /driver/settlements         {amount, reference} MoMo payment to Jali → pending → POST /admin/settlements/{id}/confirm|reject
+PUT   /driver/momo                {momo_number, momo_name} — shown to riders paying by MoMo (Ride.driver.momo)
+POST  /driver/payouts             {amount} ≤ balance → cashout_requests (requester_type=driver)
+      Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
+      collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
+
 # Hire a Driver (epic E6) — a verified driver drives the customer's own car
 # perm: offer-driver-hire (verified drivers; controller also checks verification)
 GET|PUT /driver/hire-settings     hourly (+min hours), daily (+hours included), overtime, out-of-town; skills (transmissions, languages, years)

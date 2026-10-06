@@ -34,6 +34,7 @@ import { PickupZones } from "@/components/driver/PickupZones";
 import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
 import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { HireRequestsCard } from "@/components/driver/HireRequestsCard";
+import { EarningsCard } from "@/components/driver/EarningsCard";
 import {
   TripsTabs,
   TripsEmptyState,
@@ -146,6 +147,7 @@ export default function DriveScreen() {
       >
         {/* On-demand rides: online / offline */}
         {canOfferRides ? <ActiveRideBanner role="driver" /> : null}
+        {canOfferRides ? <EarningsCard /> : null}
         <OnlineToggleCard enabled={canOfferRides} />
 
         {/* Hire a Driver: requests, upcoming hires, prices & availability */}

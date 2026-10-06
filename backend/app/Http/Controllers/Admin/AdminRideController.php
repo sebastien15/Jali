@@ -133,6 +133,11 @@ class AdminRideController extends Controller
         $before = ['final_fare' => $ride->final_fare, 'commission' => $ride->commission];
         DB::transaction(function () use ($ride, $changes, $before, $admin, $data) {
             $ride->forceFill($changes)->save();
+            // Lower commission → the driver owes less (S7.2)
+            if (array_key_exists('commission', $changes) && $ride->driver_id) {
+                app(\App\Services\Payments\DriverLedger::class)->adjust($ride->driver_id, 'ride', $ride->id,
+                    (int) $before['commission'] - (int) $changes['commission'], 'Commission adjusted: ' . $data['note']);
+            }
             RideEvent::create([
                 'ride_id' => $ride->id, 'actor_id' => $admin->id, 'type' => 'adjusted',
                 'payload' => ['before' => $before, 'after' => $changes, 'note' => $data['note']],

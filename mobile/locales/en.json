@@ -741,7 +741,8 @@
       "no_vehicle_photo": "Add a front photo of your vehicle",
       "no_rates": "Set your ride prices",
       "rates_outside_limits": "Update your prices to fit Jali's limits",
-      "fix": "Fix"
+      "fix": "Fix",
+      "commission_owed": "Settle what you owe Jali"
     },
     "where": {
       "bar": "Ride now — where to?",
@@ -830,7 +831,8 @@
       "tag_Friendly": "Friendly",
       "tag_Knows the way": "Knows the way",
       "tag_On time": "On time",
-      "tag_Polite": "Polite"
+      "tag_Polite": "Polite",
+      "payMomoTo": "Pay your driver by MoMo"
     },
     "driverTrip": {
       "newRequest": "New ride request",
@@ -1047,5 +1049,39 @@
       "empty": "No hires yet",
       "error": "Could not load your hires"
     }
+  },
+  "earnings": {
+    "title": "Earnings",
+    "today": "Today",
+    "week": "This week",
+    "month": "This month",
+    "net": "You earned (after commission)",
+    "tripsLabel": "Trips",
+    "collected": "Collected from customers",
+    "commission": "Commission + Jali fees",
+    "owed": "You owe Jali",
+    "blocked": "You owe more than {{max}}. Settle to go online again.",
+    "pending": "Your payment of {{amount}} is waiting for confirmation.",
+    "payTo": "Send it with MoMo to {{number}} ({{name}}), then enter the transaction ID.",
+    "payToSupport": "Pay with MoMo to Jali (ask support for the number), then enter the transaction ID.",
+    "amount": "Amount (RWF)",
+    "reference": "MoMo transaction ID",
+    "settle": "I have paid",
+    "settleSent": "Thanks — we will confirm your payment soon.",
+    "cashout": "Cash out {{amount}} to my MoMo",
+    "cashoutSent": "Cash-out requested.",
+    "myMomo": "My MoMo for riders",
+    "myMomoHint": "Riders who choose MoMo see this number at the end of the trip.",
+    "momoNumber": "MoMo number",
+    "momoName": "Name on MoMo",
+    "history": "History",
+    "empty": "No trips yet.",
+    "trips_one": "{{count}} trip",
+    "trips_other": "{{count}} trips",
+    "type_earning": "Trip earning",
+    "type_commission": "Commission & fees",
+    "type_settlement": "Payment to Jali",
+    "type_payout": "Cash-out",
+    "type_adjustment": "Adjustment"
   }
 }
