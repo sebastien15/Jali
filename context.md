@@ -149,11 +149,13 @@ type AdminUser = {
 #### `lib/DriverModeContext.tsx`
 ```ts
 // Provider: wraps (tabs)/* via (tabs)/_layout.tsx
-// In-memory only — resets on app restart
+// Persisted in AsyncStorage ("jali_driver_mode"), cleared by clearApiToken() on logout.
+// On a new phone, restored from GET /driver/profile → profile.services (drivers only).
+// setDriverType also saves the service to the server (PATCH /driver/profile { services }).
 
 // Hook: useDriverMode()
-{ driverMode: boolean, driverType: "private"|"rental"|null,
-  setDriverMode, setDriverType }
+{ driverMode: boolean, driverType: "private"|"rental"|"ride"|"hire"|null,
+  hydrated: boolean, setDriverMode, setDriverType }
 
 // Drive tab in (tabs)/_layout.tsx is hidden unless driverMode === true
 ```
@@ -291,7 +293,8 @@ POST   /bookings/{id}/deliver     Mark delivered
 # perm: create-private-seats (driver routes)
 GET    /driver/stats
 GET    /driver/trips
-PATCH  /driver/profile
+GET    /driver/profile            Driver profile + active vehicle + vehicles
+PATCH  /driver/profile            Saves setup.tsx data (name, zones, docs, active vehicle)
 GET    /driver/listings
 POST   /driver/listings
 PATCH  /driver/listings/{id}
@@ -333,6 +336,43 @@ PATCH /admin/stations/{id}
 # perm: confirm-bookings
 GET   /admin/bookings
 PATCH /admin/bookings/{id}
+
+# perm: apply-as-driver (every role) — driver onboarding
+GET    /driver/onboarding         checklist (services, profile, licence, documents, vehicle, rates) + status
+PUT    /driver/onboarding/services
+PUT    /driver/onboarding/licence expired licence → 422
+POST   /driver/onboarding/submit  → status pending (resubmit after rejection allowed)
+POST   /driver/documents          multipart type+file → private 'local' disk
+GET    /driver/documents/{id}/file owner or verify-drivers only (404 otherwise)
+GET    /driver/profile · PATCH /driver/profile · GET/PUT /driver/rates (applicants can set prices)
+GET    /driver/vehicles           my vehicles (active first)
+POST   /driver/vehicles           add (first becomes active); plate unique, insurance date required
+PATCH  /driver/vehicles/{id}      edit own vehicle (404 for others')
+DELETE /driver/vehicles/{id}
+POST   /driver/vehicles/{id}/activate   the one vehicle riders see
+POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|luggage, photo
+
+# perm: offer-rides — driver-set prices for the active vehicle (validated vs guardrails)
+GET   /driver/rates               rates + guardrails + service fee + price preview
+PUT   /driver/rates
+
+# perm: offer-rides (verified drivers) — online/offline (story S5.1)
+GET   /driver/presence            { online, online_since, blocked_reasons[] }
+POST  /driver/presence            { online, lat, lng, heading } — heartbeat every ~8 s while online
+      blocked when: not verified / suspended / no active vehicle / insurance expired /
+      no front photo / no rates / rates outside limits. Offline after presence_ttl_sec without heartbeat.
+      Scheduler: `rides:expire-presence` every minute (needs cron → php artisan schedule:run)
+
+# perm: verify-drivers (admin, superadmin) — driver verification queue
+GET   /admin/drivers?status=pending|verified|rejected|suspended   oldest submission first
+GET   /admin/drivers/{userId}     application: licence, checklist, documents, vehicles, prices
+POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approved; push
+POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
+POST  /admin/drivers/{userId}/suspend   {reason}; push
+
+# perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
+GET   /admin/settings/rides
+PUT   /admin/settings/rides
 
 # perm: manage-users
 GET   /admin/users
@@ -380,6 +420,12 @@ app/Models/
 ├── Location.php           { name, city }
 ├── LocationChangeRequest.php  admin location change requests
 ├── ActivityLog.php        admin activity trail
+├── DriverDocument.php     licence front/back, national ID, selfie, insurance (private files)
+├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
+├── DriverPresence.php     online flag + last position per driver (scope live() = within TTL)
+├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
+├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)
+├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price
 └── AdminStation.php       admin ↔ station assignments
 ```
 

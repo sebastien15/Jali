@@ -42,6 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'verify-drivers' => 'Review and verify driver applications',
             'manage-rides' => 'Monitor rides and handle disputes',
             'manage-ride-pricing' => 'Configure ride pricing guardrails',
+            'apply-as-driver' => 'Apply to drive: profile, vehicles and documents',
         ];
 
         foreach ($ridePermissions as $name => $desc) {
@@ -76,18 +77,18 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::whereIn('name', [
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
                 'view-analytics', 'view-station-analytics', 'manage-agencies',
-                'manage-locations', 'request-rides', 'verify-drivers', 'manage-rides',
+                'manage-locations', 'request-rides', 'verify-drivers', 'manage-rides', 'apply-as-driver',
             ])->get()
         );
 
         $user->permissions()->sync(
-            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides'])->get()
+            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides', 'apply-as-driver'])->get()
         );
 
         $driver->permissions()->sync(
             Permission::whereIn('name', [
                 'create-private-seats', 'view-own-earnings',
-                'request-rides', 'offer-rides', 'offer-driver-hire',
+                'request-rides', 'offer-rides', 'offer-driver-hire', 'apply-as-driver',
             ])->get()
         );
     }

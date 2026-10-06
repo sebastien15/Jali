@@ -20,7 +20,8 @@ class ApiContractTest extends TestCase
 
     /** Route prefixes owned by the contract: every route under them must be documented. */
     private const CONTRACT_PREFIXES = [
-        'api/me', 'api/driver/profile', 'api/driver/rates', 'api/driver/presence',
+        'api/me', 'api/driver/profile', 'api/driver/vehicles', 'api/driver/rates',
+        'api/driver/onboarding', 'api/driver/documents', 'api/admin/drivers', 'api/driver/presence',
         'api/driver/ride-requests', 'api/rides', 'api/admin/settings/rides',
     ];
 
@@ -92,5 +93,28 @@ class ApiContractTest extends TestCase
         OpenApiContract::assertResponse(
             $this->postJson('/api/me/push-token', ['token' => 'ExponentPushToken[x]']), 'post', '/me/push-token');
         OpenApiContract::assertResponse($this->deleteJson('/api/me/push-token'), 'delete', '/me/push-token');
+    }
+
+    /** @test */
+    public function driver_profile_responses_match_the_contract()
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $driver = User::create(['name' => 'Driver', 'role_id' => Role::where('name', 'driver')->value('id')]);
+        $rider = User::create(['name' => 'Rider', 'role_id' => Role::where('name', 'user')->value('id')]);
+
+        Sanctum::actingAs($rider);
+        OpenApiContract::assertResponse($this->getJson('/api/driver/profile'), 'get', '/driver/profile');
+
+        Sanctum::actingAs($driver);
+        OpenApiContract::assertResponse($this->getJson('/api/driver/profile'), 'get', '/driver/profile');
+        OpenApiContract::assertResponse(
+            $this->patchJson('/api/driver/profile', ['insurance_expiry' => 'soon']), 'patch', '/driver/profile');
+        OpenApiContract::assertResponse($this->patchJson('/api/driver/profile', [
+            'name' => 'Jean', 'services' => ['ride'], 'allowed_zones' => ['Remera'],
+            'docs_url' => 'https://example.com/doc.pdf',
+            'car_model' => 'Toyota RAV4', 'plate' => 'RAB 123A', 'car_type' => 'SUV', 'seats' => 4,
+            'amenities' => ['AC'], 'insurance_expiry' => '2027-01-31', 'price_day' => 60000, 'caution' => 0,
+        ]), 'patch', '/driver/profile');
+        OpenApiContract::assertResponse($this->getJson('/api/driver/profile'), 'get', '/driver/profile');
     }
 }

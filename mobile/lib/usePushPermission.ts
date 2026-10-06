@@ -29,6 +29,10 @@ export function routeForNotification(data: Record<string, unknown> | undefined |
       return "/(tabs)/trips";
     case "driver":
       return "/(tabs)/drive";
+    case "driver_rates":
+      return "/driver/rates";
+    case "driver_onboarding":
+      return "/driver/onboarding";
     default:
       return "/(tabs)/trips";
   }

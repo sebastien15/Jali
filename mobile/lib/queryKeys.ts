@@ -40,6 +40,11 @@ export const queryKeys = {
     listings: () => ["driver", "listings"] as const,
     listing: (id: number) => ["driver", "listings", id] as const,
     cars: () => ["driver", "cars"] as const,
+    profile: () => ["driver", "profile"] as const,
+    rates: () => ["driver", "rates"] as const,
+    vehicles: () => ["driver", "vehicles"] as const,
+    onboarding: () => ["driver", "onboarding"] as const,
+    presence: () => ["driver", "presence"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
@@ -61,6 +66,9 @@ export const queryKeys = {
     appAccessStats: () => ["admin", "appAccesses", "stats"] as const,
     locations: () => ["admin", "locations"] as const,
     roles: () => ["admin", "roles"] as const,
+    rideSettings: () => ["admin", "settings", "rides"] as const,
+    drivers: (status?: string) => ["admin", "drivers", { status }] as const,
+    driver: (id: number) => ["admin", "drivers", id] as const,
     role: (id: number) => ["admin", "roles", id] as const,
     permissions: () => ["admin", "permissions"] as const,
     analytics: {

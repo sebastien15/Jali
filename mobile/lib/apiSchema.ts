@@ -60,6 +60,186 @@ export interface paths {
         patch: operations["updateDriverProfile"];
         trace?: never;
     };
+    "/driver/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Application checklist, status, licence and documents */
+        get: operations["getDriverOnboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose what I offer */
+        put: operations["putDriverServices"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/licence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Driving licence details (an expired licence is rejected) */
+        put: operations["putDriverLicence"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/onboarding/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the application for admin review (all required steps must be done) */
+        post: operations["submitDriverApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or replace a verification document (stored privately) */
+        post: operations["uploadDriverDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["DocumentId"];
+            };
+            cookie?: never;
+        };
+        /** The document file — only for its owner or users with verify-drivers (404 otherwise) */
+        get: operations["getDriverDocumentFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My vehicles (active first) */
+        get: operations["listVehicles"];
+        put?: never;
+        /** Add a vehicle (the first one becomes active) */
+        post: operations["createVehicle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/vehicles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove one of my vehicles */
+        delete: operations["deleteVehicle"];
+        options?: never;
+        head?: never;
+        /** Edit one of my vehicles */
+        patch: operations["updateVehicle"];
+        trace?: never;
+    };
+    "/driver/vehicles/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make this the vehicle riders see (others become inactive) */
+        post: operations["activateVehicle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/vehicles/{id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or replace one vehicle photo */
+        post: operations["uploadVehiclePhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/driver/rates": {
         parameters: {
             query?: never;
@@ -67,9 +247,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My ride rates for the active vehicle */
+        /** My ride rates for the active vehicle, the guardrails that apply, and a price preview */
         get: operations["getDriverRates"];
-        /** Set my ride rates (validated against guardrails for the vehicle class) */
+        /**
+         * Set my ride rates (validated against the guardrails for my vehicle class)
+         * @description Rates are snapshotted when a ride is requested, so changes never affect rides already quoted.
+         */
         put: operations["putDriverRates"];
         post?: never;
         delete?: never;
@@ -85,9 +268,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Am I online, and what blocks me from going online? */
+        get: operations["getDriverPresence"];
         put?: never;
-        /** Online/offline heartbeat with position (every 5–10 s while online) */
+        /**
+         * Go online/offline; while online send this heartbeat with the position every 5–10 s
+         * @description Going online is refused (online=false with blocked_reasons) until the driver is verified and the
+         *     active vehicle has valid insurance, a front photo and prices within the limits. Without a heartbeat
+         *     for presence_ttl_sec the driver is treated as offline.
+         */
         post: operations["postDriverPresence"];
         delete?: never;
         options?: never;
@@ -314,6 +503,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driver applications by status, oldest submission first */
+        get: operations["listDriverApplications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        /** Full application with documents, vehicles and prices */
+        get: operations["getDriverApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending application (documents approved; riders get the driver role; push sent) */
+        post: operations["verifyDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject with a reason, optionally per document */
+        post: operations["rejectDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend a driver (cannot go online or accept rides) */
+        post: operations["suspendDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings/rides": {
         parameters: {
             query?: never;
@@ -321,9 +603,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Pricing guardrails, commission, radius and timeouts */
+        /** Pricing guardrails, commission, radius and timeouts (defaults until saved) */
         get: operations["getRideSettings"];
-        /** Update pricing guardrails and dispatch settings */
+        /** Update pricing guardrails and dispatch settings (partial updates allowed) */
         put: operations["putRideSettings"];
         post?: never;
         delete?: never;
@@ -357,7 +639,7 @@ export interface components {
             id: number;
             class: components["schemas"]["VehicleClass"];
             /** @enum {string|null} */
-            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | null;
+            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Motorcycle" | null;
             make?: string | null;
             model: string;
             color?: string | null;
@@ -366,12 +648,93 @@ export interface components {
             plate: string;
             seats: number;
             amenities?: string[] | null;
-            photos?: string[] | null;
+            photos?: null | unknown[] | components["schemas"]["VehiclePhotos"];
             /** Format: date */
             insurance_expiry?: string | null;
             rental_price_day?: number | null;
             rental_caution?: number | null;
             is_active: boolean;
+        };
+        /** @enum {string} */
+        DriverService: "ride" | "hire" | "private_seat" | "rental";
+        /** @enum {string} */
+        DriverDocumentType: "licence_front" | "licence_back" | "national_id" | "selfie" | "insurance";
+        DriverOnboarding: {
+            /** @enum {string} */
+            status: "draft" | "pending" | "verified" | "rejected" | "suspended";
+            can_submit: boolean;
+            steps: {
+                /** @enum {string} */
+                key: "services" | "profile" | "licence" | "documents" | "vehicle" | "rates";
+                done: boolean;
+                required: boolean;
+            }[];
+            services: components["schemas"]["DriverService"][];
+            rejection_reason: string | null;
+            licence: {
+                licence_no: string | null;
+                licence_categories: string[];
+                /** Format: date */
+                licence_expiry: string | null;
+                national_id_no: string | null;
+            };
+            documents: {
+                type: components["schemas"]["DriverDocumentType"];
+                required: boolean;
+                /** @enum {string} */
+                status: "missing" | "uploaded" | "approved" | "rejected";
+                rejection_reason: string | null;
+                id: number | null;
+                /** @description Send the bearer token when loading it */
+                file_url: string | null;
+                /** Format: date-time */
+                updated_at: string | null;
+            }[];
+        };
+        DriverApplication: {
+            user: {
+                id: number;
+                name: string | null;
+                email: string | null;
+                phone: string | null;
+                role: string;
+                profile_image_url?: string | null;
+            };
+            /** @enum {string} */
+            status: "pending" | "verified" | "rejected" | "suspended";
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** Format: date-time */
+            verified_at: string | null;
+            rejection_reason: string | null;
+            services: components["schemas"]["DriverService"][];
+            licence: components["schemas"]["DriverOnboarding"]["licence"];
+            checklist: components["schemas"]["DriverOnboarding"]["steps"];
+            documents: components["schemas"]["DriverOnboarding"]["documents"];
+            vehicles: components["schemas"]["Vehicle"][];
+            rates: components["schemas"]["DriverRates"][];
+        };
+        /** @description Public URLs per photo slot; `front` is required before going online */
+        VehiclePhotos: {
+            front?: string;
+            side?: string;
+            interior?: string;
+            luggage?: string;
+        };
+        VehicleInput: {
+            class?: components["schemas"]["VehicleClass"];
+            /** @enum {string|null} */
+            body_type?: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Motorcycle" | null;
+            make?: string | null;
+            model?: string;
+            color?: string | null;
+            year?: number | null;
+            plate?: string;
+            /** @description Moto: at most 2 */
+            seats?: number;
+            amenities?: string[] | null;
+            /** Format: date */
+            insurance_expiry?: string;
         };
         DriverProfileResponse: {
             user: {
@@ -424,6 +787,41 @@ export interface components {
             pickup_per_km: number;
             /** @default 1 */
             night_multiplier: number;
+        };
+        DriverPresenceState: {
+            online: boolean;
+            /** Format: date-time */
+            online_since: string | null;
+            blocked_reasons: ("not_verified" | "suspended" | "no_active_vehicle" | "insurance_expired" | "no_vehicle_photo" | "no_rates" | "rates_outside_limits")[];
+        };
+        DriverRatesResponse: {
+            vehicle: null | {
+                id: number;
+                class: components["schemas"]["VehicleClass"];
+                model: string;
+                plate: string;
+            };
+            rates: null | components["schemas"]["DriverRates"];
+            /** @description True when guardrails changed and these rates must be updated */
+            out_of_band: boolean;
+            guardrails: {
+                per_km_min: number;
+                per_km_max: number;
+                min_fare_max: number;
+            };
+            service_fee: {
+                /** @enum {string} */
+                type: "flat" | "percent";
+                amount: number;
+            };
+            commission_pct: number;
+            /** @description Daytime price for sample trips (no pickup surcharge) */
+            preview: {
+                km: number;
+                driver_fare: number;
+                service_fee: number;
+                total: number;
+            }[];
         };
         TripPoints: {
             pickup: components["schemas"]["Place"];
@@ -520,7 +918,7 @@ export interface components {
             /** Format: date-time */
             expires_at: string;
         };
-        /** @description payment_settings.config.rides (RIDE_HAILING_PLAN.md §3.3) */
+        /** @description platform_settings `rides` (RIDE_HAILING_PLAN.md §3.3). Responses always contain every field; PUT accepts any subset. */
         RideSettings: {
             vehicle_classes: {
                 [key: string]: {
@@ -532,7 +930,7 @@ export interface components {
             /** @default 1.3 */
             road_factor: number;
             commission_pct: number;
-            service_fee?: {
+            service_fee: {
                 /** @enum {string} */
                 type?: "flat" | "percent";
                 amount?: number;
@@ -543,6 +941,26 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+        };
+        /** @description Any subset of RideSettings; a vehicle class must be sent complete */
+        RideSettingsUpdate: {
+            vehicle_classes?: {
+                [key: string]: {
+                    per_km_min: number;
+                    per_km_max: number;
+                    min_fare_max: number;
+                };
+            };
+            road_factor?: number;
+            commission_pct?: number;
+            service_fee?: {
+                /** @enum {string} */
+                type: "flat" | "percent";
+                amount: number;
+            };
+            nearby_radius_km?: number;
+            presence_ttl_sec?: number;
+            request_timeout_sec?: number;
         };
     };
     responses: {
@@ -580,6 +998,17 @@ export interface components {
                 };
             };
         };
+        /** @description Not found (or not yours) */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message?: string;
+                };
+            };
+        };
         /** @description Invalid state transition or resource already taken */
         Conflict: {
             headers: {
@@ -607,6 +1036,9 @@ export interface components {
         };
     };
     parameters: {
+        UserId: number;
+        DocumentId: number;
+        VehicleId: number;
         RideId: number;
     };
     requestBodies: never;
@@ -719,6 +1151,316 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    getDriverOnboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putDriverServices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    services: components["schemas"]["DriverService"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    putDriverLicence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    licence_no: string;
+                    licence_categories: ("A" | "B" | "C" | "C1" | "D" | "D1" | "E" | "F")[];
+                    /** Format: date */
+                    licence_expiry: string;
+                    national_id_no?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    submitDriverApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Submitted — status becomes pending */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    uploadDriverDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    type: components["schemas"]["DriverDocumentType"];
+                    /**
+                     * Format: binary
+                     * @description jpg/png/webp/heic/pdf, max 10 MB
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated checklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverOnboarding"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getDriverDocumentFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["DocumentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/*": unknown;
+                    "application/pdf": unknown;
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listVehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleInput"] & unknown;
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Message"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    activateVehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    uploadVehiclePhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["VehicleId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @enum {string} */
+                    slot: "front" | "side" | "interior" | "luggage";
+                    /**
+                     * Format: binary
+                     * @description jpg/png/webp/heic, max 8 MB
+                     */
+                    photo: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vehicle"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     getDriverRates: {
         parameters: {
             query?: never;
@@ -734,9 +1476,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DriverRates"];
+                    "application/json": components["schemas"]["DriverRatesResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     putDriverRates: {
@@ -758,10 +1502,34 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DriverRates"];
+                    "application/json": components["schemas"]["DriverRatesResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    getDriverPresence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverPresenceState"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     postDriverPresence: {
@@ -775,10 +1543,11 @@ export interface operations {
             content: {
                 "application/json": {
                     online: boolean;
-                    lat?: number;
-                    lng?: number;
+                    /** @description Required when online */
+                    lat?: number | null;
+                    /** @description Required when online */
+                    lng?: number | null;
                     heading?: number | null;
-                    vehicle_id?: number;
                 };
             };
         };
@@ -789,13 +1558,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        online?: boolean;
-                        /** @description Why the driver cannot go online (unverified, no rates, insurance expired, commission owed…) */
-                        blocked_reasons?: string[];
-                    };
+                    "application/json": components["schemas"]["DriverPresenceState"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listRideRequests: {
@@ -1136,6 +1904,150 @@ export interface operations {
             409: components["responses"]["Conflict"];
         };
     };
+    listDriverApplications: {
+        parameters: {
+            query?: {
+                status?: "pending" | "verified" | "rejected" | "suspended";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user_id: number;
+                        name: string | null;
+                        phone: string | null;
+                        services: components["schemas"]["DriverService"][];
+                        /** @enum {string} */
+                        status: "pending" | "verified" | "rejected" | "suspended";
+                        /** Format: date-time */
+                        submitted_at: string | null;
+                    }[];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getDriverApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    verifyDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Verified */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rejectDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    /** @description Document type → reason, e.g. {"selfie": "Face not visible"} */
+                    documents?: {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Rejected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    suspendDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Suspended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverApplication"];
+                };
+            };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     getRideSettings: {
         parameters: {
             query?: never;
@@ -1154,6 +2066,8 @@ export interface operations {
                     "application/json": components["schemas"]["RideSettings"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     putRideSettings: {
@@ -1165,7 +2079,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RideSettings"];
+                "application/json": components["schemas"]["RideSettingsUpdate"];
             };
         };
         responses: {
@@ -1178,6 +2092,8 @@ export interface operations {
                     "application/json": components["schemas"]["RideSettings"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
         };
     };
