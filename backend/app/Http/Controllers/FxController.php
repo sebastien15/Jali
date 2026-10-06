@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Fx\ExchangeRates;
+use App\Modules\Payments\Application\ExchangeRates;
 
 /** GET /fx/rates — approximate RWF conversions for visitors (story S9.4) */
 class FxController extends Controller

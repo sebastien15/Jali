@@ -17,7 +17,7 @@ export type Me = {
 
 /**
  * Current user. Shares the `me` cache entry with the admin context; the
- * cache is wiped on every login/logout (lib/session.ts), and a short stale
+ * cache is wiped on every login/logout (core/session/teardown.ts), and a short stale
  * time lets role changes made by a superadmin (e.g. granting "driver") show up.
  */
 export function useMe(enabled = true) {

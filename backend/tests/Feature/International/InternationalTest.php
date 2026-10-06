@@ -8,7 +8,7 @@ use App\Models\DriverRate;
 use App\Models\Ride;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Fx\ExchangeRates;
+use App\Modules\Payments\Application\ExchangeRates;
 use App\Services\PushService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

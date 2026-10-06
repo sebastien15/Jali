@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
-use App\Models\AgencyRating;
-use App\Models\Booking;
+use App\Modules\Bus\Application\AgencyRatings;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Bus (runbook M03-Bus): validation + HTTP shape only. */
 class AgencyRatingController extends Controller
 {
+    public function __construct(private readonly AgencyRatings $ratings)
+    {
+    }
+
     /**
      * Rate an agency (upsert — one rating per user per agency).
      */
     public function store(Request $request, $agencyId)
     {
-        $agency = Agency::findOrFail($agencyId);
+        // 404 for an unknown agency wins over validation, as before.
+        $agency = $this->ratings->findAgency($agencyId);
 
         $validated = $request->validate([
             'stars'   => 'required|integer|min:1|max:5',
@@ -22,30 +26,11 @@ class AgencyRatingController extends Controller
         ]);
 
         // Only passengers who actually booked this agency may rate it.
-        $hasBooked = Booking::where('user_id', $request->user()->id)
-            ->where('type', 'trip')
-            ->where('status', '!=', 'cancelled')
-            ->whereHas('departure.route', fn ($q) => $q->where('agency_id', $agency->id))
-            ->exists();
-        if (!$hasBooked) {
+        $result = $this->ratings->rate($agency, $request->user(), $validated['stars'], $validated['comment'] ?? null);
+        if ($result === null) {
             return response()->json(['message' => 'You can rate an agency after booking a trip with it.'], 403);
         }
 
-        $rating = AgencyRating::updateOrCreate(
-            [
-                'agency_id' => $agencyId,
-                'user_id'   => $request->user()->id,
-            ],
-            [
-                'stars'   => $validated['stars'],
-                'comment' => $validated['comment'] ?? null,
-            ]
-        );
-
-        return response()->json([
-            'average_rating' => $agency->average_rating,
-            'ratings_count'  => $agency->ratings->count(),
-            'your_rating'    => $rating->stars,
-        ]);
+        return response()->json($result);
     }
 }

@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Modules\Notifications\Contracts\PushTokens;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Notifications (M03-Remaining): validation + HTTP shape only. */
 class PushTokenController extends Controller
 {
+    public function __construct(private readonly PushTokens $tokens)
+    {
+    }
+
     /**
      * POST /me/push-token
      * Registers the device's push token (Expo push token or FCM token) for the current user.
@@ -16,7 +22,7 @@ class PushTokenController extends Controller
             'token' => 'required|string|max:255',
         ]);
 
-        $request->user()->update(['fcm_token' => $validated['token']]);
+        $this->tokens->register($request->user(), $validated['token']);
 
         return response()->json(['message' => 'Push token saved']);
     }
@@ -27,7 +33,7 @@ class PushTokenController extends Controller
      */
     public function destroy(Request $request)
     {
-        $request->user()->update(['fcm_token' => null]);
+        $this->tokens->forget($request->user());
 
         return response()->json(['message' => 'Push token removed']);
     }

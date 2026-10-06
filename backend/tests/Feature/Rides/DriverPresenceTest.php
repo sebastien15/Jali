@@ -6,7 +6,7 @@ use App\Models\DriverPresence;
 use App\Models\DriverRate;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Rides\DriverEligibility as E;
+use App\Modules\Providers\Application\DriverEligibility as E;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;

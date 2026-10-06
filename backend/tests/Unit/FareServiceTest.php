@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use App\Services\Rides\FareService;
-use App\Services\Rides\GeoService;
-use App\Services\Rides\RideSettings;
+use App\Modules\NearbyRides\Application\FareService;
+use App\Modules\Locations\Application\GeoService;
+use App\Modules\Pricing\Application\RideSettings;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

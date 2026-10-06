@@ -2,33 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PrivateSeat;
+use App\Modules\SharedJourneys\Application\InvalidListingDate;
+use App\Modules\SharedJourneys\Application\OwnerListings;
+use App\Modules\SharedJourneys\Application\SeatCatalogue;
 use Illuminate\Http\Request;
 
+/** Transport adapter for SharedJourneys (runbook M03-Shared): validation + HTTP shape only. */
 class PrivateSeatController extends Controller
 {
+    public function __construct(
+        private readonly SeatCatalogue $catalogue,
+        private readonly OwnerListings $listings,
+    ) {
+    }
+
     /**
      * GET /private-seats
      * Public catalog — active listings with available seats.
      */
     public function index(Request $request)
     {
-        $query = PrivateSeat::query()->where('seats', '>', 0)->where('active', true);
-
-        if ($request->filled('from')) {
-            $query->where('from', $request->from);
-        }
-
-        if ($request->filled('to')) {
-            $query->where('to', $request->to);
-        }
-
-        if ($request->filled('date') && ($date = self::normalizeDate($request->date))) {
-            // Listings without a date run every day.
-            $query->where(fn ($q) => $q->whereNull('date')->orWhere('date', $date));
-        }
-
-        return response()->json($query->orderBy('dep')->paginate(10));
+        return response()->json($this->catalogue->search(
+            $request->filled('from') ? $request->from : null,
+            $request->filled('to') ? $request->to : null,
+            $request->filled('date') ? $request->date : null,
+        ));
     }
 
     /**
@@ -37,11 +35,7 @@ class PrivateSeatController extends Controller
      */
     public function driverListings(Request $request)
     {
-        $listings = PrivateSeat::where('user_id', $request->user()->id)
-            ->latest()
-            ->get();
-
-        return response()->json($listings);
+        return response()->json($this->listings->listingsOf($request->user()));
     }
 
     /**
@@ -67,15 +61,11 @@ class PrivateSeatController extends Controller
             'custom_pickup_fee'   => 'integer|min:0',
         ]);
 
-        if (array_key_exists('date', $validated) && ($validated['date'] = self::normalizeDate($validated['date'])) === false) {
-            return response()->json(['message' => 'Invalid date.', 'errors' => ['date' => ['Invalid date.']]], 422);
+        try {
+            $listing = $this->listings->create($request->user(), $validated);
+        } catch (InvalidListingDate) {
+            return self::invalidDate();
         }
-
-        $validated['user_id'] = $request->user()->id;
-        $validated['driver']  = $request->user()->name;
-        $validated['active']  = true;
-
-        $listing = PrivateSeat::create($validated);
 
         return response()->json($listing, 201);
     }
@@ -85,9 +75,8 @@ class PrivateSeatController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $listing = PrivateSeat::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        // Ownership is checked before validation (404 wins over 422), as before.
+        $listing = $this->listings->findOwned($request->user(), $id);
 
         $validated = $request->validate([
             'from'                => 'sometimes|string',
@@ -108,33 +97,10 @@ class PrivateSeatController extends Controller
             'custom_pickup_fee'   => 'integer|min:0',
         ]);
 
-        if (array_key_exists('date', $validated) && ($validated['date'] = self::normalizeDate($validated['date'])) === false) {
-            return response()->json(['message' => 'Invalid date.', 'errors' => ['date' => ['Invalid date.']]], 422);
-        }
-
-        $listing->update($validated);
-
-        return response()->json($listing->fresh());
-    }
-
-    /**
-     * Listing dates arrive as "Today", "Mon 5 Oct 2026", "2026-10-05"…
-     * Store/compare them as Y-m-d (Africa/Kigali). null = no date, false = invalid.
-     */
-    public static function normalizeDate(?string $raw): string|null|false
-    {
-        if ($raw === null || trim($raw) === '') {
-            return null;
-        }
-        $tz = 'Africa/Kigali';
         try {
-            return match (strtolower(trim($raw))) {
-                'today'    => now($tz)->toDateString(),
-                'tomorrow' => now($tz)->addDay()->toDateString(),
-                default    => \Illuminate\Support\Carbon::parse($raw, $tz)->toDateString(),
-            };
-        } catch (\Throwable) {
-            return false;
+            return response()->json($this->listings->update($listing, $validated));
+        } catch (InvalidListingDate) {
+            return self::invalidDate();
         }
     }
 
@@ -143,12 +109,13 @@ class PrivateSeatController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $listing = PrivateSeat::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-
-        $listing->delete();
+        $this->listings->delete($this->listings->findOwned($request->user(), $id));
 
         return response()->json(null, 204);
+    }
+
+    private static function invalidDate()
+    {
+        return response()->json(['message' => 'Invalid date.', 'errors' => ['date' => ['Invalid date.']]], 422);
     }
 }

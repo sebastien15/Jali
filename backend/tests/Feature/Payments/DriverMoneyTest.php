@@ -100,9 +100,9 @@ class DriverMoneyTest extends TestCase
     /** @test */
     public function drivers_over_the_limit_cannot_go_online_until_a_settlement_is_confirmed()
     {
-        \App\Services\Rides\RideSettings::update(['max_commission_owed' => 100], $this->admin);
+        \App\Modules\Pricing\Application\RideSettings::update(['max_commission_owed' => 100], $this->admin);
         $this->completeRide();
-        $owed = \App\Services\Payments\DriverLedger::owed($this->driver->id);
+        $owed = \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id);
 
         Sanctum::actingAs($this->driver);
         $this->postJson('/api/driver/presence', ['online' => true, 'lat' => -1.945, 'lng' => 30.063])->assertOk()
@@ -137,7 +137,7 @@ class DriverMoneyTest extends TestCase
         Sanctum::actingAs($this->admin);
         $this->postJson("/api/admin/settlements/$id/reject", [])->assertStatus(422);
         $this->postJson("/api/admin/settlements/$id/reject", ['note' => 'No such MoMo transaction'])->assertOk();
-        $this->assertGreaterThan(0, \App\Services\Payments\DriverLedger::owed($this->driver->id));
+        $this->assertGreaterThan(0, \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id));
 
         Sanctum::actingAs($this->driver);
         $this->putJson('/api/driver/momo', ['momo_number' => '0788222222', 'momo_name' => 'Jean Paul'])->assertOk();
@@ -148,11 +148,11 @@ class DriverMoneyTest extends TestCase
     public function lowering_the_commission_in_admin_reduces_what_the_driver_owes()
     {
         $ride = $this->completeRide();
-        $before = \App\Services\Payments\DriverLedger::owed($this->driver->id);
+        $before = \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id);
 
         Sanctum::actingAs($this->admin);
         $this->postJson("/api/admin/rides/{$ride->id}/adjust", ['commission' => 0, 'note' => 'Goodwill: waive commission'])->assertOk();
 
-        $this->assertSame($before - $ride->commission, \App\Services\Payments\DriverLedger::owed($this->driver->id));
+        $this->assertSame($before - $ride->commission, \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id));
     }
 }

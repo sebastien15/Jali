@@ -3,57 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Modules\Providers\Application\DriverVehicles;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /**
  * A driver's vehicles (story S1.3). Only the active vehicle is shown to riders.
+ * Transport adapter for Providers/Fleet (M03-Remaining): validation + HTTP shape only.
  */
 class VehicleController extends Controller
 {
-    public const PHOTO_SLOTS = ['front', 'side', 'interior', 'luggage'];
+    public function __construct(private readonly DriverVehicles $vehicles)
+    {
+    }
 
     /** GET /driver/vehicles */
     public function index(Request $request)
     {
-        return response()->json($request->user()->vehicles()->orderByDesc('is_active')->orderBy('id')->get());
+        return response()->json($this->vehicles->list($request->user()));
     }
 
     /** POST /driver/vehicles */
     public function store(Request $request)
     {
-        $user = $request->user();
         $validated = $this->validated($request, null);
 
-        $vehicle = DB::transaction(function () use ($user, $validated) {
-            // First vehicle becomes the active one automatically
-            $isFirst = !$user->vehicles()->exists();
-
-            return $user->vehicles()->create($validated + ['is_active' => $isFirst]);
-        });
-
-        return response()->json($vehicle->fresh(), 201);
+        return response()->json($this->vehicles->create($request->user(), $validated), 201);
     }
 
     /** PATCH /driver/vehicles/{id} */
     public function update(Request $request, int $id)
     {
-        $vehicle = $this->owned($request, $id);
-        $vehicle->update($this->validated($request, $vehicle));
+        $vehicle = $this->vehicles->owned($request->user(), $id);
 
-        return response()->json($vehicle->fresh());
+        return response()->json($this->vehicles->update($vehicle, $this->validated($request, $vehicle)));
     }
 
     /** DELETE /driver/vehicles/{id} */
     public function destroy(Request $request, int $id)
     {
-        $vehicle = $this->owned($request, $id);
-        foreach ((array) $vehicle->photos as $url) {
-            $this->deleteStoredPhoto($url);
-        }
-        $vehicle->delete();
+        $this->vehicles->delete($this->vehicles->owned($request->user(), $id));
 
         return response()->json(['message' => 'Vehicle removed']);
     }
@@ -61,40 +50,21 @@ class VehicleController extends Controller
     /** POST /driver/vehicles/{id}/activate — the one vehicle riders will see */
     public function activate(Request $request, int $id)
     {
-        $vehicle = $this->owned($request, $id);
+        $vehicle = $this->vehicles->owned($request->user(), $id);
 
-        DB::transaction(function () use ($request, $vehicle) {
-            $request->user()->vehicles()->where('id', '!=', $vehicle->id)->update(['is_active' => false]);
-            $vehicle->update(['is_active' => true]);
-        });
-
-        return response()->json($vehicle->fresh());
+        return response()->json($this->vehicles->activate($request->user(), $vehicle));
     }
 
     /** POST /driver/vehicles/{id}/photos (multipart: slot, photo) */
     public function uploadPhoto(Request $request, int $id)
     {
-        $vehicle = $this->owned($request, $id);
+        $vehicle = $this->vehicles->owned($request->user(), $id);
         $validated = $request->validate([
-            'slot'  => ['required', Rule::in(self::PHOTO_SLOTS)],
+            'slot'  => ['required', Rule::in(DriverVehicles::PHOTO_SLOTS)],
             'photo' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:8192',
         ]);
 
-        $photos = (array) ($vehicle->photos ?? []);
-        if (!empty($photos[$validated['slot']])) {
-            $this->deleteStoredPhoto($photos[$validated['slot']]);
-        }
-        $path = $request->file('photo')->store("vehicles/{$vehicle->id}", 'public');
-        $photos[$validated['slot']] = Storage::url($path);
-        $vehicle->update(['photos' => $photos]);
-
-        return response()->json($vehicle->fresh());
-    }
-
-    private function owned(Request $request, int $id): Vehicle
-    {
-        // 404 (not 403) for other drivers' vehicles: don't reveal that the id exists
-        return $request->user()->vehicles()->findOrFail($id);
+        return response()->json($this->vehicles->setPhoto($vehicle, $validated['slot'], $request->file('photo')));
     }
 
     private function validated(Request $request, ?Vehicle $vehicle): array
@@ -121,23 +91,14 @@ class VehicleController extends Controller
             'insurance_expiry.date_format' => 'Use the format YYYY-MM-DD, e.g. 2026-12-31.',
         ]);
 
-        $class = $validated['class'] ?? $vehicle?->class;
-        $seats = $validated['seats'] ?? $vehicle?->seats;
-        if ($class === 'moto' && $seats > 2) {
+        $refusal = $this->vehicles->seatsRefusal($validated['class'] ?? $vehicle?->class, $validated['seats'] ?? $vehicle?->seats);
+        if ($refusal) {
             abort(response()->json([
-                'message' => 'A moto can carry at most 2 people.',
-                'errors'  => ['seats' => ['A moto can carry at most 2 people.']],
+                'message' => $refusal,
+                'errors'  => ['seats' => [$refusal]],
             ], 422));
         }
 
         return $validated;
-    }
-
-    private function deleteStoredPhoto(?string $url): void
-    {
-        $prefix = Storage::url('');
-        if ($url && str_starts_with($url, $prefix)) {
-            Storage::disk('public')->delete(substr($url, strlen($prefix)));
-        }
     }
 }

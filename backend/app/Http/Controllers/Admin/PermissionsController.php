@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Permission;
+use App\Modules\Identity\Application\RoleAdmin;
 
+/** Transport adapter for Identity (M03-Remaining). */
 class PermissionsController extends Controller
 {
-    public function index()
+    public function index(RoleAdmin $roles)
     {
-        return response()->json(
-            Permission::orderBy('category')->orderBy('name')->get(['id', 'name', 'description', 'category'])
-        );
+        return response()->json($roles->permissionCatalogue());
     }
 }

@@ -5,7 +5,7 @@ namespace Tests\Feature\Rides;
 use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;

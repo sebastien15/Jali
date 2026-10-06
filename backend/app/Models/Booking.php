@@ -85,7 +85,7 @@ class Booking extends Model
         if ($message && $user) {
             // Never let a slow or failed push delay or break the admin's request
             $id = $this->id;
-            dispatch(fn () => app(\App\Services\PushService::class)->send($user, $message[0], $message[1], ['screen' => 'booking', 'id' => $id]))
+            dispatch(fn () => app(\App\Modules\Notifications\Contracts\PushSender::class)->send($user, $message[0], $message[1], ['screen' => 'booking', 'id' => $id]))
                 ->afterResponse();
         }
     }

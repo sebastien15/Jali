@@ -29,6 +29,14 @@ Jali/
 └── context.md  ← this file
 ```
 
+### Module layout (architecture migration, Scope A)
+
+Business logic lives in owner modules; controllers and route files are thin adapters. Details, contracts and per-task evidence: `docs/migration/MIGRATION_LOG.md`. Some file paths cited further down this document predate the migration — trust the tree.
+
+- **Backend** `backend/app/Modules/<Owner>/{Application,Contracts,Infrastructure}` — owners: Bus, DriverHire, Identity, LegacyBookings, Locations, NearbyRides, Notifications, Payments, Pricing, Providers, Rentals, Safety, SharedJourneys. Cross-module calls go only through another module's `Contracts/` and must be allowed in `app/Modules/boundaries.php` (`ModuleBoundaryTest`). Controllers stay in `app/Http/Controllers`; `App\Models` are shared storage adapters. `app/Services` holds only `PushService` (use `Notifications\Contracts\PushSender`). API routes are frozen by `RouteInventoryTest` against `docs/migration/routes-baseline.json` — update the baseline deliberately when you add a route.
+- **Mobile** `mobile/features/<service>/` (bus, driver-hire, nearby-rides, rentals, shared-journeys; import another feature only via its `index.ts` and only if `features/boundaries.json` allows it) and `mobile/core/{session,navigation,notifications}` (core/session and core/notifications never import features). `mobile/app/**` route files are one-line wrappers. Check with `npm run check:boundaries`.
+- **Session**: every logout/401/account deletion goes through `core/session/teardown.ts` `endSession()`; the driver/customer view is view-only state per account (`core/session/viewState.ts`), never a server mutation.
+
 ---
 
 ## Mobile App

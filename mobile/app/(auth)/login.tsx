@@ -22,7 +22,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
 import { C } from "@/constants/theme";
 import api, { clearApiToken } from "@/lib/api";
-import { startSession } from "@/lib/session";
+import { startSession } from "@/core/session/teardown";
 import { isDev } from "@/lib/env";
 
 /** Common countries for visitors; any number can also be typed with its own "+" code (S9.2) */

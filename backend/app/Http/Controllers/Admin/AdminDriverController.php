@@ -3,25 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\DriverOnboardingController;
-use App\Models\ActivityLog;
-use App\Models\DriverDocument;
-use App\Models\DriverProfile;
-use App\Models\DriverRate;
-use App\Models\Role;
 use App\Models\User;
-use App\Services\PushService;
-use App\Services\Rides\DriverOnboarding;
+use App\Modules\Providers\Application\DriverVerification;
+use App\Modules\Providers\Application\ProviderRequestRejected;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
  * Driver verification queue (story S1.4). Requires verify-drivers.
+ * Transport adapter for Providers (M03-Remaining): permission check, validation + HTTP shape only.
  */
 class AdminDriverController extends Controller
 {
     private const STATUSES = ['pending', 'verified', 'rejected', 'suspended'];
+
+    public function __construct(private readonly DriverVerification $verification)
+    {
+    }
 
     /** GET /admin/drivers?status=pending — oldest submission first */
     public function index(Request $request)
@@ -29,21 +27,7 @@ class AdminDriverController extends Controller
         $this->authorizeReviewer($request);
         $status = $request->validate(['status' => ['sometimes', Rule::in(self::STATUSES)]])['status'] ?? 'pending';
 
-        $profiles = DriverProfile::with('user')
-            ->where('verification_status', $status)
-            ->whereNotNull('submitted_at')
-            ->orderBy('submitted_at')
-            ->limit(200)
-            ->get();
-
-        return response()->json($profiles->map(fn (DriverProfile $p) => [
-            'user_id'      => $p->user_id,
-            'name'         => $p->user->name,
-            'phone'        => $p->user->phone,
-            'services'     => $p->services ?? [],
-            'status'       => $p->verification_status,
-            'submitted_at' => $p->submitted_at?->toIso8601String(),
-        ])->values());
+        return response()->json($this->verification->queue($status));
     }
 
     /**
@@ -53,54 +37,16 @@ class AdminDriverController extends Controller
     public function review(Request $request)
     {
         $this->authorizeReviewer($request);
-        $rules = \App\Services\Rides\RideSettings::get()['review'];
-        $since = now()->subDays((int) $rules['days']);
 
-        $cancels = \App\Models\Ride::where('accepted_at', '>=', $since)->whereNotNull('driver_id')
-            ->selectRaw('driver_id, COUNT(*) as accepted, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled', [\App\Models\Ride::CANCELLED_BY_DRIVER])
-            ->groupBy('driver_id')->get()->keyBy('driver_id');
-
-        $profiles = DriverProfile::with('user')->where('verification_status', DriverProfile::STATUS_VERIFIED)
-            ->where(fn ($q) => $q->where(fn ($q) => $q->where('rating_count', '>=', (int) $rules['min_rated_trips'])->where('rating_avg', '<', (float) $rules['min_rating']))
-                ->orWhereIn('user_id', $cancels->keys()))
-            ->get();
-
-        $items = [];
-        foreach ($profiles as $p) {
-            $c = $cancels[$p->user_id] ?? null;
-            $cancelPct = $c && $c->accepted ? round($c->cancelled * 100 / $c->accepted, 1) : 0.0;
-            $reasons = [];
-            if ($p->rating_count >= (int) $rules['min_rated_trips'] && $p->rating_avg < (float) $rules['min_rating']) {
-                $reasons[] = 'low_rating';
-            }
-            if ($c && $c->accepted >= (int) $rules['min_accepted'] && $cancelPct > (float) $rules['max_cancel_pct']) {
-                $reasons[] = 'high_cancel_rate';
-            }
-            if (!$reasons) {
-                continue;
-            }
-            $items[] = [
-                'user_id' => $p->user_id, 'name' => $p->user?->name, 'phone' => $p->user?->phone,
-                'rating' => (float) $p->rating_avg, 'rating_count' => (int) $p->rating_count,
-                'accepted' => (int) ($c->accepted ?? 0), 'cancelled' => (int) ($c->cancelled ?? 0), 'cancel_pct' => $cancelPct,
-                'reasons' => $reasons, 'warned_at' => $p->warned_at?->toIso8601String(),
-            ];
-        }
-
-        return response()->json($items);
+        return response()->json($this->verification->needingReview());
     }
 
     /** POST /admin/drivers/{userId}/warn {message} — S8.4: the driver is notified and it is logged */
-    public function warn(Request $request, PushService $push, int $userId)
+    public function warn(Request $request, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $message = $request->validate(['message' => 'required|string|min:5|max:500'])['message'];
-        $user = User::with('driverProfile')->findOrFail($userId);   // any driver, also ones verified before the app flow
-        abort_unless($user->driverProfile, 404);
-
-        $user->driverProfile->forceFill(['warned_at' => now(), 'warning' => $message])->save();
-        $this->log($admin, 'driver_warned', $user, ['message' => $message]);
-        $push->send($user, 'A note from Jali about your driving', $message, ['screen' => 'driver']);
+        $this->verification->warn($admin, $userId, $message);
 
         return response()->json(['message' => 'Warning sent.', 'warned_at' => now()->toIso8601String()]);
     }
@@ -110,49 +56,20 @@ class AdminDriverController extends Controller
     {
         $this->authorizeReviewer($request);
 
-        return response()->json($this->detail($this->applicant($userId)));
+        return response()->json($this->verification->detail($this->verification->applicant($userId)));
     }
 
     /** POST /admin/drivers/{userId}/verify */
-    public function verify(Request $request, PushService $push, int $userId)
+    public function verify(Request $request, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
-        $user = $this->applicant($userId);
-        $profile = $user->driverProfile;
+        $user = $this->verification->applicant($userId);
 
-        if ($profile->verification_status !== DriverProfile::STATUS_PENDING) {
-            return response()->json(['message' => 'Only pending applications can be approved.'], 409);
-        }
-
-        DB::transaction(function () use ($user, $profile, $admin) {
-            $profile->forceFill([
-                'verification_status' => DriverProfile::STATUS_VERIFIED,
-                'verified_by'         => $admin->id,
-                'verified_at'         => now(),
-                'rejection_reason'    => null,
-            ])->save();
-
-            $user->driverDocuments()->update([
-                'status' => DriverDocument::STATUS_APPROVED, 'rejection_reason' => null,
-                'reviewed_by' => $admin->id, 'reviewed_at' => now(),
-            ]);
-            $user->vehicles()->whereNull('verified_at')->update(['verified_at' => now()]);
-
-            // Riders become drivers; staff keep their admin role
-            if (!$user->role || $user->role->name === 'user') {
-                $user->update(['role_id' => Role::where('name', 'driver')->value('id')]);
-            }
-        });
-
-        $this->log($admin, 'driver_verified', $user);
-        $push->send($user, 'You are now a Jali driver 🎉', 'Your application was approved. Go online to start earning.',
-            ['screen' => 'driver']);
-
-        return response()->json($this->detail($user->fresh()));
+        return $this->respond(fn () => $this->verification->verify($admin, $user));
     }
 
     /** POST /admin/drivers/{userId}/reject  { reason, documents?: {type: reason} } */
-    public function reject(Request $request, PushService $push, int $userId)
+    public function reject(Request $request, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $validated = $request->validate([
@@ -160,54 +77,19 @@ class AdminDriverController extends Controller
             'documents'   => 'sometimes|array',
             'documents.*' => 'string|max:255',
         ]);
-        $user = $this->applicant($userId);
-        $profile = $user->driverProfile;
+        $user = $this->verification->applicant($userId);
 
-        if ($profile->verification_status !== DriverProfile::STATUS_PENDING) {
-            return response()->json(['message' => 'Only pending applications can be rejected.'], 409);
-        }
-
-        DB::transaction(function () use ($user, $profile, $admin, $validated) {
-            $profile->forceFill([
-                'verification_status' => DriverProfile::STATUS_REJECTED,
-                'rejection_reason'    => $validated['reason'],
-            ])->save();
-
-            foreach ($validated['documents'] ?? [] as $type => $reason) {
-                $user->driverDocuments()->where('type', $type)->update([
-                    'status' => DriverDocument::STATUS_REJECTED, 'rejection_reason' => $reason,
-                    'reviewed_by' => $admin->id, 'reviewed_at' => now(),
-                ]);
-            }
-        });
-
-        $this->log($admin, 'driver_rejected', $user, ['reason' => $validated['reason']]);
-        $push->send($user, 'Your driver application needs changes', $validated['reason'], ['screen' => 'driver_onboarding']);
-
-        return response()->json($this->detail($user->fresh()));
+        return $this->respond(fn () => $this->verification->reject($admin, $user, $validated));
     }
 
     /** POST /admin/drivers/{userId}/suspend  { reason } */
-    public function suspend(Request $request, PushService $push, int $userId)
+    public function suspend(Request $request, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $validated = $request->validate(['reason' => 'required|string|max:500']);
-        $user = $this->applicant($userId);
+        $user = $this->verification->applicant($userId);
 
-        if ($user->is($admin)) {
-            return response()->json(['message' => 'You cannot suspend yourself.'], 409);
-        }
-
-        // A suspended driver can no longer go online or accept rides (checked by presence/dispatch)
-        $user->driverProfile->forceFill([
-            'verification_status' => DriverProfile::STATUS_SUSPENDED,
-            'rejection_reason'    => $validated['reason'],
-        ])->save();
-
-        $this->log($admin, 'driver_suspended', $user, ['reason' => $validated['reason']]);
-        $push->send($user, 'Your driver account is suspended', $validated['reason'], ['screen' => 'driver_onboarding']);
-
-        return response()->json($this->detail($user->fresh()));
+        return $this->respond(fn () => $this->verification->suspend($admin, $user, $validated['reason']));
     }
 
     private function authorizeReviewer(Request $request): User
@@ -218,50 +100,12 @@ class AdminDriverController extends Controller
         return $user;
     }
 
-    private function applicant(int $userId): User
+    private function respond(callable $decision)
     {
-        $user = User::with('driverProfile', 'driverDocuments', 'vehicles', 'role')->findOrFail($userId);
-        abort_unless($user->driverProfile && $user->driverProfile->submitted_at, 404);
-
-        return $user;
-    }
-
-    private function detail(User $user): array
-    {
-        $user->load('driverProfile', 'driverDocuments', 'vehicles', 'role');
-        $profile = $user->driverProfile;
-
-        return [
-            'user' => [
-                'id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'phone' => $user->phone,
-                'role' => $user->role?->name ?? 'user', 'profile_image_url' => $user->profile_image_url,
-            ],
-            'status'           => $profile->verification_status,
-            'submitted_at'     => $profile->submitted_at?->toIso8601String(),
-            'verified_at'      => $profile->verified_at?->toIso8601String(),
-            'rejection_reason' => $profile->rejection_reason,
-            'services'         => $profile->services ?? [],
-            'licence'          => [
-                'licence_no'         => $profile->licence_no,
-                'licence_categories' => $profile->licence_categories ?? [],
-                'licence_expiry'     => $profile->licence_expiry?->format('Y-m-d'),
-                'national_id_no'     => $profile->national_id_no,
-            ],
-            'checklist' => DriverOnboarding::checklist($user)['steps'],
-            'documents' => DriverOnboardingController::documentsPayload($user),
-            'vehicles'  => $user->vehicles->values(),
-            'rates'     => DriverRate::where('user_id', $user->id)->get()->map(fn ($r) => ['vehicle_id' => $r->vehicle_id] + $r->fareSnapshot())->values(),
-        ];
-    }
-
-    private function log(User $admin, string $action, User $driver, array $details = []): void
-    {
-        ActivityLog::create([
-            'admin_id'    => $admin->id,
-            'action'      => $action,
-            'entity_type' => 'driver',
-            'entity_id'   => $driver->id,
-            'details'     => ['name' => $driver->name] + $details,
-        ]);
+        try {
+            return response()->json($decision());
+        } catch (ProviderRequestRejected $e) {
+            return response()->json($e->body, $e->status);
+        }
     }
 }

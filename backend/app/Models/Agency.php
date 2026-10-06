@@ -11,7 +11,7 @@ class Agency extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'created_by'];
+    protected $fillable = ['name', 'operating_hours', 'created_by'];
 
     public function routes(): HasMany
     {

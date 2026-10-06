@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\DriverPresence;
-use App\Services\Rides\RideSettings;
+use App\Modules\NearbyRides\Application\DriverPresenceSwitch;
 use Illuminate\Console\Command;
 
 /**
@@ -16,12 +15,9 @@ class ExpireDriverPresence extends Command
     protected $signature = 'rides:expire-presence';
     protected $description = 'Set drivers offline after presence_ttl_sec without a heartbeat';
 
-    public function handle(): int
+    public function handle(DriverPresenceSwitch $presence): int
     {
-        $ttl = (int) RideSettings::get()['presence_ttl_sec'];
-        $count = DriverPresence::where('is_online', true)
-            ->where(fn ($q) => $q->whereNull('last_seen_at')->orWhere('last_seen_at', '<', now()->subSeconds($ttl)))
-            ->update(['is_online' => false, 'online_since' => null]);
+        $count = $presence->expireStale();
 
         $this->info("$count driver(s) set offline");
 
