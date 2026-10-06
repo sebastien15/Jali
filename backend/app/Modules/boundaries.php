@@ -17,7 +17,7 @@ return [
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
     'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography; PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
-    'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
+    'Payments'       => ['Notifications', 'Pricing'],   // settlement review pushes via PushSender; commission debt limit and earnings settings from PricingPolicy
     'Pricing'        => [],
     'Providers'      => ['Identity', 'Notifications', 'Payments', 'Pricing'],   // implements Identity\Contracts\AccountClosure (driver profile removed), promotes verified riders via ProviderRoles; verification pushes via PushSender and setup saves the push token via PushTokens; go-online blocker via Payments\Contracts\ProviderDebtLimit; review thresholds from PricingPolicy
     'Rentals'        => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental)

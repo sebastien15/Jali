@@ -3,22 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CashoutRequest;
-use App\Modules\Payments\Contracts\StaffEarnings;
+use App\Modules\Payments\Application\PaymentRequestRejected;
+use App\Modules\Payments\Application\StaffCashouts;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Payments (M03-Remaining): validation + HTTP shape only. */
 class CashoutController extends Controller
 {
+    public function __construct(private readonly StaffCashouts $cashouts)
+    {
+    }
+
     /** Get current cashout preference for the authenticated admin. */
     public function preference(Request $request)
     {
-        $user = $request->user();
-        return response()->json([
-            'cashout_method'         => $user->cashout_method,
-            'cashout_account_number' => $user->cashout_account_number,
-            'cashout_account_name'   => $user->cashout_account_name,
-            'cashout_bank_name'      => $user->cashout_bank_name,
-        ]);
+        return response()->json($this->cashouts->preference($request->user()));
     }
 
     /** Save cashout preference. */
@@ -31,7 +30,7 @@ class CashoutController extends Controller
             'cashout_bank_name'      => 'nullable|string|max:100',
         ]);
 
-        $request->user()->update($data);
+        $this->cashouts->savePreference($request->user(), $data);
 
         return response()->json(['ok' => true]);
     }
@@ -41,43 +40,22 @@ class CashoutController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->cashout_method || !$user->cashout_account_number) {
-            return response()->json(['message' => 'Set your cashout method first.'], 422);
+        try {
+            $this->cashouts->assertCanRequest($user);
+
+            $request->validate([
+                'amount' => 'required|numeric|min:1',
+            ]);
+
+            return response()->json($this->cashouts->request($user, $request->amount), 201);
+        } catch (PaymentRequestRejected $e) {
+            return response()->json($e->body, $e->status);
         }
-
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-        ]);
-
-        $available = app(StaffEarnings::class)->availableFor($user);
-        if ($request->amount > $available) {
-            return response()->json([
-                'message'   => 'Amount exceeds your available balance (' . number_format($available) . ' RWF).',
-                'available' => $available,
-            ], 422);
-        }
-
-        $cashout = CashoutRequest::create([
-            'admin_id'       => $user->id,
-            'amount'         => $request->amount,
-            'method'         => $user->cashout_method,
-            'account_number' => $user->cashout_account_number,
-            'account_name'   => $user->cashout_account_name,
-            'bank_name'      => $user->cashout_bank_name,
-            'status'         => 'pending',
-        ]);
-
-        return response()->json($cashout, 201);
     }
 
     /** List cashout requests for the authenticated admin. */
     public function index(Request $request)
     {
-        $requests = CashoutRequest::where('admin_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get();
-
-        return response()->json($requests);
+        return response()->json($this->cashouts->recent($request->user()));
     }
 }

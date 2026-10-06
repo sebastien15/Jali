@@ -2,39 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DriverHire;
-use App\Models\Ride;
-use App\Modules\Payments\Application\Receipts;
+use App\Modules\Payments\Application\PaymentRequestRejected;
+use App\Modules\Payments\Application\TripReceipts;
 use Illuminate\Http\Request;
 
-/** Receipt link and re-send for my rides and hires (story S9.6) */
+/**
+ * Receipt link and re-send for my rides and hires (story S9.6).
+ * Transport adapter for Payments (M03-Remaining): HTTP shape only.
+ */
 class ReceiptController extends Controller
 {
+    public function __construct(private readonly TripReceipts $receipts)
+    {
+    }
+
     /** POST /rides/{id}/receipt {email?: bool} */
     public function ride(Request $request, int $id)
     {
-        $ride = Ride::findOrFail($id);
-        abort_unless($ride->rider_id === $request->user()->id, 404, 'Ride not found.');
-
-        return $this->respond($request, 'ride', $ride, in_array($ride->status, [Ride::COMPLETED, Ride::CANCELLED_BY_RIDER, Ride::CANCELLED_BY_DRIVER], true));
+        return $this->respond(fn () => $this->receipts->forRide($request->user(), $id, $request->boolean('email')));
     }
 
     /** POST /driver-hire/{id}/receipt {email?: bool} */
     public function hire(Request $request, int $id)
     {
-        $hire = DriverHire::findOrFail($id);
-        abort_unless($hire->customer_id === $request->user()->id, 404, 'Hire not found.');
-
-        return $this->respond($request, 'hire', $hire, in_array($hire->status, [DriverHire::COMPLETED, DriverHire::CANCELLED_BY_CUSTOMER, DriverHire::CANCELLED_BY_DRIVER], true));
+        return $this->respond(fn () => $this->receipts->forHire($request->user(), $id, $request->boolean('email')));
     }
 
-    private function respond(Request $request, string $type, Ride|DriverHire $trip, bool $finished)
+    private function respond(callable $receipt)
     {
-        if (!$finished) {
-            return response()->json(['message' => 'A receipt is available once the trip is over.'], 409);
+        try {
+            return response()->json($receipt());
+        } catch (PaymentRequestRejected $e) {
+            return response()->json($e->body, $e->status);
         }
-        $emailed = $request->boolean('email') ? Receipts::email($type, $trip) : false;
-
-        return response()->json(['url' => Receipts::url($type, $trip->id), 'emailed' => $emailed]);
     }
 }
