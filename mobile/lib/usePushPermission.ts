@@ -24,7 +24,12 @@ export function usePushPermission() {
  */
 export function routeForNotification(data: Record<string, unknown> | undefined | null): string | null {
   if (!data || typeof data.screen !== "string") return null;
+  const id = typeof data.id === "number" || typeof data.id === "string" ? data.id : null;
   switch (data.screen) {
+    case "ride":
+      return id ? `/ride/${id}` : "/ride";
+    case "driver_ride":
+      return id ? `/driver/ride/${id}` : "/(tabs)/drive";
     case "booking":
       return "/(tabs)/trips";
     case "driver":

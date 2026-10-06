@@ -95,7 +95,13 @@ app/
 ├── driver/
 │   ├── setup.tsx              Driver onboarding (card presentation)
 │   ├── fleet.tsx              Driver's car fleet management
-│   └── listing.tsx            Create/edit a private seat listing
+│   ├── listing.tsx            Create/edit a private seat listing
+│   └── ride/[id].tsx          Driver trip: navigate → I've arrived → PIN start → complete (cash/MoMo) → rate rider
+│
+├── ride/                      On-demand rides (rider) — ProtectedRoute layout
+│   ├── index.tsx              "Where to?": GPS pickup (reverse geocode), destination search, recents
+│   ├── nearby.tsx             Nearby drivers with own price: sort Closest/Cheapest/Top rated, class chips, Request
+│   └── [id].tsx               Rider trip: waiting countdown → driver card + plate + PIN → in trip → receipt & rating
 │
 └── legal/[doc].tsx            Legal docs viewer (modal presentation)
 ```
@@ -189,7 +195,10 @@ type AdminUser = {
 
 #### `lib/usePushPermission.ts`
 - Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
-- Tapping a notification routes by `data.screen` (`routeForNotification`)
+- Tapping a notification routes by `data.screen` (`routeForNotification`); `ride` → `/ride/{id}`, `driver_ride` → `/driver/ride/{id}`
+- Active ride banners: `components/rides/ActiveRideBanner.tsx` (Home = rider, Drive tab = driver) share `useActiveRide()` → `GET /rides/active`
+- Trips tab → *rides* filter: `components/rides/RideHistory.tsx` (`useInfiniteQuery` on `GET /rides`, skeleton, tap → `/ride/{id}` receipt)
+- Incoming ride requests: `components/driver/IncomingRequests.tsx` polls `/driver/ride-requests` every 4 s while online
 - Backend sends through `App\Services\PushService::send($user, $title, $body, ['screen' => ..., 'id' => ...])`
   (Expo tokens → Expo push API; raw FCM tokens → Firebase). Never throws.
 
@@ -356,6 +365,23 @@ POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|lugga
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates
 
+# Rate limits (S21.7, AppServiceProvider::configureRateLimits): all API 120/min per user|IP;
+#   sign-in 10/min/IP + 20/h/email · OTP request 5/h/phone · OTP verify 10/h/phone · POST /rides 6/min → 429 {message} + Retry-After
+# perm: request-rides — rider side of on-demand rides
+GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
+      verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
+      closest first, max 50, positions rounded to ~100 m, no phone numbers
+
+POST  /rides                      {mode:"pick", driver_id, pickup{lat,lng,address}, dropoff{…}, payment_method}
+                                   → price computed server-side and locked (rate_snapshot); 409 if busy/unavailable
+GET   /rides                      my rides as rider (paginated)
+GET   /rides/active               current ride as rider or driver, or JSON null — poll during a trip
+GET   /rides/{id}                 rider or assigned driver only (404 otherwise); PIN only for the rider
+POST  /rides/{id}/cancel          {reason} — rider: requested/accepted/arrived (fee after free wait); driver: accepted/arrived
+POST  /rides/{id}/rate            {stars, tags?, comment?} once per person, after completion
+GET   /places/search?q&lat&lng   Rwanda places (Nominatim, cached 1 day, 60/min)
+GET   /places/reverse?lat&lng    readable address (falls back to coordinates)
+
 # perm: offer-rides (verified drivers) — online/offline (story S5.1)
 GET   /driver/presence            { online, online_since, blocked_reasons[] }
 POST  /driver/presence            { online, lat, lng, heading } — heartbeat every ~8 s while online
@@ -363,12 +389,26 @@ POST  /driver/presence            { online, lat, lng, heading } — heartbeat ev
       no front photo / no rates / rates outside limits. Offline after presence_ttl_sec without heartbeat.
       Scheduler: `rides:expire-presence` every minute (needs cron → php artisan schedule:run)
 
+GET   /driver/ride-requests       request cards (pickup area only, earnings after commission, expires_at)
+POST  /rides/{id}/accept          atomic — 409 if taken/expired
+POST  /rides/{id}/decline · /arrive · /start {pin} (5 wrong → 423 + flagged) · /complete {payment_method}
+      Ride states: requested → accepted → arrived → in_progress → completed | declined | expired | cancelled_by_*
+      Every transition writes ride_events (append-only) and pushes the other party.
+      Scheduler: `rides:expire-requests` every minute (requests also expire lazily when read)
+
 # perm: verify-drivers (admin, superadmin) — driver verification queue
 GET   /admin/drivers?status=pending|verified|rejected|suspended   oldest submission first
 GET   /admin/drivers/{userId}     application: licence, checklist, documents, vehicles, prices
 POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approved; push
 POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
 POST  /admin/drivers/{userId}/suspend   {reason}; push
+
+# perm: manage-rides (admin, superadmin) — ride operations (S10.1, S10.2)
+GET   /admin/rides/live           counters (online by class, on trip, by status, expired 1h, completed today), drivers, active rides
+GET   /admin/rides?status&from&to&rider&driver&flagged&page   full names + phones; flagged = PIN-locked or rated ≤2★
+GET   /admin/rides/{id}           timeline (ride_events), fare breakdown with rate snapshot, ratings
+POST  /admin/rides/{id}/adjust    {final_fare?, commission?, note} completed only → ride_events 'adjusted' + activity_logs 'ride.adjusted'
+      Mobile: (admin)/rides (Live tab polls 10 s · All rides with filters) and (admin)/rides/[id]; dashboard tile "Rides"
 
 # perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
 GET   /admin/settings/rides
@@ -423,6 +463,8 @@ app/Models/
 ├── DriverDocument.php     licence front/back, national ID, selfie, insurance (private files)
 ├── DriverProfile.php      driver services, zones, licence, verification status, rating (1 per user)
 ├── DriverPresence.php     online flag + last position per driver (scope live() = within TTL)
+├── Ride.php               on-demand ride (state machine in Services/Rides/RideService.php)
+├── RideDispatch.php       who was offered a ride · RideEvent.php append-only audit · RideRating.php
 ├── DriverRate.php         driver-set ride prices per vehicle (base, per km/min, min fare, pickup, night ×)
 ├── PlatformSetting.php    key/value superadmin config (e.g. 'rides' guardrails)
 ├── Vehicle.php            driver vehicles: class, model, plate (unique), seats, insurance, rental price

@@ -301,6 +301,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/places/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Places in Rwanda matching the text, biased around the rider (max 60/min) */
+        get: operations["searchPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readable address for a position (falls back to coordinates) */
+        get: operations["reverseGeocode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rides/nearby": {
         parameters: {
             query?: never;
@@ -308,7 +342,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Online drivers near the pickup, each with their own quote for this trip */
+        /**
+         * Online drivers near the pickup, each with their own price for this trip (closest first)
+         * @description Only verified drivers whose heartbeat is within presence_ttl_sec, whose active vehicle matches
+         *     the class filter and whose prices are within the current limits. Positions are rounded to ~100 m;
+         *     no phone numbers. At most 50 drivers.
+         */
         get: operations["getNearbyDrivers"];
         put?: never;
         post?: never;
@@ -360,7 +399,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My current ride as rider or driver, or null */
+        /** My current ride as rider or driver, or null (poll every few seconds during a trip) */
         get: operations["getActiveRide"];
         put?: never;
         post?: never;
@@ -400,7 +439,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cancel as rider or assigned driver (reason required) */
+        /**
+         * Cancel as rider (requested/accepted/arrived) or driver (accepted/arrived)
+         * @description Rider reasons: changed_plans, driver_too_far, driver_asked_to_cancel, found_other_transport, wrong_pickup, other.
+         *     Driver reasons: rider_not_at_pickup, rider_asked_to_cancel, vehicle_problem, unsafe, traffic, other.
+         *     A rider cancelling after the driver waited longer than free_wait_min pays cancel_fee.
+         */
         post: operations["cancelRide"];
         delete?: never;
         options?: never;
@@ -421,6 +465,25 @@ export interface paths {
         put?: never;
         /** Accept a request (atomic — 409 if another driver won) */
         post: operations["acceptRide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline a request (no penalty); the rider is told to choose another driver */
+        post: operations["declineRide"];
         delete?: never;
         options?: never;
         head?: never;
@@ -590,6 +653,78 @@ export interface paths {
         put?: never;
         /** Suspend a driver (cannot go online or accept rides) */
         post: operations["suspendDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online drivers, active rides and counters (poll every 10 s) */
+        get: operations["getLiveOperations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All rides, newest first, with filters */
+        get: operations["listAdminRides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        /** Ride with timeline, fare breakdown and ratings */
+        get: operations["getAdminRide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides/{id}/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the final fare and/or commission of a completed ride (note required, logged) */
+        post: operations["adjustRide"];
         delete?: never;
         options?: never;
         head?: never;
@@ -823,9 +958,77 @@ export interface components {
                 total: number;
             }[];
         };
+        PlaceResult: {
+            name: string;
+            address: string;
+            lat: number;
+            lng: number;
+        };
         TripPoints: {
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
+        };
+        AdminPerson: {
+            id: number;
+            name: string | null;
+            phone: string | null;
+        } | null;
+        AdminRideSummary: {
+            id: number;
+            status: components["schemas"]["RideStatus"];
+            vehicle_class: components["schemas"]["VehicleClass"];
+            rider: components["schemas"]["AdminPerson"];
+            driver: components["schemas"]["AdminPerson"];
+            pickup: components["schemas"]["Place"];
+            dropoff: components["schemas"]["Place"];
+            quoted_fare: number;
+            final_fare: number | null;
+            flagged: boolean;
+            /** Format: date-time */
+            requested_at: string | null;
+        };
+        AdminRideDetail: components["schemas"]["AdminRideSummary"] & {
+            /** @enum {string|null} */
+            payment_method: "cash" | "momo" | null;
+            cancel_reason: string | null;
+            /** @enum {string|null} */
+            cancelled_by: "rider" | "driver" | "system" | null;
+            pin_attempts: number;
+            vehicle: {
+                plate?: string;
+                model?: string;
+                color?: string | null;
+            } | null;
+            fare: {
+                est_distance_km: number;
+                est_minutes: number;
+                pickup_km: number;
+                /** @description Driver's prices locked at request time */
+                rate: Record<string, never>;
+                driver_fare: number;
+                service_fee: number;
+                quoted_fare: number;
+                cancel_fee: number;
+                commission_pct: number;
+                commission: number | null;
+                final_fare: number | null;
+            };
+            timeline: {
+                /** @description requested, accepted, arrived, pin_failed, started, completed, cancelled, expired, adjusted, … */
+                type: string;
+                /** @description Name, or "system" */
+                actor: string | null;
+                payload: Record<string, never> | unknown[] | null;
+                /** Format: date-time */
+                at: string | null;
+            }[];
+            ratings: {
+                /** @enum {string} */
+                from: "rider" | "driver";
+                stars: number;
+                tags: string[];
+                comment: string | null;
+            }[];
         };
         Place: {
             lat: number;
@@ -841,15 +1044,17 @@ export interface components {
             trips?: number;
             eta_min: number;
             distance_km: number;
-            /** @description What the rider pays for this trip, incl. Jali fee */
+            /** @description What the rider pays for this trip, incl. Jali fee and pickup surcharge */
             quote: number;
             per_km?: number;
             vehicle: {
-                class?: components["schemas"]["VehicleClass"];
-                model?: string;
-                color?: string | null;
-                seats?: number;
-                amenities?: string[];
+                class: components["schemas"]["VehicleClass"];
+                model: string;
+                color: string | null;
+                seats: number;
+                amenities: string[];
+                /** @description Front photo URL */
+                photo: string | null;
             };
             /** @description Rounded to ~100 m until a ride is accepted */
             approx_location: {
@@ -858,50 +1063,83 @@ export interface components {
             };
         };
         /** @enum {string} */
-        RideStatus: "requested" | "accepted" | "arrived" | "in_progress" | "completed" | "expired" | "cancelled_by_rider" | "cancelled_by_driver";
+        RideStatus: "requested" | "accepted" | "arrived" | "in_progress" | "completed" | "declined" | "expired" | "cancelled_by_rider" | "cancelled_by_driver";
+        /** @description One ride as seen by the requesting user (rider or driver) */
         Ride: {
             id: number;
+            /**
+             * @description Who is looking
+             * @enum {string}
+             */
+            role: "rider" | "driver";
             status: components["schemas"]["RideStatus"];
             /** @enum {string} */
             mode: "pick" | "broadcast";
             vehicle_class: components["schemas"]["VehicleClass"];
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
-            est_distance_km?: number;
-            est_minutes?: number;
+            est_distance_km: number;
+            est_minutes: number;
+            /** @description Locked total the rider pays (driver fare + Jali fee) */
             quoted_fare: number;
-            final_fare?: number | null;
-            service_fee?: number;
-            /** @description Only present for the rider */
-            start_pin?: string | null;
+            driver_fare: number;
+            service_fee: number;
+            final_fare: number | null;
+            /** @description Driver view only: driver fare minus commission */
+            driver_earnings: number | null;
+            cancel_fee: number;
+            cancel_reason: string | null;
+            /** @description Rider view only, while the ride is active */
+            start_pin: string | null;
             /** @enum {string|null} */
-            payment_method?: "cash" | "momo" | null;
-            driver?: null | {
-                id?: number;
-                name?: string;
-                photo?: string | null;
-                rating?: number;
-                /** @description After accept only */
-                phone?: string | null;
-                location?: {
-                    lat?: number;
-                    lng?: number;
+            payment_method: "cash" | "momo" | null;
+            /**
+             * Format: date-time
+             * @description While requested: when the driver's answer times out
+             */
+            expires_at: string | null;
+            driver: null | {
+                id: number;
+                name: string;
+                photo: string | null;
+                rating: number;
+                /** @description Rider view, once accepted */
+                phone: string | null;
+                location: null | {
+                    lat: number;
+                    lng: number;
                     heading?: number | null;
-                } | null;
-                vehicle?: components["schemas"]["Vehicle"];
+                    /** Format: date-time */
+                    at?: string | null;
+                };
+                vehicle: null | {
+                    class: components["schemas"]["VehicleClass"];
+                    model: string;
+                    color: string | null;
+                    plate: string;
+                    photo: string | null;
+                };
             };
+            /** @description Driver view only */
+            rider: null | {
+                name: string;
+                rating: number | null;
+                phone: string | null;
+            };
+            /** @description Stars I gave for this ride */
+            my_rating: number | null;
             /** Format: date-time */
-            requested_at?: string;
+            requested_at: string | null;
             /** Format: date-time */
-            accepted_at?: string | null;
+            accepted_at: string | null;
             /** Format: date-time */
-            arrived_at?: string | null;
+            arrived_at: string | null;
             /** Format: date-time */
-            started_at?: string | null;
+            started_at: string | null;
             /** Format: date-time */
-            completed_at?: string | null;
+            completed_at: string | null;
             /** Format: date-time */
-            cancelled_at?: string | null;
+            cancelled_at: string | null;
         };
         /** @description What an online driver sees before accepting (no exact pickup, no phone) */
         RideRequestCard: {
@@ -941,6 +1179,10 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+            /** @default 500 */
+            cancel_fee: number;
+            /** @default 5 */
+            free_wait_min: number;
         };
         /** @description Any subset of RideSettings; a vehicle class must be sent complete */
         RideSettingsUpdate: {
@@ -961,6 +1203,8 @@ export interface components {
             nearby_radius_km?: number;
             presence_ttl_sec?: number;
             request_timeout_sec?: number;
+            cancel_fee?: number;
+            free_wait_min?: number;
         };
     };
     responses: {
@@ -1006,6 +1250,18 @@ export interface components {
             content: {
                 "application/json": {
                     message?: string;
+                };
+            };
+        };
+        /** @description Rate limit hit — retry after `Retry-After` seconds */
+        TooManyRequests: {
+            headers: {
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message: string;
                 };
             };
         };
@@ -1586,6 +1842,57 @@ export interface operations {
             };
         };
     };
+    searchPlaces: {
+        parameters: {
+            query: {
+                q: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK (empty list when nothing matches or the provider is down) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResult"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    reverseGeocode: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     getNearbyDrivers: {
         parameters: {
             query: {
@@ -1607,9 +1914,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NearbyDriver"][];
+                    "application/json": {
+                        trip: {
+                            distance_km: number;
+                            est_minutes: number;
+                        };
+                        drivers: components["schemas"]["NearbyDriver"][];
+                    };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     estimateRide: {
@@ -1677,20 +1993,23 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["TripPoints"] & {
-                    /** @enum {string} */
-                    mode: "pick" | "broadcast";
-                    class: components["schemas"]["VehicleClass"];
-                    /** @description Required when mode=pick */
-                    driver_id?: number;
-                    /** @description Broadcast only */
-                    max_fare?: number;
-                    /** @enum {string} */
+                    /**
+                     * @description broadcast arrives with S3.5
+                     * @enum {string}
+                     */
+                    mode: "pick";
+                    /** @description A driver from /rides/nearby */
+                    driver_id: number;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
                     payment_method?: "cash" | "momo";
                 };
             };
         };
         responses: {
-            /** @description Ride requested */
+            /** @description Ride requested — price locked, driver notified */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -1699,8 +2018,11 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     getActiveRide: {
@@ -1743,7 +2065,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
-            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     cancelRide: {
@@ -1772,7 +2094,9 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
         };
     };
     acceptRide: {
@@ -1795,6 +2119,31 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    declineRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Declined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ride"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -1818,6 +2167,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -1847,8 +2197,20 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            /** @description Too many wrong PINs — ride flagged for support */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                    };
+                };
+            };
         };
     };
     completeRide: {
@@ -1878,6 +2240,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -1901,7 +2264,9 @@ export interface operations {
         };
         responses: {
             201: components["responses"]["Message"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listDriverApplications: {
@@ -2044,6 +2409,152 @@ export interface operations {
                     "application/json": components["schemas"]["DriverApplication"];
                 };
             };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getLiveOperations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        counters: {
+                            drivers_online: number;
+                            drivers_online_by_class: {
+                                [key: string]: number;
+                            };
+                            drivers_on_trip: number;
+                            rides_by_status: {
+                                [key: string]: number;
+                            };
+                            expired_last_hour: number;
+                            completed_today: number;
+                        };
+                        drivers: {
+                            user_id: number;
+                            name: string | null;
+                            class: components["schemas"]["VehicleClass"] | null;
+                            plate: string | null;
+                            lat: number | null;
+                            lng: number | null;
+                            on_trip: boolean;
+                            /** Format: date-time */
+                            last_seen_at: string | null;
+                        }[];
+                        rides: components["schemas"]["AdminRideSummary"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    listAdminRides: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["RideStatus"];
+                /** @description Kigali date, inclusive */
+                from?: string;
+                /** @description Kigali date, inclusive */
+                to?: string;
+                /** @description Name or phone contains */
+                rider?: string;
+                /** @description Name or phone contains */
+                driver?: string;
+                /** @description PIN-locked or rated 2★ or less */
+                flagged?: boolean;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminRideSummary"][];
+                        next_page: number | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getAdminRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRideDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adjustRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    final_fare?: number | null;
+                    commission?: number | null;
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Adjusted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRideDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };
