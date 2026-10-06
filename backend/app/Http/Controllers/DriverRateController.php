@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\Rides\FareService;
 use App\Services\Rides\RateGuardrails;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 

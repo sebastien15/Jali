@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Services\Sms;
+namespace App\Modules\Notifications\Infrastructure;
 
+use App\Modules\Notifications\Contracts\SmsSender;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Log;
  * - `africastalking`: Africa's Talking messaging API (Rwanda numbers)
  * - `log`: writes the message to the log — local and testing environments only
  */
-class SmsService
+class SmsService implements SmsSender
 {
     public const AFRICASTALKING_ENDPOINT = 'https://api.africastalking.com/version1/messaging';
 

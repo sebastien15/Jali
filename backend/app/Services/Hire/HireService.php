@@ -5,9 +5,10 @@ namespace App\Services\Hire;
 use App\Models\DriverHire;
 use App\Models\HireRating;
 use App\Models\User;
+use App\Modules\Payments\Contracts\MoneyRecorder;
+use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Providers\Contracts\ProviderReputation;
 use App\Services\PushService;
-use App\Services\Rides\DriverRating;
-use App\Services\Rides\RideSettings;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -133,8 +134,8 @@ class HireService
             'payment_method'   => $paymentMethod,
         ], 'This hire is not in progress.');
         \App\Models\DriverProfile::where('user_id', $driver->id)->increment('trips_count');
-        app(\App\Services\Payments\DriverLedger::class)->recordHire($hire);   // S7.2
-        \App\Services\Receipts\Receipts::email('hire', $hire);                 // S9.6
+        app(MoneyRecorder::class)->recordHire($hire);   // S7.2
+        \App\Modules\Payments\Application\Receipts::email('hire', $hire);   // S9.6
 
         $this->push->send($hire->customer, 'Hire completed',
             sprintf('Total %s RWF%s. Tap to rate your driver.', number_format($hire->final_total),
@@ -197,7 +198,7 @@ class HireService
                 'stars' => $stars, 'tags' => $tags ?: null, 'comment' => $comment,
             ]);
             if ($to === $hire->driver_id) {
-                DriverRating::refresh($to);
+                app(ProviderReputation::class)->refreshProviderRating($to);
             }
 
             return $rating;

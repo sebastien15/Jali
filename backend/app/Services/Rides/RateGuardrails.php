@@ -3,6 +3,7 @@
 namespace App\Services\Rides;
 
 use App\Models\DriverRate;
+use App\Modules\Pricing\Application\RideSettings;
 use App\Services\PushService;
 
 /**

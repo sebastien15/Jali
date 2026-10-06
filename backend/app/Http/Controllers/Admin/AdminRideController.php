@@ -135,7 +135,7 @@ class AdminRideController extends Controller
             $ride->forceFill($changes)->save();
             // Lower commission → the driver owes less (S7.2)
             if (array_key_exists('commission', $changes) && $ride->driver_id) {
-                app(\App\Services\Payments\DriverLedger::class)->adjust($ride->driver_id, 'ride', $ride->id,
+                app(\App\Modules\Payments\Application\DriverLedger::class)->adjust($ride->driver_id, 'ride', $ride->id,
                     (int) $before['commission'] - (int) $changes['commission'], 'Commission adjusted: ' . $data['note']);
             }
             RideEvent::create([

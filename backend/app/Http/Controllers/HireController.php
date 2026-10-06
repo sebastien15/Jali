@@ -11,7 +11,7 @@ use App\Services\Hire\HirePresenter;
 use App\Services\Hire\HireQuote;
 use App\Services\Hire\HireService;
 use App\Services\Rides\NearbyDrivers;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

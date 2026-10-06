@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Services\Payments;
+namespace App\Modules\Payments\Application;
 
 use App\Models\DriverHire;
 use App\Models\DriverLedgerEntry;
 use App\Models\Ride;
-use App\Services\Rides\RideSettings;
+use App\Modules\Payments\Contracts\MoneyRecorder;
+use App\Modules\Payments\Contracts\ProviderDebtLimit;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * money) and what they owe Jali: commission + Jali's service fee.
  * Settlements and adjustments move the balance back.
  */
-class DriverLedger
+class DriverLedger implements MoneyRecorder, ProviderDebtLimit
 {
     public static function balance(int $userId): int
     {
@@ -32,7 +34,12 @@ class DriverLedger
 
     public static function overLimit(int $userId): bool
     {
-        return self::owed($userId) > (int) RideSettings::get()['max_commission_owed'];
+        return self::owed($userId) > (int) app(PricingPolicy::class)->settings()['max_commission_owed'];
+    }
+
+    public function isOverLimit(int $userId): bool
+    {
+        return self::overLimit($userId);
     }
 
     public function recordRide(Ride $ride): void

@@ -3,7 +3,7 @@
 namespace App\Services\Hire;
 
 use App\Models\DriverHireSetting;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Carbon\CarbonInterface;
 
 /**

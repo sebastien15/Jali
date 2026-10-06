@@ -17,7 +17,14 @@ class AppServiceProvider extends ServiceProvider
         // Build the Firebase messaging client lazily inside PushService (never at resolve time),
         // so a missing credentials file can't turn a push into a failed request.
         $this->app->bind(\App\Services\PushService::class, fn () => new \App\Services\PushService());
-        //
+
+        // Module contracts (architecture migration M02) -> their single implementation
+        $this->app->bind(\App\Modules\Pricing\Contracts\PricingPolicy::class, \App\Modules\Pricing\Application\RideSettings::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\MoneyRecorder::class, \App\Modules\Payments\Application\DriverLedger::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\ProviderDebtLimit::class, \App\Modules\Payments\Application\DriverLedger::class);
+        $this->app->bind(\App\Modules\Providers\Contracts\ProviderReputation::class, \App\Modules\Providers\Application\DriverRating::class);
+        $this->app->bind(\App\Modules\Notifications\Contracts\SmsSender::class, \App\Modules\Notifications\Infrastructure\SmsService::class);
+
     }
 
     /**

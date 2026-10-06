@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\DriverPresence;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Illuminate\Console\Command;
 
 /**

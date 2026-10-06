@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\Pricing\Application;
 
 use App\Models\PlatformSetting;
 use App\Models\User;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 
 /**
  * Ride pricing guardrails and dispatch settings (RIDE_HAILING_PLAN.md §3.3).
@@ -12,9 +13,24 @@ use App\Models\User;
  *
  * Default values are placeholders — check RURA regulations before production.
  */
-class RideSettings
+class RideSettings implements PricingPolicy
 {
     public const KEY = 'rides';
+
+    public function settings(): array
+    {
+        return self::get();
+    }
+
+    public function hireSettings(): array
+    {
+        return self::hire();
+    }
+
+    public function vehicleClassLimits(string $class): array
+    {
+        return self::forClass($class);
+    }
 
     public static function defaults(): array
     {

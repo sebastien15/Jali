@@ -7,7 +7,7 @@ use App\Models\DriverHire;
 use App\Models\DriverProfile;
 use App\Models\User;
 use App\Services\Hire\HireQuote;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;

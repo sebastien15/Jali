@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\Locations\Application;
+
+use App\Modules\Pricing\Contracts\PricingPolicy;
 
 /**
  * Distances for pricing and nearby search. Phase 1 uses straight-line
@@ -22,7 +24,7 @@ class GeoService
     /** Estimated road distance in km, rounded to 0.1 km. */
     public static function roadKm(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
-        $factor = (float) RideSettings::get()['road_factor'];
+        $factor = (float) app(PricingPolicy::class)->settings()['road_factor'];
 
         return round(self::haversineKm($lat1, $lng1, $lat2, $lng2) * $factor, 1);
     }

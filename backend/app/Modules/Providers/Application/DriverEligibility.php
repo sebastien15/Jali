@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\Providers\Application;
 
 use App\Models\DriverProfile;
 use App\Models\DriverRate;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Modules\Payments\Contracts\ProviderDebtLimit;
 
 /**
  * Can this driver go online for on-demand rides right now? (story S5.1)
@@ -36,7 +37,7 @@ class DriverEligibility
         if (!$profile?->isVerified()) {
             $reasons[] = self::NOT_VERIFIED;
         }
-        if (\App\Services\Payments\DriverLedger::overLimit($user->id)) {
+        if (app(ProviderDebtLimit::class)->isOverLimit($user->id)) {
             $reasons[] = self::COMMISSION_OWED;   // S5.4: settle before going online
         }
 

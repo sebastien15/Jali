@@ -9,7 +9,7 @@ use App\Models\RideRating;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\PushService;
-use App\Services\Sms\SmsService;
+use App\Modules\Notifications\Infrastructure\SmsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;

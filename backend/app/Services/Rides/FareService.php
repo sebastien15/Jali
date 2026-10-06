@@ -2,6 +2,7 @@
 
 namespace App\Services\Rides;
 
+use App\Modules\Pricing\Application\RideSettings;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 

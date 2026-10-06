@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Auth;
+namespace App\Modules\Identity\Application;
 
-use App\Services\Sms\SmsService;
+use App\Modules\Notifications\Contracts\SmsSender;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -19,7 +19,7 @@ class OtpService
     public const TTL_MINUTES = 10;
     public const MAX_ATTEMPTS = 5;
 
-    public function __construct(private SmsService $sms)
+    public function __construct(private SmsSender $sms)
     {
     }
 

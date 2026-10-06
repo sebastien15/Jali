@@ -6,6 +6,8 @@ use App\Models\DriverPresence;
 use App\Models\DriverProfile;
 use App\Models\DriverRate;
 use App\Models\Ride;
+use App\Modules\Locations\Application\GeoService;
+use App\Modules\Pricing\Application\RideSettings;
 use Carbon\CarbonInterface;
 
 /**

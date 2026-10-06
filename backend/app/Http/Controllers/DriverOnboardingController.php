@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DriverDocument;
 use App\Models\DriverProfile;
 use App\Models\User;
-use App\Services\Rides\DriverOnboarding;
+use App\Modules\Providers\Application\DriverOnboarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;

@@ -10,6 +10,10 @@ use App\Models\RideDispatch;
 use App\Models\RideEvent;
 use App\Models\RideRating;
 use App\Models\User;
+use App\Modules\Locations\Application\GeoService;
+use App\Modules\Payments\Contracts\MoneyRecorder;
+use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Providers\Contracts\ProviderReputation;
 use App\Services\PushService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -285,7 +289,7 @@ class RideService
             ]);
             // Rider rating a driver updates the driver's public rating
             if ($toUserId === $ride->driver_id) {
-                DriverRating::refresh($toUserId);   // rides and hires together
+                app(ProviderReputation::class)->refreshProviderRating($toUserId);   // rides and hires together
             }
             $this->event($ride, $user, 'rated', ['stars' => $stars]);
 
@@ -391,8 +395,8 @@ class RideService
         ], 'completed', ['final_fare' => $ride->quoted_fare, 'payment_method' => $paymentMethod, 'commission' => $commission]);
 
         DriverProfile::where('user_id', $driver->id)->increment('trips_count');
-        app(\App\Services\Payments\DriverLedger::class)->recordRide($ride);   // S7.2
-        \App\Services\Receipts\Receipts::email('ride', $ride);                 // S9.6
+        app(MoneyRecorder::class)->recordRide($ride);   // S7.2
+        \App\Modules\Payments\Application\Receipts::email('ride', $ride);   // S9.6
         $this->push->send($ride->rider, 'You have arrived',
             sprintf('Trip total %s RWF (%s). Tap to rate your driver.', number_format($ride->final_fare), $paymentMethod === 'momo' ? 'MoMo' : 'cash'),
             ['screen' => 'ride', 'id' => $ride->id]);

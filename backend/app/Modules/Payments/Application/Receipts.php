@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Receipts;
+namespace App\Modules\Payments\Application;
 
 use App\Mail\TripReceipt;
 use App\Models\DriverHire;

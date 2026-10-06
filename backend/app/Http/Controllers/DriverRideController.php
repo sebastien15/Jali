@@ -6,7 +6,7 @@ use App\Models\Ride;
 use App\Models\RideDispatch;
 use App\Services\Rides\RidePresenter;
 use App\Services\Rides\RideService;
-use App\Services\Rides\PlaceSearch;
+use App\Modules\Locations\Application\PlaceSearch;
 use Illuminate\Http\Request;
 
 /**

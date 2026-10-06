@@ -9,4 +9,13 @@
  * Every folder under app/Modules must have an entry. Changing this file is a
  * reviewed architecture decision — record it in docs/migration/MIGRATION_LOG.md.
  */
-return [];
+return [
+    'Identity'       => ['Notifications'],   // OTP codes are sent through Notifications\Contracts\SmsSender
+    'LegacyBookings' => [],
+    'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
+    'Notifications'  => [],
+    'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
+    'Pricing'        => [],
+    'Providers'      => ['Payments'],        // go-online blocker via Payments\Contracts\ProviderDebtLimit
+    'Safety'         => ['Notifications'],   // SOS texts via SmsSender
+];

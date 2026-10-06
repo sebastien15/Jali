@@ -11,7 +11,7 @@ use App\Models\DriverRate;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\PushService;
-use App\Services\Rides\DriverOnboarding;
+use App\Modules\Providers\Application\DriverOnboarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -53,7 +53,7 @@ class AdminDriverController extends Controller
     public function review(Request $request)
     {
         $this->authorizeReviewer($request);
-        $rules = \App\Services\Rides\RideSettings::get()['review'];
+        $rules = \App\Modules\Pricing\Application\RideSettings::get()['review'];
         $since = now()->subDays((int) $rules['days']);
 
         $cancels = \App\Models\Ride::where('accepted_at', '>=', $since)->whereNotNull('driver_id')

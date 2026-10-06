@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DriverHire;
 use App\Models\Ride;
-use App\Services\Receipts\Receipts;
+use App\Modules\Payments\Application\Receipts;
 use Illuminate\Http\Request;
 
 /** Receipt link and re-send for my rides and hires (story S9.6) */

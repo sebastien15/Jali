@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\Locations\Application;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;

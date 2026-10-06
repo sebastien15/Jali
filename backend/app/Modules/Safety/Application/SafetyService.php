@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Safety;
+namespace App\Modules\Safety\Application;
 
 use App\Models\ActivityLog;
 use App\Models\Ride;
@@ -8,14 +8,14 @@ use App\Models\RideEvent;
 use App\Models\User;
 use App\Services\PushService;
 use App\Services\Rides\NearbyDrivers;
-use App\Services\Sms\SmsService;
+use App\Modules\Notifications\Contracts\SmsSender;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /** Share my trip (S8.1) and SOS (S8.2) */
 class SafetyService
 {
-    public function __construct(private PushService $push, private SmsService $sms)
+    public function __construct(private PushService $push, private SmsSender $sms)
     {
     }
 

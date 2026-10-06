@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Fx;
+namespace App\Modules\Payments\Application;
 
 use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Http;

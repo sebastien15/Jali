@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ride;
-use App\Services\Safety\SafetyService;
+use App\Modules\Safety\Application\SafetyService;
 use Illuminate\Http\Request;
 
 /** Share my trip (S8.1), SOS (S8.2) and my emergency contact */

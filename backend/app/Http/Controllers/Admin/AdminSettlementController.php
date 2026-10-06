@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\DriverSettlement;
-use App\Services\Payments\DriverLedger;
+use App\Modules\Payments\Application\DriverLedger;
 use App\Services\PushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

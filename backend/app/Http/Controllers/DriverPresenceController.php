@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DriverPresence;
 use App\Models\User;
-use App\Services\Rides\DriverEligibility;
+use App\Modules\Providers\Application\DriverEligibility;
 use Illuminate\Http\Request;
 
 /**

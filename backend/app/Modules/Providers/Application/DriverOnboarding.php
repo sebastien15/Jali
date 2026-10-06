@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\Providers\Application;
 
 use App\Models\DriverDocument;
 use App\Models\DriverProfile;

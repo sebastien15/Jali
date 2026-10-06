@@ -12,8 +12,8 @@ Route::get('/t/{token}', fn (string $token) => view('share', ['token' => $token]
 // Receipts (S9.6): printable page, link signed for 30 days and sent by email / from the app
 Route::get('/receipts/{type}/{id}', function (string $type, int $id) {
     $r = $type === 'ride'
-        ? \App\Services\Receipts\Receipts::forRide(\App\Models\Ride::findOrFail($id))
-        : \App\Services\Receipts\Receipts::forHire(\App\Models\DriverHire::findOrFail($id));
+        ? \App\Modules\Payments\Application\Receipts::forRide(\App\Models\Ride::findOrFail($id))
+        : \App\Modules\Payments\Application\Receipts::forHire(\App\Models\DriverHire::findOrFail($id));
 
     return view('receipt', ['r' => $r, 'link' => request()->fullUrl(), 'email' => false]);
 })->whereIn('type', ['ride', 'hire'])->whereNumber('id')->middleware('signed')->name('receipt');

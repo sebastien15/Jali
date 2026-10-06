@@ -7,7 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\PlatformSetting;
 use App\Services\PushService;
 use App\Services\Rides\RateGuardrails;
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Illuminate\Http\Request;
 
 class RideSettingsController extends Controller
