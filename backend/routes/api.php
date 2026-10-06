@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
+use App\Http\Controllers\Admin\RideAnalyticsController;
 use App\Http\Controllers\DriverEarningsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -279,6 +280,7 @@ Route::middleware("auth:sanctum")->group(function () {
             AnalyticsController::class,
             "stations",
         ]);
+        Route::get("/analytics/rides", [RideAnalyticsController::class, "index"]);
     });
 
     // Admin profile

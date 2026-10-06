@@ -99,6 +99,7 @@ export const queryKeys = {
       bookings: () => ["admin", "analytics", "bookings"] as const,
       earnings: () => ["admin", "analytics", "earnings"] as const,
       stations: () => ["admin", "analytics", "stations"] as const,
+      rides: (period: "day" | "week") => ["admin", "analytics", "rides", period] as const,
     },
   },
 };
