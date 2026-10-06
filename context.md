@@ -403,6 +403,12 @@ POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approve
 POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
 POST  /admin/drivers/{userId}/suspend   {reason}; push
 
+# perm: manage-rides (admin, superadmin) — ride operations (S10.1, S10.2)
+GET   /admin/rides/live           counters (online by class, on trip, by status, expired 1h, completed today), drivers, active rides
+GET   /admin/rides?status&from&to&rider&driver&flagged&page   full names + phones; flagged = PIN-locked or rated ≤2★
+GET   /admin/rides/{id}           timeline (ride_events), fare breakdown with rate snapshot, ratings
+POST  /admin/rides/{id}/adjust    {final_fare?, commission?, note} completed only → ride_events 'adjusted' + activity_logs 'ride.adjusted'
+
 # perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
 GET   /admin/settings/rides
 PUT   /admin/settings/rides

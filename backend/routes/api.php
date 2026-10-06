@@ -12,6 +12,7 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\DriverRideController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
+use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\CarRentalController;
@@ -124,6 +125,14 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
         Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");
         Route::post("/{userId}/suspend", [AdminDriverController::class, "suspend"])->whereNumber("userId");
+    });
+
+    // Ride operations — stories S10.1, S10.2
+    Route::middleware("permission:manage-rides")->prefix("admin/rides")->group(function () {
+        Route::get("/live", [AdminRideController::class, "live"]);
+        Route::get("/", [AdminRideController::class, "index"]);
+        Route::get("/{id}", [AdminRideController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/adjust", [AdminRideController::class, "adjust"])->whereNumber("id");
     });
 
     // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3
