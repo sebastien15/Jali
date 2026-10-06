@@ -11,20 +11,35 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Modal,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { GoogleSignin } from "@/lib/native/google-signin";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
+import { GoogleAuthProvider, OAuthProvider, signInWithCredential, signOut } from "firebase/auth";
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import { C } from "@/constants/theme";
 import api, { clearApiToken } from "@/lib/api";
 import { startSession } from "@/lib/session";
 import { isDev } from "@/lib/env";
 
-// Phone/OTP sign-in is not implemented yet (its button only said "coming
-// soon"). Keep the UI behind this flag and open on email + Google.
-const PHONE_LOGIN_ENABLED = false;
+/** Common countries for visitors; any number can also be typed with its own "+" code (S9.2) */
+const COUNTRY_CODES = [
+  { code: "+250", flag: "🇷🇼", name: "Rwanda" }, { code: "+254", flag: "🇰🇪", name: "Kenya" },
+  { code: "+256", flag: "🇺🇬", name: "Uganda" }, { code: "+255", flag: "🇹🇿", name: "Tanzania" },
+  { code: "+257", flag: "🇧🇮", name: "Burundi" }, { code: "+243", flag: "🇨🇩", name: "DR Congo" },
+  { code: "+27", flag: "🇿🇦", name: "South Africa" }, { code: "+234", flag: "🇳🇬", name: "Nigeria" },
+  { code: "+1", flag: "🇺🇸", name: "USA / Canada" }, { code: "+44", flag: "🇬🇧", name: "United Kingdom" },
+  { code: "+33", flag: "🇫🇷", name: "France" }, { code: "+32", flag: "🇧🇪", name: "Belgium" },
+  { code: "+49", flag: "🇩🇪", name: "Germany" }, { code: "+31", flag: "🇳🇱", name: "Netherlands" },
+  { code: "+86", flag: "🇨🇳", name: "China" }, { code: "+91", flag: "🇮🇳", name: "India" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+];
+
+// Phone/OTP sign-in is live (backend OtpService + SMS). Flip to false to hide it again.
+const PHONE_LOGIN_ENABLED = true;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -36,7 +51,9 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [confirmation, setConfirmation] = useState<any>(null);
+  const [dialCode, setDialCode] = useState("+250");
+  const [codePicker, setCodePicker] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const otpRef0 = useRef<TextInput>(null);
@@ -108,6 +125,28 @@ export default function LoginScreen() {
     }
   }
 
+  /** Sign in with Apple (S9.3) — required by the App Store when Google sign-in is offered */
+  async function signInWithApple() {
+    setError(null);
+    try {
+      const rawNonce = Crypto.randomUUID();
+      const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+      const apple = await AppleAuthentication.signInAsync({
+        requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+        nonce: hashedNonce,
+      });
+      const credential = new OAuthProvider("apple.com").credential({ idToken: apple.identityToken ?? "", rawNonce });
+      await signInWithCredential(auth, credential);
+      const firebaseToken = await auth.currentUser?.getIdToken(true);
+      const name = [apple.fullName?.givenName, apple.fullName?.familyName].filter(Boolean).join(" ") || undefined;
+      const res = await api.post("/auth/login/apple", { firebase_token: firebaseToken, name });
+      if (res.data.token) await startSession(res.data.token);
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      if (e?.code !== "ERR_REQUEST_CANCELED") Alert.alert(t("login.appleSignInFailed"), e?.message ?? "");
+    }
+  }
+
   const emailMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post("/auth/login", { email, password }),
@@ -132,25 +171,44 @@ export default function LoginScreen() {
     emailMutation.mutate({ email: email.trim().toLowerCase(), password });
   }
 
+  /** Full international number: "+…" typed as-is, otherwise the chosen country code (S9.2) */
+  function fullPhone(): string {
+    const raw = phone.replace(/[\s-]/g, "");
+    return raw.startsWith("+") ? raw : dialCode + raw.replace(/^0/, "");
+  }
+
   async function sendCode() {
-    if (phone.length < 9) {
+    const number = fullPhone();
+    if (number.replace(/\D/g, "").length < 8) {
       Alert.alert(t("login.validPhoneRequired"));
       return;
     }
-
-    Alert.alert(t("login.comingSoon"), t("login.phoneNotAvailable"));
+    setLoading(true);
+    setError(null);
+    try {
+      await api.post("/auth/otp/request", { phone: number });
+      setSentTo(number);
+      setOtp(["", "", "", "", "", ""]);
+      setStep("otp");
+    } catch (e: any) {
+      const msg = e?.response?.data?.message;
+      setError(typeof msg === "string" ? msg : e?.response ? t("authErrors.unknown") : t("authErrors.noInternet"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function verifyCode() {
     const code = otp.join("");
-    if (code.length < 6) return;
+    if (code.length < 6 || !sentTo) return;
 
     setLoading(true);
-    if (!confirmation) return;
     try {
-      await confirmation.confirm(code);
+      const res = await api.post("/auth/otp/verify", { phone: sentTo, otp: code });
+      await startSession(res.data.token);
+      router.replace("/(tabs)");
     } catch (e: any) {
-      Alert.alert(t("login.wrongCode"), e.message);
+      Alert.alert(t("login.wrongCode"), e?.response?.data?.message ?? "");
     } finally {
       setLoading(false);
     }
@@ -296,16 +354,18 @@ export default function LoginScreen() {
                   paddingVertical: 18,
                 }}
               >
-                <Text style={{ fontWeight: "700", color: C.mid, fontSize: 15 }}>
-                  🇷🇼 +250
-                </Text>
+                <TouchableOpacity onPress={() => setCodePicker(true)} accessibilityLabel={t("login.countryCode")}>
+                  <Text style={{ fontWeight: "700", color: C.mid, fontSize: 15 }}>
+                    {COUNTRY_CODES.find(c => c.code === dialCode)?.flag ?? "🌍"} {dialCode} ▾
+                  </Text>
+                </TouchableOpacity>
               </View>
               <TextInput
                 value={phone}
                 onChangeText={setPhone}
-                placeholder="7XX XXX XXX"
+                placeholder={dialCode === "+250" ? "7XX XXX XXX" : t("login.phonePlaceholder")}
                 keyboardType="phone-pad"
-                maxLength={12}
+                maxLength={18}
                 style={{
                   flex: 1,
                   fontSize: 18,
@@ -339,6 +399,16 @@ export default function LoginScreen() {
             </View>
 
             <GoogleButton onPress={signInWithGoogle} loading={googleLoading} label={t("login.continueWithGoogle")} />
+
+            {Platform.OS === "ios" ? (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={16}
+                style={{ height: 54 }}
+                onPress={signInWithApple}
+              />
+            ) : null}
 
             <Text style={{ textAlign: "center", color: C.muted, fontSize: 12 }}>
               {t("login.googleAvailable")}
@@ -505,6 +575,23 @@ export default function LoginScreen() {
         )}
       </View>
       </ScrollView>
+      <Modal visible={codePicker} transparent animationType="slide" onRequestClose={() => setCodePicker(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "70%", paddingBottom: 24 }}>
+            <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark, padding: 20, paddingBottom: 8 }}>{t("login.countryCode")}</Text>
+            <ScrollView>
+              {COUNTRY_CODES.map(c => (
+                <TouchableOpacity key={c.code} onPress={() => { setDialCode(c.code); setCodePicker(false); }} accessibilityLabel={`${c.name} ${c.code}`}
+                  style={{ flexDirection: "row", gap: 12, paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: C.border }}>
+                  <Text style={{ fontSize: 18 }}>{c.flag}</Text>
+                  <Text style={{ flex: 1, color: C.dark, fontWeight: "700" }}>{c.name}</Text>
+                  <Text style={{ color: C.mid }}>{c.code}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

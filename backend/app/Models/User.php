@@ -31,11 +31,13 @@ class User extends Authenticatable
         "cashout_account_number",
         "cashout_account_name",
         "cashout_bank_name",
+        "emergency_contact_name",
+        "emergency_contact_phone",
     ];
 
     protected $hidden = ["password", "remember_token", "fcm_token"];
 
-    protected $casts = ["password" => "hashed", "driver_profile" => "array"];
+    protected $casts = ["password" => "hashed"];
 
     /**
      * Get the single role assigned to the user.
@@ -83,6 +85,33 @@ class User extends Authenticatable
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function driverProfile(): HasOne
+    {
+        return $this->hasOne(DriverProfile::class);
+    }
+
+    public function driverDocuments(): HasMany
+    {
+        return $this->hasMany(DriverDocument::class);
+    }
+
+    /** Hire-a-driver prices (story S6.1) */
+    public function hireSettings(): HasOne
+    {
+        return $this->hasOne(DriverHireSetting::class);
+    }
+
+    /** Weekly hours and blocked dates (story S6.2) */
+    public function availability(): HasMany
+    {
+        return $this->hasMany(DriverAvailability::class);
+    }
+
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(Vehicle::class);
     }
 
     public function adminStation(): HasOne

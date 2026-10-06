@@ -17,7 +17,7 @@ class PushNotificationTest extends TestCase
     {
         $user = $this->actingAsRole('user');
 
-        $this->postJson('/api/me/push-token', ['token' => 'not-a-token'])->assertStatus(422);
+        $this->postJson('/api/me/push-token', ['token' => ''])->assertStatus(422);
         $this->postJson('/api/me/push-token', ['token' => 'ExponentPushToken[abc123_-X]'])->assertOk();
 
         $this->assertSame('ExponentPushToken[abc123_-X]', $user->fresh()->fcm_token);
@@ -39,6 +39,7 @@ class PushNotificationTest extends TestCase
 
         Http::assertSent(fn ($req) => str_contains($req->url(), 'exp.host')
             && $req['to'] === 'ExponentPushToken[device1]'
-            && $req['data']['booking_id'] === $booking->id);
+            && $req->data()['data']->screen === 'booking'
+            && $req->data()['data']->id === (string) $booking->id);
     }
 }

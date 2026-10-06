@@ -22,7 +22,7 @@ if (Platform.OS !== "web") {
 /**
  * Call once after the user is logged in (mounted by the (tabs) layout).
  * Requests permission, registers the Expo push token with the backend
- * (POST /me/push-token) and routes notification taps to My Trips.
+ * (POST /me/push-token) and opens the right screen when a notification is tapped.
  */
 export function usePushPermission() {
   useEffect(() => {
@@ -31,13 +31,49 @@ export function usePushPermission() {
     });
 
     if (Platform.OS === "web") return;
-    // Booking pushes carry { booking_id }; the booking lives in My Trips.
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as { booking_id?: unknown } | undefined;
-      if (data?.booking_id != null) router.push("/(tabs)/trips");
+    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+      openFromNotification(response.notification.request.content.data);
     });
     return () => sub.remove();
   }, []);
+}
+
+/**
+ * Backend pushes carry `{ screen, id }` (see App\Services\PushService).
+ * Screens that don't exist yet fall back to the Trips tab.
+ */
+export function routeForNotification(data: Record<string, unknown> | undefined | null): string | null {
+  if (!data || typeof data.screen !== "string") return null;
+  const id = typeof data.id === "number" || typeof data.id === "string" ? data.id : null;
+  switch (data.screen) {
+    case "ride":
+      return id ? `/ride/${id}` : "/ride";
+    case "hire":
+      return id ? `/hire/${id}` : "/hire";
+    case "driver_hire":
+      return id ? `/driver/hire/${id}` : "/(tabs)/drive";
+    case "admin_ride":
+      return id ? `/(admin)/rides/${id}` : "/(admin)/rides";
+    case "driver_earnings":
+      return "/driver/earnings";
+    case "driver_ride":
+      return id ? `/driver/ride/${id}` : "/(tabs)/drive";
+    case "booking":
+      return "/(tabs)/trips";
+    case "driver":
+      return "/(tabs)/drive";
+    case "driver_rates":
+      return "/driver/rates";
+    case "driver_onboarding":
+      return "/driver/onboarding";
+    default:
+      return "/(tabs)/trips";
+  }
+}
+
+function openFromNotification(data: Record<string, unknown> | undefined) {
+  const route = routeForNotification(data);
+  if (route) router.push(route as any);
 }
 
 async function registerForPush() {

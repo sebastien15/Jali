@@ -56,9 +56,9 @@ class DriverTest extends TestCase
         ])->assertOk();
 
         $this->getJson('/api/driver/profile')->assertOk()
-            ->assertJsonPath('name', 'Joseph')
-            ->assertJsonPath('profile.plate', 'RAD 123A')
-            ->assertJsonPath('profile.seats', 14);
+            ->assertJsonPath('user.name', 'Joseph')
+            ->assertJsonPath('vehicle.plate', 'RAD 123A')
+            ->assertJsonPath('vehicle.seats', 14);
     }
 
     public function test_driver_profile_cannot_change_role(): void

@@ -28,22 +28,26 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    // SMS for sign-in codes: 'africastalking' in production, 'log' only for local development
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'africastalking' => [
+            'username'  => env('AFRICASTALKING_USERNAME'),
+            'api_key'   => env('AFRICASTALKING_API_KEY'),
+            'sender_id' => env('AFRICASTALKING_SENDER_ID'),
+        ],
+    ],
+
+    // Fixed sign-in code for local development and tests ONLY (ignored in production/staging)
+    'otp' => [
+        'dev_code' => env('OTP_DEV_CODE'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
-    ],
-
-    'sms' => [
-        'driver' => env('SMS_DRIVER', 'log'),
-    ],
-
-    // Fixed OTP accepted ONLY when APP_ENV is local or testing (never in production).
-    'otp' => [
-        'dev_code' => env('OTP_DEV_CODE'),
-        'ttl_minutes' => 5,
-        'max_attempts' => 5,
     ],
 
 ];

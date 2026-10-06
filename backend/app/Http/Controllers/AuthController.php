@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\SmsSender;
+use App\Services\Auth\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -60,8 +59,24 @@ class AuthController extends Controller
      */
     public function loginWithGoogle(Request $request)
     {
+        return $this->loginWithFirebase($request);
+    }
+
+    /**
+     * Sign in with Apple (story S9.3): the app signs in to Firebase with the Apple
+     * credential and sends the Firebase ID token — verified exactly like Google.
+     * Apple only shares the name on the very first sign-in, so the app may send it.
+     */
+    public function loginWithApple(Request $request)
+    {
+        return $this->loginWithFirebase($request);
+    }
+
+    private function loginWithFirebase(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             "firebase_token" => "required|string",
+            "name" => "sometimes|nullable|string|max:100",
         ]);
 
         if ($validator->fails()) {
@@ -129,34 +144,43 @@ class AuthController extends Controller
     /**
      * Request OTP for phone number
      */
-    public function requestOtp(Request $request, SmsSender $sms)
+    public function requestOtp(Request $request, OtpService $otp)
     {
-        $phone = $this->normalizePhone((string) $request->input("phone"));
-        if (!$phone) {
+        $validator = Validator::make($request->all(), [
+            "phone" => "required|string",
+        ]);
+
+        if ($validator->fails()) {
             return response()->json(
                 [
                     "error" => "Validation failed",
-                    "message" => ["phone" => ["Enter a valid Rwandan mobile number."]],
+                    "message" => $validator->errors(),
                 ],
                 422,
             );
         }
 
-        if (!$sms->isConfigured()) {
+        $phone = OtpService::normalizePhone($request->phone);
+        if (!$phone) {
             return response()->json(
-                ["error" => "Unavailable", "message" => "Phone login is not available yet."],
+                ["error" => "Validation failed", "message" => ["phone" => ["Enter a valid phone number."]]],
+                422,
+            );
+        }
+        if (!$otp->available()) {
+            Log::error("[OTP] SMS is not configured — phone sign-in is unavailable");
+
+            return response()->json(
+                ["error" => "Unavailable", "message" => "Phone sign-in is not available right now. Use email or Google."],
                 503,
             );
         }
-
-        $ttl = config("services.otp.ttl_minutes");
-        $code = (string) random_int(100000, 999999);
-        Cache::put(
-            $this->otpCacheKey($phone),
-            ["hash" => Hash::make($code), "attempts" => 0],
-            now()->addMinutes($ttl),
-        );
-        $sms->send($phone, "Your Jali code is {$code}. It expires in {$ttl} minutes.");
+        if (!$otp->send($phone)) {
+            return response()->json(
+                ["error" => "Unavailable", "message" => "We could not send the code. Try again in a minute."],
+                503,
+            );
+        }
 
         return response()->json(["message" => "OTP sent"]);
     }
@@ -164,7 +188,7 @@ class AuthController extends Controller
     /**
      * Verify OTP and login
      */
-    public function verifyOtp(Request $request)
+    public function verifyOtp(Request $request, OtpService $otp)
     {
         $validator = Validator::make($request->all(), [
             "phone" => "required|string",
@@ -181,15 +205,20 @@ class AuthController extends Controller
             );
         }
 
-        $phone = $this->normalizePhone($request->phone);
-        if (!$phone || !$this->otpIsValid($phone, $request->otp)) {
+        $phone = OtpService::normalizePhone($request->phone);
+        if (!$phone || !$otp->verify($phone, (string) $request->otp)) {
             return response()->json(
-                ["error" => "Unauthorized", "message" => "Invalid or expired OTP"],
+                ["error" => "Unauthorized", "message" => "Invalid or expired code"],
                 401,
             );
         }
 
-        $user = User::with("role")->where("phone", $phone)->first();
+        // Existing accounts may have stored the number in another format
+        $user = User::with("role")
+            ->whereIn("phone", array_unique(array_filter([
+                $phone, $request->phone, str_starts_with($phone, "+250") ? "0" . substr($phone, 4) : null,
+            ])))
+            ->first();
 
         if (!$user) {
             $userRole = Role::where("name", "user")->first();
@@ -205,59 +234,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Check an OTP against the cached hash. Codes are single-use and the
-     * entry is dropped after too many wrong attempts.
-     */
-    protected function otpIsValid(string $phone, string $otp): bool
-    {
-        $devCode = config("services.otp.dev_code");
-        if ($devCode && app()->environment("local", "testing") && hash_equals((string) $devCode, $otp)) {
-            return true;
-        }
-
-        $key = $this->otpCacheKey($phone);
-        $entry = Cache::get($key);
-        if (!$entry) {
-            return false;
-        }
-
-        if (Hash::check($otp, $entry["hash"])) {
-            Cache::forget($key);
-            return true;
-        }
-
-        $entry["attempts"]++;
-        if ($entry["attempts"] >= config("services.otp.max_attempts")) {
-            Cache::forget($key);
-        } else {
-            Cache::put($key, $entry, now()->addMinutes(config("services.otp.ttl_minutes")));
-        }
-        return false;
-    }
-
-    protected function otpCacheKey(string $phone): string
-    {
-        return "otp:" . $phone;
-    }
-
-    /**
-     * Normalise Rwandan mobile numbers to +2507XXXXXXXX; null if invalid.
-     */
-    protected function normalizePhone(string $phone): ?string
-    {
-        $digits = preg_replace('/\D+/', "", $phone);
-        if (preg_match('/^(?:250|0)?(7\d{8})$/', $digits, $m)) {
-            return "+250" . $m[1];
-        }
-        return null;
-    }
-
-    /**
      * Logout - revoke token
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        // Stop pushes to a device that is no longer signed in
+        $user->update(["fcm_token" => null]);
         return response()->json(["message" => "Logged out"]);
     }
 
@@ -282,6 +266,7 @@ class AuthController extends Controller
             AdminStation::where("user_id", $user->id)->update(["user_id" => null]);
             PrivateSeat::where("user_id", $user->id)->update(["active" => false]);
             CarRental::where("user_id", $user->id)->update(["active" => false]);
+            $user->driverProfile()->delete();
 
             $user->forceFill([
                 "name" => "Deleted user",
@@ -297,7 +282,6 @@ class AuthController extends Controller
                 "cashout_account_number" => null,
                 "cashout_account_name" => null,
                 "cashout_bank_name" => null,
-                "driver_profile" => null,
                 "role_id" => Role::where("name", "user")->value("id"),
             ])->save();
         });
@@ -305,19 +289,6 @@ class AuthController extends Controller
         return response()->json(["message" => "Account deleted."]);
     }
 
-    /**
-     * Register the device's Expo push token for booking notifications.
-     */
-    public function savePushToken(Request $request)
-    {
-        $data = $request->validate([
-            "token" => ["required", "string", "max:255", "regex:/^ExponentPushToken\[[A-Za-z0-9_-]+\]$/"],
-        ]);
-
-        $request->user()->forceFill(["fcm_token" => $data["token"]])->save();
-
-        return response()->json(["ok" => true]);
-    }
 
     /**
      * Get current user profile

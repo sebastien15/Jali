@@ -80,6 +80,8 @@ export function setApiToken(token: string) {
 export function clearApiToken() {
   _token = null;
   AsyncStorage.removeItem(TOKEN_KEY);
+  // Per-user state that must not leak to the next account on this phone
+  AsyncStorage.removeItem("jali_driver_mode"); // DRIVER_MODE_KEY in lib/DriverModeContext.tsx
 }
 
 export async function getApiToken(): Promise<string | null> {

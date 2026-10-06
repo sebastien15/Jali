@@ -13,6 +13,7 @@ import { useDriverMode } from "@/lib/DriverModeContext";
 import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import type { components } from "@/lib/apiSchema";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 const CAR_TYPES = ["Sedan", "SUV", "Minivan", "Pickup"] as const;
@@ -25,22 +26,7 @@ const CAR_TYPE_KEYS: Record<CarType, string> = {
 };
 
 /** GET/PATCH /driver/profile response (DriverController@profile). */
-type DriverProfile = {
-  name: string;
-  phone: string | null;
-  profile: {
-    car_model?: string | null;
-    plate?: string | null;
-    seats?: number | null;
-    car_type?: string | null;
-    price_day?: number | null;
-    caution?: number | null;
-    insurance_expiry?: string | null;
-    allowed_zones?: string[] | null;
-    docs_url?: string | null;
-    amenities?: string[] | null;
-  };
-};
+type DriverProfile = components["schemas"]["DriverProfileResponse"];
 
 function apiErrorMessage(e: any): string | undefined {
   const errors = e?.response?.data?.errors;
@@ -82,20 +68,24 @@ export default function DriverSetupScreen() {
   useEffect(() => {
     if (!data || hydrated) return;
     setHydrated(true);
-    const p = data.profile ?? {};
-    setName(data.name ?? "");
-    setPhone(data.phone ?? "");
-    setCarModel(p.car_model ?? "");
-    setPlate(p.plate ?? "");
-    if (p.seats) setSeats(String(p.seats));
-    if (p.car_type && (CAR_TYPES as readonly string[]).includes(p.car_type)) setCarType(p.car_type as CarType);
-    setPriceDay(p.price_day != null ? String(p.price_day) : "");
-    setCaution(p.caution != null ? String(p.caution) : "");
-    setInsExpiry(p.insurance_expiry ?? "");
-    if (Array.isArray(p.allowed_zones)) setZones(p.allowed_zones);
-    setDocsUrl(p.docs_url ?? "");
-    if (Array.isArray(p.amenities)) {
-      setAmenities(p.amenities.filter((a): a is CarAmenity => (CAR_AMENITIES as readonly string[]).includes(a)));
+    setName(data.user.name ?? "");
+    setPhone(data.user.phone ?? "");
+    if (data.profile) {
+      if (Array.isArray(data.profile.allowed_zones)) setZones(data.profile.allowed_zones);
+      setDocsUrl(data.profile.docs_url ?? "");
+    }
+    const v = data.vehicle;
+    if (v) {
+      setCarModel(v.model ?? "");
+      setPlate(v.plate ?? "");
+      if (v.seats) setSeats(String(v.seats));
+      if (v.body_type && (CAR_TYPES as readonly string[]).includes(v.body_type)) setCarType(v.body_type as CarType);
+      setPriceDay(v.rental_price_day != null ? String(v.rental_price_day) : "");
+      setCaution(v.rental_caution != null ? String(v.rental_caution) : "");
+      setInsExpiry(v.insurance_expiry ?? "");
+      if (Array.isArray(v.amenities)) {
+        setAmenities(v.amenities.filter((a): a is CarAmenity => (CAR_AMENITIES as readonly string[]).includes(a)));
+      }
     }
   }, [data, hydrated]);
 

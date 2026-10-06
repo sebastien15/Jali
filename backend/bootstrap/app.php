@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+        // Per-user / per-IP limit on every API route (limiter defined in AppServiceProvider)
+        $middleware->throttleApi('api');
         $middleware->alias([
             "permission" => \App\Http\Middleware\CheckPermission::class,
         ]);

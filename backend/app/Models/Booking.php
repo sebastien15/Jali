@@ -81,8 +81,12 @@ class Booking extends Model
             'cancelled'    => ['Booking cancelled', "Your booking for {$this->title} was cancelled."],
             default        => null,
         };
-        if ($message) {
-            app(\App\Services\PushNotifier::class)->send($this->user, $message[0], $message[1], ['booking_id' => $this->id]);
+        $user = $this->user;
+        if ($message && $user) {
+            // Never let a slow or failed push delay or break the admin's request
+            $id = $this->id;
+            dispatch(fn () => app(\App\Services\PushService::class)->send($user, $message[0], $message[1], ['screen' => 'booking', 'id' => $id]))
+                ->afterResponse();
         }
     }
 

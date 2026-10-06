@@ -2,99 +2,136 @@
 
 namespace Tests\Feature;
 
-use App\Services\SmsSender;
+use App\Models\User;
+use App\Services\Sms\SmsService;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
+/** Phone sign-in: real one-time codes; the fixed dev code never works in production. */
 class OtpLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    private ?string $sentCode = null;
-
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
-        config(['services.otp.dev_code' => null]);
+        $this->seed(RolesAndPermissionsSeeder::class);
+        config([
+            'services.otp.dev_code' => null,
+            'services.sms.driver' => 'africastalking',
+            'services.sms.africastalking' => ['username' => 'jali', 'api_key' => 'secret', 'sender_id' => 'JALI'],
+        ]);
+    }
 
-        // Capture the code instead of sending an SMS.
-        $this->app->instance(SmsSender::class, new class($this) extends SmsSender {
-            public function __construct(private OtpLoginTest $test) {}
-            public function send(string $phone, string $message): void
-            {
-                preg_match('/\d{6}/', $message, $m);
-                $this->test->captureCode($m[0]);
-            }
+    private function fakeSms(): void
+    {
+        Http::fake([SmsService::AFRICASTALKING_ENDPOINT => Http::response(['SMSMessageData' => ['Recipients' => [['status' => 'Success']]]])]);
+    }
+
+    /** The code that was texted to the phone */
+    private function sentCode(): string
+    {
+        $code = null;
+        Http::assertSent(function ($request) use (&$code) {
+            preg_match('/code is (\d{6})/', $request['message'], $m);
+            $code = $m[1] ?? $code;
+
+            return $request->hasHeader('apiKey', 'secret') && $request['to'] === '+250788123456' && $request['from'] === 'JALI';
         });
+
+        return $code;
     }
 
-    public function captureCode(string $code): void
+    /** @test */
+    public function the_old_fixed_code_does_not_sign_anyone_in_in_production()
     {
-        $this->sentCode = $code;
-    }
+        $this->app['env'] = 'production';
+        config(['services.otp.dev_code' => '123456']);   // even if someone sets it by mistake
+        $this->fakeSms();
+        $victim = User::create(['name' => 'Victim', 'phone' => '+250788123456']);
 
-    public function test_fixed_123456_is_not_accepted(): void
-    {
+        $this->postJson('/api/auth/otp/verify', ['phone' => '+250788123456', 'otp' => '123456'])->assertStatus(401);
         $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertOk();
-
-        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => '123456'])
-            ->assertStatus(401);
+        $this->postJson('/api/auth/otp/verify', ['phone' => '+250788123456', 'otp' => '123456'])->assertStatus(401);
+        $this->assertSame(0, $victim->tokens()->count());
     }
 
-    public function test_correct_code_logs_in_and_normalises_phone(): void
+    /** @test */
+    public function a_texted_code_signs_in_once_and_finds_the_existing_account()
     {
-        $this->postJson('/api/auth/otp/request', ['phone' => '0788 123 456'])->assertOk();
+        $this->fakeSms();
+        $existing = User::create(['name' => 'Aline', 'phone' => '0788123456']);
 
-        $this->postJson('/api/auth/otp/verify', ['phone' => '+250788123456', 'otp' => $this->sentCode])
-            ->assertOk()
-            ->assertJsonStructure(['token'])
-            ->assertJsonPath('user.phone', '+250788123456')
-            ->assertJsonPath('user.roles', 'user');
-    }
+        $this->postJson('/api/auth/otp/request', ['phone' => '+250 788 123 456'])->assertOk();
+        $code = $this->sentCode();
+        $this->assertMatchesRegularExpression('/^\d{6}$/', $code);
 
-    public function test_code_is_single_use(): void
-    {
-        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456']);
-        $code = $this->sentCode;
-
-        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $code])->assertOk();
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $code])->assertOk()
+            ->assertJsonPath('user.id', $existing->id)->assertJsonStructure(['token']);
+        // A code works only once
         $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $code])->assertStatus(401);
     }
 
-    public function test_code_is_burned_after_too_many_wrong_attempts(): void
+    /** @test */
+    public function new_numbers_get_an_account_with_the_normalised_phone()
     {
-        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456']);
+        $this->fakeSms();
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertOk();
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $this->sentCode()])->assertOk()
+            ->assertJsonPath('user.phone', '+250788123456');
+    }
 
+    /** @test */
+    public function five_wrong_codes_burn_the_code_and_codes_expire()
+    {
+        $this->fakeSms();
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertOk();
+        $code = $this->sentCode();
+        $wrong = $code === '000000' ? '111111' : '000000';
         for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => '000000']);
+            $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $wrong])->assertStatus(401);
         }
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $code])->assertStatus(401);
 
-        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $this->sentCode])
-            ->assertStatus(401);
+        Http::fake([SmsService::AFRICASTALKING_ENDPOINT => Http::response(['SMSMessageData' => ['Recipients' => [['status' => 'Success']]]])]);
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertOk();
+        $fresh = $this->sentCode();
+        $this->travel(11)->minutes();
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => $fresh])->assertStatus(401);
     }
 
-    public function test_invalid_phone_is_rejected(): void
+    /** @test */
+    public function production_without_an_sms_provider_refuses_instead_of_pretending()
     {
-        $this->postJson('/api/auth/otp/request', ['phone' => '12345'])->assertStatus(422);
-    }
-
-    public function test_dev_code_is_ignored_in_production(): void
-    {
-        config(['services.otp.dev_code' => '123456']);
         $this->app['env'] = 'production';
+        config(['services.sms.driver' => 'log']);
+        Http::fake();
 
-        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => '123456'])
-            ->assertStatus(401);
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertStatus(503);
+        Http::assertNothingSent();
     }
 
-    public function test_login_is_rate_limited(): void
+    /** @test */
+    public function a_failed_sms_is_reported_and_invalid_numbers_rejected()
     {
-        for ($i = 0; $i < 10; $i++) {
-            $this->postJson('/api/auth/login', ['email' => 'x@jali.rw', 'password' => 'bad']);
-        }
+        Http::fake([SmsService::AFRICASTALKING_ENDPOINT => Http::response(['SMSMessageData' => ['Recipients' => [['status' => 'InvalidPhoneNumber']]]])]);
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertStatus(503);
+        $this->postJson('/api/auth/otp/request', ['phone' => '12'])->assertStatus(422);
+    }
 
-        $this->postJson('/api/auth/login', ['email' => 'x@jali.rw', 'password' => 'bad'])
-            ->assertStatus(429);
+    /** @test */
+    public function the_dev_code_works_only_locally_when_configured()
+    {
+        config(['services.otp.dev_code' => '123456', 'services.sms.driver' => 'log']);
+        Http::fake();
+
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertOk();
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788123456', 'otp' => '123456'])->assertOk();
+        Http::assertNothingSent();
+
+        $this->app['env'] = 'staging';
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertStatus(503);   // log driver refused outside local
     }
 }

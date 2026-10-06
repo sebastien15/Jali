@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Trip } from "@/constants/data";
 import { setLanguage, getLanguage } from "@/lib/i18n";
+import { FX_CURRENCIES, setFxCurrency, useFxCurrency, FxCurrency } from "@/lib/fx";
 
 // Single source of truth: app.json "version"
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
@@ -182,9 +183,36 @@ export default function ProfileScreen() {
     );
   }
 
-  // (A "Notifications" settings item had a no-op handler; it returns once
-  // there are notification preferences to manage.)
+  const fxCurrency = useFxCurrency();
+  /** Approximate prices in my home currency (S9.4) */
+  function pickCurrency() {
+    Alert.alert(t("fx.title"), t("fx.sub"), [
+      ...(["none", ...FX_CURRENCIES] as FxCurrency[]).map(c => ({
+        text: (fxCurrency === c ? "✓ " : "") + (c === "none" ? t("fx.none") : c),
+        onPress: () => setFxCurrency(c),
+      })),
+    ]);
+  }
+
   const MENU: MenuItem[] = [
+    {
+      icon: "car-sport-outline",
+      label: t('ride.onboarding.menu'),
+      sub: t('ride.onboarding.menuSub'),
+      onPress: () => router.push("/driver/onboarding"),
+    },
+    {
+      icon: "medkit-outline",
+      label: t('safety.contactTitle'),
+      sub: t('safety.contactMenuSub'),
+      onPress: () => router.push("/safety/emergency-contact" as any),
+    },
+    {
+      icon: "cash-outline",
+      label: t("fx.title"),
+      sub: fxCurrency === "none" ? t("fx.none") : fxCurrency,
+      onPress: pickCurrency,
+    },
     {
       icon: "language-outline",
       label: t('profile.language'),

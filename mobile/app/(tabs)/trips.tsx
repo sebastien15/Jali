@@ -11,6 +11,8 @@ import { Trip, TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatYmd } from "@/lib/date";
+import { RideHistory } from "@/components/rides/RideHistory";
+import { HireHistory } from "@/components/rides/HireHistory";
 
 const TYPE_COLOR: Record<TripType, string> = {
   trip: C.blue, bus: C.blue, rental: C.green, private: C.orange,
@@ -29,9 +31,11 @@ const STATUS_LABEL_KEY: Record<TripStatus, string> = {
   cancelled: "adminBookings.statusCancelled",
 };
 
-type Filter = "all" | "active" | "ticket_ready" | "delivered" | "cancelled";
+type Filter = "all" | "rides" | "hires" | "active" | "ticket_ready" | "delivered" | "cancelled";
 const FILTERS: { id: Filter; labelKey: string }[] = [
   { id: "all", labelKey: "trips.filterAll" },
+  { id: "rides", labelKey: "trips.filterRides" },
+  { id: "hires", labelKey: "trips.filterHires" },
   { id: "active", labelKey: "trips.filterPending" },
   { id: "ticket_ready", labelKey: "trips.filterReady" },
   { id: "delivered", labelKey: "trips.filterDelivered" },
@@ -39,7 +43,7 @@ const FILTERS: { id: Filter; labelKey: string }[] = [
 ];
 
 function matchesFilter(status: string, f: Filter): boolean {
-  if (f === "all") return true;
+  if (f === "all" || f === "rides" || f === "hires") return true;
   // "In progress" = waiting for or being handled by an agent
   if (f === "active") return status === "pending" || status === "taken";
   return status === f;
@@ -95,6 +99,7 @@ export default function TripsScreen() {
         </ScrollView>
       </View>
 
+      {filter === "rides" ? <RideHistory /> : filter === "hires" ? <HireHistory /> : (
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -210,6 +215,7 @@ export default function TripsScreen() {
           </View>
         ))}
       </ScrollView>
+      )}
 
       {/* Full-screen ticket photo viewer */}
       <Modal visible={!!photoUrl} animationType="fade" transparent>
