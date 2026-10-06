@@ -583,6 +583,192 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Live link for family/friends — works only while the ride is active */
+        post: operations["shareRide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/sos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SOS: flag the ride, alert admins, text my emergency contact; the app then dials 112 */
+        post: operations["rideSos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/emergency-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My emergency contact */
+        get: operations["getEmergencyContact"];
+        /** Set my emergency contact */
+        put: operations["putEmergencyContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/share/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        /** PUBLIC: what someone with the link sees (first names only, ~100 m position). 410 once the ride ended */
+        get: operations["getSharedTrip"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drivers with a low rating (after enough rated trips) or a high recent cancel rate */
+        get: operations["listDriversForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/warn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the driver a warning (push) — logged */
+        post: operations["warnDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        /** Chat with my driver/rider (poll with after_id) */
+        get: operations["listRideMessages"];
+        put?: never;
+        /** Send a quick phrase (shown in each side's language) or free text (no phone numbers or links) */
+        post: operations["postRideMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Printable receipt link (save as PDF); email it again with email=true */
+        post: operations["rideReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Printable receipt link for my hire; email it again with email=true */
+        post: operations["hireReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fx/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Approximate value of 1 RWF in other currencies (refreshed daily; hidden when older than 3 days) */
+        get: operations["getFxRates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/drivers/{userId}": {
         parameters: {
             query?: never;
@@ -1075,6 +1261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ride metrics by Kigali day or week, fare per km by class and top drivers */
+        get: operations["getRideAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings/rides": {
         parameters: {
             query?: never;
@@ -1317,6 +1520,33 @@ export interface components {
             name: string | null;
             phone: string | null;
         } | null;
+        RideMetrics: {
+            requested: number;
+            completed: number;
+            cancelled_by_rider: number;
+            cancelled_by_driver: number;
+            expired: number;
+            /** @description 0-1 share of requested rides */
+            rider_cancel_rate: number;
+            /** @description 0-1 share of requested rides */
+            driver_cancel_rate: number;
+            /** @description 0-1 share of requested rides */
+            expired_rate: number;
+            /** @description Sum of final fares of completed rides (RWF) */
+            gmv: number;
+            /** @description Jali commission on completed rides (RWF) */
+            commission: number;
+            /** @description Average minutes from accept to arrive */
+            avg_pickup_minutes: number | null;
+        };
+        TopDriver: {
+            id: number;
+            name: string | null;
+            /** @description Completed trips in the window */
+            trips: number;
+            rating: number | null;
+            rating_count: number;
+        };
         AdminRideSummary: {
             id: number;
             status: components["schemas"]["RideStatus"];
@@ -1595,6 +1825,25 @@ export interface components {
                 at?: string | null;
             }[];
         };
+        EmergencyContact: {
+            name: string | null;
+            phone: string | null;
+        };
+        /** @enum {string} */
+        ChatPhrase: "on_my_way" | "i_am_here" | "where_are_you" | "wait_2_min" | "cant_find_you" | "at_the_entrance" | "running_late" | "thank_you";
+        RideMessage: {
+            id: number;
+            mine: boolean;
+            phrase: components["schemas"]["ChatPhrase"] | null;
+            body: string | null;
+            /** Format: date-time */
+            at: string | null;
+        };
+        ReceiptLink: {
+            /** @description Signed link to the printable receipt, valid 30 days */
+            url: string;
+            emailed: boolean;
+        };
         Place: {
             lat: number;
             lng: number;
@@ -1763,6 +2012,14 @@ export interface components {
              * @default 20000
              */
             max_commission_owed: number;
+            /** @description S8.4: who appears in Needs review */
+            review?: {
+                min_rated_trips?: number;
+                min_rating?: number;
+                max_cancel_pct?: number;
+                min_accepted?: number;
+                days?: number;
+            };
             /** @description Where drivers send commission (S7.2) */
             settlement_momo?: {
                 number?: string | null;
@@ -2927,6 +3184,420 @@ export interface operations {
             403: components["responses"]["Forbidden"];
         };
     };
+    shareRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description https://…/t/{token} */
+                        url: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rideSos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    lat?: number | null;
+                    lng?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Alert sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        flagged: boolean;
+                        emergency_contact_notified: boolean;
+                        share_url: string | null;
+                        /** @enum {string} */
+                        call: "112";
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getEmergencyContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyContact"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putEmergencyContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    phone: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyContact"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getSharedTrip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        status: components["schemas"]["RideStatus"];
+                        active: boolean;
+                        rider: {
+                            first_name?: string;
+                        };
+                        driver: {
+                            name?: string;
+                            photo?: string | null;
+                        } | null;
+                        vehicle: {
+                            model?: string;
+                            color?: string | null;
+                            plate?: string;
+                            photo?: string | null;
+                        } | null;
+                        position: {
+                            lat?: number;
+                            lng?: number;
+                            at?: string | null;
+                        } | null;
+                        pickup?: string | null;
+                        dropoff?: string | null;
+                        /** Format: date-time */
+                        updated_at: string;
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description The trip has ended */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                        status?: components["schemas"]["RideStatus"];
+                    };
+                };
+            };
+        };
+    };
+    listDriversForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user_id: number;
+                        name: string | null;
+                        phone?: string | null;
+                        rating: number;
+                        rating_count: number;
+                        accepted: number;
+                        cancelled: number;
+                        cancel_pct: number;
+                        reasons: ("low_rating" | "high_cancel_rate")[];
+                        /** Format: date-time */
+                        warned_at: string | null;
+                    }[];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    warnDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    message: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                        /** Format: date-time */
+                        warned_at?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listRideMessages: {
+        parameters: {
+            query?: {
+                after_id?: number;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Chat is open between accept and completion */
+                        open: boolean;
+                        phrases: components["schemas"]["ChatPhrase"][];
+                        messages: components["schemas"]["RideMessage"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    postRideMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phrase?: components["schemas"]["ChatPhrase"] | null;
+                    body?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Sent */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideMessage"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    rideReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    email?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    hireReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    email?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getFxRates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        base: "RWF";
+                        rates: {
+                            USD?: number;
+                            EUR?: number;
+                            GBP?: number;
+                            KES?: number;
+                        } | null;
+                        /** Format: date-time */
+                        fetched_at: string | null;
+                        stale: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     getDriverApplication: {
         parameters: {
             query?: never;
@@ -3853,6 +4524,59 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRideAnalytics: {
+        parameters: {
+            query?: {
+                period?: "day" | "week";
+                /** @description Kigali date, inclusive (default 29 days before to) */
+                from?: string;
+                /** @description Kigali date, inclusive (default today); range is at most 92 days */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "day" | "week";
+                        /** Format: date */
+                        from: string;
+                        /** Format: date */
+                        to: string;
+                        totals: components["schemas"]["RideMetrics"];
+                        series: (components["schemas"]["RideMetrics"] & {
+                            /**
+                             * Format: date
+                             * @description The day, or the Monday that starts the week
+                             */
+                            bucket: string;
+                        })[];
+                        /** @description Average RWF per estimated km across completed rides */
+                        fare_per_km_by_class: {
+                            [key: string]: number;
+                        };
+                        top_drivers: {
+                            by_trips: components["schemas"]["TopDriver"][];
+                            /** @description Drivers with at least 3 completed trips in the window */
+                            by_rating: components["schemas"]["TopDriver"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
         };
     };

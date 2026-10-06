@@ -65,7 +65,11 @@
     "privateDriver": "Umushoferi bwite -- atanga ingendo",
     "logOut": "Sohoka",
     "deleteMyAccount": "Siba konti yanjye",
-    "error": "Ikosa"
+    "error": "Ikosa",
+    "deleteAccountFailed": "Ntitwashoboye gusiba konti yawe. Reba interineti yawe hanyuma wongere ugerageze.",
+    "becomeDriverInfo": "Uburyo bw'umushoferi ni ubw'abashoferi bemejwe na Jali. Twandikire kugira ngo ube umushoferi.",
+    "contactJali": "Vugana na Jali",
+    "defaultName": "Ukoresha Jali"
   },
   "drive": {
     "driverMode": "Uburyo bwo Gutwara",
@@ -101,7 +105,7 @@
   "trips": {
     "myTrips": "Ingendo zanjye",
     "filterAll": "zose",
-    "filterPending": "zitegereje",
+    "filterPending": "Biri gukorwaho",
     "filterConfirmed": "zemewe",
     "filterCompleted": "zarangiye",
     "retry": "Ongera ugerageze",
@@ -112,6 +116,12 @@
     "view": "Reba",
     "awaitingConfirmation": "Itegereje kwemezwa -- admin itegura itike yawe",
     "close": "Funga",
+    "filterReady": "Tike yabonetse",
+    "filterDelivered": "Byatanzwe",
+    "filterCancelled": "Byahagaritswe",
+    "loadFailed": "Ntibyashobotse kuzana ingendo",
+    "from": "Uva",
+    "to": "Ujya",
     "filterRides": "ingendo",
     "filterHires": "abashoferi"
   },
@@ -137,7 +147,14 @@
     "googleAvailable": "Kwinjira na Google biraboneka ku bashoferi mpuzamahanga",
     "wrongCode": "Code nabi",
     "changeNumber": "Hindura numero",
-    "googleSignInFailed": "Kwinjira na Google byanze"
+    "googleSignInFailed": "Kwinjira na Google byanze",
+    "agreePrefix": "Ukomeje, uba wemeye",
+    "and": "na",
+    "adminQuestion": "Uri umuyobozi?",
+    "adminSignIn": "Injira hano",
+    "countryCode": "Kode y'igihugu",
+    "phonePlaceholder": "Nimero idafite kode y'igihugu",
+    "appleSignInFailed": "Kwinjira na Apple byanze"
   },
   "listing": {
     "privateDriver": "Umushoferi Bwite",
@@ -184,7 +201,12 @@
     "listingPublished": "Byatangajwe",
     "listingUpdatedDesc": "Ingingo yawe yahinduwe.",
     "listingPublishedDesc": "Urugendo rwawe ruraboneka ku bagenzi.",
-    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya"
+    "groupPrice": "Igiciro cy'itsinda: {{price}} RWF/umwanya",
+    "selectDestinationAndPickup": "Hitamo aho ujya n'aho uzafatira abagenzi.",
+    "deleteListingError": "Ntibyashobotse gusiba iri tangazo.",
+    "dropOffPlaceholder": "urugero: Hafi y'irembo rya Kaminuza ya Huye",
+    "notesPlaceholder": "urugero: Imizigo ijya mu ivalisi y'imodoka, guhagarara i Muhanga biremewe",
+    "seats": "imyanya"
   },
   "driverSetup": {
     "fleetOwner": "Nyiri Floti",
@@ -213,7 +235,7 @@
     "allowedZones": "Zones zemewe",
     "insuranceExpiry": "Iherezo ry'Ubwishingizi",
     "docsUrl": "T&Cs / URL y'Icyangombwa cy'Ubwishingizi",
-    "docsUrlHint": "Ohereza icyangombwa kuri Firebase Storage ukomeze URL hano",
+    "docsUrlHint": "Shyiramo umurongo w'inyandiko y'ubwishingizi cyangwa amabwiriza (si ngombwa)",
     "saveChanges": "Bika Ihinduka",
     "saved": "Byabitswe",
     "profileUpdated": "Profil yawe yahinduwe.",
@@ -227,7 +249,8 @@
     "carTypeSedan": "Sedan",
     "carTypeSuv": "SUV",
     "carTypeMinivan": "Minivan",
-    "carTypePickup": "Pickup"
+    "carTypePickup": "Pickup",
+    "invalidDocsUrl": "Umurongo w'inyandiko ugomba kuba aderesi yuzuye itangirana na https://"
   },
   "fleet": {
     "fleetOwner": "Nyiri Floti",
@@ -436,13 +459,17 @@
     "confirm": "Emeza",
     "change": "Hindura",
     "add": "Ongeraho",
+    "accessDenied": "Ntiwemerewe",
+    "accessDeniedMsg": "Ntufite uburenganzira bwo gukora iki gikorwa.",
+    "cancel": "Reka",
     "back": "Subira inyuma"
   },
   "authErrors": {
     "invalidCredentials": "Imeri cyangwa ijambo ry'ibanga ntabwo ari byo.",
     "tooManyAttempts": "Ingerageza nyinshi. Ongera ugerageze nyuma.",
     "noInternet": "Nta murongo wa internet.",
-    "unknown": "Ikosa ryabaye. Ongera ugerageze."
+    "unknown": "Ikosa ryabaye. Ongera ugerageze.",
+    "noAdminAccess": "Iyi konti ntifite uburenganzira bwo kuyobora."
   },
   "admin": {
     "superadmin": "Superadmin",
@@ -521,7 +548,9 @@
     "actionImage": "Ifoto yoherejwe",
     "actionContract": "Amasezerano yoherejwe",
     "actionLocationApproved": "Impinduka y'aho yemejwe",
-    "actionLocationRejected": "Impinduka y'aho yananzwe"
+    "actionLocationRejected": "Impinduka y'aho yananzwe",
+    "gettingLocation": "Turimo gushaka aho uri…",
+    "useCurrentLocation": "Koresha aho ndi ubu"
   },
   "agencies": {
     "title": "Amasosiyete",
@@ -614,7 +643,21 @@
     "statusCancelled": "Byasizwe",
     "statusTaken": "Bifashwe",
     "statusTicketReady": "Itike Iteguwe",
-    "statusDelivered": "Byatanzwe"
+    "statusDelivered": "Byatanzwe",
+    "claimedToast": "Ubusabe bwafashwe",
+    "deliveredToast": "Ubusabe bwanditswe ko bwatanzwe",
+    "updatedToast": "Ubusabe bwavuguruwe",
+    "ticketCount": "Amatike {{count}}",
+    "booking": "Ubusabe",
+    "notFound": "Ubu busabe ntibuboneka ku rutonde rwa gare yawe.",
+    "status": "Uko bihagaze",
+    "trip": "Urugendo",
+    "route": "Inzira",
+    "travelDate": "Itariki y'urugendo",
+    "tickets": "Amatike",
+    "passenger": "Umugenzi",
+    "email": "Imeyili",
+    "price": "Igiteranyo"
   },
   "rating": {
     "rateAgency": "Pima iyi Sosiyete",
@@ -622,6 +665,30 @@
     "comment": "Ibitekerezo (bidasabwa)",
     "submit": "Ohereza Igipimo",
     "success": "Murakoze guha igipimo!"
+  },
+  "adminUsers": {
+    "editUser": "Hindura ukoresha",
+    "role": "Inshingano",
+    "saveRole": "Bika inshingano",
+    "saved": "Byabitswe",
+    "roleUpdated": "Inshingano yahinduwe iba {{role}}.",
+    "saveRoleFailed": "Ntibyashobotse guhindura inshingano."
+  },
+  "adminCashout": {
+    "title": "Inyungu no kubikuza",
+    "available": "Ibiboneka",
+    "noEarnings": "Nta nyungu",
+    "noEarningsMsg": "Nta mafaranga ufite ashobora kubikuzwa.",
+    "requestCashout": "Saba kubikuza",
+    "request": "Saba",
+    "confirmMsg": "Usaba kubikuza {{amount}} RWF kuri {{destination}}?",
+    "submitted": "Byoherejwe",
+    "submittedMsg": "Ubusabe bwawe bwo kubikuza bwoherejwe, buzakorwaho vuba.",
+    "failed": "Kohereza ubusabe byanze.",
+    "availableNow": "Ibiboneka ubu: {{amount}} RWF",
+    "mobileMoney": "Mobile Money",
+    "bank": "Banki",
+    "noMethod": "Nta buryo bwo kubikuza bwashyizweho. Kanda ku kimenyetso cy'igenamiterere ubwongeremo."
   },
   "ride": {
     "rates": {
@@ -1083,5 +1150,46 @@
     "type_settlement": "Ubwishyu kuri Jali",
     "type_payout": "Kubikuza",
     "type_adjustment": "Ihinduka"
+  },
+  "safety": {
+    "share": "Sangiza urugendo",
+    "shareMessage": "Kurikirana urugendo rwanjye rwa Jali: {{url}}",
+    "sos": "SOS",
+    "sosTitle": "Ubutabazi",
+    "sosConfirm": "Hamagara 112 kandi umenyeshe Jali n'uwo kumenyesha mu bihe by'ubutabazi?",
+    "sosGo": "Hamagara 112",
+    "contactTitle": "Uwo kumenyesha mu bihe by'ubutabazi",
+    "contactMenuSub": "Uwo twoherereza ubutumwa ukanze SOS",
+    "contactSub": "Ukanze SOS mu rugendo, twoherereza uyu muntu aho uri n'ihuza ryo gukurikirana urugendo.",
+    "contactName": "Izina",
+    "contactPhone": "Telefoni",
+    "saved": "Byabitswe"
+  },
+  "chat": {
+    "open": "Ubutumwa",
+    "title": "Ikiganiro",
+    "empty": "Ramutsa cyangwa ukoreshe interuro yihuse.",
+    "closed": "Ikiganiro cyafunzwe kuri uru rugendo.",
+    "placeholder": "Andika ubutumwa",
+    "send": "Ohereza",
+    "phrase_on_my_way": "Ndi mu nzira",
+    "phrase_i_am_here": "Ndahageze",
+    "phrase_where_are_you": "Uri he?",
+    "phrase_wait_2_min": "Ihangane iminota 2",
+    "phrase_cant_find_you": "Sinkubona",
+    "phrase_at_the_entrance": "Ndi ku muryango",
+    "phrase_running_late": "Ndatinda gato",
+    "phrase_thank_you": "Murakoze!"
+  },
+  "receipt": {
+    "open": "Inyemezabwishyu",
+    "email": "Ohereza inyemezabwishyu",
+    "emailed": "Inyemezabwishyu yoherejwe kuri imeyili yawe.",
+    "noEmail": "Ongeraho imeyili kuri konti yawe kugira ngo ubone inyemezabwishyu."
+  },
+  "fx": {
+    "title": "Erekana ibiciro no mu",
+    "sub": "Amafaranga agereranyije iruhande rwa RWF. Wishyura buri gihe muri RWF.",
+    "none": "RWF gusa"
   }
 }

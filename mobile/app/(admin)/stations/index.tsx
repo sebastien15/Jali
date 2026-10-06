@@ -24,6 +24,7 @@ import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import { useTranslation } from "react-i18next";
 
 type StationType = "bus_station" | "custom";
 
@@ -76,6 +77,7 @@ type FilterAssign = "all" | "assigned" | "unassigned";
 type FilterType = "all" | StationType;
 
 export default function AdminStationsScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useAdminNav();
 
@@ -627,7 +629,7 @@ export default function AdminStationsScreen() {
                   <Ionicons name="navigate" size={14} color={C.teal} />
                 )}
                 <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>
-                  {locating ? "Getting location…" : "Use current location"}
+                  {locating ? t("admin.gettingLocation") : t("admin.useCurrentLocation")}
                 </Text>
               </TouchableOpacity>
               <View style={{ flexDirection: "row", gap: 10 }}>

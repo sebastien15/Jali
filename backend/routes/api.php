@@ -11,12 +11,17 @@ use App\Http\Controllers\RideController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\DriverRideController;
 use App\Http\Controllers\HireController;
+use App\Http\Controllers\SafetyController;
+use App\Http\Controllers\RideChatController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
+use App\Http\Controllers\Admin\RideAnalyticsController;
 use App\Http\Controllers\DriverEarningsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -41,7 +46,7 @@ use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\PermissionsController;
 
 // ── Access tracking — public (token optional, attached automatically if logged in) ──
-Route::post("/track-access", [AppAccessController::class, "store"]);
+Route::middleware("throttle:20,1")->post("/track-access", [AppAccessController::class, "store"]);
 
 // ── Auth Routes (no token required) ──
 // Rate limits (S21.7) are defined in AppServiceProvider::configureRateLimits()
@@ -50,8 +55,12 @@ Route::post("/auth/login/google", [
     AuthController::class,
     "loginWithGoogle",
 ])->middleware("throttle:auth");
+Route::post("/auth/login/apple", [AuthController::class, "loginWithApple"])->middleware("throttle:auth");
 Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
 Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
+
+// Share my trip (S8.1) — PUBLIC by design: the 40-character token is the secret, and it stops working when the ride ends
+Route::get("/share/{token}", [SafetyController::class, "publicShare"])->where("token", "[A-Za-z0-9]{40}")->middleware("throttle:60,1");
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {
@@ -103,6 +112,19 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{id}", [RideController::class, "show"])->whereNumber("id");
         Route::post("/{id}/cancel", [RideController::class, "cancel"])->whereNumber("id");
         Route::post("/{id}/rate", [RideController::class, "rate"])->whereNumber("id");
+        // Safety — stories S8.1, S8.2 (rider or driver of the ride)
+        Route::post("/{id}/share", [SafetyController::class, "share"])->whereNumber("id");
+        Route::post("/{id}/sos", [SafetyController::class, "sos"])->whereNumber("id");
+        // Chat (S9.5) and receipts (S9.6)
+        Route::get("/{id}/messages", [RideChatController::class, "index"])->whereNumber("id");
+        Route::post("/{id}/messages", [RideChatController::class, "store"])->whereNumber("id")->middleware("throttle:30,1");
+        Route::post("/{id}/receipt", [ReceiptController::class, "ride"])->whereNumber("id");
+    });
+    Route::middleware("permission:request-rides")->group(function () {
+        Route::get("/me/emergency-contact", [SafetyController::class, "contact"]);
+        Route::get("/fx/rates", [FxController::class, "rates"]);
+        Route::post("/driver-hire/{id}/receipt", [ReceiptController::class, "hire"])->whereNumber("id");
+        Route::put("/me/emergency-contact", [SafetyController::class, "saveContact"]);
     });
     // Driver side of a ride — stories S5.2, S4.1, S4.2, S4.4
     Route::middleware("permission:offer-rides")->group(function () {
@@ -127,6 +149,8 @@ Route::middleware("auth:sanctum")->group(function () {
     // Driver verification queue — story S1.4
     Route::middleware("permission:verify-drivers")->prefix("admin/drivers")->group(function () {
         Route::get("/", [AdminDriverController::class, "index"]);
+        Route::get("/review", [AdminDriverController::class, "review"]);
+        Route::post("/{userId}/warn", [AdminDriverController::class, "warn"])->whereNumber("userId");
         Route::get("/{userId}", [AdminDriverController::class, "show"])->whereNumber("userId");
         Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
         Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");
@@ -256,6 +280,7 @@ Route::middleware("auth:sanctum")->group(function () {
             AnalyticsController::class,
             "stations",
         ]);
+        Route::get("/analytics/rides", [RideAnalyticsController::class, "index"]);
     });
 
     // Admin profile
@@ -280,24 +305,20 @@ Route::middleware("auth:sanctum")->group(function () {
                 LocationController::class,
                 "destroy",
             ]);
-            Route::get("/location-requests", [
-                LocationChangeRequestController::class,
-                "index",
-            ]);
-            Route::post("/location-requests/{id}/approve", [
-                LocationChangeRequestController::class,
-                "approve",
-            ]);
-            Route::post("/location-requests/{id}/reject", [
-                LocationChangeRequestController::class,
-                "reject",
-            ]);
         });
 
         Route::middleware("permission:manage-locations")->post("/location-request", [
             LocationChangeRequestController::class,
             "store",
         ]);
+
+        // Approving location changes is a superadmin decision (manage-admins),
+        // otherwise a station admin could approve their own request.
+        Route::middleware("permission:manage-admins")->group(function () {
+            Route::get("/location-requests", [LocationChangeRequestController::class, "index"]);
+            Route::post("/location-requests/{id}/approve", [LocationChangeRequestController::class, "approve"]);
+            Route::post("/location-requests/{id}/reject", [LocationChangeRequestController::class, "reject"]);
+        });
 
         Route::middleware("permission:manage-admins")->group(function () {
             Route::get("/logs", [ActivityLogController::class, "index"]);

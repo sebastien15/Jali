@@ -40,7 +40,14 @@ class AdminUserController extends Controller
             $user->update(["name" => $data["name"]]);
         }
 
-        if (isset($data["role"])) {
+        if (isset($data["role"]) && $data["role"] !== $user->role?->name) {
+            if ((int) $user->id === (int) $request->user()->id) {
+                return response()->json(["message" => "You cannot change your own role."], 422);
+            }
+            if ($user->isSuperAdmin() && User::whereHas("role", fn ($q) => $q->where("name", "superadmin"))->count() <= 1) {
+                return response()->json(["message" => "Cannot demote the last superadmin."], 422);
+            }
+
             $role = Role::where("name", $data["role"])->first();
             if ($role) {
                 $user->update(["role_id" => $role->id]);

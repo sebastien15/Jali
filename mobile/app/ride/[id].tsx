@@ -14,6 +14,10 @@ import {
 } from "@/lib/rides";
 import { Stars } from "@/components/rides/Stars";
 import { ReasonSheet } from "@/components/rides/ReasonSheet";
+import { SafetyBar } from "@/components/rides/SafetyBar";
+import { ChatButton } from "@/components/rides/ChatSheet";
+import { useFormatPrice } from "@/lib/fx";
+import { Linking } from "react-native";
 
 /** Rider's live trip screen: waiting → driver on the way → arrived (PIN) → in trip → receipt & rating (S4.1–S4.6) */
 export default function RiderTripScreen() {
@@ -26,6 +30,7 @@ export default function RiderTripScreen() {
   const [stars, setStars] = useState(0);
   const [tags, setTags] = useState<string[]>([]);
   const [, tick] = useState(0);
+  const fmt = useFormatPrice();
 
   const { data: ride, isLoading } = useQuery({
     queryKey: queryKeys.rides.detail(rideId),
@@ -144,6 +149,9 @@ export default function RiderTripScreen() {
           </View>
         ) : null}
 
+        {isActive(ride) && ride.status !== "requested" ? <SafetyBar rideId={ride.id} canShare /> : null}
+        {ride.driver && ["accepted", "arrived", "in_progress"].includes(ride.status) ? <ChatButton rideId={ride.id} /> : null}
+
         {ride.driver?.momo ? (
           <View style={{ backgroundColor: C.yellow, borderRadius: 18, padding: 16, marginTop: 12 }}>
             <Text style={{ fontWeight: "800", color: C.dark }}>{t("ride.trip.payMomoTo")}</Text>
@@ -170,7 +178,7 @@ export default function RiderTripScreen() {
           <Line label={t("ride.trip.jaliFee")} value={formatRwf(ride.service_fee)} />
           {ride.cancel_fee ? <Line label={t("ride.trip.cancel")} value={formatRwf(ride.cancel_fee)} /> : null}
           <View style={{ height: 1, backgroundColor: C.border, marginVertical: 8 }} />
-          <Line label={t("ride.trip.total")} value={formatRwf(ride.final_fare ?? ride.quoted_fare)} bold />
+          <Line label={t("ride.trip.total")} value={fmt(ride.final_fare ?? ride.quoted_fare)} bold />
           {ride.payment_method ? (
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 4 }}>
               {t("ride.trip.paidBy", { method: t(`ride.trip.${ride.payment_method}`) })}
@@ -199,6 +207,19 @@ export default function RiderTripScreen() {
 
         {["declined", "expired", "cancelled_by_driver"].includes(ride.status) ? (
           <PrimaryButton label={t("ride.trip.chooseAnother")} onPress={() => router.back()} />
+        ) : null}
+        {["completed", "cancelled_by_rider", "cancelled_by_driver"].includes(ride.status) ? (
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+            <TouchableOpacity onPress={() => api.post<{ url: string }>(`/rides/${ride.id}/receipt`).then(r => Linking.openURL(r.data.url)).catch(() => {})}
+              accessibilityLabel={t("receipt.open")} style={{ flex: 1, backgroundColor: C.white, borderRadius: 14, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: C.border }}>
+              <Text style={{ fontWeight: "800", color: C.dark }}>{t("receipt.open")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => api.post<{ emailed: boolean }>(`/rides/${ride.id}/receipt`, { email: true })
+                .then(r => Alert.alert(r.data.emailed ? t("receipt.emailed") : t("receipt.noEmail"))).catch(() => {})}
+              accessibilityLabel={t("receipt.email")} style={{ flex: 1, backgroundColor: C.white, borderRadius: 14, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: C.border }}>
+              <Text style={{ fontWeight: "800", color: C.dark }}>{t("receipt.email")}</Text>
+            </TouchableOpacity>
+          </View>
         ) : null}
         {ride.status === "completed" && ride.my_rating ? (
           <PrimaryButton label={t("ride.trip.done")} onPress={() => router.replace("/(tabs)")} />

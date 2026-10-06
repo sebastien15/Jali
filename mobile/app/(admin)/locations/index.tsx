@@ -21,6 +21,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
+import { useTranslation } from "react-i18next";
 
 type LocationType = "bus_station" | "custom";
 
@@ -67,6 +68,7 @@ const EMPTY_FORM = {
 };
 
 export default function LocationsScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -394,7 +396,7 @@ export default function LocationsScreen() {
                 style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: C.white, borderWidth: 1, borderColor: C.teal, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 10, opacity: locating ? 0.6 : 1 }}
               >
                 {locating ? <ActivityIndicator size="small" color={C.teal} /> : <Ionicons name="navigate" size={14} color={C.teal} />}
-                <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>{locating ? "Getting location…" : "Use current location"}</Text>
+                <Text style={{ color: C.teal, fontSize: 13, fontWeight: "600" }}>{locating ? t("admin.gettingLocation") : t("admin.useCurrentLocation")}</Text>
               </TouchableOpacity>
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <View style={{ flex: 1 }}>

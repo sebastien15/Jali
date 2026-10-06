@@ -26,6 +26,7 @@ class PrivateSeat extends Model
         'group_discount_pct',
         'allow_custom_pickup',
         'custom_pickup_fee',
+        'notes',
     ];
 
     protected function casts(): array

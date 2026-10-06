@@ -51,6 +51,11 @@ async function fetchPermissions(): Promise<string[]> {
   return me?.permissions ?? [];
 }
 
+/**
+ * Mounted in the root layout so every screen — including driver/setup,
+ * driver/fleet and driver/listing, which live outside (tabs) — sees the same
+ * values. The choice is persisted so it survives app restarts.
+ */
 export function DriverModeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Stored>({ driverMode: false, driverType: null });
   const [hydrated, setHydrated] = useState(false);

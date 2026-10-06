@@ -15,24 +15,17 @@ class PrivateSeatController extends Controller
     {
         $query = PrivateSeat::query()->where('seats', '>', 0)->where('active', true);
 
-        if ($request->has('from')) {
+        if ($request->filled('from')) {
             $query->where('from', $request->from);
         }
 
-        if ($request->has('to')) {
+        if ($request->filled('to')) {
             $query->where('to', $request->to);
         }
 
-        if ($request->has('date')) {
-            $dateStr = $request->date;
-            if (strtolower($dateStr) === 'today') {
-                $dateStr = now()->format('Y-m-d');
-            } elseif (strtolower($dateStr) === 'tomorrow') {
-                $dateStr = now()->addDay()->format('Y-m-d');
-            }
-            $query->where(function ($q) use ($dateStr) {
-                $q->whereDate('dep', $dateStr)->orWhere('date', $dateStr);
-            });
+        if ($request->filled('date') && ($date = self::normalizeDate($request->date))) {
+            // Listings without a date run every day.
+            $query->where(fn ($q) => $q->whereNull('date')->orWhere('date', $date));
         }
 
         return response()->json($query->orderBy('dep')->paginate(10));
@@ -74,6 +67,10 @@ class PrivateSeatController extends Controller
             'custom_pickup_fee'   => 'integer|min:0',
         ]);
 
+        if (array_key_exists('date', $validated) && ($validated['date'] = self::normalizeDate($validated['date'])) === false) {
+            return response()->json(['message' => 'Invalid date.', 'errors' => ['date' => ['Invalid date.']]], 422);
+        }
+
         $validated['user_id'] = $request->user()->id;
         $validated['driver']  = $request->user()->name;
         $validated['active']  = true;
@@ -111,9 +108,34 @@ class PrivateSeatController extends Controller
             'custom_pickup_fee'   => 'integer|min:0',
         ]);
 
+        if (array_key_exists('date', $validated) && ($validated['date'] = self::normalizeDate($validated['date'])) === false) {
+            return response()->json(['message' => 'Invalid date.', 'errors' => ['date' => ['Invalid date.']]], 422);
+        }
+
         $listing->update($validated);
 
         return response()->json($listing->fresh());
+    }
+
+    /**
+     * Listing dates arrive as "Today", "Mon 5 Oct 2026", "2026-10-05"…
+     * Store/compare them as Y-m-d (Africa/Kigali). null = no date, false = invalid.
+     */
+    public static function normalizeDate(?string $raw): string|null|false
+    {
+        if ($raw === null || trim($raw) === '') {
+            return null;
+        }
+        $tz = 'Africa/Kigali';
+        try {
+            return match (strtolower(trim($raw))) {
+                'today'    => now($tz)->toDateString(),
+                'tomorrow' => now($tz)->addDay()->toDateString(),
+                default    => \Illuminate\Support\Carbon::parse($raw, $tz)->toDateString(),
+            };
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**

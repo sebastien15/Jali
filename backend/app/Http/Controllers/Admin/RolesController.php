@@ -58,6 +58,12 @@ class RolesController extends Controller
             'description' => 'nullable|string|max:200',
         ]);
 
+        // Code checks system roles by name (isAdmin(), isDriver(), seeders),
+        // so renaming one silently breaks every user who has it.
+        if (isset($data['name']) && $data['name'] !== $role->name && in_array($role->name, self::SYSTEM_ROLES)) {
+            return response()->json(['message' => 'System roles cannot be renamed.'], 422);
+        }
+
         $role->update($data);
 
         return response()->json(['id' => $role->id, 'name' => $role->name, 'description' => $role->description]);

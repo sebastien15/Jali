@@ -14,19 +14,25 @@ use Illuminate\Validation\Rule;
 class DriverController extends Controller
 {
     /**
+     * Bookings on the driver's private-seat listings that still count.
+     */
+    private function listingBookings(Request $request)
+    {
+        $listingIds = PrivateSeat::where('user_id', $request->user()->id)->pluck('id');
+
+        return Booking::where('type', 'private')
+            ->whereIn('reference_id', $listingIds)
+            ->where('status', '!=', 'cancelled');
+    }
+
+    /**
      * GET /driver/stats
      * Returns today's and this week's earnings + trip counts for the authenticated driver.
      */
     public function stats(Request $request)
     {
         $user = $request->user();
-
-        // IDs of all listings owned by this driver
-        $listingIds = PrivateSeat::where('user_id', $user->id)->pluck('id');
-
-        $bookingsQuery = Booking::where('type', 'private')
-            ->whereIn('reference_id', $listingIds)
-            ->where('status', '!=', 'cancelled');
+        $bookingsQuery = $this->listingBookings($request);
 
         $today     = now()->toDateString();
         $weekStart = now()->startOfWeek()->toDateString();
@@ -34,18 +40,15 @@ class DriverController extends Controller
         $todayBookings = (clone $bookingsQuery)->whereDate('created_at', $today)->get();
         $weekBookings  = (clone $bookingsQuery)->whereDate('created_at', '>=', $weekStart)->get();
 
-        // Driver earns price minus service_fee (service_fee split goes to platform + station)
-        $todayEarnings = $todayBookings->sum(fn($b) => $b->price - $b->service_fee);
-        $weekEarnings  = $weekBookings->sum(fn($b) => $b->price - $b->service_fee);
-
-        // Average rating from driver's listings
+        // `price` is the seat fare the driver receives; the service fee is
+        // charged on top to the passenger and is never part of the fare.
         $rating = PrivateSeat::where('user_id', $user->id)->avg('rating') ?? 0;
 
         return response()->json([
-            'todayEarnings' => $todayEarnings,
+            'todayEarnings' => (int) $todayBookings->sum('price'),
             'todayTrips'    => $todayBookings->count(),
             'rating'        => round($rating, 1),
-            'weekEarnings'  => $weekEarnings,
+            'weekEarnings'  => (int) $weekBookings->sum('price'),
             'weekTrips'     => $weekBookings->count(),
         ]);
     }
@@ -56,27 +59,30 @@ class DriverController extends Controller
      */
     public function trips(Request $request)
     {
-        $user = $request->user();
+        $listingIds = PrivateSeat::where('user_id', $request->user()->id)->pluck('id');
+        $seats = PrivateSeat::whereIn('id', $listingIds)->get()->keyBy('id');
 
-        $listingIds = PrivateSeat::where('user_id', $user->id)->pluck('id');
-
-        $bookings = Booking::with('user')
-            ->where('type', 'private')
+        $bookings = Booking::where('type', 'private')
             ->whereIn('reference_id', $listingIds)
             ->latest()
             ->get();
 
-        $trips = $bookings->map(function ($booking) {
-            $seat = PrivateSeat::find($booking->reference_id);
+        $trips = $bookings->map(function ($booking) use ($seats) {
+            $seat = $seats->get($booking->reference_id);
             return [
                 'id'      => $booking->id,
                 'from'    => $seat?->from ?? '—',
                 'to'      => $seat?->to ?? '—',
                 'dep'     => $seat?->dep ?? '—',
                 'date'    => $booking->travel_date ?? $booking->created_at->toDateString(),
-                'pax'     => 1, // one seat per booking
-                'earning' => $booking->price - $booking->service_fee,
-                'status'  => $booking->status === 'confirmed' ? 'upcoming' : $booking->status,
+                'pax'     => (int) ($booking->quantity ?? 1),
+                'earning' => (int) $booking->price,
+                // Drive tab splits on "upcoming" vs everything else (history).
+                'status'  => match ($booking->status) {
+                    'pending', 'taken', 'ticket_ready' => 'upcoming',
+                    'delivered' => 'completed',
+                    default => $booking->status,
+                },
             ];
         });
 

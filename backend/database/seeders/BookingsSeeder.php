@@ -20,26 +20,28 @@ class BookingsSeeder extends Seeder
         if (!$user1 || !$user2 || !$user3) return;
 
         // Find real trips to reference (dynamic — IDs change on each reseed)
-        $ritcoTrips = DB::table('trips')
-            ->join('agencies', 'trips.agency_id', '=', 'agencies.id')
-            ->join('admin_stations as from_s', 'trips.from_station_id', '=', 'from_s.id')
-            ->join('admin_stations as to_s', 'trips.to_station_id', '=', 'to_s.id')
+        $ritcoTrips = DB::table('trip_departures')
+            ->join('agency_routes', 'trip_departures.agency_route_id', '=', 'agency_routes.id')
+            ->join('agencies', 'agency_routes.agency_id', '=', 'agencies.id')
+            ->join('admin_stations as from_s', 'agency_routes.from_station_id', '=', 'from_s.id')
+            ->join('admin_stations as to_s', 'agency_routes.to_station_id', '=', 'to_s.id')
             ->where('agencies.name', 'RITCO Ltd')
             ->where('from_s.name', 'Nyabugogo Bus Park')
-            ->select('trips.id', 'trips.departure_time', 'trips.price', 'to_s.city as to_city')
-            ->limit(20)
+            ->select('trip_departures.id', 'trip_departures.departure_time', 'agency_routes.price', 'to_s.city as to_city')
+            ->whereIn('to_s.city', ['Musanze', 'Huye'])
             ->get();
 
         $toMusanze  = $ritcoTrips->where('to_city', 'Musanze')->values();
         $toHuye     = $ritcoTrips->where('to_city', 'Huye')->values();
-        $toRwamagana = DB::table('trips')
-            ->join('agencies', 'trips.agency_id', '=', 'agencies.id')
-            ->join('admin_stations as from_s', 'trips.from_station_id', '=', 'from_s.id')
-            ->join('admin_stations as to_s', 'trips.to_station_id', '=', 'to_s.id')
+        $toRwamagana = DB::table('trip_departures')
+            ->join('agency_routes', 'trip_departures.agency_route_id', '=', 'agency_routes.id')
+            ->join('agencies', 'agency_routes.agency_id', '=', 'agencies.id')
+            ->join('admin_stations as from_s', 'agency_routes.from_station_id', '=', 'from_s.id')
+            ->join('admin_stations as to_s', 'agency_routes.to_station_id', '=', 'to_s.id')
             ->where('agencies.name', 'RITCO Ltd')
             ->where('from_s.name', 'Nyabugogo Bus Park')
             ->where('to_s.city', 'Rwamagana')
-            ->select('trips.id', 'trips.departure_time', 'trips.price')
+            ->select('trip_departures.id', 'trip_departures.departure_time', 'agency_routes.price')
             ->limit(5)
             ->get();
 
@@ -49,7 +51,7 @@ class BookingsSeeder extends Seeder
         if ($toMusanze->count() >= 3) {
             $bookings[] = [
                 'user_id'        => $user1->id,
-                'trip_id'        => $toMusanze[0]->id,
+                'trip_departure_id' => $toMusanze[0]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toMusanze[0]->id,
                 'title'          => 'RITCO • Kigali → Musanze',
@@ -61,7 +63,7 @@ class BookingsSeeder extends Seeder
             ];
             $bookings[] = [
                 'user_id'        => $user2->id,
-                'trip_id'        => $toMusanze[1]->id,
+                'trip_departure_id' => $toMusanze[1]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toMusanze[1]->id,
                 'title'          => 'RITCO • Kigali → Musanze',
@@ -73,7 +75,7 @@ class BookingsSeeder extends Seeder
             ];
             $bookings[] = [
                 'user_id'        => $user3->id,
-                'trip_id'        => $toMusanze[2]->id,
+                'trip_departure_id' => $toMusanze[2]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toMusanze[2]->id,
                 'title'          => 'RITCO • Kigali → Musanze',
@@ -89,7 +91,7 @@ class BookingsSeeder extends Seeder
         if ($toHuye->count() >= 3 && $user4 && $user5) {
             $bookings[] = [
                 'user_id'        => $user1->id,
-                'trip_id'        => $toHuye[0]->id,
+                'trip_departure_id' => $toHuye[0]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toHuye[0]->id,
                 'title'          => 'RITCO • Kigali → Huye',
@@ -102,7 +104,7 @@ class BookingsSeeder extends Seeder
             ];
             $bookings[] = [
                 'user_id'        => $user4->id,
-                'trip_id'        => $toHuye[1]->id,
+                'trip_departure_id' => $toHuye[1]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toHuye[1]->id,
                 'title'          => 'RITCO • Kigali → Huye',
@@ -115,7 +117,7 @@ class BookingsSeeder extends Seeder
             ];
             $bookings[] = [
                 'user_id'        => $user5->id,
-                'trip_id'        => $toHuye[2]->id,
+                'trip_departure_id' => $toHuye[2]->id,
                 'type'           => 'trip',
                 'reference_id'   => $toHuye[2]->id,
                 'title'          => 'RITCO • Kigali → Huye',

@@ -15,8 +15,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    name: Test before deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath
+          coverage: none
+      - name: Install Composer dependencies
+        working-directory: backend
+        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Run test suite
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+
   deploy:
     name: Deploy Backend to jali.stoka.rw
+    needs: test
     runs-on: ubuntu-latest
 
     steps:

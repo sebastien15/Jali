@@ -13,6 +13,7 @@ class AgenciesTripsSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
         DB::table('trips')->truncate();
+        DB::table('trip_departures')->truncate();
         DB::table('agency_routes')->truncate();
         DB::table('agencies')->truncate();
         Schema::enableForeignKeyConstraints();
@@ -391,8 +392,8 @@ class AgenciesTripsSeeder extends Seeder
                 continue;
             }
 
-            $routeBatch = [];
-            $tripBatch  = [];
+            $routeCount     = 0;
+            $departureCount = 0;
 
             foreach ($agencyDef['routes'] as [$fromSlug, $toSlug, $corridorCode, $times, $price, $minutes, $seats, $bidir]) {
                 $fromId     = $t[$fromSlug] ?? null;
@@ -404,53 +405,48 @@ class AgenciesTripsSeeder extends Seeder
                     continue;
                 }
 
-                // Forward direction
-                $routeBatch[] = [
-                    'agency_id'       => $agencyId,
-                    'corridor_id'     => $corridorId,
-                    'from_station_id' => $fromId,
-                    'to_station_id'   => $toId,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ];
-                foreach ($times as $dep) {
-                    $arr          = Carbon::parse($dep)->addMinutes($minutes)->format('H:i:s');
-                    $tripBatch[]  = $this->tripRow($agencyId, $fromId, $toId, $dep, $arr, $price, $seats, $now);
-                }
+                $directions = $bidir ? [[$fromId, $toId], [$toId, $fromId]] : [[$fromId, $toId]];
 
-                // Reverse direction
-                if ($bidir) {
-                    $routeBatch[] = [
+                foreach ($directions as [$a, $b]) {
+                    $routeId = DB::table('agency_routes')->insertGetId([
                         'agency_id'       => $agencyId,
                         'corridor_id'     => $corridorId,
-                        'from_station_id' => $toId,
-                        'to_station_id'   => $fromId,
+                        'from_station_id' => $a,
+                        'to_station_id'   => $b,
+                        'price'           => $price,
+                        'total_seats'     => $seats,
+                        'duration_mins'   => $minutes,
+                        'active'          => true,
                         'created_at'      => $now,
                         'updated_at'      => $now,
-                    ];
-                    foreach ($times as $dep) {
-                        $arr         = Carbon::parse($dep)->addMinutes($minutes)->format('H:i:s');
-                        $tripBatch[] = $this->tripRow($agencyId, $toId, $fromId, $dep, $arr, $price, $seats, $now);
+                    ]);
+                    $routeCount++;
+
+                    $rows = array_map(fn ($dep) => [
+                        'agency_route_id' => $routeId,
+                        'departure_time'  => $dep . ':00',
+                        'active'          => true,
+                        'created_at'      => $now,
+                        'updated_at'      => $now,
+                    ], $times);
+                    foreach (array_chunk($rows, 200) as $chunk) {
+                        DB::table('trip_departures')->insert($chunk);
                     }
+                    $departureCount += count($rows);
                 }
             }
 
-            DB::table('agency_routes')->insert($routeBatch);
-            foreach (array_chunk($tripBatch, 200) as $chunk) {
-                DB::table('trips')->insert($chunk);
-            }
+            $totalRoutes += $routeCount;
+            $totalTrips  += $departureCount;
 
-            $totalRoutes += count($routeBatch);
-            $totalTrips  += count($tripBatch);
-
-            $this->command->info("  {$agencyDef['name']}: " . count($routeBatch) . " routes, " . count($tripBatch) . " trips");
+            $this->command->info("  {$agencyDef['name']}: {$routeCount} routes, {$departureCount} departures");
         }
 
         $this->command->info('');
         $this->command->info('AgenciesTripsSeeder complete:');
-        $this->command->info('  Agencies : ' . DB::table('agencies')->count());
-        $this->command->info('  Routes   : ' . $totalRoutes);
-        $this->command->info('  Trips    : ' . $totalTrips);
+        $this->command->info('  Agencies   : ' . DB::table('agencies')->count());
+        $this->command->info('  Routes     : ' . $totalRoutes);
+        $this->command->info('  Departures : ' . $totalTrips);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -498,21 +494,5 @@ class AgenciesTripsSeeder extends Seeder
         }
 
         return $times;
-    }
-
-    private function tripRow(int $agencyId, int $fromId, int $toId, string $dep, string $arr, int $price, int $seats, $now): array
-    {
-        return [
-            'agency_id'              => $agencyId,
-            'from_station_id'        => $fromId,
-            'to_station_id'          => $toId,
-            'departure_time'         => $dep . ':00',
-            'estimated_arrival_time' => $arr,
-            'price'                  => $price,
-            'total_seats'            => $seats,
-            'active'                 => true,
-            'created_at'             => $now,
-            'updated_at'             => $now,
-        ];
     }
 }

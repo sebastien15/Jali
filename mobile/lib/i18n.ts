@@ -10,7 +10,7 @@ import sw from "@/locales/sw.json";
 
 const LANGUAGE_DETECTION_KEY = "jali_language";
 
-const resources = {
+const resources: Record<string, { translation: typeof en }> = {
   en: { translation: en },
   fr: { translation: fr },
   rw: { translation: rw },

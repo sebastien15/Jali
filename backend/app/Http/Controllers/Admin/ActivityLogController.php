@@ -12,7 +12,8 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ActivityLog::with("admin")->orderBy("created_at", "desc");
+        // Only what the log screen shows — not phone, Firebase uid or payout details.
+        $query = ActivityLog::with("admin:id,name,email,role_id")->orderBy("created_at", "desc");
 
         // Filter by admin_id
         if ($request->has("admin_id")) {

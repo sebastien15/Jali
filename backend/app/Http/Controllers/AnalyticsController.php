@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminStation;
 use App\Models\Booking;
 use App\Models\Location;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * All figures are scoped with Booking::manageableBy(): superadmins see the
+ * whole platform, station admins only their station(s).
+ */
 class AnalyticsController extends Controller
 {
     /**
@@ -14,35 +20,21 @@ class AnalyticsController extends Controller
      */
     public function revenue(Request $request)
     {
-        $user = $request->user();
+        $totals = Booking::manageableBy($request->user())
+            ->where("status", "delivered")
+            ->selectRaw("count(*) as n, coalesce(sum(price), 0) as price, coalesce(sum(service_fee), 0) as fee")
+            ->first();
 
-        $query = Booking::query()->where("status", "delivered");
-
-        // Admin scoped to their location
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            if ($user->location_id) {
-                $query->where("location_id", $user->location_id);
-            } else {
-                return response()->json(["data" => []]);
-            }
-        }
-
-        $bookings = $query->get();
-
-        $totalUserPaid = $bookings->sum(fn($b) => $b->price + $b->service_fee);
-        $totalServiceProvider = $bookings->sum(fn($b) => $b->price);
-        $totalServiceFee = $bookings->sum(fn($b) => $b->service_fee);
-        $platformShare = $totalServiceFee * 0.5;
-        $adminShare = $totalServiceFee * 0.5;
+        $fee = (int) $totals->fee;
 
         return response()->json([
             "data" => [
-                "total_user_paid" => $totalUserPaid,
-                "total_service_provider" => $totalServiceProvider,
-                "total_service_fee" => $totalServiceFee,
-                "platform_share" => $platformShare,
-                "admin_share" => $adminShare,
-                "delivered_bookings" => $bookings->count(),
+                "total_user_paid" => (int) $totals->price + $fee,
+                "total_service_provider" => (int) $totals->price,
+                "total_service_fee" => $fee,
+                "platform_share" => $fee * 0.5,
+                "admin_share" => $fee * 0.5,
+                "delivered_bookings" => (int) $totals->n,
             ],
         ]);
     }
@@ -52,56 +44,37 @@ class AnalyticsController extends Controller
      */
     public function bookings(Request $request)
     {
-        $user = $request->user();
+        $query = Booking::manageableBy($request->user());
 
-        $query = Booking::query();
+        $byStatus = (clone $query)->select("status", DB::raw("count(*) as count"))
+            ->groupBy("status")->pluck("count", "status");
+        $byType = (clone $query)->select("type", DB::raw("count(*) as count"))
+            ->groupBy("type")->pluck("count", "type");
 
-        // Superadmin sees all; regular admin also sees all for now.
-        // Station-scoped filtering will be added once booking→trip→station
-        // chain is fully enforced on booking creation.
-
-        $byStatus = $query
-            ->clone()
-            ->select("status", DB::raw("count(*) as count"))
-            ->groupBy("status")
-            ->get()
-            ->pluck("count", "status");
-
-        $byType = $query
-            ->clone()
-            ->select("type", DB::raw("count(*) as count"))
-            ->groupBy("type")
-            ->get()
-            ->pluck("count", "type");
-
-        $dailyTrend = $query
-            ->clone()
-            ->select(
-                DB::raw("DATE(created_at) as date"),
-                DB::raw("count(*) as count"),
-            )
+        $dailyTrend = (clone $query)
+            ->select(DB::raw("DATE(created_at) as date"), DB::raw("count(*) as count"))
             ->groupBy("date")
             ->orderBy("date", "desc")
             ->limit(30)
             ->get();
 
-        $totalBookings = $query->clone()->count();
-        $totalRevenue = $query
-            ->clone()
-            ->get()
-            ->sum(fn($b) => $b->price + $b->service_fee);
+        $totals = (clone $query)
+            ->selectRaw("count(*) as n, coalesce(sum(price + service_fee), 0) as revenue")
+            ->first();
 
         return response()->json([
             "data" => [
-                "total_bookings" => $totalBookings,
-                "total_revenue" => $totalRevenue,
+                "total_bookings" => (int) $totals->n,
+                "total_revenue" => (int) $totals->revenue,
                 "by_status" => [
                     "pending" => $byStatus["pending"] ?? 0,
                     "taken" => $byStatus["taken"] ?? 0,
                     "ticket_ready" => $byStatus["ticket_ready"] ?? 0,
                     "delivered" => $byStatus["delivered"] ?? 0,
+                    "cancelled" => $byStatus["cancelled"] ?? 0,
                 ],
                 "by_type" => [
+                    "trip" => $byType["trip"] ?? 0,
                     "bus" => $byType["bus"] ?? 0,
                     "rental" => $byType["rental"] ?? 0,
                     "private" => $byType["private"] ?? 0,
@@ -112,126 +85,68 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Earnings for the logged-in admin (50% of service_fee on delivered bookings)
+     * Earnings for the logged-in admin: 50% of the service fee on delivered
+     * bookings they handled (superadmin: all delivered bookings).
      */
     public function earnings(Request $request)
     {
         $user = $request->user();
 
-        $query = Booking::query()->where("status", "delivered");
+        $query = Booking::where("status", "delivered")
+            ->when(!$user->isSuperAdmin(), fn (Builder $q) => $q->where("confirmed_by", $user->id));
 
-        // Superadmin and admin both see all delivered bookings for now.
-
-        $allDelivered = $query->get();
-        $totalServiceFee = $allDelivered->sum(fn($b) => $b->service_fee);
-        $adminEarnings = $totalServiceFee * 0.5;
-
-        // Today's earnings
-        $todayQuery = clone $query;
-        $todayBookings = $todayQuery->whereDate("updated_at", today())->get();
-        $todayEarnings = $todayBookings->sum(fn($b) => $b->service_fee) * 0.5;
-
-        // This week
-        $weekQuery = clone $query;
-        $weekBookings = $weekQuery
-            ->whereBetween("updated_at", [
-                now()->startOfWeek(),
-                now()->endOfWeek(),
-            ])
-            ->get();
-        $weekEarnings = $weekBookings->sum(fn($b) => $b->service_fee) * 0.5;
-
-        // This month
-        $monthQuery = clone $query;
-        $monthBookings = $monthQuery
-            ->whereMonth("updated_at", now()->month)
-            ->get();
-        $monthEarnings = $monthBookings->sum(fn($b) => $b->service_fee) * 0.5;
+        $sumFee = fn (Builder $q) => (int) $q->sum("service_fee") * 0.5;
 
         return response()->json([
             "data" => [
-                "total_earnings" => $adminEarnings,
-                "today_earnings" => $todayEarnings,
-                "week_earnings" => $weekEarnings,
-                "month_earnings" => $monthEarnings,
-                "delivered_count" => $allDelivered->count(),
+                "total_earnings" => $sumFee(clone $query),
+                "today_earnings" => $sumFee((clone $query)->whereDate("updated_at", today())),
+                "week_earnings" => $sumFee((clone $query)->whereBetween("updated_at", [now()->startOfWeek(), now()->endOfWeek()])),
+                "month_earnings" => $sumFee((clone $query)->whereYear("updated_at", now()->year)->whereMonth("updated_at", now()->month)),
+                "delivered_count" => (clone $query)->count(),
             ],
         ]);
     }
 
     /**
-     * Location analytics — performance per location
+     * Performance per pickup location (bookings are linked to a location by
+     * departure city). Station admins only get the locations they manage.
      */
     public function stations(Request $request)
     {
         $user = $request->user();
 
-        // Admin only sees their location
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            if (!$user->location_id) {
-                return response()->json(["data" => null]);
-            }
-            $location = Location::withCount(["bookings"])->find(
-                $user->location_id,
-            );
-            if (!$location) {
-                return response()->json(["data" => null]);
-            }
-
-            $bookings = Booking::where(
+        $stats = Booking::manageableBy($user)
+            ->whereNotNull("location_id")
+            ->select(
                 "location_id",
-                $user->location_id,
-            )->get();
-            $totalRevenue = $bookings->sum(
-                fn($b) => $b->price + $b->service_fee,
-            );
-            $adminShare =
-                $bookings
-                    ->where("status", "delivered")
-                    ->sum(fn($b) => $b->service_fee) * 0.5;
+                DB::raw("count(*) as total_bookings"),
+                DB::raw("coalesce(sum(price + service_fee), 0) as total_revenue"),
+                DB::raw("coalesce(sum(case when status = 'delivered' then service_fee else 0 end), 0) as delivered_fee"),
+            )
+            ->groupBy("location_id")
+            ->get()
+            ->keyBy("location_id");
 
-            return response()->json([
-                "data" => [
-                    [
-                        "id" => $location->id,
-                        "name" => $location->name,
-                        "city" => $location->city,
-                        "type" => $location->type,
-                        "total_bookings" => $location->bookings_count,
-                        "total_revenue" => $totalRevenue,
-                        "admin_share" => $adminShare,
-                    ],
-                ],
-            ]);
-        }
+        $locations = $user->isSuperAdmin()
+            ? Location::all()
+            : Location::whereIn("id", $stats->keys())->get();
 
-        // Superadmin sees all locations
-        $locations = Location::withCount(["bookings"])->get();
+        $adminsByCity = AdminStation::whereNotNull("user_id")->with("user:id,name")->get()
+            ->groupBy("city")
+            ->map(fn ($s) => $s->first()->user?->name);
 
-        $stations = $locations->map(function ($location) {
-            $bookings = Booking::where("location_id", $location->id)->get();
-            $totalRevenue = $bookings->sum(
-                fn($b) => $b->price + $b->service_fee,
-            );
-            $adminShare =
-                $bookings
-                    ->where("status", "delivered")
-                    ->sum(fn($b) => $b->service_fee) * 0.5;
+        $data = $locations->map(fn ($location) => [
+            "id" => $location->id,
+            "name" => $location->name,
+            "city" => $location->city,
+            "type" => $location->type,
+            "admin_name" => $adminsByCity[$location->city] ?? "Unassigned",
+            "total_bookings" => (int) ($stats[$location->id]->total_bookings ?? 0),
+            "total_revenue" => (int) ($stats[$location->id]->total_revenue ?? 0),
+            "admin_share" => (int) ($stats[$location->id]->delivered_fee ?? 0) * 0.5,
+        ])->values();
 
-            $admin = $location->admins()->first();
-
-            return [
-                "id" => $location->id,
-                "name" => $location->name,
-                "city" => $location->city,
-                "type" => $location->type,
-                "admin_name" => $admin ? $admin->name : "Unassigned",
-                "total_bookings" => $location->bookings_count,
-                "total_revenue" => $totalRevenue,
-                "admin_share" => $adminShare,
-            ];
-        });
-
-        return response()->json(["data" => $stations]);
+        return response()->json(["data" => $data]);
     }
 }

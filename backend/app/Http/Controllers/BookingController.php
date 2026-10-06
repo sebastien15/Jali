@@ -12,78 +12,43 @@ use App\Models\Trip;
 use App\Models\TripDeparture;
 use App\Services\PushService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
     /**
-     * List bookings — users see own, admins see location-scoped
+     * List the caller's own bookings (passenger view, every role).
+     * Admin queues live in /admin/bookings; driver passengers in /driver/trips.
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $query = Booking::query();
+        $query = Booking::where("user_id", $request->user()->id);
 
-        if ($user->isAdmin() && !$user->isSuperAdmin()) {
-            // Admin: only bookings for their location
-            if ($user->location_id) {
-                $query->where("location_id", $user->location_id);
-            } else {
-                return response()->json([]);
-            }
-        } elseif ($user->isDriver()) {
-            // Driver: bookings for their private cars or rental cars
-            $privateSeatIds = PrivateSeat::where("user_id", $user->id)->pluck(
-                "id",
-            );
-            $carRentalIds = CarRental::where("user_id", $user->id)->pluck("id");
-
-            $query->where(function ($q) use ($privateSeatIds, $carRentalIds) {
-                if ($privateSeatIds->isNotEmpty()) {
-                    $q->orWhere(function ($sq) use ($privateSeatIds) {
-                        $sq->where("type", "private")->whereIn(
-                            "reference_id",
-                            $privateSeatIds,
-                        );
-                    });
-                }
-                if ($carRentalIds->isNotEmpty()) {
-                    $q->orWhere(function ($sq) use ($carRentalIds) {
-                        $sq->where("type", "rental")->whereIn(
-                            "reference_id",
-                            $carRentalIds,
-                        );
-                    });
-                }
-            });
-        } else {
-            // Regular user: only own bookings
-            $query->where("user_id", $user->id);
-        }
-
-        if ($request->has("status")) {
+        if ($request->filled("status")) {
             $query->where("status", $request->status);
         }
 
-        $bookings = $query->with("user")->orderBy("created_at", "desc")->get();
-
-        $trips = $bookings->map(function ($booking) {
-            return [
-                "id" => $booking->id,
-                "type" => $booking->type,
-                "title" => $booking->title,
-                "sub" => $booking->sub,
-                "price" => $booking->price + $booking->service_fee,
-                "status" => $booking->status,
-                "ticket_photo_url" => $booking->ticket_photo_url,
-                "location_id" => $booking->location_id,
-            ];
-        });
+        $trips = $query->orderBy("created_at", "desc")->get()->map(fn ($booking) => [
+            "id" => $booking->id,
+            "type" => $booking->type,
+            "title" => $booking->title,
+            "sub" => $booking->sub,
+            "price" => $booking->price + $booking->service_fee,
+            "quantity" => $booking->quantity ?? 1,
+            "travel_date" => $booking->travel_date,
+            "status" => $booking->status,
+            "ticket_photo_url" => $booking->ticket_photo_url,
+            "location_id" => $booking->location_id,
+            "created_at" => $booking->created_at,
+        ]);
 
         return response()->json($trips);
     }
 
     /**
-     * Create booking — accepts location_id, sets status=pending
+     * Create booking. Price, service fee, title and location are always
+     * derived server-side from the booked item — client values are ignored.
      */
     public function store(Request $request)
     {
@@ -92,102 +57,164 @@ class BookingController extends Controller
         $validated = $request->validate([
             "type" => "required|in:bus,private,rental,trip",
             "reference_id" => "required|integer",
-            "price" => "required|integer|min:0",
-            "service_fee" => "required|integer|min:0",
-            "payment_method" => "required|string",
-            "title" => "nullable|string",
-            "sub" => "nullable|string",
-            "travel_date" => "nullable|string",
-            "location_id" => "nullable|exists:locations,id",
+            "service_fee" => "nullable|integer|min:0",
+            "payment_method" => "required|in:MTN MoMo,Airtel Money,Card",
+            "travel_date" => "nullable|string|max:40",
             "quantity" => "nullable|integer|min:1|max:10",
-            "passenger_names" => "nullable|array",
+            "days" => "nullable|integer|min:1|max:30",
+            "passenger_names" => "nullable|array|max:10",
             "passenger_names.*" => "nullable|string|max:100",
         ]);
 
         $type = $validated["type"];
         $itemId = $validated["reference_id"];
+        $quantity = $type === "rental" ? 1 : ($validated["quantity"] ?? 1);
+        $days = $type === "rental" ? ($validated["days"] ?? 1) : 1;
 
-        // Server-side title/sub generation
-        if (empty($validated["title"])) {
+        $travelDate = $this->normalizeTravelDate($validated["travel_date"] ?? null);
+        if ($travelDate === false) {
+            return response()->json(
+                ["error" => "Validation failed", "message" => "Invalid or past travel date."],
+                422,
+            );
+        }
+
+        return DB::transaction(function () use ($user, $validated, $type, $itemId, $quantity, $days, $travelDate) {
             $item = match ($type) {
-                "bus"     => Bus::find($itemId),
-                "private" => PrivateSeat::find($itemId),
-                "rental"  => CarRental::find($itemId),
-                "trip"    => TripDeparture::with(["route.agency", "route.fromStation", "route.toStation"])->find($itemId),
+                "bus"     => Bus::lockForUpdate()->find($itemId),
+                "private" => PrivateSeat::lockForUpdate()->find($itemId),
+                "rental"  => CarRental::lockForUpdate()->find($itemId),
+                "trip"    => TripDeparture::with(["route.agency", "route.fromStation", "route.toStation"])->lockForUpdate()->find($itemId),
             };
 
-            if (!$item) {
-                return response()->json(["error" => "Item not found"], 404);
+            $active = $item && ($type === "trip" ? ($item->active && $item->route->active) : ($item->active ?? true))
+                && ($type !== "rental" || ($item->status ?? "available") === "available");
+            if (!$active) {
+                return response()->json(["error" => "Item not found", "message" => "This listing is no longer available."], 404);
             }
 
-            $validated["title"] = match ($type) {
+            // Capacity: seats already held by non-cancelled bookings on the same item and date.
+            $capacity = match ($type) {
+                "trip"   => (int) $item->route->total_seats,
+                "rental" => 1,
+                default  => (int) $item->seats,
+            };
+            $taken = (int) Booking::where("type", $type)
+                ->where("reference_id", $itemId)
+                ->where("status", "!=", "cancelled")
+                ->where("travel_date", $travelDate)
+                ->sum("quantity");
+            if ($taken + $quantity > $capacity) {
+                return response()->json(
+                    ["error" => "Sold out", "message" => "Not enough seats left (" . max(0, $capacity - $taken) . " available)."],
+                    422,
+                );
+            }
+
+            $unitPrice = (int) ($type === "trip" ? $item->route->price : $item->price);
+            $price = $unitPrice * $quantity * $days;
+            $serviceFee = match ($type) {
+                "trip"   => max(500, min(3000, (int) round($unitPrice * 0.05))),
+                "rental" => 300,
+                // bus/private: distance-based fee computed on the device (300–500 RWF tiers)
+                default  => max(300, min(500, $validated["service_fee"] ?? 500)),
+            };
+
+            $title = match ($type) {
                 "bus"     => "{$item->agency} · {$item->from} → {$item->to}",
                 "private" => "{$item->driver} · {$item->from} → {$item->to}",
                 "rental"  => "{$item->name} ({$item->type})",
                 "trip"    => "{$item->route->agency->name} · {$item->route->fromStation->city} → {$item->route->toStation->city}",
             };
-            $validated["sub"] = match ($type) {
-                "bus"     => "Departs {$item->dep} · {$item->seats} seats",
-                "private" => "Departs {$item->dep}",
-                "rental"  => "{$item->plate} · {$item->seats} seats",
-                "trip"    => "Departs {$item->departure_time}",
+            $sub = match ($type) {
+                "bus", "private" => "Departs {$item->dep}",
+                "rental"         => "{$item->plate} · {$days} day" . ($days > 1 ? "s" : ""),
+                "trip"           => "Departs " . substr($item->departure_time, 0, 5),
             };
-        }
 
-        // Auto-assign location from route city if not provided
-        if (empty($validated["location_id"]) && isset($item)) {
             $fromCity = $type === "trip" ? $item->route->fromStation->city : ($item->from ?? null);
-            if ($fromCity) {
-                $location = Location::where("city", $fromCity)
-                    ->where("type", "bus_station")
-                    ->first();
-                if ($location) {
-                    $validated["location_id"] = $location->id;
-                }
-            }
+            $locationId = $fromCity
+                ? Location::where("city", $fromCity)->where("type", "bus_station")->value("id")
+                : null;
+
+            $booking = Booking::create([
+                "user_id"            => $user->id,
+                "location_id"        => $locationId,
+                "type"               => $type,
+                "reference_id"       => $itemId,
+                "title"              => $title,
+                "sub"                => $sub,
+                "price"              => $price,
+                "service_fee"        => $serviceFee,
+                "quantity"           => $quantity,
+                "passenger_names"    => $validated["passenger_names"] ?? null,
+                "status"             => "pending",
+                "payment_method"     => $validated["payment_method"],
+                "travel_date"        => $travelDate,
+                "trip_id"            => null,
+                "trip_departure_id"  => $type === "trip" ? $itemId : null,
+            ]);
+
+            ActivityLog::create([
+                "admin_id" => $user->id,
+                "action" => "booking_created",
+                "entity_type" => "booking",
+                "entity_id" => $booking->id,
+                "details" => [
+                    "title" => $booking->title,
+                    "type" => $booking->type,
+                    "payment_method" => $booking->payment_method,
+                ],
+            ]);
+
+            return response()->json(
+                [
+                    "id" => $booking->id,
+                    "type" => $booking->type,
+                    "title" => $booking->title,
+                    "sub" => $booking->sub,
+                    "price" => $booking->price + $booking->service_fee,
+                    "status" => $booking->status,
+                ],
+                201,
+            );
+        });
+    }
+
+    /**
+     * Accepts the labels the app sends ("Today", "Tomorrow", "Oct 7",
+     * "Oct 7 · 14:00") or Y-m-d. Returns Y-m-d in Africa/Kigali, null when
+     * absent, false when unparseable or in the past.
+     */
+    private function normalizeTravelDate(?string $raw): string|null|false
+    {
+        if ($raw === null || trim($raw) === "") {
+            return null;
+        }
+        $tz = "Africa/Kigali";
+        $today = Carbon::now($tz)->startOfDay();
+        $label = trim(explode("·", $raw)[0]);
+        $isIso = (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $label);
+
+        try {
+            $date = match (true) {
+                strcasecmp($label, "Today") === 0    => $today->copy(),
+                strcasecmp($label, "Tomorrow") === 0 => $today->copy()->addDay(),
+                $isIso                               => Carbon::createFromFormat("Y-m-d", $label, $tz)->startOfDay(),
+                default                              => Carbon::parse($label . " " . $today->year, $tz)->startOfDay(),
+            };
+        } catch (\Throwable) {
+            return false;
         }
 
-        $booking = Booking::create([
-            "user_id"            => $user->id,
-            "location_id"        => $validated["location_id"] ?? null,
-            "type"               => $type,
-            "reference_id"       => $itemId,
-            "title"              => $validated["title"],
-            "sub"                => $validated["sub"] ?? "",
-            "price"              => $validated["price"],
-            "service_fee"        => $validated["service_fee"],
-            "quantity"           => $validated["quantity"] ?? 1,
-            "passenger_names"    => $validated["passenger_names"] ?? null,
-            "status"             => "pending",
-            "payment_method"     => $validated["payment_method"],
-            "travel_date"        => $validated["travel_date"] ?? null,
-            "trip_id"            => null,
-            "trip_departure_id"  => $type === "trip" ? $itemId : null,
-        ]);
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "booking_created",
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => [
-                "title" => $booking->title,
-                "type" => $booking->type,
-                "payment_method" => $booking->payment_method,
-            ],
-        ]);
-
-        return response()->json(
-            [
-                "id" => $booking->id,
-                "type" => $booking->type,
-                "title" => $booking->title,
-                "sub" => $booking->sub,
-                "price" => $booking->price + $booking->service_fee,
-                "status" => $booking->status,
-            ],
-            201,
-        );
+        // "Jan 3" picked in late December means next year.
+        if (!$isIso && $date->lt($today)) {
+            $date->addYear();
+        }
+        if ($date->lt($today) || $date->gt($today->copy()->addYear())) {
+            return false;
+        }
+        return $date->toDateString();
     }
 
     public function show(Request $request, $id)
@@ -195,7 +222,8 @@ class BookingController extends Controller
         $user = $request->user();
         $booking = Booking::findOrFail($id);
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin()) {
+        $isOwner = (int) $booking->user_id === (int) $user->id;
+        if (!$isOwner && !($user->hasPermission("confirm-bookings") && $booking->isManageableBy($user))) {
             return response()->json(["error" => "Forbidden"], 403);
         }
 
@@ -205,6 +233,8 @@ class BookingController extends Controller
             "title" => $booking->title,
             "sub" => $booking->sub,
             "price" => $booking->price + $booking->service_fee,
+            "quantity" => $booking->quantity ?? 1,
+            "travel_date" => $booking->travel_date,
             "status" => $booking->status,
             "ticket_photo_url" => $booking->ticket_photo_url,
             "location_id" => $booking->location_id,
@@ -216,98 +246,19 @@ class BookingController extends Controller
      */
     public function claim(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
-        }
-
-        // Location scoping
-        if (!$user->isSuperAdmin() && $user->location_id) {
-            $booking = Booking::where("id", $id)
-                ->where("location_id", $user->location_id)
-                ->first();
-        } else {
-            $booking = Booking::find($id);
-        }
-
-        if (!$booking) {
-            return response()->json(["error" => "Booking not found"], 404);
-        }
-        if ($booking->status !== "pending") {
-            return response()->json(
-                ["error" => "Booking already claimed."],
-                422,
-            );
-        }
-
-        $booking->update(["status" => "taken"]);
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "booking_claimed",
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
-        ]);
-
-        return response()->json([
-            "status" => "taken",
-            "message" => "Booking claimed.",
-        ]);
+        return $this->moveTo($request, $id, "taken", "booking_claimed");
     }
 
     /**
-     * Admin uploads ticket photo → status: ticket_ready
+     * Admin attaches the ticket photo URL → status: ticket_ready
      */
     public function uploadTicket(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
-        }
-
         $validated = $request->validate([
-            "ticket_photo_url" => "required|string",
+            "ticket_photo_url" => "required|url|max:2048",
         ]);
 
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status !== "taken") {
-            return response()->json(
-                [
-                    "error" =>
-                        'Booking must be in "taken" status to upload ticket.',
-                ],
-                422,
-            );
-        }
-
-        $booking->update([
-            "status" => "ticket_ready",
-            "ticket_photo_url" => $validated["ticket_photo_url"],
-        ]);
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => "ticket_uploaded",
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
-        ]);
-
-        if ($booking->user) {
-            app(PushService::class)->send(
-                $booking->user,
-                'Your ticket is ready',
-                'Tap to view your ticket for your trip',
-                ['screen' => 'booking', 'id' => $booking->id],
-            );
-        }
-
-        return response()->json([
-            "status" => "ticket_ready",
-            "message" => "Ticket uploaded.",
-        ]);
+        return $this->moveTo($request, $id, "ticket_ready", "ticket_uploaded", $validated);
     }
 
     /**
@@ -315,36 +266,37 @@ class BookingController extends Controller
      */
     public function deliver(Request $request, $id)
     {
+        return $this->moveTo($request, $id, "delivered", "booking_delivered");
+    }
+
+    private function moveTo(Request $request, $id, string $status, string $action, array $extra = [])
+    {
         $user = $request->user();
-        if (!$user->isAdmin()) {
-            return response()->json(["error" => "Forbidden"], 403);
+        $booking = Booking::find($id);
+
+        if (!$booking || !$booking->isManageableBy($user)) {
+            return response()->json(["error" => "Booking not found"], 404);
         }
 
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status !== "ticket_ready") {
+        $from = $booking->status;
+        if (!$booking->transitionTo($status, $user, $extra)) {
             return response()->json(
-                [
-                    "error" =>
-                        'Booking must be in "ticket_ready" status to deliver.',
-                ],
+                ["error" => "Invalid status change", "message" => "Cannot change a {$booking->fresh()->status} booking to {$status}."],
                 422,
             );
         }
 
-        $booking->update(["status" => "delivered"]);
-
         ActivityLog::create([
             "admin_id" => $user->id,
-            "action" => "booking_delivered",
+            "action" => $action,
             "entity_type" => "booking",
             "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title],
+            "details" => ["title" => $booking->title, "from" => $from, "to" => $status],
         ]);
 
         return response()->json([
-            "status" => "delivered",
-            "message" => "Booking delivered.",
+            "status" => $status,
+            "message" => "Booking updated.",
         ]);
     }
 }

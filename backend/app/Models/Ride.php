@@ -25,7 +25,7 @@ class Ride extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['start_pin'];
+    protected $hidden = ['start_pin', 'share_token'];
 
     protected function casts(): array
     {
@@ -46,6 +46,7 @@ class Ride extends Model
             'completed_at'    => 'datetime',
             'cancelled_at'    => 'datetime',
             'flagged_at'      => 'datetime',
+            'sos_at'          => 'datetime',
         ];
     }
 

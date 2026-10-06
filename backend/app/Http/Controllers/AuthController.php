@@ -11,7 +11,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Kreait\Firebase\Factory;
+use Kreait\Firebase\Contract\Auth as FirebaseAuth;
+use App\Models\AdminStation;
+use App\Models\CarRental;
+use App\Models\PrivateSeat;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -37,30 +41,13 @@ class AuthController extends Controller
 
         $user = User::with("role")->where("email", $request->email)->first();
 
-        if (!$user) {
+        // Accounts without a password (Google / phone sign-up) can never use
+        // email+password login — they must use the provider they signed up with.
+        if (!$user || !$user->password || !Hash::check($request->password, $user->password)) {
             return response()->json(
                 ["error" => "Unauthorized", "message" => "Invalid credentials"],
                 401,
             );
-        }
-
-        // For pre-seeded admin users, use a default password or bypass
-        // In production, you'd set proper passwords during seeding
-        if (!Hash::check($request->password, $user->password ?? "")) {
-            // Allow admin users with any password if they exist in DB
-            // (Admins originally used Firebase, so we'll accept their login if they exist)
-            if (!$user->password) {
-                // User exists but has no password (Firebase-only user)
-                // For now, we'll create a token for them
-            } else {
-                return response()->json(
-                    [
-                        "error" => "Unauthorized",
-                        "message" => "Invalid credentials",
-                    ],
-                    401,
-                );
-            }
         }
 
         return $this->respondWithToken($user);
@@ -72,8 +59,24 @@ class AuthController extends Controller
      */
     public function loginWithGoogle(Request $request)
     {
+        return $this->loginWithFirebase($request);
+    }
+
+    /**
+     * Sign in with Apple (story S9.3): the app signs in to Firebase with the Apple
+     * credential and sends the Firebase ID token — verified exactly like Google.
+     * Apple only shares the name on the very first sign-in, so the app may send it.
+     */
+    public function loginWithApple(Request $request)
+    {
+        return $this->loginWithFirebase($request);
+    }
+
+    private function loginWithFirebase(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             "firebase_token" => "required|string",
+            "name" => "sometimes|nullable|string|max:100",
         ]);
 
         if ($validator->fails()) {
@@ -87,55 +90,55 @@ class AuthController extends Controller
         }
 
         try {
-            $factory = (new Factory())->withServiceAccount(
-                config("firebase.projects.app.credentials"),
-            );
-            $auth = $factory->createAuth();
-            $verified = $auth->verifyIdToken($request->firebase_token);
-
-            $uid = $verified->claims()->get("sub");
-            $email = $verified->claims()->get("email");
-            $name = $verified->claims()->get("name") ?? "User";
-
-            $user = User::with("role")->where("firebase_uid", $uid)->first();
-
-            // First-time admin login: link pre-seeded user
-            if (!$user && $email) {
-                $preSeeded = User::where("email", $email)
-                    ->whereNull("firebase_uid")
-                    ->first();
-                if ($preSeeded) {
-                    $preSeeded->update(["firebase_uid" => $uid]);
-                    $preSeeded->load("role");
-                    $user = $preSeeded;
-                }
-            }
-
-            // Create new user
-            if (!$user) {
-                $userRole = Role::where("name", "user")->first();
-                $user = User::create([
-                    "firebase_uid" => $uid,
-                    "name" => $name,
-                    "email" => $email,
-                    "role_id" => $userRole ? $userRole->id : null,
-                ]);
-                $user->load("role");
-            }
-
-            return $this->respondWithToken($user);
-        } catch (\Exception $e) {
-            Log::error("[GoogleLogin] Failed:", [
-                "message" => $e->getMessage(),
-            ]);
+            $verified = app(FirebaseAuth::class)->verifyIdToken($request->firebase_token);
+        } catch (\Throwable $e) {
+            Log::warning("[GoogleLogin] Token rejected:", ["message" => $e->getMessage()]);
             return response()->json(
-                [
-                    "error" => "Unauthorized",
-                    "message" => "Invalid Google token",
-                ],
+                ["error" => "Unauthorized", "message" => "Invalid Google token"],
                 401,
             );
         }
+
+        $uid = $verified->claims()->get("sub");
+        $email = $verified->claims()->get("email");
+        $emailVerified = $verified->claims()->get("email_verified") === true;
+        $name = $verified->claims()->get("name") ?? "User";
+
+        $user = User::with("role")->where("firebase_uid", $uid)->first();
+
+        if (!$user && $email) {
+            $existing = User::where("email", $email)->first();
+            if ($existing) {
+                // Only link a Firebase identity to an existing account (e.g. a
+                // pre-provisioned admin) when Firebase has verified the email —
+                // otherwise anyone could register that address and take it over.
+                if (!$emailVerified || $existing->firebase_uid !== null) {
+                    return response()->json(
+                        [
+                            "error" => "Unauthorized",
+                            "message" => "This email is already registered. Sign in with your original method.",
+                        ],
+                        401,
+                    );
+                }
+                $existing->forceFill(["firebase_uid" => $uid])->save();
+                $user = $existing->load("role");
+            }
+        }
+
+        // Create new user
+        if (!$user) {
+            $userRole = Role::where("name", "user")->first();
+            $user = User::create([
+                "firebase_uid" => $uid,
+                "name" => $name,
+                "email" => $emailVerified ? $email : null,
+                "role_id" => $userRole ? $userRole->id : null,
+            ]);
+            $user->load("role");
+        }
+
+        return $this->respondWithToken($user);
     }
 
     /**
@@ -243,15 +246,49 @@ class AuthController extends Controller
     }
 
     /**
-     * Delete the authenticated user's account
+     * Delete the authenticated user's account.
+     *
+     * The row is anonymised rather than removed: a hard delete cascaded to
+     * the user's bookings, ratings and cashouts and — for a station agent —
+     * to their whole terminal with its routes and departures. Personal data
+     * is wiped, listings are deactivated, and every token is revoked.
      */
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
-        $user->tokens()->delete();
-        $user->delete();
+
+        if ($user->isSuperAdmin() && User::whereHas("role", fn ($q) => $q->where("name", "superadmin"))->count() <= 1) {
+            return response()->json(["message" => "The last superadmin account cannot be deleted."], 422);
+        }
+
+        DB::transaction(function () use ($user) {
+            $user->tokens()->delete();
+            AdminStation::where("user_id", $user->id)->update(["user_id" => null]);
+            PrivateSeat::where("user_id", $user->id)->update(["active" => false]);
+            CarRental::where("user_id", $user->id)->update(["active" => false]);
+            $user->driverProfile()->delete();
+
+            $user->forceFill([
+                "name" => "Deleted user",
+                "email" => null,
+                "phone" => null,
+                "password" => null,
+                "firebase_uid" => null,
+                "fcm_token" => null,
+                "profile_image_url" => null,
+                "whatsapp_number" => null,
+                "contract_doc_url" => null,
+                "cashout_method" => null,
+                "cashout_account_number" => null,
+                "cashout_account_name" => null,
+                "cashout_bank_name" => null,
+                "role_id" => Role::where("name", "user")->value("id"),
+            ])->save();
+        });
+
         return response()->json(["message" => "Account deleted."]);
     }
+
 
     /**
      * Get current user profile

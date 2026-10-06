@@ -8,7 +8,6 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,19 +17,13 @@ import { useTranslation } from "react-i18next";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
 import { Toast, ToastHandle } from "@/components/Toast";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
 import { queryKeys } from "@/lib/queryKeys";
+import {
+  resolveBookingError, statusChangeMessage, changeBookingStatus, pickAndUploadTicket,
+  invalidateAfterBookingChange,
+} from "@/lib/adminBookings";
 
-type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "taken" | "ticket_ready" | "delivered";
-
-// Maps backend error messages to i18n keys
-const BACKEND_ERROR_KEYS: Record<string, string> = {
-  "This action is unauthorized.":           "adminBookings.noPermission",
-  "No station assigned to your account.":   "adminBookings.noStation",
-  "You can only manage bookings for your assigned station.": "adminBookings.wrongStation",
-  "You can only manage bookings for your assigned city.":    "adminBookings.wrongStation",
-};
+type BookingStatus = "pending" | "cancelled" | "taken" | "ticket_ready" | "delivered";
 
 export default function AdminBookingsScreen() {
   const { t } = useTranslation();
@@ -53,9 +46,7 @@ export default function AdminBookingsScreen() {
 
   const STATUS_META: Record<BookingStatus, { label: string; color: string; bg: string; icon: string }> = {
     pending:     { label: t("adminBookings.statusPending"),     color: C.orange,  bg: C.orangeLt, icon: "⏳" },
-    confirmed:   { label: t("adminBookings.statusConfirmed"),   color: C.green,   bg: C.greenLt,  icon: "✅" },
-    completed:   { label: t("adminBookings.statusCompleted"),   color: C.teal,    bg: C.tealLt,   icon: "🏁" },
-    cancelled:   { label: t("adminBookings.statusCancelled"),   color: "#DC2626", bg: "#FEE2E2",  icon: "❌" },
+    cancelled:   { label: t("adminBookings.statusCancelled"),   color: C.muted,   bg: C.bg,       icon: "❌" },
     taken:       { label: t("adminBookings.statusTaken"),       color: C.blue,    bg: C.blueLt,   icon: "📋" },
     ticket_ready:{ label: t("adminBookings.statusTicketReady"), color: C.green,   bg: C.greenLt,  icon: "🎫" },
     delivered:   { label: t("adminBookings.statusDelivered"),   color: C.teal,    bg: C.tealLt,   icon: "✅" },
@@ -72,8 +63,7 @@ export default function AdminBookingsScreen() {
   });
 
   const STATUS_PRIORITY: Record<string, number> = {
-    pending: 0, taken: 1, ticket_ready: 2, delivered: 3,
-    confirmed: 4, completed: 5, cancelled: 6,
+    pending: 0, taken: 1, ticket_ready: 2, delivered: 3, cancelled: 4,
   };
 
   const list = bookings
@@ -82,81 +72,30 @@ export default function AdminBookingsScreen() {
 
   const totalServiceFees = bookings.reduce((sum: number, b: any) => sum + (b.service_fee ?? 0), 0);
 
-  function resolveError(e: any): string {
-    const data = e?.response?.data ?? {};
-    const msg: string = data.message ?? data.error ?? "";
-    if (e?.response?.status === 403) {
-      const key = BACKEND_ERROR_KEYS[msg];
-      return key ? t(key) : t("adminBookings.noPermission");
-    }
-    const key = BACKEND_ERROR_KEYS[msg];
-    if (key) return t(key);
-    return t("adminBookings.updateFailed");
-  }
-
-  async function doStatusChange(id: number, status: string) {
+  async function doStatusChange(id: number, status: "taken" | "delivered") {
     setActionLoading(id);
     try {
-      await api.patch(`/admin/bookings/${id}`, { status });
-      toastRef.current?.show({ message: t("adminBookings.statusDelivered"), type: "success" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      await changeBookingStatus(id, status);
+      toastRef.current?.show({ message: statusChangeMessage(status, t), type: "success" });
     } catch (e: any) {
-      toastRef.current?.show({ message: resolveError(e), type: "error" });
+      toastRef.current?.show({ message: resolveBookingError(e, t), type: "error" });
     } finally {
+      // Also on error: a 422 "just updated by someone else" means our list is stale
+      invalidateAfterBookingChange(queryClient);
       setActionLoading(null);
     }
   }
 
   async function doUploadTicket(id: number) {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.9,
-      allowsEditing: false,
-    });
-
-    if (result.canceled || !result.assets?.[0]) return;
-
-    const asset = result.assets[0];
     setActionLoading(id);
     try {
-      const isImage = !asset.mimeType || asset.mimeType.startsWith("image/");
-      let uri = asset.uri;
-      let mimeType = asset.mimeType ?? "image/jpeg";
-
-      if (isImage) {
-        const compressed = await ImageManipulator.manipulateAsync(
-          asset.uri,
-          [{ resize: { width: 1200 } }],
-          { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-        );
-        uri = compressed.uri;
-        mimeType = "image/jpeg";
-      }
-
-      const form = new FormData();
-      if (Platform.OS === "web") {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        form.append("ticket", blob, asset.fileName ?? "ticket.jpg");
-      } else {
-        form.append("ticket", {
-          uri,
-          name: asset.fileName ?? "ticket.jpg",
-          type: mimeType,
-        } as any);
-      }
-
-      await api.post(`/admin/bookings/${id}/ticket`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      const uploaded = await pickAndUploadTicket(id);
+      if (!uploaded) return;
       toastRef.current?.show({ message: t("adminBookings.ticketUploaded"), type: "success" });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.bookings() });
+      invalidateAfterBookingChange(queryClient);
     } catch (e: any) {
-      const msg = e?.response?.data?.message;
-      const key = BACKEND_ERROR_KEYS[msg ?? ""];
       toastRef.current?.show({
-        message: key ? t(key) : t("adminBookings.uploadTicketFailed"),
+        message: resolveBookingError(e, t, "adminBookings.uploadTicketFailed"),
         type: "error",
       });
     } finally {
@@ -311,7 +250,7 @@ export default function AdminBookingsScreen() {
                     )}
                     {b.quantity > 1 && (
                       <Text style={{ color: C.blue, fontSize: 12, marginTop: 4, fontWeight: "700" }}>
-                        🎟 {b.quantity} tickets
+                        🎟 {t("adminBookings.ticketCount", { count: b.quantity })}
                         {Array.isArray(b.passenger_names) && b.passenger_names.filter(Boolean).length > 0
                           ? ` · ${b.passenger_names.filter(Boolean).join(", ")}`
                           : ""}

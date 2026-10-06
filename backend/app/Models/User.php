@@ -31,9 +31,13 @@ class User extends Authenticatable
         "cashout_account_number",
         "cashout_account_name",
         "cashout_bank_name",
+        "emergency_contact_name",
+        "emergency_contact_phone",
     ];
 
-    protected $hidden = [];
+    protected $hidden = ["password", "remember_token", "fcm_token"];
+
+    protected $casts = ["password" => "hashed"];
 
     /**
      * Get the single role assigned to the user.

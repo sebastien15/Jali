@@ -134,6 +134,7 @@ class HireService
         ], 'This hire is not in progress.');
         \App\Models\DriverProfile::where('user_id', $driver->id)->increment('trips_count');
         app(\App\Services\Payments\DriverLedger::class)->recordHire($hire);   // S7.2
+        \App\Services\Receipts\Receipts::email('hire', $hire);                 // S9.6
 
         $this->push->send($hire->customer, 'Hire completed',
             sprintf('Total %s RWF%s. Tap to rate your driver.', number_format($hire->final_total),

@@ -13,9 +13,10 @@ class CarRentalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CarRental::query()->where('active', true);
+        // Cars marked rented / in maintenance by their owner are not offered.
+        $query = CarRental::query()->where('active', true)->where('status', 'available');
 
-        if ($request->has('type')) {
+        if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 

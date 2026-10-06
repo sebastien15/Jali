@@ -38,14 +38,6 @@ class DriverProfileTest extends TestCase
         $this->driver = $this->makeUser('driver');
     }
 
-    private function makeUser(string $role): User
-    {
-        return User::create([
-            'name'    => ucfirst($role),
-            'role_id' => Role::where('name', $role)->value('id'),
-        ]);
-    }
-
     /** @test */
     public function setup_data_is_saved_and_returned_on_reload()
     {

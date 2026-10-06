@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
-import api, { clearApiToken, getApiToken } from "@/lib/api";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import api, { getApiToken } from "@/lib/api";
+import { endSession } from "@/lib/session";
 import { queryKeys } from "@/lib/queryKeys";
 
 type AdminUser = {
@@ -27,7 +26,6 @@ type AdminNavCtx = {
 const Ctx = createContext<AdminNavCtx | null>(null);
 
 export function AdminNavProvider({ children }: { children: React.ReactNode }) {
-  const queryClient = useQueryClient();
   const [tokenChecked, setTokenChecked] = useState(false);
   const [hasToken, setHasToken] = useState(false);
 
@@ -62,21 +60,19 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
   }, [refetchQuery]);
 
   const handleLogout = useCallback(async () => {
+    // Local state is cleared first (token, query cache, Firebase); the
+    // /auth/logout call is best-effort so a failing request can't keep
+    // the admin signed in on this device.
+    await endSession();
     try {
-      await api.post("/auth/logout");
-      await clearApiToken();
-      try { await signOut(auth); } catch {}
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-        ["firebaseLocalStorageDb", "firebaseInstallationsDb", "firebase-messaging-store"]
-          .forEach((db) => indexedDB.deleteDatabase(db));
-      } catch {}
+      localStorage.clear();
+      sessionStorage.clear();
+      ["firebaseLocalStorageDb", "firebaseInstallationsDb", "firebase-messaging-store"]
+        .forEach((db) => indexedDB.deleteDatabase(db));
     } catch {}
-    // Wipe all cached data — next admin session starts fresh
-    queryClient.clear();
+    setHasToken(false);
     router.replace("/(auth)/login");
-  }, [queryClient]);
+  }, []);
 
   return (
     <Ctx.Provider value={{ user: user ?? null, isSuperAdmin, loading, refetch, handleLogout }}>

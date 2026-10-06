@@ -10,12 +10,22 @@ A Rwandan transport booking app. Users browse and book buses, private cars, and 
 
 ---
 
+## Release, Architecture & Shared UX Direction
+
+Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before public-service scope, release-order, platform-pricing, module-boundary or shared account/navigation/mode work. The agreed early sequence remains rental → scheduled private drivers → private shared journeys → nearby drivers → further passenger transport, initially with no Jali platform fees. Cargo/freight is an approved separate service; its public batch is TBD. Courier/parcel and food delivery remain excluded.
+
+The target direction is a modular Laravel backend and modular Expo app with shared foundations, one account, connected customer/provider views and additive releases; extraction or separate apps need a justified later decision. Keep permissions, view mode, selected service, offered services and operational availability distinct. Detailed navigation examples remain proposals, not an approved redesign or a description of current implementation.
+
+Flag material deviations and their implications; honor explicit owner-approved changes and record them when documentation edits are authorized. Backlog dependency waves are implementation order, not public launch order. Existing code is not proof of launch readiness or completed modularization. This plan does not authorize implementation, service activation, infrastructure provisioning, deployment or issue changes.
+
+---
+
 ## Monorepo Layout
 
 ```
 Jali/
 ├── mobile/     React Native (Expo Router) — iOS & Android
-├── backend/    Laravel 11 REST API
+├── backend/    Laravel 12 REST API (PHP 8.3+)
 └── context.md  ← this file
 ```
 
@@ -45,7 +55,7 @@ isDev / isTest / isProd
 ```
 
 API base URL (`lib/api.ts`):
-- Dev:  `https://jali.stoka.rw/backend/public/api`
+- Dev:  `https://jali.stoka.rw/api`
 - Prod: `https://api.jali.rw/api`
 - Override: `EXPO_PUBLIC_API_URL`
 
@@ -81,7 +91,7 @@ app/
 │   │                          Also handles Firebase onAuthStateChanged auto-redirect
 │   │                          Route: /admin-login (renamed from login.tsx to avoid /login conflict)
 │   ├── dashboard.tsx          Earnings summary, booking status cards, role-based nav tiles
-│   ├── analytics/index.tsx    Revenue + booking analytics charts
+│   ├── analytics/index.tsx    Revenue + booking analytics charts + ride metrics (RideAnalyticsSection)
 │   ├── bookings/index.tsx     All bookings list
 │   ├── bookings/[id].tsx      Booking detail + status update
 │   ├── stations/index.tsx     Station list + edit (superadmin only in tab bar)
@@ -265,25 +275,23 @@ isAdminRole(role: string): boolean  // true for admin | superadmin
 
 ---
 
-## Backend (Laravel 11)
+## Backend (Laravel 12)
 
 ### Tech Stack
-- Laravel 11 + Laravel Sanctum (personal access tokens)
+- Laravel 12 + Laravel Sanctum (personal access tokens, expire after SANCTUM_EXPIRATION minutes, default 30 days)
 - SQLite (dev database at `database/database.sqlite`)
 - `kreait/firebase-php` for Firebase token verification
 - Middleware: `CheckPermission` (`app/Http/Middleware/CheckPermission.php`)
 
 ### API Routes (`routes/api.php`)
 
-#### Public (no auth)
+#### Public (no auth, throttled)
 ```
-GET  /buses
-GET  /car-rentals
-GET  /private-seats
+POST /track-access                app-open tracking (token optional)
 POST /auth/login                  email + password → Sanctum token
 POST /auth/login/google           firebase_token → Sanctum token
-POST /auth/otp/request            phone OTP request (dev: always returns success)
-POST /auth/otp/verify             OTP verify (dev: "123456" accepted)
+POST /auth/otp/request            sends a random 6-digit code via SmsSender (503 in prod until an SMS driver exists)
+POST /auth/otp/verify             single-use hashed code, 5 min, 5 attempts; OTP_DEV_CODE only in local/testing
 ```
 
 #### Protected — `auth:sanctum`
@@ -321,6 +329,7 @@ GET  /analytics/revenue
 GET  /analytics/bookings
 GET  /analytics/earnings
 GET  /analytics/stations
+GET  /analytics/rides?period=day|week&from&to   ride metrics (S10.3): requested/completed, cancel rates by side, expired rate, GMV, commission, pickup ETA, fare/km by class, top drivers — Kigali buckets, ≤92 days
 
 # Admin profile (any auth user)
 GET   /admin/profile
@@ -415,6 +424,21 @@ PUT   /driver/momo                {momo_number, momo_name} — shown to riders p
 POST  /driver/payouts             {amount} ≤ balance → cashout_requests (requester_type=driver)
       Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
       collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
+
+# Safety (E8) — perm: request-rides (rider or driver of the ride)
+POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
+POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112
+GET|PUT /me/emergency-contact     {name, phone}
+GET   /admin/drivers/review       (verify-drivers) low rating after N rated trips or high cancel rate (rides.review) · POST /admin/drivers/{id}/warn
+
+# International (E9) — perm: request-rides
+POST  /auth/login/apple           {firebase_token, name?} — same Firebase verification as Google; email linking only if email_verified
+GET|POST /rides/{id}/messages     chat between accept and completion; phrase keys (RideMessage::PHRASES) shown in each app's language;
+                                  free text, phone numbers/links refused (422)
+GET   /fx/rates                   RWF → USD/EUR/GBP/KES, refreshed daily (open.er-api.com) into platform_settings('fx'); stale > 3 days → null
+POST  /rides/{id}/receipt · /driver-hire/{id}/receipt {email?}  → signed printable link /receipts/{type}/{id} (30 days);
+      receipts are emailed on completion when the customer has an email (Mail, MAIL_MAILER)
+      Phone login: any country code (login picker or "+…"), real SMS codes from /auth/otp/*
 
 # Hire a Driver (epic E6) — a verified driver drives the customer's own car
 # perm: offer-driver-hire (verified drivers; controller also checks verification)
@@ -541,7 +565,9 @@ Run: `php artisan db:seed` or `php artisan migrate:fresh --seed`
 - **Firebase credentials**: `storage/app/firebase-credentials.json`
 - **CORS**: `config/cors.php` — must allow the mobile app origin in prod
 - **Sanctum**: `config/sanctum.php` — stateless token auth only (no cookie sessions)
-- **OTP**: dev mode accepts `"123456"` — real SMS (Twilio/Africa's Talking) is TODO
+- **OTP**: codes are random and hashed in cache; `OTP_DEV_CODE` works only when APP_ENV is local/testing. Real SMS provider is TODO in `app/Services/SmsSender.php`
+- **Bookings**: server computes price/fee/title/location; status flow pending → taken → ticket_ready → delivered (+ cancelled) via `Booking::transitionTo()`; admin visibility via `Booking::scopeManageableBy()` (superadmin all, station admin = own admin_stations, none if no station)
+- **Tests**: `php artisan test` (in-memory SQLite) + `tests/e2e/smoke.php` against `php artisan serve`
 
 ---
 

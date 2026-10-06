@@ -20,6 +20,7 @@ import {
 } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { useMe, isDriverRole } from "@/lib/useMe";
 
 // Sub-components
 import { DriverHeader } from "@/components/driver/DriverHeader";
@@ -48,6 +49,9 @@ export default function DriveScreen() {
   const canOfferRides = permissions.includes("offer-rides");
   const canOfferHire = permissions.includes("offer-driver-hire");
   const isRental = driverType === "rental";
+  // /driver/* is role-gated; don't fire requests that can only 403.
+  const { data: me } = useMe();
+  const isDriver = isDriverRole(me);
 
   const [online, setOnline] = useState(false);
   const [activeZones, setActiveZones] = useState<number[]>([0, 1]);
@@ -57,26 +61,28 @@ export default function DriveScreen() {
     queryKey: queryKeys.driver.stats(),
     queryFn: () => api.get("/driver/stats").then(r => r.data as DriverStats),
     staleTime: 2 * 60_000,
+    enabled: isDriver,
   });
 
   const tripsQuery = useQuery({
     queryKey: queryKeys.driver.trips(),
     queryFn: () => api.get("/driver/trips").then(r => r.data as DriverTrip[]),
     staleTime: 60_000,
+    enabled: isDriver,
   });
 
   const carsQuery = useQuery({
     queryKey: queryKeys.driver.cars(),
     queryFn: () => api.get("/driver/cars").then(r => r.data as DriverCar[]),
     staleTime: 5 * 60_000,
-    enabled: isRental,
+    enabled: isDriver && isRental,
   });
 
   const listingsQuery = useQuery({
     queryKey: queryKeys.driver.listings(),
     queryFn: () => api.get("/driver/listings").then(r => r.data as DriverListing[]),
     staleTime: 5 * 60_000,
-    enabled: !isRental,
+    enabled: isDriver && !isRental,
   });
 
   const stats    = statsQuery.data ?? null;

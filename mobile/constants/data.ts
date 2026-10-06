@@ -21,17 +21,24 @@ export const CAR_AMENITIES = [
 ] as const;
 export type CarAmenity = typeof CAR_AMENITIES[number];
 
-export type TripStatus = "pending" | "confirmed" | "completed";
-export type TripType = "bus" | "rental" | "private";
+/** Booking lifecycle as enforced by the backend (BookingController / AdminBookingController). */
+export type TripStatus = "pending" | "taken" | "ticket_ready" | "delivered" | "cancelled";
+/** Bus-company trips are created as "trip"; "bus" is the legacy bus listing type. */
+export type TripType = "trip" | "bus" | "rental" | "private";
 
+/** An item of GET /bookings (the caller's own bookings). */
 export interface Trip {
   id: number;
   type: TripType;
   title: string;
-  sub: string;
+  sub?: string | null;
   price: number;
+  service_fee?: number;
   status: TripStatus;
-  ticketPhotoUrl?: string;
+  quantity?: number | null;
+  travel_date?: string | null;
+  created_at?: string;
+  ticket_photo_url?: string | null;
 }
 
 export const PAY_METHODS = ["MTN MoMo", "Airtel Money", "Card"] as const;
@@ -72,24 +79,56 @@ export interface DriverCar {
   photos: { front?: string; side?: string; interior?: string; luggage?: string };
 }
 
-// ── Private driver listing interface ─────────────────────────────
+// ── Public catalog items ─────────────────────────────────────────
+/** Item of GET /private-seats (PrivateSeat model). */
+export interface PrivateSeatItem {
+  id: number;
+  driver: string;
+  from: string;
+  to: string;
+  pickup_station?: string | null;
+  dep: string;
+  date?: string | null;
+  price: number;
+  seats: number;
+  rating?: number | string | null;
+}
+
+/** Item of GET /car-rentals (CarRental model). */
+export interface CarRentalItem {
+  id: number;
+  name: string;
+  type: string;
+  plate: string;
+  price: number; // per day
+  caution?: number | null;
+  seats: number;
+  rating?: number | string | null;
+}
+
+// ── Private driver listing (API shape, see PrivateSeatController) ─
+// Field names are snake_case exactly as the backend returns/accepts them.
 export interface DriverListing {
   id: number;
   from: string;
   to: string;
-  pickupStation: string;
-  dropLocation: string;
-  date: string;
+  pickup_station: string;
+  drop_location: string | null;
+  /** `Y-m-d` for listings created by current app versions; older rows hold a free-text label. */
+  date: string | null;
   dep: string;
   seats: number;
   price: number;
-  notes: string;
+  notes?: string | null;
   active: boolean;
-  amenities: CarAmenity[];
-  groupDiscount: boolean;
-  groupMinSize: number;
-  groupDiscountPct: number;
-  allowCustomPickup: boolean;
-  customPickupFee: number;
+  amenities: CarAmenity[] | null;
+  group_discount: boolean;
+  group_min_size: number | null;
+  group_discount_pct: number | null;
+  allow_custom_pickup: boolean;
+  custom_pickup_fee: number | null;
 }
+
+/** Body for POST/PATCH /driver/listings. */
+export type DriverListingPayload = Omit<DriverListing, "id" | "active">;
 

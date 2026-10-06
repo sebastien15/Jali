@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Agency;
 use App\Models\AgencyRoute;
+use App\Models\TripDeparture;
 use Illuminate\Http\Request;
 
 class AgencyController extends Controller
@@ -39,11 +40,19 @@ class AgencyController extends Controller
         ]));
     }
 
+    public function show($id)
+    {
+        $agency = Agency::with(['routes.fromStation', 'routes.toStation', 'ratings'])->findOrFail($id);
+        return response()->json($this->formatAgency($agency));
+    }
+
     /**
      * Create a new agency.
      */
     public function store(Request $request)
     {
+        $this->abortUnlessSuperAdmin($request->user());
+
         $validated = $request->validate([
             'name' => 'required|string|max:150',
         ]);
@@ -103,7 +112,14 @@ class AgencyController extends Controller
      */
     public function destroy(Request $request, $id)
     {
+        $this->abortUnlessSuperAdmin($request->user());
+
         $agency = Agency::findOrFail($id);
+        $departureIds = TripDeparture::whereIn('agency_route_id', AgencyRoute::where('agency_id', $agency->id)->select('id'))->pluck('id');
+        if ($this->hasActiveBookings($departureIds)) {
+            return response()->json(['error' => 'Cannot delete an agency with active bookings.', 'message' => 'Cannot delete an agency with active bookings.'], 409);
+        }
+
         $name = $agency->name;
         $agency->delete();
 
@@ -126,9 +142,10 @@ class AgencyController extends Controller
         $agency = Agency::findOrFail($id);
 
         $validated = $request->validate([
-            'from_station_id' => 'required|exists:admin_stations,id',
+            'from_station_id' => 'required|exists:admin_stations,id|different:to_station_id',
             'to_station_id' => 'required|exists:admin_stations,id',
         ]);
+        $this->abortUnlessManagesStation($request->user(), (int) $validated['from_station_id']);
 
         // Prevent duplicate
         $existing = AgencyRoute::where('agency_id', $id)
@@ -144,6 +161,8 @@ class AgencyController extends Controller
             'agency_id' => $id,
             'from_station_id' => $validated['from_station_id'],
             'to_station_id' => $validated['to_station_id'],
+            // Not bookable until a price, seats and departures are set in Trips.
+            'active' => false,
         ]);
 
         ActivityLog::create([
@@ -178,6 +197,10 @@ class AgencyController extends Controller
     public function removeRoute(Request $request, $agencyId, $routeId)
     {
         $route = AgencyRoute::where('agency_id', $agencyId)->findOrFail($routeId);
+        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
+        if ($this->hasActiveBookings($route->departures()->pluck('id'))) {
+            return response()->json(['error' => 'Cannot delete route with active bookings.', 'message' => 'Cannot delete route with active bookings.'], 409);
+        }
 
         $route->delete();
 

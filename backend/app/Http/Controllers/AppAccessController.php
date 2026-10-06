@@ -17,12 +17,17 @@ class AppAccessController extends Controller
 
         $district = null;
         if ($request->filled('lat') && $request->filled('lng')) {
-            $district = $this->districtFromCoords((float) $request->lat, (float) $request->lng);
+            // ~1 km grid cache so app opens don't each hit Nominatim (1 req/s policy).
+            $key = sprintf('district:%.2f,%.2f', $request->lat, $request->lng);
+            $district = \Illuminate\Support\Facades\Cache::remember($key, now()->addDays(30),
+                fn () => $this->districtFromCoords((float) $request->lat, (float) $request->lng) ?? '');
+            $district = $district ?: null;
         }
 
         AppAccess::create([
             'platform'   => $request->platform,
-            'user_id'    => $request->user()?->id,
+            // Public route: resolve the Sanctum user manually when a token is sent.
+            'user_id'    => auth('sanctum')->id(),
             'ip_address' => $request->ip(),
             'lat'        => $request->lat,
             'lng'        => $request->lng,
