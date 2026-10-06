@@ -111,7 +111,8 @@
     "showAtStation": "Garagaza kuri station",
     "view": "Reba",
     "awaitingConfirmation": "Itegereje kwemezwa -- admin itegura itike yawe",
-    "close": "Funga"
+    "close": "Funga",
+    "filterRides": "ingendo"
   },
   "login": {
     "enterPhone": "Andika numero yawe y'u Rwanda",
@@ -859,6 +860,19 @@
       "reason_unsafe": "Ntiyumva ntekanye",
       "reason_traffic": "Umubyigano mwinshi",
       "reason_other": "Ibindi"
+    },
+    "history": {
+      "error": "Ntibyashobotse kuzana ingendo zawe",
+      "empty": "Nta ngendo urakora",
+      "status_requested": "Yasabwe",
+      "status_accepted": "Umushoferi araje",
+      "status_arrived": "Umushoferi yahageze",
+      "status_in_progress": "Mu rugendo",
+      "status_completed": "Yarangiye",
+      "status_declined": "Yanzwe",
+      "status_expired": "Nta gisubizo",
+      "status_cancelled_by_rider": "Yahagaritswe",
+      "status_cancelled_by_driver": "Yahagaritswe n'umushoferi"
     }
   }
 }

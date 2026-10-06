@@ -197,6 +197,7 @@ type AdminUser = {
 - Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
 - Tapping a notification routes by `data.screen` (`routeForNotification`); `ride` → `/ride/{id}`, `driver_ride` → `/driver/ride/{id}`
 - Active ride banners: `components/rides/ActiveRideBanner.tsx` (Home = rider, Drive tab = driver) share `useActiveRide()` → `GET /rides/active`
+- Trips tab → *rides* filter: `components/rides/RideHistory.tsx` (`useInfiniteQuery` on `GET /rides`, skeleton, tap → `/ride/{id}` receipt)
 - Incoming ride requests: `components/driver/IncomingRequests.tsx` polls `/driver/ride-requests` every 4 s while online
 - Backend sends through `App\Services\PushService::send($user, $title, $body, ['screen' => ..., 'id' => ...])`
   (Expo tokens → Expo push API; raw FCM tokens → Firebase). Never throws.

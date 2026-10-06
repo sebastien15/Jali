@@ -111,7 +111,8 @@
     "showAtStation": "Onyesha kwenye stesheni",
     "view": "Angalia",
     "awaitingConfirmation": "Inasubiri uthibitisho -- admin inatengeneza tikiti yako",
-    "close": "Funga"
+    "close": "Funga",
+    "filterRides": "safari"
   },
   "login": {
     "enterPhone": "Weka nambari yako ya Rwanda",
@@ -859,6 +860,19 @@
       "reason_unsafe": "Sijisikii salama",
       "reason_traffic": "Msongamano mkubwa",
       "reason_other": "Nyingine"
+    },
+    "history": {
+      "error": "Imeshindwa kupakia safari zako",
+      "empty": "Bado hakuna safari",
+      "status_requested": "Imeombwa",
+      "status_accepted": "Dereva anakuja",
+      "status_arrived": "Dereva amefika",
+      "status_in_progress": "Safarini",
+      "status_completed": "Imekamilika",
+      "status_declined": "Imekataliwa",
+      "status_expired": "Hakuna jibu",
+      "status_cancelled_by_rider": "Imeghairiwa",
+      "status_cancelled_by_driver": "Imeghairiwa na dereva"
     }
   }
 }

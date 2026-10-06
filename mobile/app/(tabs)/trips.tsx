@@ -10,6 +10,7 @@ import { C } from "@/constants/theme";
 import { TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { RideHistory } from "@/components/rides/RideHistory";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -23,7 +24,7 @@ const STATUS_COLOR: Record<TripStatus, string> = {
 
 export default function TripsScreen() {
   const { t } = useTranslation();
-  const [filter, setFilter]   = useState<"all" | TripStatus>("all");
+  const [filter, setFilter]   = useState<"all" | "rides" | TripStatus>("all");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const { data: bookings = [], isLoading, isRefetching, error, refetch } = useQuery({
@@ -36,7 +37,7 @@ export default function TripsScreen() {
     ?? (error as any)?.response?.data?.error
     ?? (error ? "Failed to load trips" : null);
 
-  const list = filter === "all" ? bookings : bookings.filter((t: any) => t.status === filter);
+  const list = filter === "all" || filter === "rides" ? bookings : bookings.filter((t: any) => t.status === filter);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }} edges={["top", "left", "right"]}>
@@ -50,7 +51,7 @@ export default function TripsScreen() {
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
-            {(["all", "pending", "confirmed", "completed"] as const).map(f => (
+            {(["all", "rides", "pending", "confirmed", "completed"] as const).map(f => (
               <TouchableOpacity
                 key={f}
                 onPress={() => setFilter(f)}
@@ -63,7 +64,7 @@ export default function TripsScreen() {
                   color: filter === f ? C.dark : C.white,
                   fontWeight: "800", fontSize: 13, textTransform: "capitalize",
                 }}>
-                  {f === "all" ? t('trips.filterAll') : f === "pending" ? t('trips.filterPending') : f === "confirmed" ? t('trips.filterConfirmed') : t('trips.filterCompleted')}
+                  {f === "all" ? t('trips.filterAll') : f === "rides" ? t('trips.filterRides') : f === "pending" ? t('trips.filterPending') : f === "confirmed" ? t('trips.filterConfirmed') : t('trips.filterCompleted')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -71,6 +72,7 @@ export default function TripsScreen() {
         </ScrollView>
       </View>
 
+      {filter === "rides" ? <RideHistory /> : (
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -177,6 +179,7 @@ export default function TripsScreen() {
           </View>
         ))}
       </ScrollView>
+      )}
 
       {/* Full-screen ticket photo viewer */}
       <Modal visible={!!photoUrl} animationType="fade" transparent>

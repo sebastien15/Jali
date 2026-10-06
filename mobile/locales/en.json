@@ -111,7 +111,8 @@
     "showAtStation": "Show at station",
     "view": "View",
     "awaitingConfirmation": "Awaiting confirmation — admin is arranging your ticket",
-    "close": "Close"
+    "close": "Close",
+    "filterRides": "rides"
   },
   "login": {
     "enterPhone": "Enter your Rwandan number",
@@ -859,6 +860,19 @@
       "reason_unsafe": "I don't feel safe",
       "reason_traffic": "Too much traffic",
       "reason_other": "Other"
+    },
+    "history": {
+      "error": "Could not load your rides",
+      "empty": "No rides yet",
+      "status_requested": "Requested",
+      "status_accepted": "Driver coming",
+      "status_arrived": "Driver arrived",
+      "status_in_progress": "On trip",
+      "status_completed": "Completed",
+      "status_declined": "Declined",
+      "status_expired": "No answer",
+      "status_cancelled_by_rider": "Cancelled",
+      "status_cancelled_by_driver": "Cancelled by driver"
     }
   }
 }
