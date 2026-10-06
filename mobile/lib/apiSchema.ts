@@ -694,6 +694,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        /** Chat with my driver/rider (poll with after_id) */
+        get: operations["listRideMessages"];
+        put?: never;
+        /** Send a quick phrase (shown in each side's language) or free text (no phone numbers or links) */
+        post: operations["postRideMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Printable receipt link (save as PDF); email it again with email=true */
+        post: operations["rideReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Printable receipt link for my hire; email it again with email=true */
+        post: operations["hireReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fx/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Approximate value of 1 RWF in other currencies (refreshed daily; hidden when older than 3 days) */
+        get: operations["getFxRates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/drivers/{userId}": {
         parameters: {
             query?: never;
@@ -1709,6 +1784,21 @@ export interface components {
         EmergencyContact: {
             name: string | null;
             phone: string | null;
+        };
+        /** @enum {string} */
+        ChatPhrase: "on_my_way" | "i_am_here" | "where_are_you" | "wait_2_min" | "cant_find_you" | "at_the_entrance" | "running_late" | "thank_you";
+        RideMessage: {
+            id: number;
+            mine: boolean;
+            phrase: components["schemas"]["ChatPhrase"] | null;
+            body: string | null;
+            /** Format: date-time */
+            at: string | null;
+        };
+        ReceiptLink: {
+            /** @description Signed link to the printable receipt, valid 30 days */
+            url: string;
+            emailed: boolean;
         };
         Place: {
             lat: number;
@@ -3298,6 +3388,170 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    listRideMessages: {
+        parameters: {
+            query?: {
+                after_id?: number;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Chat is open between accept and completion */
+                        open: boolean;
+                        phrases: components["schemas"]["ChatPhrase"][];
+                        messages: components["schemas"]["RideMessage"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    postRideMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phrase?: components["schemas"]["ChatPhrase"] | null;
+                    body?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Sent */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideMessage"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    rideReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    email?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    hireReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    email?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptLink"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getFxRates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        base: "RWF";
+                        rates: {
+                            USD?: number;
+                            EUR?: number;
+                            GBP?: number;
+                            KES?: number;
+                        } | null;
+                        /** Format: date-time */
+                        fetched_at: string | null;
+                        stale: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     getDriverApplication: {

@@ -12,6 +12,7 @@ import api, { clearApiToken, getApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/lib/DriverModeContext";
 import { setLanguage, getLanguage } from "@/lib/i18n";
+import { FX_CURRENCIES, setFxCurrency, useFxCurrency, FxCurrency } from "@/lib/fx";
 
 const APP_VERSION = "1.0.0";
 const SUPPORT_WHATSAPP = "https://wa.me/250788451691?text=Hi%20Jali%20Support%2C%20I%20need%20help%20with%20my%20booking.";
@@ -115,6 +116,17 @@ export default function ProfileScreen() {
     );
   }
 
+  const fxCurrency = useFxCurrency();
+  /** Approximate prices in my home currency (S9.4) */
+  function pickCurrency() {
+    Alert.alert(t("fx.title"), t("fx.sub"), [
+      ...(["none", ...FX_CURRENCIES] as FxCurrency[]).map(c => ({
+        text: (fxCurrency === c ? "✓ " : "") + (c === "none" ? t("fx.none") : c),
+        onPress: () => setFxCurrency(c),
+      })),
+    ]);
+  }
+
   const MENU: MenuItem[] = [
     {
       icon: "car-sport-outline",
@@ -133,6 +145,12 @@ export default function ProfileScreen() {
       label: t('profile.notifications'),
       sub: t('profile.notificationsSub'),
       onPress: () => {},
+    },
+    {
+      icon: "cash-outline",
+      label: t("fx.title"),
+      sub: fxCurrency === "none" ? t("fx.none") : fxCurrency,
+      onPress: pickCurrency,
     },
     {
       icon: "language-outline",

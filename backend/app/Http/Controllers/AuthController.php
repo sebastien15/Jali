@@ -72,8 +72,24 @@ class AuthController extends Controller
      */
     public function loginWithGoogle(Request $request)
     {
+        return $this->loginWithFirebase($request);
+    }
+
+    /**
+     * Sign in with Apple (story S9.3): the app signs in to Firebase with the Apple
+     * credential and sends the Firebase ID token — verified exactly like Google.
+     * Apple only shares the name on the very first sign-in, so the app may send it.
+     */
+    public function loginWithApple(Request $request)
+    {
+        return $this->loginWithFirebase($request);
+    }
+
+    private function loginWithFirebase(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             "firebase_token" => "required|string",
+            "name" => "sometimes|nullable|string|max:100",
         ]);
 
         if ($validator->fails()) {
@@ -95,12 +111,14 @@ class AuthController extends Controller
 
             $uid = $verified->claims()->get("sub");
             $email = $verified->claims()->get("email");
-            $name = $verified->claims()->get("name") ?? "User";
+            $name = $verified->claims()->get("name") ?? ($request->input("name") ?: "User");
+            // Only link to an existing account by email when the provider verified it
+            $emailVerified = (bool) $verified->claims()->get("email_verified", false);
 
             $user = User::with("role")->where("firebase_uid", $uid)->first();
 
             // First-time admin login: link pre-seeded user
-            if (!$user && $email) {
+            if (!$user && $email && $emailVerified) {
                 $preSeeded = User::where("email", $email)
                     ->whereNull("firebase_uid")
                     ->first();

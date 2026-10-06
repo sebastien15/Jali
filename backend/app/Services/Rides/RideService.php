@@ -392,6 +392,7 @@ class RideService
 
         DriverProfile::where('user_id', $driver->id)->increment('trips_count');
         app(\App\Services\Payments\DriverLedger::class)->recordRide($ride);   // S7.2
+        \App\Services\Receipts\Receipts::email('ride', $ride);                 // S9.6
         $this->push->send($ride->rider, 'You have arrived',
             sprintf('Trip total %s RWF (%s). Tap to rate your driver.', number_format($ride->final_fare), $paymentMethod === 'momo' ? 'MoMo' : 'cash'),
             ['screen' => 'ride', 'id' => $ride->id]);

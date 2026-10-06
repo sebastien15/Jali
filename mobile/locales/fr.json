@@ -137,7 +137,10 @@
     "googleAvailable": "La connexion Google est disponible pour les voyageurs internationaux",
     "wrongCode": "Code incorrect",
     "changeNumber": "Changer de numéro",
-    "googleSignInFailed": "Échec de la connexion Google"
+    "googleSignInFailed": "Échec de la connexion Google",
+    "countryCode": "Indicatif du pays",
+    "phonePlaceholder": "Numéro sans indicatif",
+    "appleSignInFailed": "Échec de la connexion Apple"
   },
   "listing": {
     "privateDriver": "Conducteur privé",
@@ -1097,5 +1100,32 @@
     "contactName": "Nom",
     "contactPhone": "Téléphone",
     "saved": "Enregistré"
+  },
+  "chat": {
+    "open": "Message",
+    "title": "Discussion",
+    "empty": "Dites bonjour ou utilisez une phrase rapide.",
+    "closed": "La discussion est fermée pour ce trajet.",
+    "placeholder": "Écrire un message",
+    "send": "Envoyer",
+    "phrase_on_my_way": "J'arrive",
+    "phrase_i_am_here": "Je suis là",
+    "phrase_where_are_you": "Où êtes-vous ?",
+    "phrase_wait_2_min": "Attendez 2 minutes, svp",
+    "phrase_cant_find_you": "Je ne vous trouve pas",
+    "phrase_at_the_entrance": "Je suis à l'entrée",
+    "phrase_running_late": "J'ai un peu de retard",
+    "phrase_thank_you": "Merci !"
+  },
+  "receipt": {
+    "open": "Reçu",
+    "email": "Envoyer le reçu",
+    "emailed": "Reçu envoyé à votre e-mail.",
+    "noEmail": "Ajoutez un e-mail à votre compte pour recevoir les reçus."
+  },
+  "fx": {
+    "title": "Afficher aussi les prix en",
+    "sub": "Un montant approximatif à côté du RWF. Vous payez toujours en RWF.",
+    "none": "RWF uniquement"
   }
 }

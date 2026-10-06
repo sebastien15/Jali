@@ -12,6 +12,7 @@ import { formatRwf } from "@/lib/fare";
 import { parsePlace } from "@/lib/places";
 import type { components, operations } from "@/lib/apiSchema";
 import { DriversMap } from "@/components/rides/DriversMap";
+import { useFormatPrice } from "@/lib/fx";
 
 type NearbyDriver = components["schemas"]["NearbyDriver"];
 type VehicleClass = components["schemas"]["VehicleClass"];
@@ -35,6 +36,7 @@ export default function NearbyDriversScreen() {
   const [selected, setSelected] = useState<NearbyDriver | null>(null);
   const [view, setView] = useState<"list" | "map">("list");
   const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const fmt = useFormatPrice();
 
   const query = pickup && destination ? {
     lat: pickup.lat, lng: pickup.lng, dest_lat: destination.lat, dest_lng: destination.lng,
@@ -176,6 +178,7 @@ export default function NearbyDriversScreen() {
             </View>
             <View style={{ alignItems: "flex-end" }}>
               <Text style={{ fontWeight: "900", fontSize: 17, color: C.dark }}>{formatRwf(item.quote)}</Text>
+              {fmt(item.quote) !== formatRwf(item.quote) ? <Text style={{ color: C.muted, fontSize: 11 }}>{fmt(item.quote).slice(formatRwf(item.quote).length).trim()}</Text> : null}
               <Text style={{ color: C.muted, fontSize: 11 }}>{t("ride.nearby.perKm", { price: item.per_km })}</Text>
             </View>
           </TouchableOpacity>
@@ -217,7 +220,7 @@ export default function NearbyDriversScreen() {
               <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 16 }}>
                 <Text style={{ color: C.mid }}>{t("ride.nearby.priceNote")}</Text>
               </View>
-              <Text style={{ fontWeight: "900", fontSize: 28, color: C.dark, marginTop: 4 }}>{formatRwf(selected.quote)}</Text>
+              <Text style={{ fontWeight: "900", fontSize: 28, color: C.dark, marginTop: 4 }}>{fmt(selected.quote)}</Text>
               <RequestButton driver={selected} pickupParam={params.pickup} destinationParam={params.destination} vehicleClass={selected.vehicle.class} />
             </TouchableOpacity>
           ) : null}

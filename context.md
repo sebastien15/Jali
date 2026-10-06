@@ -422,6 +422,15 @@ POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen
 GET|PUT /me/emergency-contact     {name, phone}
 GET   /admin/drivers/review       (verify-drivers) low rating after N rated trips or high cancel rate (rides.review) · POST /admin/drivers/{id}/warn
 
+# International (E9) — perm: request-rides
+POST  /auth/login/apple           {firebase_token, name?} — same Firebase verification as Google; email linking only if email_verified
+GET|POST /rides/{id}/messages     chat between accept and completion; phrase keys (RideMessage::PHRASES) shown in each app's language;
+                                  free text, phone numbers/links refused (422)
+GET   /fx/rates                   RWF → USD/EUR/GBP/KES, refreshed daily (open.er-api.com) into platform_settings('fx'); stale > 3 days → null
+POST  /rides/{id}/receipt · /driver-hire/{id}/receipt {email?}  → signed printable link /receipts/{type}/{id} (30 days);
+      receipts are emailed on completion when the customer has an email (Mail, MAIL_MAILER)
+      Phone login: any country code (login picker or "+…"), real SMS codes from /auth/otp/*
+
 # Hire a Driver (epic E6) — a verified driver drives the customer's own car
 # perm: offer-driver-hire (verified drivers; controller also checks verification)
 GET|PUT /driver/hire-settings     hourly (+min hours), daily (+hours included), overtime, out-of-town; skills (transmissions, languages, years)

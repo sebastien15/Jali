@@ -137,7 +137,10 @@
     "googleAvailable": "Kuingia kwa Google kunapatikana kwa wasafiri wa kimataifa",
     "wrongCode": "Code si sahihi",
     "changeNumber": "Badilisha nambari",
-    "googleSignInFailed": "Kuingia kwa Google kumeshindikana"
+    "googleSignInFailed": "Kuingia kwa Google kumeshindikana",
+    "countryCode": "Msimbo wa nchi",
+    "phonePlaceholder": "Namba bila msimbo wa nchi",
+    "appleSignInFailed": "Kuingia kwa Apple kumeshindwa"
   },
   "listing": {
     "privateDriver": "Dereva Binafsi",
@@ -1097,5 +1100,32 @@
     "contactName": "Jina",
     "contactPhone": "Simu",
     "saved": "Imehifadhiwa"
+  },
+  "chat": {
+    "open": "Ujumbe",
+    "title": "Mazungumzo",
+    "empty": "Salimia au tumia sentensi ya haraka.",
+    "closed": "Mazungumzo yamefungwa kwa safari hii.",
+    "placeholder": "Andika ujumbe",
+    "send": "Tuma",
+    "phrase_on_my_way": "Niko njiani",
+    "phrase_i_am_here": "Nimefika",
+    "phrase_where_are_you": "Uko wapi?",
+    "phrase_wait_2_min": "Tafadhali subiri dakika 2",
+    "phrase_cant_find_you": "Sikuoni",
+    "phrase_at_the_entrance": "Niko mlangoni",
+    "phrase_running_late": "Nimechelewa kidogo",
+    "phrase_thank_you": "Asante!"
+  },
+  "receipt": {
+    "open": "Risiti",
+    "email": "Tuma risiti kwa barua pepe",
+    "emailed": "Risiti imetumwa kwa barua pepe yako.",
+    "noEmail": "Ongeza barua pepe kwenye akaunti yako ili kupokea risiti."
+  },
+  "fx": {
+    "title": "Onyesha bei pia kwa",
+    "sub": "Kiasi cha takriban kando ya RWF. Unalipa kila wakati kwa RWF.",
+    "none": "RWF pekee"
   }
 }
