@@ -74,6 +74,7 @@ export default function AdminDashboard() {
       { label: "Roles", icon: "shield-outline" as const, route: "/(admin)/roles", color: C.teal },
       { label: "Ride pricing", icon: "pricetags-outline" as const, route: "/(admin)/settings/rides", color: C.orange },
       { label: "Service areas", icon: "map-outline" as const, route: "/(admin)/service-areas", color: C.green },
+      { label: "Services", icon: "apps-outline" as const, route: "/(admin)/settings/services", color: C.purple },
     ] : []),
     // Driver applications — verify-drivers
     ...(canVerifyDrivers ? [

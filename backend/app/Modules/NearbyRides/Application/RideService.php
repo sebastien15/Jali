@@ -16,6 +16,7 @@ use App\Modules\Payments\Contracts\MoneyRecorder;
 use App\Modules\Payments\Contracts\ReceiptMailer;
 use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
+use App\Modules\ServiceAccess\Contracts\ServiceAccess;
 use App\Modules\Notifications\Contracts\PushSender;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -173,6 +174,7 @@ class RideService
 
     private function assertCanRequest(User $rider): void
     {
+        app(ServiceAccess::class)->assertAcceptingNew('rides');   // S23.1
         if (Ride::where('rider_id', $rider->id)->whereIn('status', Ride::ACTIVE)->exists()) {
             throw new HttpException(409, 'You already have an active ride.');
         }

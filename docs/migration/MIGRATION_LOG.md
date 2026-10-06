@@ -319,3 +319,11 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - New `Locations\Contracts\ServiceAreas` (cities + zones, point-in-polygon, cached) implemented by `Locations\Application\ServiceAreaDirectory`; admin write path `ServiceAreaAdmin` (logged).
 - `DriverHire` may now use `Locations` (hire requests are refused where hire is not offered). `NearbyRides` already depended on `Locations`; it now applies per-city overrides via `AreaRideSettings`.
 - New table `service_areas`, permission `manage-service-areas` (superadmin). Kigali is seeded live, Musanze/Rubavu/Huye off, Kigali airport zone. With no live city the check is off (everywhere served). Route baseline regenerated.
+
+## M06 part 1 — service-access resolver (S23.1, 2026-10-08)
+
+- New module `ServiceAccess` (deps: Locations, Providers). `Contracts\ServiceAccess::forUser()` feeds `GET /me/service-access`; `assertAcceptingNew()` guards every new-intake path: rides (`RideService`), hire (`HireService`), rental (`RentalService`), legacy `/bookings` (bus/trip → bus, private → shared, rental → rental). Existing work, history and support are never gated.
+- New `Providers\Contracts\ProviderServices` (verified driver-profile services) — used for `can_offer`; persona is never an input.
+- Release flags in `platform_settings['services']` (`ServiceCatalogue`), default = every built service on, cargo off and not enable-able. `PUT /admin/services` (permission `manage-services`, superadmin) is logged.
+- Old-client defaults: `/me` unchanged; clients not sending `X-App-Version` are not version-gated. The app now sends `X-App-Version`. No production activation: defaults change nothing.
+- Boundaries: NearbyRides, DriverHire, Rentals → ServiceAccess.

@@ -7,6 +7,7 @@ use App\Models\RentalBooking;
 use App\Models\RentalRating;
 use App\Models\User;
 use App\Modules\Notifications\Contracts\PushSender;
+use App\Modules\ServiceAccess\Contracts\ServiceAccess;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
@@ -44,6 +45,7 @@ class RentalService
         $end = Carbon::parse($data['end_at'])->utc();
         $delivery = ($data['pickup_method'] ?? 'pickup') === 'delivery';
 
+        app(ServiceAccess::class)->assertAcceptingNew('rental');   // S23.1
         $this->assertBookable($customer, $car, $start, $end, $delivery);
 
         $booking = DB::transaction(function () use ($customer, $car, $data, $start, $end, $delivery) {

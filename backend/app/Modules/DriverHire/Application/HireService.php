@@ -11,6 +11,7 @@ use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
 use App\Modules\Locations\Contracts\ServiceAreas;
 use App\Modules\Notifications\Contracts\PushSender;
+use App\Modules\ServiceAccess\Contracts\ServiceAccess;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -37,6 +38,7 @@ class HireService
     /** POST /driver-hire — price and end time are computed here, never taken from the client */
     public function request(User $customer, User $driver, array $data, CarbonInterface $start): DriverHire
     {
+        app(ServiceAccess::class)->assertAcceptingNew('hire');   // S23.1
         // S10.4: only where hire is offered
         $where = $this->areas->availability((float) $data['pickup']['lat'], (float) $data['pickup']['lng'], 'hire');
         if (!$where['served']) {

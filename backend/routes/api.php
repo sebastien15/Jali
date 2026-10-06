@@ -20,6 +20,8 @@ use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\ServiceAccessController;
+use App\Http\Controllers\Admin\ServiceCatalogueController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
@@ -78,6 +80,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
+    Route::get("/me/service-access", [ServiceAccessController::class, "show"]);   // S23.1, any signed-in user
     Route::post("/me/push-token", [PushTokenController::class, "store"]);
     Route::delete("/me/push-token", [PushTokenController::class, "destroy"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
@@ -218,6 +221,12 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{id}", [AdminServiceAreaController::class, "show"])->whereNumber("id");
         Route::put("/{id}", [AdminServiceAreaController::class, "update"])->whereNumber("id");
         Route::delete("/{id}", [AdminServiceAreaController::class, "destroy"])->whereNumber("id");
+    });
+
+    // Release flags per service (superadmin) — S23.1
+    Route::middleware("permission:manage-services")->group(function () {
+        Route::get("/admin/services", [ServiceCatalogueController::class, "show"]);
+        Route::put("/admin/services", [ServiceCatalogueController::class, "update"]);
     });
 
     // Is a service available here? (S10.4)

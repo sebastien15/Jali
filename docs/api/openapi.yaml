@@ -56,6 +56,8 @@ tags:
     description: Rental car verification and rental operations
   - name: Service areas
     description: Cities and zones where services are offered (S10.4)
+  - name: Service access
+    description: Which services an account can see, use and offer — one server answer for navigation and intake (S23.1)
 
 paths:
   /me:
@@ -656,7 +658,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Ride" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
@@ -1532,7 +1534,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/DriverHire" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
@@ -2130,6 +2132,67 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Service access (S23.1) ──────────────────────────────────────────────
+  /me/service-access:
+    get:
+      tags: [Service access]
+      operationId: getServiceAccess
+      x-jali-story: S23.1
+      summary: Services this account can see, use and offer here (additive; old clients don't call it)
+      description: >-
+        Resolved on the server from release flags, region (S10.4), permissions and provider
+        verification — never from a client persona. New requests to a service whose
+        `accepting_new_requests` is false are refused with 403 `{message, reason_code}`;
+        history, active work and support stay reachable. Clients that send no version
+        (no `app_version` and no `X-App-Version` header) are not version-gated.
+      parameters:
+        - { name: lat, in: query, schema: { type: number }, description: Customer position — adds region checks }
+        - { name: lng, in: query, schema: { type: number } }
+        - { name: app_version, in: query, schema: { type: string, example: "1.4.0" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAccess" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/services:
+    get:
+      tags: [Service access]
+      operationId: getServiceCatalogue
+      x-jali-story: S23.1
+      x-jali-permission: manage-services
+      summary: Release flags per service (defaults keep every built service on; cargo off)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceCatalogue" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Service access]
+      operationId: putServiceCatalogue
+      x-jali-story: S23.1
+      x-jali-permission: manage-services
+      summary: Release, pause or hide services; set a minimum app version (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceCatalogueUpdate" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceCatalogue" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   # ── Service areas (S10.4) ───────────────────────────────────────────────
   /service-areas/check:
     get:
@@ -2354,7 +2417,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/RentalBooking" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
@@ -3170,6 +3233,19 @@ components:
             type: object
             properties:
               message: { type: string }
+    ForbiddenOrPaused:
+      description: >-
+        Missing permission, or the service is not taking new requests (S23.1) — then
+        `reason_code` is set (not_released, paused, app_update_required). Existing work is unaffected.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - { $ref: "#/components/schemas/ServiceUnavailable" }
+              - type: object
+                properties:
+                  error: { type: string }
+                  message: { type: string }
     ValidationOrNotServed:
       description: >-
         Validation failed (`errors` present), or the pickup is outside every active
@@ -3203,6 +3279,67 @@ components:
                   items: { type: string }
 
   schemas:
+    ServiceFlags:
+      type: object
+      required: [discoverable, accepting_new_requests, minimum_app_version]
+      properties:
+        discoverable: { type: boolean }
+        accepting_new_requests: { type: boolean }
+        minimum_app_version: { type: [string, "null"] }
+    ServiceCatalogue:
+      type: object
+      required: [rides, hire, rental, shared, bus, cargo]
+      properties:
+        rides: { $ref: "#/components/schemas/ServiceFlags" }
+        hire: { $ref: "#/components/schemas/ServiceFlags" }
+        rental: { $ref: "#/components/schemas/ServiceFlags" }
+        shared: { $ref: "#/components/schemas/ServiceFlags" }
+        bus: { $ref: "#/components/schemas/ServiceFlags" }
+        cargo: { $ref: "#/components/schemas/ServiceFlags" }
+    ServiceCatalogueUpdate:
+      type: object
+      description: Any subset of services and flags. Cargo is not built and can't be switched on.
+      additionalProperties:
+        type: object
+        properties:
+          discoverable: { type: boolean }
+          accepting_new_requests: { type: boolean }
+          minimum_app_version: { type: [string, "null"], pattern: '^\d+(\.\d+){0,2}$' }
+    ServiceAccessEntry:
+      type: object
+      required: [id, label, discoverable, accepting_new_requests, can_use, can_offer, can_configure, reason_code, minimum_app_version, area]
+      properties:
+        id: { $ref: "#/components/schemas/ServiceKey" }
+        label: { type: string }
+        discoverable: { type: boolean, description: Show it in navigation }
+        accepting_new_requests: { type: boolean, description: This account can start new work here now }
+        can_use: { type: boolean, description: Has the customer permission }
+        can_offer: { type: boolean, description: Permitted and verified to take work }
+        can_configure: { type: boolean, description: "Can set it up as a provider: apply, list a car" }
+        reason_code:
+          type: [string, "null"]
+          enum: [not_released, paused, app_update_required, not_in_area, off_in_area, no_permission, null]
+        minimum_app_version: { type: [string, "null"] }
+        area:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+    ServiceAccess:
+      type: object
+      required: [version, services]
+      properties:
+        version: { type: integer, const: 1 }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceAccessEntry" }
+    ServiceUnavailable:
+      type: object
+      required: [message, reason_code]
+      properties:
+        message: { type: string }
+        reason_code: { type: string, enum: [not_released, paused, app_update_required] }
     ServiceKey:
       type: string
       enum: [rides, hire, rental, shared, bus, cargo]
