@@ -1046,7 +1046,7 @@
   "epic": "E7",
   "issue": 179,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2960,7 +2960,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "pricing"
@@ -3422,7 +3422,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "admin"
   ],
   "file": "docs/ride-hailing/stories/S28.1-batch-readiness-audit.md",
@@ -3438,7 +3438,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md",
@@ -3454,7 +3454,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.3-google-play-closed-test.md",
@@ -3470,7 +3470,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.4-ios-testflight-and-app-store-submission.md",
@@ -3486,7 +3486,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-3",
    "admin",
    "analytics"
   ],

@@ -1,12 +1,11 @@
 import { useState } from "react";
 import {
-  View, Text, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator,
+  View, Text, TouchableOpacity, Modal, ScrollView, Alert,
   KeyboardAvoidingView, Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { PAY_METHODS, PayMethod } from "@/constants/data";
-import { useServiceFee } from "@/lib/useServiceFee";
 import api from "@/lib/api";
 
 interface SheetData {
@@ -21,10 +20,11 @@ interface Props {
   data: SheetData;
   onClose: () => void;
   onConfirm: () => void;
+  /** Unused since S7.4 (no distance-based fee); kept for callers. */
   userCoords?: { lat: number; lng: number } | null;
 }
 
-export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
+export function BookingSheet({ data, onClose, onConfirm }: Props) {
   const { t } = useTranslation();
   const { type, item, days = 1, travelDate } = data;
   const [payMethod, setPayMethod] = useState<PayMethod>("MTN MoMo");
@@ -36,33 +36,17 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
 
   const color = isBus ? C.blue : isPrivate ? C.orange : C.green;
 
-  // Service fee: distance-based for bus/private, flat 300 for rental
-  const departureCity = isRental ? "" : (item.from ?? "Kigali");
-  const {
-    fee,
-    distanceKm,
-    loading: feeLoading,
-    permissionDenied,
-  } = useServiceFee(isRental ? "Kigali" : departureCity, isRental ? null : userCoords);
-
-  const effectiveFee = isRental ? 300 : fee;
-  const total = isBus
-    ? item.price + effectiveFee
-    : isPrivate
-    ? item.price + effectiveFee
-    : item.price * days + 300;
-
-  const feePending = (isBus || isPrivate) && feeLoading;
+  // S7.4: no Jali fees — the customer pays the provider's price
+  const total = isRental ? item.price * days : item.price;
 
   async function handleConfirm() {
-    if (loading || feePending) return;
+    if (loading) return;
     setLoading(true);
     try {
       // Price, title and final fee are computed by the server from the listing.
       await api.post("/bookings", {
         type,
         reference_id: item.id,
-        service_fee: effectiveFee,
         payment_method: payMethod,
         ...(isRental ? { days } : {}),
         ...(travelDate ? { travel_date: travelDate } : {}),
@@ -142,15 +126,7 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
               <PriceLine label={`${item.price.toLocaleString()} RWF/day × ${days}`} value={item.price * days} />
             )}
 
-            {(isBus || isPrivate) && (
-              <FeeLine
-                fee={effectiveFee}
-                loading={feeLoading}
-                distanceKm={distanceKm}
-                permissionDenied={permissionDenied}
-                stationCity={departureCity}
-              />
-            )}
+            <NoFeesLine />
 
             <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginVertical: 12 }} />
 
@@ -194,11 +170,9 @@ export function BookingSheet({ data, onClose, onConfirm, userCoords }: Props) {
           {/* Confirm button */}
           <TouchableOpacity
             onPress={handleConfirm}
-            // Never submit while the distance fee is still being computed:
-            // the fallback fee would be sent while a spinner is shown.
-            disabled={loading || feePending}
+            disabled={loading}
             style={{
-              backgroundColor: feePending ? C.border : color, borderRadius: 16,
+              backgroundColor: color, borderRadius: 16,
               paddingVertical: 18, alignItems: "center",
             }}
           >
@@ -224,30 +198,11 @@ function PriceLine({ label, value }: { label: string; value: number }) {
   );
 }
 
-function FeeLine({ fee, loading, distanceKm, permissionDenied, stationCity }: {
-  fee: number;
-  loading: boolean;
-  distanceKm: number | null;
-  permissionDenied: boolean;
-  stationCity: string;
-}) {
+function NoFeesLine() {
   const { t } = useTranslation();
-  const hint = permissionDenied
-    ? `📍 ${t('components.bookingSheet.enableLocation')}`
-    : distanceKm !== null
-    ? `📍 ${t('components.bookingSheet.kmFromStation', { km: distanceKm, city: stationCity })}`
-    : `📍 ${t('components.bookingSheet.detectingLocation')}`;
-
   return (
-    <View style={{ marginBottom: 6 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ color: C.mid, fontSize: 14, fontWeight: "600" }}>{t('components.bookingSheet.serviceFee')}</Text>
-        {loading
-          ? <ActivityIndicator size="small" color={C.blue} />
-          : <Text style={{ color: C.dark, fontSize: 14, fontWeight: "700" }}>{fee.toLocaleString()} RWF</Text>
-        }
-      </View>
-      <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>{hint}</Text>
-    </View>
+    <Text style={{ color: C.green, fontSize: 12, fontWeight: "600", marginTop: 2 }}>
+      {t("booking.noJaliFees", "No Jali fees; transport prices are set by providers.")}
+    </Text>
   );
 }

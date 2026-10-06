@@ -609,7 +609,8 @@
     "bookingInProgress": "Gutumiza…",
     "yourFullName": "Amazina yawe yose",
     "passengerName": "Amazina ya umugenzi wa {{n}}",
-    "agencyNew": "Nshya"
+    "agencyNew": "Nshya",
+    "noJaliFees": "Nta mafaranga Jali yaka; ibiciro by'urugendo bishyirwaho n'abatanga serivisi."
   },
   "adminBookings": {
     "title": "Ibisabwa",

@@ -6,7 +6,7 @@ Batch 1. A customer finds a real car for their dates, sees the full price and te
 ## Stories
 - S24.1 — Browse available cars for my dates (wave 1, ✅ built)
 - S24.2 — Rental calendar and no double booking (wave 1, ✅ built)
-- S24.3 — Clear price and rental terms before I request (wave 2, ✅ built)
+- S24.3 — Clear price and rental terms before I request (wave 1, ✅ built)
 - S24.4 — Request a car and get the owner's confirmation (wave 1, ✅ built)
 - S24.5 — Cancel a rental (wave 1, ✅ built)
 - S24.6 — Handover and return (wave 1, ✅ built)

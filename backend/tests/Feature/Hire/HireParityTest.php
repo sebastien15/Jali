@@ -12,6 +12,7 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 /**
@@ -22,7 +23,7 @@ use Tests\TestCase;
  */
 class HireParityTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $customer;
     private User $driver;
@@ -36,6 +37,7 @@ class HireParityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         // Monday 12 Oct 2026, 08:00 in Kigali

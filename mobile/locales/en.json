@@ -609,7 +609,8 @@
     "bookingInProgress": "Booking…",
     "yourFullName": "Your full name",
     "passengerName": "Passenger {{n}} name",
-    "agencyNew": "New"
+    "agencyNew": "New",
+    "noJaliFees": "No Jali fees; transport prices are set by providers."
   },
   "adminBookings": {
     "title": "Bookings",

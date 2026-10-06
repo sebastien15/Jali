@@ -31,7 +31,7 @@ class RentalBookingHandler implements BookingTypeHandler
             capacity: 1,
             quantity: 1,
             price: (int) $item->price * $days,
-            serviceFee: 300,
+            serviceFee: 0,   // S7.4: no Jali fees
             title: "{$item->name} ({$item->type})",
             sub: "{$item->plate} · {$days} day" . ($days > 1 ? 's' : ''),
             originCity: $item->from ?? null,

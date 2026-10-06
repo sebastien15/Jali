@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { tripServiceFee } from "@/lib/serviceFee";
 
 export type TripDeparture = {
   id: number;
@@ -31,8 +30,6 @@ type Props = {
 
 export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
   const price = Number(trip.price);
-  const fee = tripServiceFee(price);
-  const total = price + fee;
 
   const visibleDepartures = timeFilterMins != null
     ? trip.departures.filter(d => {
@@ -73,9 +70,8 @@ export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
         </View>
       </View>
 
-      {/* Rating + fee */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12 }}>+{fee.toLocaleString()} fee</Text>
+      <View style={{ marginBottom: 12 }}>
+        <Text style={{ color: C.green, fontWeight: "600", fontSize: 12 }}>No Jali fees</Text>
       </View>
 
       {/* Departure time chips */}
@@ -103,10 +99,6 @@ export function TripCard({ trip, onSelectDeparture, timeFilterMins }: Props) {
         </View>
       </ScrollView>
 
-      {/* Total hint */}
-      <Text style={{ color: C.muted, fontSize: 12, marginTop: 10, textAlign: "right" }}>
-        Total {total.toLocaleString()} RWF incl. fee
-      </Text>
     </View>
   );
 }

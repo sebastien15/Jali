@@ -14,12 +14,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\OpenApiContract;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 /** Stories S5.4 (earnings), S7.1 (cash/MoMo to driver), S7.2 (ledger & settlement) */
 class DriverMoneyTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $rider;
     private User $driver;
@@ -28,6 +29,7 @@ class DriverMoneyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->travelTo(now()->setTimezone('Africa/Kigali')->setTime(14, 0)->utc());

@@ -33,7 +33,7 @@ class BusBookingHandler implements BookingTypeHandler
             quantity: $quantity,
             price: $unitPrice * $quantity,
             // Distance-based fee computed on the device (300–500 RWF tiers)
-            serviceFee: max(300, min(500, $request->clientServiceFee ?? 500)),
+            serviceFee: 0,   // S7.4: no Jali fees
             title: "{$item->agency} · {$item->from} → {$item->to}",
             sub: "Departs {$item->dep}",
             originCity: $item->from ?? null,

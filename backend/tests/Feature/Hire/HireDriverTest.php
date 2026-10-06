@@ -13,12 +13,13 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\OpenApiContract;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 /** Epic E6 — Hire a Driver: stories S6.1, S6.2, S6.3, S6.4 */
 class HireDriverTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $customer;
     private User $driver;
@@ -32,6 +33,7 @@ class HireDriverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         // Monday 12 Oct 2026, 08:00 in Kigali
