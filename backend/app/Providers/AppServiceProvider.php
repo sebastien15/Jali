@@ -48,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
             ->needs('$handlers')
             ->giveTagged(\App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
 
+        // Verifying a driver promotes riders to the driver role; Identity owns roles
+        $this->app->bind(\App\Modules\Identity\Contracts\ProviderRoles::class, \App\Modules\Identity\Application\RoleAssignments::class);
+
         // Staff (station agent) earnings shown on the admin profile come from Payments
         $this->app->bind(\App\Modules\Payments\Contracts\StaffEarnings::class, \App\Modules\Payments\Application\StaffCashouts::class);
 

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DriverProfile;
-use App\Models\User;
 use App\Models\Vehicle;
+use App\Modules\Providers\Application\DriverSetup;
 use App\Modules\SharedJourneys\Application\ListingActivity;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
+/** Transport adapter for SharedJourneys (stats/trips) and Providers (setup profile): validation + HTTP shape only. */
 class DriverController extends Controller
 {
     /**
@@ -36,9 +35,9 @@ class DriverController extends Controller
      * GET /driver/profile
      * Driver profile, active vehicle and all vehicles of the authenticated user.
      */
-    public function profile(Request $request)
+    public function profile(Request $request, DriverSetup $setup)
     {
-        return response()->json($this->profilePayload($request->user()));
+        return response()->json($setup->payload($request->user()));
     }
 
     /**
@@ -46,10 +45,10 @@ class DriverController extends Controller
      * Saves what driver/setup.tsx collects: display name, FCM token, operating zones,
      * documents link and the active vehicle (created on first save).
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, DriverSetup $setup)
     {
         $user = $request->user();
-        $vehicle = $user->vehicles()->where('is_active', true)->first();
+        $vehicle = $setup->activeVehicle($user);
 
         if ($request->filled('plate')) {
             $request->merge(['plate' => Vehicle::normalizePlate($request->input('plate'))]);
@@ -79,75 +78,6 @@ class DriverController extends Controller
             'insurance_expiry.date_format' => 'Use the format YYYY-MM-DD, e.g. 2026-12-31.',
         ]);
 
-        DB::transaction(function () use ($user, $vehicle, $validated) {
-            $user->update(array_intersect_key($validated, array_flip(['name', 'fcm_token'])));
-
-            $profileData = array_intersect_key($validated, array_flip(['services', 'allowed_zones', 'docs_url']));
-            $profile = $user->driverProfile()->firstOrCreate([]);
-            if ($profileData) {
-                $profile->update($profileData);
-            }
-
-            $vehicleData = $this->vehicleAttributes($validated);
-            if ($vehicle && $vehicleData) {
-                $vehicle->update($vehicleData);
-            } elseif (!$vehicle && isset($vehicleData['model'], $vehicleData['plate'])) {
-                $user->vehicles()->create($vehicleData + ['is_active' => true]);
-            }
-        });
-
-        return response()->json($this->profilePayload($user->fresh()));
-    }
-
-    /** Maps the setup screen's field names onto vehicle columns. */
-    private function vehicleAttributes(array $validated): array
-    {
-        $map = [
-            'car_model'        => 'model',
-            'plate'            => 'plate',
-            'car_type'         => 'body_type',
-            'seats'            => 'seats',
-            'amenities'        => 'amenities',
-            'insurance_expiry' => 'insurance_expiry',
-            'price_day'        => 'rental_price_day',
-            'caution'          => 'rental_caution',
-        ];
-
-        $attributes = [];
-        foreach ($map as $input => $column) {
-            if (array_key_exists($input, $validated)) {
-                $attributes[$column] = $validated[$input];
-            }
-        }
-        if (isset($attributes['body_type'])) {
-            $attributes['class'] = $attributes['body_type'] === 'Minivan' ? 'van' : 'car';
-        }
-
-        return $attributes;
-    }
-
-    private function profilePayload(User $user): array
-    {
-        $user->loadMissing('driverProfile', 'vehicles');
-        $profile = $user->driverProfile;
-
-        return [
-            'user' => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-            ],
-            'profile' => $profile ? [
-                'services'            => $profile->services ?? [],
-                'allowed_zones'       => $profile->allowed_zones ?? [],
-                'docs_url'            => $profile->docs_url,
-                'verification_status' => $profile->verification_status ?? DriverProfile::STATUS_PENDING,
-                'rating_avg'          => $profile->rating_avg,
-                'trips_count'         => $profile->trips_count,
-            ] : null,
-            'vehicle'  => $user->vehicles->firstWhere('is_active', true),
-            'vehicles' => $user->vehicles->values(),
-        ];
+        return response()->json($setup->save($user, $vehicle, $validated));
     }
 }

@@ -198,6 +198,25 @@ class ProvidersParityTest extends TestCase
         $this->assertNull(Vehicle::find($a));
     }
 
+    public function test_vehicle_photos_are_stored_per_slot_and_replaced_without_gd(): void
+    {
+        $driver = $this->user('user');
+        Sanctum::actingAs($driver);
+        $id = $this->postJson('/api/driver/vehicles', ['class' => 'car', 'model' => 'RAV4', 'seats' => 4, 'plate' => 'RAE 1',
+            'insurance_expiry' => now()->addYear()->format('Y-m-d')])->json('id');
+        $photo = fn () => UploadedFile::fake()->create('front.jpg', 10, 'image/jpeg');
+
+        $first = $this->post("/api/driver/vehicles/$id/photos", ['slot' => 'front', 'photo' => $photo()], ['Accept' => 'application/json'])
+            ->assertOk()->json('photos.front');
+        $this->assertStringStartsWith(Storage::url("vehicles/$id/"), $first);
+        $second = $this->post("/api/driver/vehicles/$id/photos", ['slot' => 'front', 'photo' => $photo()], ['Accept' => 'application/json'])
+            ->assertOk()->json('photos.front');
+        $prefix = Storage::url('');
+        Storage::disk('public')->assertMissing(substr($first, strlen($prefix)));
+        Storage::disk('public')->assertExists(substr($second, strlen($prefix)));
+        $this->post("/api/driver/vehicles/$id/photos", ['slot' => 'roof', 'photo' => $photo()], ['Accept' => 'application/json'])->assertStatus(422);
+    }
+
     public function test_setup_screen_creates_then_updates_the_active_vehicle(): void
     {
         $driver = $this->user('user');
