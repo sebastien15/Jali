@@ -11,11 +11,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\OpenApiContract;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 class DriverRatesTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $driver;
 
@@ -27,6 +28,7 @@ class DriverRatesTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->driver = $this->user('driver', 'ExponentPushToken[driver]');
     }

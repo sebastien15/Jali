@@ -42,8 +42,9 @@ class RideSettings implements PricingPolicy
                 'van'     => ['per_km_min' => 400, 'per_km_max' => 2000, 'min_fare_max' => 10000],
             ],
             'road_factor'         => 1.3,
-            'commission_pct'      => 8,
-            'service_fee'         => ['type' => 'flat', 'amount' => 200],
+            // S7.4: Jali charges no fees — commission and service fee default to 0
+            'commission_pct'      => 0,
+            'service_fee'         => ['type' => 'flat', 'amount' => 0],
             'nearby_radius_km'    => 5,
             'presence_ttl_sec'    => 60,
             'request_timeout_sec' => 30,
@@ -63,8 +64,8 @@ class RideSettings implements PricingPolicy
                 'daily_max'           => 150000,
                 'overtime_max'        => 20000,
                 'out_of_town_max'     => 50000,
-                'commission_pct'      => 10,
-                'service_fee'         => 500,
+                'commission_pct'      => 0,
+                'service_fee'         => 0,
                 'request_timeout_min' => 60,   // driver must answer within this, or before the start
                 'free_cancel_hours'   => 3,    // customer cancels free until this long before the start
                 'late_cancel_pct'     => 20,   // of the driver's price, paid to the driver when later

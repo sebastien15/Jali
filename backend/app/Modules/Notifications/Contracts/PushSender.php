@@ -13,6 +13,12 @@ use App\Models\User;
  */
 interface PushSender
 {
-    /** false when the user has no token or delivery failed */
-    public function send(User $user, string $title, string $body, array $data = []): bool;
+    /**
+     * false when the user has no token or delivery failed. Every push is logged
+     * (S12.3) and carries `nid` in its data so the app can report the open.
+     *
+     * @param array{sms_fallback?: string} $options `sms_fallback`: text to send by SMS when the
+     *        push is not opened in time — only for critical events (e.g. driver arrived)
+     */
+    public function send(User $user, string $title, string $body, array $data = [], array $options = []): bool;
 }

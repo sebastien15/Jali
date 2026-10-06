@@ -15,6 +15,7 @@ import { Stars } from "@/components/shared/Stars";
 import { ReasonSheet } from "@/components/shared/ReasonSheet";
 import { useFormatPrice } from "@/lib/fx";
 import { Linking } from "react-native";
+import { HelpTopicsCard } from "@/features/support";
 
 /** Customer's hire screen: waiting → confirmed (driver + phone) → in progress → summary & rating (S6.3, S6.4) */
 export default function HireDetailScreen() {
@@ -176,6 +177,7 @@ export default function HireDetailScreen() {
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("hire.detail.cancel")}</Text>
           </TouchableOpacity>
         ) : null}
+        <View style={{ marginTop: 12 }}><HelpTopicsCard service="hire" subject={{ type: "hire", id: hire.id }} /></View>
       </ScrollView>
 
       <ReasonSheet

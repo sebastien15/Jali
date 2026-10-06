@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { Alert } from "react-native";
 import { isProd, isTest } from "@/lib/env";
@@ -29,9 +30,12 @@ async function currentToken(): Promise<string | null> {
 
 type SessionStampedConfig = InternalAxiosRequestConfig & { _sessionGen?: number };
 
+// S23.1: the server version-gates new requests only for clients that report a version
+const APP_VERSION = Constants.expoConfig?.version;
+
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", ...(APP_VERSION ? { "X-App-Version": APP_VERSION } : {}) },
   timeout: 10000,
 });
 
@@ -44,6 +48,8 @@ api.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Dev request log — e.g. to check that hidden services make no calls (S23.2)
+  if (__DEV__) console.debug(`[api] ${(config.method ?? "get").toUpperCase()} ${config.url}`);
   return config;
 });
 

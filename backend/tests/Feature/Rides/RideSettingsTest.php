@@ -37,7 +37,10 @@ class RideSettingsTest extends TestCase
 
         $response = $this->getJson('/api/admin/settings/rides')
             ->assertOk()
-            ->assertJsonPath('commission_pct', 8)
+            ->assertJsonPath('commission_pct', 0)          // S7.4: no Jali fees by default
+            ->assertJsonPath('service_fee.amount', 0)
+            ->assertJsonPath('hire.commission_pct', 0)
+            ->assertJsonPath('hire.service_fee', 0)
             ->assertJsonPath('vehicle_classes.moto.per_km_max', 600);
 
         OpenApiContract::assertResponse($response, 'get', '/admin/settings/rides');
@@ -61,7 +64,7 @@ class RideSettingsTest extends TestCase
         $this->assertSame(10, RideSettings::get()['commission_pct']);
         $log = ActivityLog::where('action', 'ride_settings_updated')->first();
         $this->assertSame($admin->id, $log->admin_id);
-        $this->assertSame(8, $log->details['old']['commission_pct']);
+        $this->assertSame(0, $log->details['old']['commission_pct']);
         $this->assertSame(10, $log->details['new']['commission_pct']);
     }
 
@@ -87,6 +90,6 @@ class RideSettingsTest extends TestCase
             $this->getJson('/api/admin/settings/rides')->assertStatus(403);
             $this->putJson('/api/admin/settings/rides', ['commission_pct' => 1])->assertStatus(403);
         }
-        $this->assertSame(8, RideSettings::get()['commission_pct']);
+        $this->assertSame(0, RideSettings::get()['commission_pct']);
     }
 }

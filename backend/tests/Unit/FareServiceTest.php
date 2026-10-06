@@ -30,8 +30,8 @@ class FareServiceTest extends TestCase
         $q = (new FareService())->quote($this->rates, 5.0, 1.0, 0, $this->day());
 
         $this->assertSame(2500, $q['driver_fare']);   // 500 + 5×400
-        $this->assertSame(200, $q['service_fee']);    // default flat fee
-        $this->assertSame(2700, $q['total']);
+        $this->assertSame(0, $q['service_fee']);      // S7.4: no Jali fee by default
+        $this->assertSame(2500, $q['total']);
         $this->assertFalse($q['is_night']);
     }
 

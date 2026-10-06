@@ -6,7 +6,7 @@ Instant, reliable updates for riders and drivers via WebSockets, with recovery a
 ## Stories
 - S12.1 — WebSockets with Laravel Reverb (wave 2, ⬜ todo)
 - S12.2 — Recover trip state after network loss or app kill (wave 2, ⬜ todo)
-- S12.3 — Reliable notifications (wave 1, ⬜ todo)
+- S12.3 — Reliable notifications (wave 1, ✅ built)
 
 ## Done when
 - [ ] All stories in this epic are closed

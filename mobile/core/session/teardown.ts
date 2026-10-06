@@ -7,6 +7,7 @@ import { clearQueryCache } from "@/lib/queryClient";
 import { bumpSessionGeneration, emitSessionChange } from "@/core/session/generation";
 import { clearAllViewState, SESSION_USER_KEY } from "@/core/session/viewState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearPendingIntent } from "@/core/notifications/notificationIntent";
 
 /**
  * The single owner of session start/teardown (architecture runbook §5,
@@ -50,8 +51,8 @@ export function endSession(reason: EndSessionReason = "logout"): Promise<void> {
     await clearApiToken();
     await clearQueryCache();
     await clearAllViewState();
-    // No notification intents are stored today (taps route immediately), so
-    // there is nothing else to drop; add pending intents here when M07 adds them.
+    // A tap kept for after login belongs to this device's previous session (S23.5)
+    await clearPendingIntent();
     GoogleSignin.signOut().catch(() => {});
     signOut(auth).catch(() => {});
     emitSessionChange();

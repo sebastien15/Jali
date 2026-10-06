@@ -1296,6 +1296,395 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/help/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published topics in the reader's language (falls back to English), filtered by service / context / text */
+        get: operations["listHelpTopics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/help/topics/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One published topic */
+        get: operations["getHelpTopic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/help-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every topic with all 4 languages, drafts included */
+        get: operations["adminListHelpTopics"];
+        put?: never;
+        /** Add a topic (title and body required in en, fr, rw and sw; logged) */
+        post: operations["createHelpTopic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/help-topics/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a topic (partial; logged) */
+        put: operations["updateHelpTopic"];
+        post?: never;
+        /** Delete a topic (logged) */
+        delete: operations["deleteHelpTopic"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My tickets, latest activity first */
+        get: operations["listMyTickets"];
+        put?: never;
+        /** Open a ticket, optionally about one of my rides/hires/rentals (safety = urgent) */
+        post: operations["openTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of my tickets with its messages (staff names hidden) */
+        get: operations["getMyTicket"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply (reopens the ticket) */
+        post: operations["replyToMyTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/tickets/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark my ticket solved */
+        post: operations["resolveMyTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inbox — urgent first, then by first-response deadline */
+        get: operations["supportInbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket with customer, SLA and messages */
+        get: operations["supportTicket"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply as Jali support (pushes the customer; first reply stops the SLA timer) */
+        post: operations["supportReply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets/{id}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign (omit admin_id = me, null = unassign; logged) */
+        post: operations["supportAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set status (resolved pushes the customer; logged) */
+        post: operations["supportStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/canned-replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved replies */
+        get: operations["listCannedReplies"];
+        put?: never;
+        /** Save a reply */
+        post: operations["createCannedReply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/canned-replies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a saved reply */
+        delete: operations["deleteCannedReply"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/{id}/opened": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The user tapped a push (`nid` in its data); cancels any pending SMS fallback */
+        post: operations["pushOpened"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/notifications/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delivery and open rates per notification type */
+        get: operations["pushStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/service-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Services this account can see, use and offer here (additive; old clients don't call it)
+         * @description Resolved on the server from release flags, region (S10.4), permissions and provider verification — never from a client persona. New requests to a service whose `accepting_new_requests` is false are refused with 403 `{message, reason_code}`; history, active work and support stay reachable. Clients that send no version (no `app_version` and no `X-App-Version` header) are not version-gated.
+         */
+        get: operations["getServiceAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Release flags per service (defaults keep every built service on; cargo off) */
+        get: operations["getServiceCatalogue"];
+        /** Release, pause or hide services; set a minimum app version (partial; logged) */
+        put: operations["putServiceCatalogue"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/service-areas/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Is a service offered at this point? (served everywhere while no city is active) */
+        get: operations["checkServiceArea"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cities first, then zones */
+        get: operations["listServiceAreas"];
+        put?: never;
+        /** Add a city or zone from points, an uploaded GeoJSON polygon, or a circle */
+        post: operations["createServiceArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-areas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** One city or zone */
+        get: operations["getServiceArea"];
+        /** Change name, shape, on/off or per-city overrides (partial; logged) */
+        put: operations["updateServiceArea"];
+        post?: never;
+        /** Delete a zone, or a city without zones */
+        delete: operations["deleteServiceArea"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rentals/cars": {
         parameters: {
             query?: never;
@@ -1867,6 +2256,242 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        SupportTicketInput: {
+            category: components["schemas"]["HelpContext"];
+            /** @enum {string|null} */
+            subject_type?: "ride" | "hire" | "rental" | null;
+            subject_id?: number | null;
+            message: string;
+        };
+        SupportMessage: {
+            id: number;
+            is_staff: boolean;
+            body: string;
+            /** Format: date-time */
+            created_at: string;
+            /** @description "Jali support" for staff messages shown to customers */
+            author: string;
+        };
+        SupportTicket: {
+            id: number;
+            category: components["schemas"]["HelpContext"];
+            /** @enum {string} */
+            priority: "urgent" | "high" | "normal";
+            /** @enum {string} */
+            status: "open" | "answered" | "resolved";
+            subject: {
+                /** @enum {string} */
+                type: "ride" | "hire" | "rental";
+                id: number;
+                label: string;
+            } | null;
+            preview: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            last_message_at: string;
+            /** Format: date-time */
+            resolved_at: string | null;
+        };
+        SupportTicketDetail: components["schemas"]["SupportTicket"] & {
+            messages: components["schemas"]["SupportMessage"][];
+        };
+        StaffSupportFields: {
+            user: {
+                id: number;
+                name: string | null;
+                phone: string | null;
+            };
+            assignee: {
+                id: number;
+                name: string;
+            } | null;
+            sla: {
+                /** Format: date-time */
+                first_response_due_at: string;
+                /** Format: date-time */
+                first_responded_at: string | null;
+                overdue: boolean;
+            };
+        };
+        StaffSupportTicket: components["schemas"]["SupportTicket"] & components["schemas"]["StaffSupportFields"];
+        StaffSupportTicketDetail: components["schemas"]["SupportTicketDetail"] & components["schemas"]["StaffSupportFields"];
+        SupportInbox: {
+            data: components["schemas"]["StaffSupportTicket"][];
+            counts: {
+                open: number;
+                urgent: number;
+                overdue: number;
+            };
+        };
+        CannedReply: {
+            id: number;
+            title: string;
+            body: string;
+        };
+        /** @enum {string} */
+        Locale: "en" | "fr" | "rw" | "sw";
+        /** @enum {string} */
+        HelpContext: "charged_wrong" | "driver_behaviour" | "lost_item" | "safety" | "cancel" | "damage" | "payment" | "account" | "other";
+        Translations: {
+            en: string;
+            fr: string;
+            rw: string;
+            sw: string;
+        };
+        HelpTopic: {
+            id: number;
+            slug: string;
+            title: string;
+            /** @description Plain text; blank lines separate paragraphs */
+            body: string;
+            /** @description Empty = every service */
+            services: components["schemas"]["ServiceKey"][];
+            contexts: components["schemas"]["HelpContext"][];
+        };
+        AdminHelpTopic: {
+            id: number;
+            slug: string;
+            title: components["schemas"]["Translations"];
+            body: components["schemas"]["Translations"];
+            services: components["schemas"]["ServiceKey"][];
+            contexts: components["schemas"]["HelpContext"][];
+            sort: number;
+            published: boolean;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        HelpTopicInput: {
+            slug?: string;
+            title?: components["schemas"]["Translations"];
+            body?: components["schemas"]["Translations"];
+            services?: components["schemas"]["ServiceKey"][];
+            contexts?: components["schemas"]["HelpContext"][];
+            sort?: number;
+            published?: boolean;
+        };
+        ServiceFlags: {
+            discoverable: boolean;
+            accepting_new_requests: boolean;
+            minimum_app_version: string | null;
+        };
+        ServiceCatalogue: {
+            rides: components["schemas"]["ServiceFlags"];
+            hire: components["schemas"]["ServiceFlags"];
+            rental: components["schemas"]["ServiceFlags"];
+            shared: components["schemas"]["ServiceFlags"];
+            bus: components["schemas"]["ServiceFlags"];
+            cargo: components["schemas"]["ServiceFlags"];
+        };
+        /** @description Any subset of services and flags. Cargo is not built and can't be switched on. */
+        ServiceCatalogueUpdate: {
+            [key: string]: {
+                discoverable?: boolean;
+                accepting_new_requests?: boolean;
+                minimum_app_version?: string | null;
+            };
+        };
+        ServiceAccessEntry: {
+            id: components["schemas"]["ServiceKey"];
+            label: string;
+            /** @description Show it in navigation */
+            discoverable: boolean;
+            /** @description This account can start new work here now */
+            accepting_new_requests: boolean;
+            /** @description Has the customer permission */
+            can_use: boolean;
+            /** @description Permitted and verified to take work */
+            can_offer: boolean;
+            /** @description Can set it up as a provider: apply, list a car */
+            can_configure: boolean;
+            /** @enum {string|null} */
+            reason_code: "not_released" | "paused" | "app_update_required" | "not_in_area" | "off_in_area" | "no_permission" | null;
+            minimum_app_version: string | null;
+            area: {
+                id: number;
+                name: string;
+            } | null;
+        };
+        ServiceAccess: {
+            /** @constant */
+            version: 1;
+            services: components["schemas"]["ServiceAccessEntry"][];
+        };
+        ServiceUnavailable: {
+            message: string;
+            /** @enum {string} */
+            reason_code: "not_released" | "paused" | "app_update_required";
+        };
+        /** @enum {string} */
+        ServiceKey: "rides" | "hire" | "rental" | "shared" | "bus" | "cargo";
+        ServiceAvailability: {
+            served: boolean;
+            area: {
+                id: number;
+                name: string;
+            } | null;
+            /** @description User-facing reason when not served */
+            message: string | null;
+        };
+        /** @description [lat, lng] */
+        LatLng: number[];
+        /** @description Per-city ride settings (empty = global value) and service switches (missing = on) */
+        ServiceAreaOverrides: {
+            commission_pct?: number;
+            cancel_fee?: number;
+            free_wait_min?: number;
+            nearby_radius_km?: number;
+            broadcast_max_drivers?: number;
+            vehicle_classes?: {
+                [key: string]: {
+                    per_km_min?: number;
+                    per_km_max?: number;
+                    min_fare_max?: number;
+                };
+            };
+            services?: {
+                [key: string]: boolean;
+            };
+        };
+        ServiceArea: {
+            id: number;
+            name: string;
+            /** @enum {string} */
+            kind: "city" | "zone";
+            /** @enum {string|null} */
+            zone_type: "airport" | "stadium" | "station" | "pickup" | "other" | null;
+            parent_id: number | null;
+            parent_name: string | null;
+            active: boolean;
+            polygon: components["schemas"]["LatLng"][];
+            center: {
+                lat: number;
+                lng: number;
+            };
+            overrides: components["schemas"]["ServiceAreaOverrides"];
+            zones_count: number;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        /** @description Give one shape — `polygon`, `geojson` (Polygon/Feature, as object or text) or `circle` — required on create */
+        ServiceAreaInput: {
+            name?: string;
+            /** @enum {string} */
+            kind?: "city" | "zone";
+            /** @enum {string|null} */
+            zone_type?: "airport" | "stadium" | "station" | "pickup" | "other" | null;
+            /** @description City of a zone */
+            parent_id?: number | null;
+            active?: boolean;
+            polygon?: components["schemas"]["LatLng"][];
+            geojson?: string | Record<string, never>;
+            circle?: {
+                lat: number;
+                lng: number;
+                radius_km: number;
+            };
+            overrides?: components["schemas"]["ServiceAreaOverrides"] | null;
+        };
         /** @enum {string} */
         RentalCarType: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Van" | "Luxury";
         /**
@@ -3042,6 +3667,32 @@ export interface components {
                 };
             };
         };
+        /** @description Missing permission, or the service is not taking new requests (S23.1) — then `reason_code` is set (not_released, paused, app_update_required). Existing work is unaffected. */
+        ForbiddenOrPaused: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ServiceUnavailable"] | {
+                    error?: string;
+                    message?: string;
+                };
+            };
+        };
+        /** @description Validation failed (`errors` present), or the pickup is outside every active service area / the service is switched off there (S10.4) — `message` is user-facing, e.g. "Not available here yet. Jali currently works in Kigali." */
+        ValidationOrNotServed: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message: string;
+                    errors?: {
+                        [key: string]: string[];
+                    };
+                };
+            };
+        };
         /** @description Validation failed */
         ValidationError: {
             headers: {
@@ -3697,7 +4348,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
         };
     };
     estimateRide: {
@@ -3737,7 +4388,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
         };
     };
     listMyRides: {
@@ -3805,9 +4456,9 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
         };
     };
@@ -4846,9 +5497,9 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
         };
     };
@@ -5533,6 +6184,823 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    listHelpTopics: {
+        parameters: {
+            query?: {
+                service?: components["schemas"]["ServiceKey"];
+                context?: components["schemas"]["HelpContext"];
+                q?: string;
+                /** @description Defaults to Accept-Language, then en */
+                locale?: components["schemas"]["Locale"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["HelpTopic"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getHelpTopic: {
+        parameters: {
+            query?: {
+                locale?: components["schemas"]["Locale"];
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelpTopic"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminListHelpTopics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminHelpTopic"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createHelpTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HelpTopicInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHelpTopic"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    updateHelpTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HelpTopicInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHelpTopic"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteHelpTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listMyTickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SupportTicket"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    openTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportTicketInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    replyToMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    resolveMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    supportInbox: {
+        parameters: {
+            query?: {
+                status?: "open" | "answered" | "resolved";
+                priority?: "urgent" | "high" | "normal";
+                mine?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportInbox"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    supportTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffSupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    supportReply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffSupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    supportAssign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    admin_id?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffSupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    supportStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "open" | "answered" | "resolved";
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffSupportTicketDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listCannedReplies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CannedReply"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createCannedReply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CannedReply"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteCannedReply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    pushOpened: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recorded */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    pushStats: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        days: number;
+                        types: {
+                            /** @description data.screen, e.g. driver_ride */
+                            type: string;
+                            total: number;
+                            delivered: number;
+                            no_token: number;
+                            opened: number;
+                            sms_fallbacks: number;
+                            delivery_rate: number;
+                            open_rate: number;
+                        }[];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getServiceAccess: {
+        parameters: {
+            query?: {
+                /** @description Customer position — adds region checks */
+                lat?: number;
+                lng?: number;
+                app_version?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccess"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getServiceCatalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceCatalogue"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putServiceCatalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceCatalogueUpdate"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceCatalogue"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    checkServiceArea: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                service?: components["schemas"]["ServiceKey"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAvailability"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listServiceAreas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceArea"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAreaInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAreaInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
     searchRentalCars: {
         parameters: {
             query?: {
@@ -5672,7 +7140,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };

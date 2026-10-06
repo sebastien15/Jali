@@ -211,8 +211,8 @@ type AdminUser = {
 - Locale files: `locales/{en,fr,rw,sw}.json`
 - Usage: `const { t } = useTranslation()`
 
-#### `lib/serviceFee.ts` / `lib/useServiceFee.ts`
-- Service fee calculation logic + hook
+#### `lib/serviceFee.ts`
+- `haversineDistance` only. Jali charges no fees (S7.4): bookings send no fee, sheets show "No Jali fees".
 
 #### `lib/usePushPermission.ts`
 - Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
@@ -448,6 +448,60 @@ PUT   /driver/momo                {momo_number, momo_name} — shown to riders p
 POST  /driver/payouts             {amount} ≤ balance → cashout_requests (requester_type=driver)
       Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
       collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
+      S7.4: rides/hire commission_pct and service_fee default to 0 (migration zero_jali_fees resets saved values);
+      legacy bus/private/rental bookings store service_fee 0. A superadmin can still set fees (logged).
+
+# Help centre (S16.2) — Modules/Support
+GET   /help/topics                ?service&context&q&locale → {data:[{id, slug, title, body, services, contexts}]}  perm: use-support
+GET   /help/topics/{slug}         ?locale (else Accept-Language, else en)                                           perm: use-support
+GET|POST /admin/help-topics, PUT|DELETE /admin/help-topics/{id}   title/body required in en/fr/rw/sw; logged  perm: manage-support
+      6 starter topics seeded (charged wrong, driver behaviour, lost item, cancel/refunds, rental damage, account).
+      App: features/support (HelpTopicsCard on ride/hire/rental details, /help, /help/[slug]); admin app/(admin)/help-topics.
+
+# Reliable push (S12.3) — Modules/Notifications
+POST  /me/notifications/{id}/opened   own pushes only (404 otherwise); app sends it on tap (data.nid)   any signed-in user
+GET   /admin/notifications/stats      ?days → per type {total, delivered, no_token, opened, sms_fallbacks, rates}  perm: view-analytics
+      Every PushSender::send is logged in push_notifications (type = data.screen) and adds `nid` to data. driver_ride
+      pushes use Android channel `ride_requests` + `ride_request.wav` (mobile/assets/sounds, expo-notifications plugin).
+      send(..., ['sms_fallback' => text]) texts the user if not opened within services.push.sms_fallback_seconds
+      (PUSH_SMS_FALLBACK_SECONDS, default 60) — used for "driver arrived". Command notifications:sms-fallback (every minute).
+      Taps (S23.5): core/notifications/notificationIntent.ts is the root resolver (allowlisted screen → route + ownership
+      check API); NotificationTaps (root layout) handles foreground + cold-start taps, de-duplicated; a tap while signed
+      out is kept 24 h and opened after login (PushCoordinator), dropped on logout; 403/404 → /notification-unavailable.
+      Admin accounts now register push tokens too (urgent support alerts).
+
+# Support tickets (S16.3) — Modules/Support (SupportDesk)
+GET|POST /support/tickets         mine / open {category, subject_type ride|hire|rental, subject_id (must be mine), message}
+GET   /support/tickets/{id}       owner only (404 otherwise); staff shown as "Jali support"        perm: use-support
+POST  /support/tickets/{id}/messages (reopens; 409 when resolved) · POST /support/tickets/{id}/resolve
+GET   /admin/support/tickets      ?status=open|answered|resolved&mine&priority → {data, counts{open,urgent,overdue}}
+      urgent first, then first-response deadline. POST .../{id}/messages|assign|status; GET|POST|DELETE
+      /admin/support/canned-replies   perm: manage-support. Priority: safety=urgent (1 h), driver_behaviour/damage=high
+      (4 h), else normal (24 h). Urgent tickets push every manage-support user; staff replies/resolution push the
+      customer (screen support_ticket → /support/[id]). Assign/status changes are logged.
+
+# Service access (S23.1) — Modules/ServiceAccess (runbook M06)
+GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
+                                  can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user
+GET|PUT /admin/services           release flags {rides|hire|rental|shared|bus|cargo: {discoverable, accepting_new_requests,
+                                  minimum_app_version}} perm: manage-services (logged). Cargo can't be enabled (not built).
+      New intake refused with 403 {message, reason_code: not_released|paused|app_update_required} — rides, hire, rental
+      requests and legacy /bookings. Region reasons (not_in_area/off_in_area) come from S10.4. App sends X-App-Version;
+      clients without it aren't version-gated. Admin UI: app/(admin)/settings/services.
+      App (S23.2): core/navigation/serviceRegistry.ts (HOME_TABS, HOME_BARS) + serviceAccess.ts (useServiceAccess,
+      fallback = every built service on). Home shows and queries only available services; new-request entry routes
+      (/ride, /ride/nearby, /hire, /rental/car/[id]) are wrapped in <ServiceGate>; detail/history routes never are.
+
+# Service areas (S10.4) — Modules/Locations
+GET   /service-areas/check        ?lat&lng&service=rides|hire|rental|shared|bus|cargo → {served, area, message}  perm: request-rides
+GET|POST /admin/service-areas     list (cities then zones) / create {name, kind city|zone, zone_type, parent_id, active,
+                                  polygon [[lat,lng]…] | geojson | circle {lat,lng,radius_km}, overrides}  perm: manage-service-areas
+GET|PUT|DELETE /admin/service-areas/{id}   (delete 409 while a city has zones). Every change → ActivityLog.
+      Contract Locations\Contracts\ServiceAreas: availability(), cityAt(), zonesAt(), zones(type) — zones are for airport
+      queue, pickup points and heatmaps. No live city ⇒ everywhere served. Rides (nearby/estimate/request) and hire requests
+      answer 422 {message: "Not available here yet. Jali currently works in Kigali."} outside a live city or when the service
+      is off there. City overrides (commission_pct, cancel_fee, free_wait_min, nearby_radius_km, broadcast_max_drivers,
+      vehicle_classes) apply through NearbyRides\Application\AreaRideSettings. Admin UI: app/(admin)/service-areas.
 
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}

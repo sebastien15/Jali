@@ -41,7 +41,7 @@ class BookingTest extends TestCase
 
         $booking = Booking::latest('id')->first();
         $this->assertSame($unit * 3, (int) $booking->price);
-        $this->assertSame(max(500, min(3000, (int) round($unit * 0.05))), (int) $booking->service_fee);
+        $this->assertSame(0, (int) $booking->service_fee);   // S7.4: no Jali fees
         $this->assertSame(3, (int) $booking->quantity);
     }
 

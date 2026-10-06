@@ -609,7 +609,8 @@
     "bookingInProgress": "Gutumiza…",
     "yourFullName": "Amazina yawe yose",
     "passengerName": "Amazina ya umugenzi wa {{n}}",
-    "agencyNew": "Nshya"
+    "agencyNew": "Nshya",
+    "noJaliFees": "Nta mafaranga Jali yaka; ibiciro by'urugendo bishyirwaho n'abatanga serivisi."
   },
   "adminBookings": {
     "title": "Ibisabwa",
@@ -848,7 +849,8 @@
       "priceNote": "Igiciro gikubiyemo kuza kugufata n'amafaranga ya Jali. Gihagarara iyo usabye.",
       "noneNow": "nta n'umwe",
       "view_list": "Urutonde",
-      "view_map": "Ikarita"
+      "view_map": "Ikarita",
+      "notServed": "Ntiboneka hano ubu."
     },
     "trip": {
       "waiting": "Dutegereje ko {{name}} yemera…",
@@ -1192,5 +1194,62 @@
     "title": "Erekana ibiciro no mu",
     "sub": "Amafaranga agereranyije iruhande rwa RWF. Wishyura buri gihe muri RWF.",
     "none": "RWF gusa"
+  },
+  "services": {
+    "notAvailableTitle": "Ntiraboneka",
+    "back": "Subira inyuma"
+  },
+  "help": {
+    "title": "Ubufasha",
+    "search": "Shakisha ubufasha",
+    "noResults": "Nta ngingo ihuye. Twandikire hepfo.",
+    "stillNeedHelp": "Uracyakeneye ubufasha?",
+    "whatsapp": "Vugana na Jali kuri WhatsApp",
+    "missing": "Iyi ngingo y'ubufasha ntiboneka.",
+    "forThisTrip": "Ukeneye ubufasha kuri uru rugendo?",
+    "allTopics": "Ingingo zose z'ubufasha",
+    "contact": "Vugana n'ubufasha bwa Jali"
+  },
+  "support": {
+    "myTickets": "Ibibazo nohereje",
+    "new": "Ikibazo gishya",
+    "none": "Nta kibazo urohereza. Fungura kimwe niba ukeneye umuntu wagufasha.",
+    "error": "Ntibyoherejwe",
+    "tryAgain": "Ongera ugerageze.",
+    "aboutTrip": "Ku bijyanye n'uru rugendo",
+    "whatHappened": "Ni ikihe kibazo?",
+    "safetyNote": "Ibibazo by'umutekano bikemurwa mbere. Niba uri mu kaga ubu, hamagara 112.",
+    "describe": "Tubwire ibyabaye",
+    "send": "Ohereza ku bufasha bwa Jali",
+    "ticket": "Ikibazo",
+    "missing": "Iki kibazo ntikiboneka.",
+    "urgentWait": "Umukozi wa Jali arasubiza mu isaha imwe.",
+    "wait": "Umukozi wa Jali arasubiza vuba. Tuzakumenyesha.",
+    "resolved": "Iki kibazo cyakemutse.",
+    "openAnother": "Fungura ikibazo gishya",
+    "reply": "Andika igisubizo",
+    "sendReply": "Ohereza",
+    "solved": "Ikibazo cyanjye cyakemutse",
+    "status": {
+      "open": "Gitegereje Jali",
+      "answered": "Jali yasubije",
+      "resolved": "Cyakemutse"
+    },
+    "cat": {
+      "charged_wrong": "Naciwe amafaranga atari yo",
+      "driver_behaviour": "Imyitwarire y'umushoferi",
+      "lost_item": "Ikintu cyatakaye",
+      "safety": "Umutekano",
+      "cancel": "Guhagarika",
+      "damage": "Ibyangiritse",
+      "payment": "Kwishyura",
+      "account": "Konti yanjye",
+      "other": "Ikindi"
+    }
+  },
+  "notifications": {
+    "unavailableTitle": "Ntibikiboneka",
+    "unavailableText": "Bishobora kuba byarasibwe, cyangwa ari ibya konti indi.",
+    "goHome": "Jya ahabanza"
   }
 }

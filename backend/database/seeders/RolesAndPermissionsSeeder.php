@@ -42,6 +42,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'verify-drivers' => 'Review and verify driver applications',
             'manage-rides' => 'Monitor rides and handle disputes',
             'manage-ride-pricing' => 'Configure ride pricing guardrails',
+            'manage-service-areas' => 'Define service areas, zones and per-city settings',
+            'manage-services' => 'Release, pause or hide services and set the minimum app version',
             'apply-as-driver' => 'Apply to drive: profile, vehicles and documents',
         ];
         // Car rental (epic E24)
@@ -52,6 +54,14 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
         foreach ($rentalPermissions as $name => $desc) {
             Permission::firstOrCreate(['name' => $name], ['description' => $desc, 'category' => 'Rentals']);
+        }
+        // Help centre and support (epic E16)
+        $supportPermissions = [
+            'use-support' => 'Read help topics and contact Jali support',
+            'manage-support' => 'Write help topics and answer support tickets',
+        ];
+        foreach ($supportPermissions as $name => $desc) {
+            Permission::firstOrCreate(['name' => $name], ['description' => $desc, 'category' => 'Support']);
         }
 
         foreach ($ridePermissions as $name => $desc) {
@@ -87,19 +97,19 @@ class RolesAndPermissionsSeeder extends Seeder
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
                 'view-analytics', 'view-station-analytics', 'manage-agencies',
                 'manage-locations', 'request-rides', 'verify-drivers', 'manage-rides', 'apply-as-driver',
-                'rent-cars', 'manage-rentals',
+                'rent-cars', 'manage-rentals', 'use-support', 'manage-support',
             ])->get()
         );
 
         $user->permissions()->sync(
-            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides', 'apply-as-driver', 'rent-cars'])->get()
+            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides', 'apply-as-driver', 'rent-cars', 'use-support'])->get()
         );
 
         $driver->permissions()->sync(
             Permission::whereIn('name', [
                 'create-private-seats', 'view-own-earnings',
                 'request-rides', 'offer-rides', 'offer-driver-hire', 'apply-as-driver',
-                'offer-rentals', 'rent-cars',
+                'offer-rentals', 'rent-cars', 'use-support',
             ])->get()
         );
     }

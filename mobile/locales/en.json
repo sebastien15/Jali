@@ -609,7 +609,8 @@
     "bookingInProgress": "Booking…",
     "yourFullName": "Your full name",
     "passengerName": "Passenger {{n}} name",
-    "agencyNew": "New"
+    "agencyNew": "New",
+    "noJaliFees": "No Jali fees; transport prices are set by providers."
   },
   "adminBookings": {
     "title": "Bookings",
@@ -848,7 +849,8 @@
       "priceNote": "Price includes pickup and Jali fee. It's locked when you request.",
       "noneNow": "none now",
       "view_list": "List",
-      "view_map": "Map"
+      "view_map": "Map",
+      "notServed": "Not available here yet."
     },
     "trip": {
       "waiting": "Waiting for {{name}} to accept…",
@@ -1192,5 +1194,62 @@
     "title": "Show prices also in",
     "sub": "An approximate amount next to RWF. You always pay in RWF.",
     "none": "RWF only"
+  },
+  "services": {
+    "notAvailableTitle": "Not available yet",
+    "back": "Back"
+  },
+  "help": {
+    "title": "Help centre",
+    "search": "Search help",
+    "noResults": "No topic matches. Contact us below.",
+    "stillNeedHelp": "Still need help?",
+    "whatsapp": "Chat with Jali on WhatsApp",
+    "missing": "This help topic is not available.",
+    "forThisTrip": "Need help with this trip?",
+    "allTopics": "All help topics",
+    "contact": "Contact Jali support"
+  },
+  "support": {
+    "myTickets": "My support tickets",
+    "new": "New ticket",
+    "none": "No tickets yet. Open one if you need a person to help.",
+    "error": "Could not send",
+    "tryAgain": "Please try again.",
+    "aboutTrip": "About this trip",
+    "whatHappened": "What is it about?",
+    "safetyNote": "Safety tickets are answered first. If you are in danger now, call 112.",
+    "describe": "Tell us what happened",
+    "send": "Send to Jali support",
+    "ticket": "Ticket",
+    "missing": "This ticket is not available.",
+    "urgentWait": "A Jali agent will answer within the hour.",
+    "wait": "A Jali agent will answer soon. We'll notify you.",
+    "resolved": "This ticket is resolved.",
+    "openAnother": "Open a new ticket",
+    "reply": "Write a reply",
+    "sendReply": "Send",
+    "solved": "My problem is solved",
+    "status": {
+      "open": "Waiting for Jali",
+      "answered": "Jali replied",
+      "resolved": "Resolved"
+    },
+    "cat": {
+      "charged_wrong": "Charged the wrong amount",
+      "driver_behaviour": "Driver behaviour",
+      "lost_item": "Lost item",
+      "safety": "Safety",
+      "cancel": "Cancelling",
+      "damage": "Damage",
+      "payment": "Payment",
+      "account": "My account",
+      "other": "Something else"
+    }
+  },
+  "notifications": {
+    "unavailableTitle": "This is no longer available",
+    "unavailableText": "It may have been removed, or it belongs to another account.",
+    "goHome": "Go to home"
   }
 }

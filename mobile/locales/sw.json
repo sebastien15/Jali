@@ -609,7 +609,8 @@
     "bookingInProgress": "Kutemini…",
     "yourFullName": "Jina lako kamili",
     "passengerName": "Jina la abiria {{n}}",
-    "agencyNew": "Mpya"
+    "agencyNew": "Mpya",
+    "noJaliFees": "Hakuna ada za Jali; bei za usafiri huwekwa na watoa huduma."
   },
   "adminBookings": {
     "title": "Maagizo",
@@ -848,7 +849,8 @@
       "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba.",
       "noneNow": "hakuna sasa",
       "view_list": "Orodha",
-      "view_map": "Ramani"
+      "view_map": "Ramani",
+      "notServed": "Bado haipatikani hapa."
     },
     "trip": {
       "waiting": "Tunasubiri {{name}} akubali…",
@@ -1192,5 +1194,62 @@
     "title": "Onyesha bei pia kwa",
     "sub": "Kiasi cha takriban kando ya RWF. Unalipa kila wakati kwa RWF.",
     "none": "RWF pekee"
+  },
+  "services": {
+    "notAvailableTitle": "Bado haipatikani",
+    "back": "Rudi"
+  },
+  "help": {
+    "title": "Kituo cha msaada",
+    "search": "Tafuta msaada",
+    "noResults": "Hakuna mada inayolingana. Wasiliana nasi hapa chini.",
+    "stillNeedHelp": "Bado unahitaji msaada?",
+    "whatsapp": "Ongea na Jali kwenye WhatsApp",
+    "missing": "Mada hii ya msaada haipatikani.",
+    "forThisTrip": "Unahitaji msaada kuhusu safari hii?",
+    "allTopics": "Mada zote za msaada",
+    "contact": "Wasiliana na msaada wa Jali"
+  },
+  "support": {
+    "myTickets": "Tiketi zangu za msaada",
+    "new": "Tiketi mpya",
+    "none": "Hakuna tiketi bado. Fungua moja ukihitaji mtu wa kukusaidia.",
+    "error": "Imeshindwa kutuma",
+    "tryAgain": "Tafadhali jaribu tena.",
+    "aboutTrip": "Kuhusu safari hii",
+    "whatHappened": "Ni kuhusu nini?",
+    "safetyNote": "Tiketi za usalama hujibiwa kwanza. Ukiwa hatarini sasa, piga 112.",
+    "describe": "Tueleze kilichotokea",
+    "send": "Tuma kwa msaada wa Jali",
+    "ticket": "Tiketi",
+    "missing": "Tiketi hii haipatikani.",
+    "urgentWait": "Wakala wa Jali atajibu ndani ya saa moja.",
+    "wait": "Wakala wa Jali atajibu hivi karibuni. Tutakujulisha.",
+    "resolved": "Tiketi hii imetatuliwa.",
+    "openAnother": "Fungua tiketi mpya",
+    "reply": "Andika jibu",
+    "sendReply": "Tuma",
+    "solved": "Tatizo langu limetatuliwa",
+    "status": {
+      "open": "Inasubiri Jali",
+      "answered": "Jali imejibu",
+      "resolved": "Imetatuliwa"
+    },
+    "cat": {
+      "charged_wrong": "Nimetozwa kiasi kisicho sahihi",
+      "driver_behaviour": "Tabia ya dereva",
+      "lost_item": "Kitu kilichopotea",
+      "safety": "Usalama",
+      "cancel": "Kughairi",
+      "damage": "Uharibifu",
+      "payment": "Malipo",
+      "account": "Akaunti yangu",
+      "other": "Kitu kingine"
+    }
+  },
+  "notifications": {
+    "unavailableTitle": "Hii haipatikani tena",
+    "unavailableText": "Huenda imeondolewa, au ni ya akaunti nyingine.",
+    "goHome": "Nenda nyumbani"
   }
 }

@@ -38,6 +38,11 @@ return [
         ],
     ],
 
+    // S12.3: critical pushes (driver arrived) fall back to SMS when not opened within this many seconds
+    'push' => [
+        'sms_fallback_seconds' => (int) env('PUSH_SMS_FALLBACK_SECONDS', 60),
+    ],
+
     // Fixed sign-in code for local development and tests ONLY (ignored in production/staging)
     'otp' => [
         'dev_code' => env('OTP_DEV_CODE'),

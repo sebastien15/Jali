@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import { router } from "expo-router";
 import api, { getApiToken } from "@/lib/api";
 import { C } from "@/constants/theme";
 
@@ -22,7 +21,7 @@ if (Platform.OS !== "web") {
 /**
  * Call once after the user is logged in (mounted by the (tabs) layout).
  * Requests permission, registers the Expo push token with the backend
- * (POST /me/push-token) and opens the right screen when a notification is tapped.
+ * (POST /me/push-token).
  */
 export function usePushPermission() {
   useEffect(() => {
@@ -30,57 +29,12 @@ export function usePushPermission() {
       // Push is best-effort: no FCM config, no network, simulator, ...
     });
 
-    if (Platform.OS === "web") return;
-    const sub = Notifications.addNotificationResponseReceivedListener(response => {
-      openFromNotification(response.notification.request.content.data);
-    });
-    return () => sub.remove();
+    // Taps are handled at the root for every account (core/notifications/NotificationTaps, S23.5)
   }, []);
 }
 
-/**
- * Backend pushes carry `{ screen, id }` (see App\Services\PushService).
- * Screens that don't exist yet fall back to the Trips tab.
- */
-export function routeForNotification(data: Record<string, unknown> | undefined | null): string | null {
-  if (!data || typeof data.screen !== "string") return null;
-  const id = typeof data.id === "number" || typeof data.id === "string" ? data.id : null;
-  switch (data.screen) {
-    case "ride":
-      return id ? `/ride/${id}` : "/ride";
-    case "hire":
-      return id ? `/hire/${id}` : "/hire";
-    case "driver_hire":
-      return id ? `/driver/hire/${id}` : "/(tabs)/drive";
-    case "admin_ride":
-      return id ? `/(admin)/rides/${id}` : "/(admin)/rides";
-    case "driver_earnings":
-      return "/driver/earnings";
-    case "driver_ride":
-      return id ? `/driver/ride/${id}` : "/(tabs)/drive";
-    case "booking":
-      return "/(tabs)/trips";
-    case "driver":
-      return "/(tabs)/drive";
-    case "driver_rates":
-      return "/driver/rates";
-    case "driver_onboarding":
-      return "/driver/onboarding";
-    case "rental":
-      return id ? `/rental/${id}` : "/(tabs)/trips";
-    case "owner_rental":
-      return id ? `/driver/rentals/${id}` : "/driver/rentals";
-    case "owner_car":
-      return id ? `/driver/car/${id}` : "/driver/fleet";
-    default:
-      return "/(tabs)/trips";
-  }
-}
-
-function openFromNotification(data: Record<string, unknown> | undefined) {
-  const route = routeForNotification(data);
-  if (route) router.push(route as any);
-}
+/** Payload → route; kept for older callers (the resolver lives in notificationIntent.ts, S23.5) */
+export { routeForNotification } from "./notificationIntent";
 
 async function registerForPush() {
   // Push notifications require native platform — skip on web
@@ -93,6 +47,17 @@ async function registerForPush() {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: C.blue,
+    });
+    // S12.3: ride requests ring loudly on their own channel (sound bundled via the expo-notifications plugin)
+    await Notifications.setNotificationChannelAsync("ride_requests", {
+      name: "Ride requests",
+      description: "New ride requests for drivers",
+      importance: Notifications.AndroidImportance.MAX,
+      sound: "ride_request.wav",
+      vibrationPattern: [0, 600, 300, 600, 300, 600],
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
+      lightColor: C.orange,
     });
   }
 

@@ -16,11 +16,12 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use LogicException;
 use Tests\Support\OpenApiContract;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 class RideLifecycleTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $rider;
     private User $driver;
@@ -30,6 +31,7 @@ class RideLifecycleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->travelTo(now()->setTimezone('Africa/Kigali')->setTime(14, 0)->utc());
@@ -141,6 +143,29 @@ class RideLifecycleTest extends TestCase
         OpenApiContract::assertResponse($none, 'get', '/rides/active');
 
         $this->assertSame(['requested', 'accepted', 'arrived', 'started', 'completed', 'rated', 'rated'], $this->events($ride['id']));
+    }
+
+    /** @test */
+    public function with_default_settings_jali_takes_no_fee_or_commission()
+    {
+        \App\Models\PlatformSetting::where('key', 'rides')->delete();   // S7.4 defaults
+        $ride = $this->requestRide();
+        $this->assertSame(0, $ride['service_fee']);
+        $this->assertSame($ride['driver_fare'], $ride['quoted_fare']);
+
+        $this->asDriver();
+        $this->assertSame($ride['driver_fare'], $this->getJson('/api/driver/ride-requests')->json('0.earnings'));
+        $this->postJson("/api/rides/{$ride['id']}/accept")->assertOk();
+        $this->asRider();
+        $pin = $this->getJson('/api/rides/active')->json('start_pin');
+        $this->asDriver();
+        $this->postJson("/api/rides/{$ride['id']}/arrive")->assertOk();
+        $this->postJson("/api/rides/{$ride['id']}/start", ['pin' => $pin])->assertOk();
+        $this->postJson("/api/rides/{$ride['id']}/complete", ['payment_method' => 'cash'])->assertOk()
+            ->assertJsonPath('final_fare', $ride['driver_fare']);
+
+        $this->assertSame(0, Ride::find($ride['id'])->commission);
+        $this->assertSame(0, \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id));   // nothing to settle
     }
 
     /** @test */

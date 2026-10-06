@@ -313,3 +313,22 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - New Rentals-owned tables: `rental_blocks`, `rental_bookings`, `rental_ratings`; `car_rentals` gains listing, policy, rules, documents and verification columns. Legacy `/bookings type=rental` keeps working unchanged; the app moves to `/rentals/**`.
 - `/driver/cars/**` now requires `offer-rentals` instead of `create-private-seats` (driver role has both). Route baseline regenerated for the new routes.
 
+
+## Service areas (S10.4) — boundary change (2026-10-08)
+
+- New `Locations\Contracts\ServiceAreas` (cities + zones, point-in-polygon, cached) implemented by `Locations\Application\ServiceAreaDirectory`; admin write path `ServiceAreaAdmin` (logged).
+- `DriverHire` may now use `Locations` (hire requests are refused where hire is not offered). `NearbyRides` already depended on `Locations`; it now applies per-city overrides via `AreaRideSettings`.
+- New table `service_areas`, permission `manage-service-areas` (superadmin). Kigali is seeded live, Musanze/Rubavu/Huye off, Kigali airport zone. With no live city the check is off (everywhere served). Route baseline regenerated.
+
+## M06 part 1 — service-access resolver (S23.1, 2026-10-08)
+
+- New module `ServiceAccess` (deps: Locations, Providers). `Contracts\ServiceAccess::forUser()` feeds `GET /me/service-access`; `assertAcceptingNew()` guards every new-intake path: rides (`RideService`), hire (`HireService`), rental (`RentalService`), legacy `/bookings` (bus/trip → bus, private → shared, rental → rental). Existing work, history and support are never gated.
+- New `Providers\Contracts\ProviderServices` (verified driver-profile services) — used for `can_offer`; persona is never an input.
+- Release flags in `platform_settings['services']` (`ServiceCatalogue`), default = every built service on, cargo off and not enable-able. `PUT /admin/services` (permission `manage-services`, superadmin) is logged.
+- Old-client defaults: `/me` unchanged; clients not sending `X-App-Version` are not version-gated. The app now sends `X-App-Version`. No production activation: defaults change nothing.
+- Boundaries: NearbyRides, DriverHire, Rentals → ServiceAccess.
+
+## Support module (S16.2, 2026-10-08)
+
+- New backend module `Support` (no dependencies yet): `Contracts\HelpTopics` implemented by `Application\HelpCentre`. Table `help_topics`; permissions `use-support` (every role) and `manage-support` (superadmin, admin).
+- New mobile feature `features/support` (public entry exports `HelpTopicsCard`); `nearby-rides`, `driver-hire` and `rentals` may import it (features/boundaries.json).

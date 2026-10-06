@@ -195,7 +195,7 @@ tmp=$(mktemp); { cat "$DIR/S9.6-email-receipts-for-every-trip.md"; echo; echo "P
 n=$(create "S9.6 Email receipts for every trip" "user-story,track-foundation,wave-1,backend,international,payments" "$tmp"); rm -f "$tmp"; echo "#$n S9.6 Email receipts for every trip"
 gh issue comment "${EPIC_NUM[E9]}" --repo "$REPO" --body "- [ ] #$n S9.6" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S9.7-airport-pickup-at-kigali-international-airport.md"; echo; echo "Part of #${EPIC_NUM[E9]}"; } > "$tmp"
-n=$(create "S9.7 Airport pickup at Kigali International Airport" "user-story,batch-4-nearby-rides,wave-3,mobile,backend,international" "$tmp"); rm -f "$tmp"; echo "#$n S9.7 Airport pickup at Kigali International Airport"
+n=$(create "S9.7 Airport pickup at Kigali International Airport" "user-story,batch-4-nearby-rides,wave-2,mobile,backend,international" "$tmp"); rm -f "$tmp"; echo "#$n S9.7 Airport pickup at Kigali International Airport"
 gh issue comment "${EPIC_NUM[E9]}" --repo "$REPO" --body "- [ ] #$n S9.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S10.1-live-operations-view.md"; echo; echo "Part of #${EPIC_NUM[E10]}"; } > "$tmp"
 n=$(create "S10.1 Live operations view" "user-story,batch-4-nearby-rides,wave-1,admin,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S10.1 Live operations view"
@@ -219,7 +219,7 @@ tmp=$(mktemp); { cat "$DIR/S11.3-smooth-moving-car-on-the-map.md"; echo; echo "P
 n=$(create "S11.3 Smooth moving car on the map" "user-story,batch-4-nearby-rides,wave-3,mobile,ux" "$tmp"); rm -f "$tmp"; echo "#$n S11.3 Smooth moving car on the map"
 gh issue comment "${EPIC_NUM[E11]}" --repo "$REPO" --body "- [ ] #$n S11.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S11.4-suggested-pickup-points-and-landmarks.md"; echo; echo "Part of #${EPIC_NUM[E11]}"; } > "$tmp"
-n=$(create "S11.4 Suggested pickup points and landmarks" "user-story,track-foundation,wave-2,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S11.4 Suggested pickup points and landmarks"
+n=$(create "S11.4 Suggested pickup points and landmarks" "user-story,track-foundation,wave-1,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S11.4 Suggested pickup points and landmarks"
 gh issue comment "${EPIC_NUM[E11]}" --repo "$REPO" --body "- [ ] #$n S11.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S11.5-saved-places-with-labels-and-driver-notes.md"; echo; echo "Part of #${EPIC_NUM[E11]}"; } > "$tmp"
 n=$(create "S11.5 Saved places with labels and driver notes" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S11.5 Saved places with labels and driver notes"
@@ -324,7 +324,7 @@ tmp=$(mktemp); { cat "$DIR/S16.2-help-centre-with-trip-specific-help.md"; echo; 
 n=$(create "S16.2 Help centre with trip-specific help" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S16.2 Help centre with trip-specific help"
 gh issue comment "${EPIC_NUM[E16]}" --repo "$REPO" --body "- [ ] #$n S16.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S16.3-support-tickets-and-live-chat-with-an-agent.md"; echo; echo "Part of #${EPIC_NUM[E16]}"; } > "$tmp"
-n=$(create "S16.3 Support tickets and live chat with an agent" "user-story,track-foundation,wave-2,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S16.3 Support tickets and live chat with an agent"
+n=$(create "S16.3 Support tickets and live chat with an agent" "user-story,track-foundation,wave-1,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S16.3 Support tickets and live chat with an agent"
 gh issue comment "${EPIC_NUM[E16]}" --repo "$REPO" --body "- [ ] #$n S16.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S16.4-fare-review-and-refunds.md"; echo; echo "Part of #${EPIC_NUM[E16]}"; } > "$tmp"
 n=$(create "S16.4 Fare review and refunds" "user-story,track-foundation,wave-3,backend,admin,payments" "$tmp"); rm -f "$tmp"; echo "#$n S16.4 Fare review and refunds"
@@ -342,7 +342,7 @@ tmp=$(mktemp); { cat "$DIR/S17.4-driver-levels-and-rewards.md"; echo; echo "Part
 n=$(create "S17.4 Driver levels and rewards" "user-story,batch-4-nearby-rides,wave-2,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S17.4 Driver levels and rewards"
 gh issue comment "${EPIC_NUM[E17]}" --repo "$REPO" --body "- [ ] #$n S17.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S17.5-airport-and-venue-queue.md"; echo; echo "Part of #${EPIC_NUM[E17]}"; } > "$tmp"
-n=$(create "S17.5 Airport and venue queue" "user-story,batch-4-nearby-rides,wave-2,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S17.5 Airport and venue queue"
+n=$(create "S17.5 Airport and venue queue" "user-story,batch-4-nearby-rides,wave-1,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S17.5 Airport and venue queue"
 gh issue comment "${EPIC_NUM[E17]}" --repo "$REPO" --body "- [ ] #$n S17.5" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S17.6-fatigue-limit.md"; echo; echo "Part of #${EPIC_NUM[E17]}"; } > "$tmp"
 n=$(create "S17.6 Fatigue limit" "user-story,batch-4-nearby-rides,wave-1,backend,mobile,safety" "$tmp"); rm -f "$tmp"; echo "#$n S17.6 Fatigue limit"
@@ -453,28 +453,28 @@ tmp=$(mktemp); { cat "$DIR/S22.4-web-booking-page.md"; echo; echo "Part of #${EP
 n=$(create "S22.4 Web booking page" "user-story,later,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S22.4 Web booking page"
 gh issue comment "${EPIC_NUM[E22]}" --repo "$REPO" --body "- [ ] #$n S22.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.1-server-side-service-availability-m06.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.1 Server-side service availability (M06)" "user-story,track-foundation,wave-2,backend,security" "$tmp"); rm -f "$tmp"; echo "#$n S23.1 Server-side service availability (M06)"
+n=$(create "S23.1 Server-side service availability (M06)" "user-story,track-foundation,wave-1,backend,security" "$tmp"); rm -f "$tmp"; echo "#$n S23.1 Server-side service availability (M06)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.2-service-registry-and-gated-queries-in-the-app-m06.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.2 Service registry and gated queries in the app (M06)" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.2 Service registry and gated queries in the app (M06)"
+n=$(create "S23.2 Service registry and gated queries in the app (M06)" "user-story,track-foundation,wave-1,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.2 Service registry and gated queries in the app (M06)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.3-customer-provider-mode-switch.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.3 Customer/provider mode switch" "user-story,track-foundation,wave-4,mobile,ux" "$tmp"); rm -f "$tmp"; echo "#$n S23.3 Customer/provider mode switch"
+n=$(create "S23.3 Customer/provider mode switch" "user-story,track-foundation,wave-1,mobile,ux" "$tmp"); rm -f "$tmp"; echo "#$n S23.3 Customer/provider mode switch"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.4-one-activity-for-bookings-and-jobs-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.4 One Activity for bookings and jobs (M07)" "user-story,track-foundation,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.4 One Activity for bookings and jobs (M07)"
+n=$(create "S23.4 One Activity for bookings and jobs (M07)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.4 One Activity for bookings and jobs (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.5-notification-taps-open-the-right-screen-always-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.5 Notification taps open the right screen, always (M07)" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.5 Notification taps open the right screen, always (M07)"
+n=$(create "S23.5 Notification taps open the right screen, always (M07)" "user-story,track-foundation,wave-1,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.5 Notification taps open the right screen, always (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.5" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.6-in-app-inbox-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.6 In-app inbox (M07)" "user-story,track-foundation,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.6 In-app inbox (M07)"
+n=$(create "S23.6 In-app inbox (M07)" "user-story,track-foundation,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.6 In-app inbox (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.6" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.7-provider-availability-that-survives-navigation-m08.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
 n=$(create "S23.7 Provider availability that survives navigation (M08)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.7 Provider availability that survives navigation (M08)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.8-request-and-polling-budget-m08.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.8 Request and polling budget (M08)" "user-story,track-foundation,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.8 Request and polling budget (M08)"
+n=$(create "S23.8 Request and polling budget (M08)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.8 Request and polling budget (M08)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.8" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.9-split-the-shared-bookingsheet-per-service.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
 n=$(create "S23.9 Split the shared BookingSheet per service" "user-story,track-foundation,wave-1,mobile,tech-debt" "$tmp"); rm -f "$tmp"; echo "#$n S23.9 Split the shared BookingSheet per service"
@@ -495,7 +495,7 @@ tmp=$(mktemp); { cat "$DIR/S24.2-rental-calendar-and-no-double-booking.md"; echo
 n=$(create "S24.2 Rental calendar and no double booking" "user-story,batch-1-rental,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.2 Rental calendar and no double booking"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.3-clear-price-and-rental-terms-before-i-request.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.3 Clear price and rental terms before I request" "user-story,batch-1-rental,wave-2,mobile,backend,pricing" "$tmp"); rm -f "$tmp"; echo "#$n S24.3 Clear price and rental terms before I request"
+n=$(create "S24.3 Clear price and rental terms before I request" "user-story,batch-1-rental,wave-1,mobile,backend,pricing" "$tmp"); rm -f "$tmp"; echo "#$n S24.3 Clear price and rental terms before I request"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.4-request-a-car-and-get-the-owner-s-confirmation.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
 n=$(create "S24.4 Request a car and get the owner's confirmation" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.4 Request a car and get the owner's confirmation"
@@ -513,7 +513,7 @@ tmp=$(mktemp); { cat "$DIR/S24.8-rental-owner-and-car-verification.md"; echo; ec
 n=$(create "S24.8 Rental owner and car verification" "user-story,batch-1-rental,wave-1,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.8 Rental owner and car verification"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.8" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.9-admin-rental-operations-and-support.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-2,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
+n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-1,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.9" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.1-publish-a-journey-with-stops-and-segment-fares.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
 n=$(create "S25.1 Publish a journey with stops and segment fares" "user-story,batch-3-shared-journeys,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.1 Publish a journey with stops and segment fares"
@@ -576,18 +576,18 @@ tmp=$(mktemp); { cat "$DIR/S27.7-cargo-cancellation-damage-and-support.md"; echo
 n=$(create "S27.7 Cargo cancellation, damage and support" "user-story,batch-tbd-cargo,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S27.7 Cargo cancellation, damage and support"
 gh issue comment "${EPIC_NUM[E27]}" --repo "$REPO" --body "- [ ] #$n S27.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.1-batch-readiness-audit.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.1 Batch readiness audit" "user-story,track-foundation,wave-2,admin" "$tmp"); rm -f "$tmp"; echo "#$n S28.1 Batch readiness audit"
+n=$(create "S28.1 Batch readiness audit" "user-story,track-foundation,wave-1,admin" "$tmp"); rm -f "$tmp"; echo "#$n S28.1 Batch readiness audit"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.2 Store listing, privacy disclosures and reviewer access" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.2 Store listing, privacy disclosures and reviewer access"
+n=$(create "S28.2 Store listing, privacy disclosures and reviewer access" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.2 Store listing, privacy disclosures and reviewer access"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.3-google-play-closed-test.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.3 Google Play closed test" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.3 Google Play closed test"
+n=$(create "S28.3 Google Play closed test" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.3 Google Play closed test"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.4-ios-testflight-and-app-store-submission.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.4 iOS TestFlight and App Store submission" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.4 iOS TestFlight and App Store submission"
+n=$(create "S28.4 iOS TestFlight and App Store submission" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.4 iOS TestFlight and App Store submission"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.5-post-launch-review-before-the-next-batch.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.5 Post-launch review before the next batch" "user-story,track-foundation,wave-4,admin,analytics" "$tmp"); rm -f "$tmp"; echo "#$n S28.5 Post-launch review before the next batch"
+n=$(create "S28.5 Post-launch review before the next batch" "user-story,track-foundation,wave-3,admin,analytics" "$tmp"); rm -f "$tmp"; echo "#$n S28.5 Post-launch review before the next batch"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.5" >/dev/null
 echo "Done."

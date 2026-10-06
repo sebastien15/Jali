@@ -13,12 +13,13 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\OpenApiContract;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 /** Epic E6 — Hire a Driver: stories S6.1, S6.2, S6.3, S6.4 */
 class HireDriverTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $customer;
     private User $driver;
@@ -32,6 +33,7 @@ class HireDriverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         // Monday 12 Oct 2026, 08:00 in Kigali
@@ -185,6 +187,21 @@ class HireDriverTest extends TestCase
 
         $this->getJson('/api/driver-hire/available?' . http_build_query(['start_at' => now()->addMinutes(5)->toIso8601String()] + $query))
             ->assertStatus(422)->assertJsonValidationErrors('start_at');
+    }
+
+    /** @test */
+    public function hire_is_refused_outside_service_areas_or_where_it_is_switched_off()
+    {
+        Sanctum::actingAs($this->customer);
+        $musanze = ['lat' => -1.4993, 'lng' => 29.6345, 'address' => 'Musanze'];
+        $this->postJson('/api/driver-hire', $this->booking(['pickup' => $musanze]))
+            ->assertStatus(422)->assertJsonPath('message', 'Not available here yet. Jali currently works in Kigali.');
+
+        \App\Models\ServiceArea::where('name', 'Kigali')->update(['overrides' => json_encode(['services' => ['hire' => false]])]);
+        \App\Modules\Locations\Application\ServiceAreaDirectory::forget();
+        $this->postJson('/api/driver-hire', $this->booking())
+            ->assertStatus(422)->assertJsonPath('message', 'Hire a driver is not available in Kigali yet.');
+        $this->assertSame(0, DriverHire::count());
     }
 
     /** @test */

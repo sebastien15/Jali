@@ -12,4 +12,5 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('rides:expire-requests')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('hires:expire-requests')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('rentals:expire-requests')->everyMinute()->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::command('notifications:sms-fallback')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::call(fn () => app(\App\Modules\Payments\Application\ExchangeRates::class)->refresh())->dailyAt('03:15')->name('fx:refresh');

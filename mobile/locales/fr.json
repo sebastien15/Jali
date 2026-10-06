@@ -609,7 +609,8 @@
     "bookingInProgress": "Réservation…",
     "yourFullName": "Votre nom complet",
     "passengerName": "Nom du passager {{n}}",
-    "agencyNew": "Nouveau"
+    "agencyNew": "Nouveau",
+    "noJaliFees": "Aucuns frais Jali ; les prix du transport sont fixés par les prestataires."
   },
   "adminBookings": {
     "title": "Réservations",
@@ -848,7 +849,8 @@
       "priceNote": "Le prix inclut l'approche et les frais Jali. Il est bloqué à la demande.",
       "noneNow": "aucun",
       "view_list": "Liste",
-      "view_map": "Carte"
+      "view_map": "Carte",
+      "notServed": "Pas encore disponible ici."
     },
     "trip": {
       "waiting": "En attente de la réponse de {{name}}…",
@@ -1192,5 +1194,62 @@
     "title": "Afficher aussi les prix en",
     "sub": "Un montant approximatif à côté du RWF. Vous payez toujours en RWF.",
     "none": "RWF uniquement"
+  },
+  "services": {
+    "notAvailableTitle": "Pas encore disponible",
+    "back": "Retour"
+  },
+  "help": {
+    "title": "Centre d'aide",
+    "search": "Rechercher de l'aide",
+    "noResults": "Aucun sujet trouvé. Contactez-nous ci-dessous.",
+    "stillNeedHelp": "Besoin d'aide ?",
+    "whatsapp": "Écrire à Jali sur WhatsApp",
+    "missing": "Ce sujet d'aide n'est pas disponible.",
+    "forThisTrip": "Besoin d'aide pour ce trajet ?",
+    "allTopics": "Tous les sujets d'aide",
+    "contact": "Contacter l'assistance Jali"
+  },
+  "support": {
+    "myTickets": "Mes tickets d'assistance",
+    "new": "Nouveau ticket",
+    "none": "Aucun ticket. Ouvrez-en un si vous avez besoin d'une personne.",
+    "error": "Envoi impossible",
+    "tryAgain": "Veuillez réessayer.",
+    "aboutTrip": "À propos de ce trajet",
+    "whatHappened": "De quoi s'agit-il ?",
+    "safetyNote": "Les tickets sécurité sont traités en premier. En cas de danger immédiat, appelez le 112.",
+    "describe": "Racontez-nous ce qui s'est passé",
+    "send": "Envoyer à l'assistance Jali",
+    "ticket": "Ticket",
+    "missing": "Ce ticket n'est pas disponible.",
+    "urgentWait": "Un agent Jali répondra dans l'heure.",
+    "wait": "Un agent Jali répondra bientôt. Vous serez notifié.",
+    "resolved": "Ce ticket est résolu.",
+    "openAnother": "Ouvrir un nouveau ticket",
+    "reply": "Écrire une réponse",
+    "sendReply": "Envoyer",
+    "solved": "Mon problème est résolu",
+    "status": {
+      "open": "En attente de Jali",
+      "answered": "Jali a répondu",
+      "resolved": "Résolu"
+    },
+    "cat": {
+      "charged_wrong": "Mauvais montant facturé",
+      "driver_behaviour": "Comportement du chauffeur",
+      "lost_item": "Objet perdu",
+      "safety": "Sécurité",
+      "cancel": "Annulation",
+      "damage": "Dommages",
+      "payment": "Paiement",
+      "account": "Mon compte",
+      "other": "Autre chose"
+    }
+  },
+  "notifications": {
+    "unavailableTitle": "Ce n'est plus disponible",
+    "unavailableText": "Cela a peut-être été supprimé, ou appartient à un autre compte.",
+    "goHome": "Aller à l'accueil"
   }
 }

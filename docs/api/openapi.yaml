@@ -54,6 +54,14 @@ tags:
     description: Car owners — listings, photos, papers, calendar, requests, handover and return
   - name: Admin rentals
     description: Rental car verification and rental operations
+  - name: Service areas
+    description: Cities and zones where services are offered (S10.4)
+  - name: Help
+    description: Help centre topics in en/fr/rw/sw (S16.2)
+  - name: Support
+    description: Support tickets linked to a ride, hire or rental; staff inbox with SLA (S16.3)
+  - name: Service access
+    description: Which services an account can see, use and offer — one server answer for navigation and intake (S23.1)
 
 paths:
   /me:
@@ -560,7 +568,7 @@ paths:
                     items: { $ref: "#/components/schemas/NearbyDriver" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
 
   /rides/estimate:
     post:
@@ -603,7 +611,7 @@ paths:
                         nearest_eta_min: { type: [integer, "null"] }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
 
   /rides:
     get:
@@ -654,9 +662,9 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Ride" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /rides/active:
@@ -1530,9 +1538,9 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/DriverHire" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /driver-hire/{id}:
@@ -2128,6 +2136,616 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Help centre (S16.2) ─────────────────────────────────────────────────
+  /help/topics:
+    get:
+      tags: [Help]
+      operationId: listHelpTopics
+      x-jali-story: S16.2
+      x-jali-permission: use-support
+      summary: Published topics in the reader's language (falls back to English), filtered by service / context / text
+      parameters:
+        - { name: service, in: query, schema: { $ref: "#/components/schemas/ServiceKey" } }
+        - { name: context, in: query, schema: { $ref: "#/components/schemas/HelpContext" } }
+        - { name: q, in: query, schema: { type: string, maxLength: 80 } }
+        - { name: locale, in: query, schema: { $ref: "#/components/schemas/Locale" }, description: "Defaults to Accept-Language, then en" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/HelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /help/topics/{slug}:
+    get:
+      tags: [Help]
+      operationId: getHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: use-support
+      summary: One published topic
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+        - { name: locale, in: query, schema: { $ref: "#/components/schemas/Locale" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/help-topics:
+    get:
+      tags: [Help]
+      operationId: adminListHelpTopics
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Every topic with all 4 languages, drafts included
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Help]
+      operationId: createHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Add a topic (title and body required in en, fr, rw and sw; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HelpTopicInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/help-topics/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    put:
+      tags: [Help]
+      operationId: updateHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Change a topic (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HelpTopicInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Help]
+      operationId: deleteHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Delete a topic (logged)
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Support tickets (S16.3) ─────────────────────────────────────────────
+  /support/tickets:
+    get:
+      tags: [Support]
+      operationId: listMyTickets
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: My tickets, latest activity first
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: "#/components/schemas/SupportTicket" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Support]
+      operationId: openTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Open a ticket, optionally about one of my rides/hires/rentals (safety = urgent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportTicketInput" }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+  /support/tickets/{id}:
+    get:
+      tags: [Support]
+      operationId: getMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: One of my tickets with its messages (staff names hidden)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /support/tickets/{id}/messages:
+    post:
+      tags: [Support]
+      operationId: replyToMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Reply (reopens the ticket)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 2000 } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+  /support/tickets/{id}/resolve:
+    post:
+      tags: [Support]
+      operationId: resolveMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Mark my ticket solved
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/support/tickets:
+    get:
+      tags: [Support]
+      operationId: supportInbox
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: "Inbox — urgent first, then by first-response deadline"
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [open, answered, resolved], default: open } }
+        - { name: priority, in: query, schema: { type: string, enum: [urgent, high, normal] } }
+        - { name: mine, in: query, schema: { type: boolean } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportInbox" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}:
+    get:
+      tags: [Support]
+      operationId: supportTicket
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Ticket with customer, SLA and messages
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/support/tickets/{id}/messages:
+    post:
+      tags: [Support]
+      operationId: supportReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Reply as Jali support (pushes the customer; first reply stops the SLA timer)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 2000 } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}/assign:
+    post:
+      tags: [Support]
+      operationId: supportAssign
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Assign (omit admin_id = me, null = unassign; logged)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { admin_id: { type: [integer, "null"] } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}/status:
+    post:
+      tags: [Support]
+      operationId: supportStatus
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Set status (resolved pushes the customer; logged)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [status], properties: { status: { type: string, enum: [open, answered, resolved] } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/canned-replies:
+    get:
+      tags: [Support]
+      operationId: listCannedReplies
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Saved replies
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: "#/components/schemas/CannedReply" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Support]
+      operationId: createCannedReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Save a reply
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [title, body], properties: { title: { type: string, maxLength: 80 }, body: { type: string, maxLength: 2000 } } }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CannedReply" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/canned-replies/{id}:
+    delete:
+      tags: [Support]
+      operationId: deleteCannedReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Delete a saved reply
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Push delivery and opens (S12.3) ─────────────────────────────────────
+  /me/notifications/{id}/opened:
+    post:
+      tags: [Identity]
+      operationId: pushOpened
+      x-jali-story: S12.3
+      summary: The user tapped a push (`nid` in its data); cancels any pending SMS fallback
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Recorded }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/notifications/stats:
+    get:
+      tags: [Admin rides]
+      operationId: pushStats
+      x-jali-story: S12.3
+      x-jali-permission: view-analytics
+      summary: Delivery and open rates per notification type
+      parameters:
+        - { name: days, in: query, schema: { type: integer, minimum: 1, maximum: 90, default: 7 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [days, types]
+                properties:
+                  days: { type: integer }
+                  types:
+                    type: array
+                    items:
+                      type: object
+                      required: [type, total, delivered, no_token, opened, sms_fallbacks, delivery_rate, open_rate]
+                      properties:
+                        type: { type: string, description: "data.screen, e.g. driver_ride" }
+                        total: { type: integer }
+                        delivered: { type: integer }
+                        no_token: { type: integer }
+                        opened: { type: integer }
+                        sms_fallbacks: { type: integer }
+                        delivery_rate: { type: number }
+                        open_rate: { type: number }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  # ── Service access (S23.1) ──────────────────────────────────────────────
+  /me/service-access:
+    get:
+      tags: [Service access]
+      operationId: getServiceAccess
+      x-jali-story: S23.1
+      summary: Services this account can see, use and offer here (additive; old clients don't call it)
+      description: >-
+        Resolved on the server from release flags, region (S10.4), permissions and provider
+        verification — never from a client persona. New requests to a service whose
+        `accepting_new_requests` is false are refused with 403 `{message, reason_code}`;
+        history, active work and support stay reachable. Clients that send no version
+        (no `app_version` and no `X-App-Version` header) are not version-gated.
+      parameters:
+        - { name: lat, in: query, schema: { type: number }, description: Customer position — adds region checks }
+        - { name: lng, in: query, schema: { type: number } }
+        - { name: app_version, in: query, schema: { type: string, example: "1.4.0" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAccess" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/services:
+    get:
+      tags: [Service access]
+      operationId: getServiceCatalogue
+      x-jali-story: S23.1
+      x-jali-permission: manage-services
+      summary: Release flags per service (defaults keep every built service on; cargo off)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceCatalogue" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Service access]
+      operationId: putServiceCatalogue
+      x-jali-story: S23.1
+      x-jali-permission: manage-services
+      summary: Release, pause or hide services; set a minimum app version (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceCatalogueUpdate" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceCatalogue" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  # ── Service areas (S10.4) ───────────────────────────────────────────────
+  /service-areas/check:
+    get:
+      tags: [Service areas]
+      operationId: checkServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: request-rides
+      summary: Is a service offered at this point? (served everywhere while no city is active)
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number } }
+        - { name: lng, in: query, required: true, schema: { type: number } }
+        - name: service
+          in: query
+          schema: { $ref: "#/components/schemas/ServiceKey" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAvailability" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/service-areas:
+    get:
+      tags: [Service areas]
+      operationId: listServiceAreas
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Cities first, then zones
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Service areas]
+      operationId: createServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Add a city or zone from points, an uploaded GeoJSON polygon, or a circle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAreaInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/service-areas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Service areas]
+      operationId: getServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: One city or zone
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Service areas]
+      operationId: updateServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Change name, shape, on/off or per-city overrides (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAreaInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Service areas]
+      operationId: deleteServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Delete a zone, or a city without zones
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   # ── Car rental (epic E24, Batch 1) ──────────────────────────────────────
   /rentals/cars:
     get:
@@ -2236,7 +2854,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/RentalBooking" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "403": { $ref: "#/components/responses/ForbiddenOrPaused" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
@@ -3052,6 +3670,36 @@ components:
             type: object
             properties:
               message: { type: string }
+    ForbiddenOrPaused:
+      description: >-
+        Missing permission, or the service is not taking new requests (S23.1) — then
+        `reason_code` is set (not_released, paused, app_update_required). Existing work is unaffected.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - { $ref: "#/components/schemas/ServiceUnavailable" }
+              - type: object
+                properties:
+                  error: { type: string }
+                  message: { type: string }
+    ValidationOrNotServed:
+      description: >-
+        Validation failed (`errors` present), or the pickup is outside every active
+        service area / the service is switched off there (S10.4) — `message` is
+        user-facing, e.g. "Not available here yet. Jali currently works in Kigali."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              message: { type: string }
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }
     ValidationError:
       description: Validation failed
       content:
@@ -3068,6 +3716,318 @@ components:
                   items: { type: string }
 
   schemas:
+    SupportTicketInput:
+      type: object
+      required: [category, message]
+      properties:
+        category: { $ref: "#/components/schemas/HelpContext" }
+        subject_type: { type: [string, "null"], enum: [ride, hire, rental, null] }
+        subject_id: { type: [integer, "null"] }
+        message: { type: string, minLength: 5, maxLength: 2000 }
+    SupportMessage:
+      type: object
+      required: [id, is_staff, body, created_at, author]
+      properties:
+        id: { type: integer }
+        is_staff: { type: boolean }
+        body: { type: string }
+        created_at: { type: string, format: date-time }
+        author: { type: string, description: '"Jali support" for staff messages shown to customers' }
+    SupportTicket:
+      type: object
+      required: [id, category, priority, status, subject, preview, created_at, last_message_at, resolved_at]
+      properties:
+        id: { type: integer }
+        category: { $ref: "#/components/schemas/HelpContext" }
+        priority: { type: string, enum: [urgent, high, normal] }
+        status: { type: string, enum: [open, answered, resolved] }
+        subject:
+          type: [object, "null"]
+          required: [type, id, label]
+          properties:
+            type: { type: string, enum: [ride, hire, rental] }
+            id: { type: integer }
+            label: { type: string }
+        preview: { type: string }
+        created_at: { type: string, format: date-time }
+        last_message_at: { type: string, format: date-time }
+        resolved_at: { type: [string, "null"], format: date-time }
+    SupportTicketDetail:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicket" }
+        - type: object
+          required: [messages]
+          properties:
+            messages:
+              type: array
+              items: { $ref: "#/components/schemas/SupportMessage" }
+    StaffSupportFields:
+      type: object
+      required: [user, assignee, sla]
+      properties:
+        user:
+          type: object
+          required: [id, name, phone]
+          properties:
+            id: { type: integer }
+            name: { type: [string, "null"] }
+            phone: { type: [string, "null"] }
+        assignee:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        sla:
+          type: object
+          required: [first_response_due_at, first_responded_at, overdue]
+          properties:
+            first_response_due_at: { type: string, format: date-time }
+            first_responded_at: { type: [string, "null"], format: date-time }
+            overdue: { type: boolean }
+    StaffSupportTicket:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicket" }
+        - { $ref: "#/components/schemas/StaffSupportFields" }
+    StaffSupportTicketDetail:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicketDetail" }
+        - { $ref: "#/components/schemas/StaffSupportFields" }
+    SupportInbox:
+      type: object
+      required: [data, counts]
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/StaffSupportTicket" }
+        counts:
+          type: object
+          required: [open, urgent, overdue]
+          properties:
+            open: { type: integer }
+            urgent: { type: integer }
+            overdue: { type: integer }
+    CannedReply:
+      type: object
+      required: [id, title, body]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
+    Locale:
+      type: string
+      enum: [en, fr, rw, sw]
+    HelpContext:
+      type: string
+      enum: [charged_wrong, driver_behaviour, lost_item, safety, cancel, damage, payment, account, other]
+    Translations:
+      type: object
+      required: [en, fr, rw, sw]
+      properties:
+        en: { type: string }
+        fr: { type: string }
+        rw: { type: string }
+        sw: { type: string }
+    HelpTopic:
+      type: object
+      required: [id, slug, title, body, services, contexts]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { type: string }
+        body: { type: string, description: Plain text; blank lines separate paragraphs }
+        services:
+          type: array
+          description: Empty = every service
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+    AdminHelpTopic:
+      type: object
+      required: [id, slug, title, body, services, contexts, sort, published, updated_at]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { $ref: "#/components/schemas/Translations" }
+        body: { $ref: "#/components/schemas/Translations" }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+        sort: { type: integer }
+        published: { type: boolean }
+        updated_at: { type: [string, "null"], format: date-time }
+    HelpTopicInput:
+      type: object
+      properties:
+        slug: { type: string, pattern: "^[a-z0-9-]+$", maxLength: 80 }
+        title: { $ref: "#/components/schemas/Translations" }
+        body: { $ref: "#/components/schemas/Translations" }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+        sort: { type: integer }
+        published: { type: boolean }
+    ServiceFlags:
+      type: object
+      required: [discoverable, accepting_new_requests, minimum_app_version]
+      properties:
+        discoverable: { type: boolean }
+        accepting_new_requests: { type: boolean }
+        minimum_app_version: { type: [string, "null"] }
+    ServiceCatalogue:
+      type: object
+      required: [rides, hire, rental, shared, bus, cargo]
+      properties:
+        rides: { $ref: "#/components/schemas/ServiceFlags" }
+        hire: { $ref: "#/components/schemas/ServiceFlags" }
+        rental: { $ref: "#/components/schemas/ServiceFlags" }
+        shared: { $ref: "#/components/schemas/ServiceFlags" }
+        bus: { $ref: "#/components/schemas/ServiceFlags" }
+        cargo: { $ref: "#/components/schemas/ServiceFlags" }
+    ServiceCatalogueUpdate:
+      type: object
+      description: Any subset of services and flags. Cargo is not built and can't be switched on.
+      additionalProperties:
+        type: object
+        properties:
+          discoverable: { type: boolean }
+          accepting_new_requests: { type: boolean }
+          minimum_app_version: { type: [string, "null"], pattern: '^\d+(\.\d+){0,2}$' }
+    ServiceAccessEntry:
+      type: object
+      required: [id, label, discoverable, accepting_new_requests, can_use, can_offer, can_configure, reason_code, minimum_app_version, area]
+      properties:
+        id: { $ref: "#/components/schemas/ServiceKey" }
+        label: { type: string }
+        discoverable: { type: boolean, description: Show it in navigation }
+        accepting_new_requests: { type: boolean, description: This account can start new work here now }
+        can_use: { type: boolean, description: Has the customer permission }
+        can_offer: { type: boolean, description: Permitted and verified to take work }
+        can_configure: { type: boolean, description: "Can set it up as a provider: apply, list a car" }
+        reason_code:
+          type: [string, "null"]
+          enum: [not_released, paused, app_update_required, not_in_area, off_in_area, no_permission, null]
+        minimum_app_version: { type: [string, "null"] }
+        area:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+    ServiceAccess:
+      type: object
+      required: [version, services]
+      properties:
+        version: { type: integer, const: 1 }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceAccessEntry" }
+    ServiceUnavailable:
+      type: object
+      required: [message, reason_code]
+      properties:
+        message: { type: string }
+        reason_code: { type: string, enum: [not_released, paused, app_update_required] }
+    ServiceKey:
+      type: string
+      enum: [rides, hire, rental, shared, bus, cargo]
+    ServiceAvailability:
+      type: object
+      required: [served, area, message]
+      properties:
+        served: { type: boolean }
+        area:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        message: { type: [string, "null"], description: User-facing reason when not served }
+    LatLng:
+      type: array
+      description: "[lat, lng]"
+      minItems: 2
+      maxItems: 2
+      items: { type: number }
+    ServiceAreaOverrides:
+      type: object
+      description: Per-city ride settings (empty = global value) and service switches (missing = on)
+      properties:
+        commission_pct: { type: number }
+        cancel_fee: { type: integer }
+        free_wait_min: { type: integer }
+        nearby_radius_km: { type: number }
+        broadcast_max_drivers: { type: integer }
+        vehicle_classes:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              per_km_min: { type: integer }
+              per_km_max: { type: integer }
+              min_fare_max: { type: integer }
+        services:
+          type: object
+          additionalProperties: { type: boolean }
+    ServiceArea:
+      type: object
+      required: [id, name, kind, zone_type, parent_id, parent_name, active, polygon, center, overrides, zones_count, updated_at]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        kind: { type: string, enum: [city, zone] }
+        zone_type: { type: [string, "null"], enum: [airport, stadium, station, pickup, other, null] }
+        parent_id: { type: [integer, "null"] }
+        parent_name: { type: [string, "null"] }
+        active: { type: boolean }
+        polygon:
+          type: array
+          items: { $ref: "#/components/schemas/LatLng" }
+        center:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+        overrides: { $ref: "#/components/schemas/ServiceAreaOverrides" }
+        zones_count: { type: integer }
+        updated_at: { type: [string, "null"], format: date-time }
+    ServiceAreaInput:
+      type: object
+      description: Give one shape — `polygon`, `geojson` (Polygon/Feature, as object or text) or `circle` — required on create
+      properties:
+        name: { type: string, maxLength: 80 }
+        kind: { type: string, enum: [city, zone] }
+        zone_type: { type: [string, "null"], enum: [airport, stadium, station, pickup, other, null] }
+        parent_id: { type: [integer, "null"], description: City of a zone }
+        active: { type: boolean }
+        polygon:
+          type: array
+          minItems: 3
+          maxItems: 500
+          items: { $ref: "#/components/schemas/LatLng" }
+        geojson:
+          oneOf:
+            - type: string
+            - type: object
+        circle:
+          type: object
+          required: [lat, lng, radius_km]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+            radius_km: { type: number, minimum: 0.1, maximum: 100 }
+        overrides:
+          oneOf:
+            - { $ref: "#/components/schemas/ServiceAreaOverrides" }
+            - type: "null"
     # ── Car rental ─────────────────────────────────────────────────────────
     RentalCarType:
       type: string

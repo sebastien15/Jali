@@ -1,8 +1,15 @@
 {
   "$comment": "Reviewed mobile feature dependency manifest (runbook section 4, rule 6). Key: feature folder under mobile/features. Value: other features it may import, only through their public entry @/features/<name>. Checked by scripts/check-module-boundaries.mjs (npm run check:boundaries).",
-  "rentals": [],
+  "rentals": [
+    "support"
+  ],
   "shared-journeys": [],
-  "driver-hire": [],
-  "nearby-rides": [],
-  "bus": []
+  "driver-hire": [
+    "support"
+  ],
+  "nearby-rides": [
+    "support"
+  ],
+  "bus": [],
+  "support": []
 }

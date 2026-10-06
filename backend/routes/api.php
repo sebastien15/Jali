@@ -18,6 +18,14 @@ use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
+use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\PushNotificationController;
+use App\Http\Controllers\HelpController;
+use App\Http\Controllers\SupportController;
+use App\Http\Controllers\Admin\SupportInboxController;
+use App\Http\Controllers\ServiceAccessController;
+use App\Http\Controllers\Admin\ServiceCatalogueController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
@@ -76,8 +84,10 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
+    Route::get("/me/service-access", [ServiceAccessController::class, "show"]);   // S23.1, any signed-in user
     Route::post("/me/push-token", [PushTokenController::class, "store"]);
     Route::delete("/me/push-token", [PushTokenController::class, "destroy"]);
+    Route::post("/me/notifications/{id}/opened", [PushNotificationController::class, "opened"])->whereNumber("id");   // S12.3, own only
     Route::post("/auth/logout", [AuthController::class, "logout"]);
     Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
 
@@ -208,6 +218,57 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/admin/settings/rides", [RideSettingsController::class, "show"]);
         Route::put("/admin/settings/rides", [RideSettingsController::class, "update"]);
     });
+
+    // Service areas and zones (superadmin) — S10.4
+    Route::middleware("permission:manage-service-areas")->prefix("admin/service-areas")->group(function () {
+        Route::get("/", [AdminServiceAreaController::class, "index"]);
+        Route::post("/", [AdminServiceAreaController::class, "store"]);
+        Route::get("/{id}", [AdminServiceAreaController::class, "show"])->whereNumber("id");
+        Route::put("/{id}", [AdminServiceAreaController::class, "update"])->whereNumber("id");
+        Route::delete("/{id}", [AdminServiceAreaController::class, "destroy"])->whereNumber("id");
+    });
+
+    // Release flags per service (superadmin) — S23.1
+    Route::middleware("permission:manage-services")->group(function () {
+        Route::get("/admin/services", [ServiceCatalogueController::class, "show"]);
+        Route::put("/admin/services", [ServiceCatalogueController::class, "update"]);
+    });
+
+    // Help centre (S16.2)
+    Route::middleware("permission:use-support")->prefix("help")->group(function () {
+        Route::get("/topics", [HelpController::class, "index"]);
+        Route::get("/topics/{slug}", [HelpController::class, "show"])->where("slug", "[a-z0-9-]+");
+    });
+    // Support tickets (S16.3)
+    Route::middleware("permission:use-support")->prefix("support/tickets")->group(function () {
+        Route::get("/", [SupportController::class, "index"]);
+        Route::post("/", [SupportController::class, "store"])->middleware("throttle:10,1");
+        Route::get("/{id}", [SupportController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/messages", [SupportController::class, "reply"])->whereNumber("id")->middleware("throttle:30,1");
+        Route::post("/{id}/resolve", [SupportController::class, "resolve"])->whereNumber("id");
+    });
+    Route::middleware("permission:manage-support")->prefix("admin/support")->group(function () {
+        Route::get("/tickets", [SupportInboxController::class, "index"]);
+        Route::get("/tickets/{id}", [SupportInboxController::class, "show"])->whereNumber("id");
+        Route::post("/tickets/{id}/messages", [SupportInboxController::class, "reply"])->whereNumber("id");
+        Route::post("/tickets/{id}/assign", [SupportInboxController::class, "assign"])->whereNumber("id");
+        Route::post("/tickets/{id}/status", [SupportInboxController::class, "status"])->whereNumber("id");
+        Route::get("/canned-replies", [SupportInboxController::class, "cannedIndex"]);
+        Route::post("/canned-replies", [SupportInboxController::class, "cannedStore"]);
+        Route::delete("/canned-replies/{id}", [SupportInboxController::class, "cannedDestroy"])->whereNumber("id");
+    });
+    Route::middleware("permission:manage-support")->prefix("admin/help-topics")->group(function () {
+        Route::get("/", [HelpController::class, "adminIndex"]);
+        Route::post("/", [HelpController::class, "store"]);
+        Route::put("/{id}", [HelpController::class, "update"])->whereNumber("id");
+        Route::delete("/{id}", [HelpController::class, "destroy"])->whereNumber("id");
+    });
+
+    // Push delivery and open rates per type (S12.3)
+    Route::middleware("permission:view-analytics")->get("/admin/notifications/stats", [PushNotificationController::class, "stats"]);
+
+    // Is a service available here? (S10.4)
+    Route::middleware("permission:request-rides")->get("/service-areas/check", [ServiceAreaController::class, "check"]);
 
     // Driver onboarding — any signed-in user can apply (stories S1.1–S1.3)
     Route::middleware("permission:apply-as-driver")->prefix("driver")->group(function () {

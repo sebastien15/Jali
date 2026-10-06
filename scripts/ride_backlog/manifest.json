@@ -1046,7 +1046,7 @@
   "epic": "E7",
   "issue": 179,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1234,7 +1234,7 @@
   "labels": [
    "user-story",
    "batch-4-nearby-rides",
-   "wave-3",
+   "wave-2",
    "mobile",
    "backend",
    "international"
@@ -1314,7 +1314,7 @@
   "epic": "E10",
   "issue": 75,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1373,7 +1373,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "admin"
@@ -1484,7 +1484,7 @@
   "epic": "E12",
   "issue": 85,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1974,7 +1974,7 @@
   "epic": "E16",
   "issue": 113,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1983,7 +1983,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "admin"
@@ -1992,7 +1992,7 @@
   "epic": "E16",
   "issue": 114,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2088,7 +2088,7 @@
   "labels": [
    "user-story",
    "batch-4-nearby-rides",
-   "wave-2",
+   "wave-1",
    "backend",
    "mobile"
   ],
@@ -2725,7 +2725,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "backend",
    "security"
   ],
@@ -2733,7 +2733,7 @@
   "epic": "E23",
   "issue": 181,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2742,14 +2742,14 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-1",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md",
   "epic": "E23",
   "issue": 182,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2758,7 +2758,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-1",
    "mobile",
    "ux"
   ],
@@ -2775,7 +2775,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -2792,14 +2792,14 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S23.5-notification-taps-open-the-right-screen-always-m07.md",
   "epic": "E23",
   "issue": 187,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2808,7 +2808,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile",
    "backend"
   ],
@@ -2842,7 +2842,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -2960,7 +2960,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "pricing"
@@ -3064,7 +3064,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-2",
+   "wave-1",
    "admin",
    "backend",
    "mobile"
@@ -3422,7 +3422,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "admin"
   ],
   "file": "docs/ride-hailing/stories/S28.1-batch-readiness-audit.md",
@@ -3438,7 +3438,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md",
@@ -3454,7 +3454,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.3-google-play-closed-test.md",
@@ -3470,7 +3470,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S28.4-ios-testflight-and-app-store-submission.md",
@@ -3486,7 +3486,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-3",
    "admin",
    "analytics"
   ],

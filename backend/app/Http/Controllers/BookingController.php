@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Modules\ServiceAccess\Contracts\ServiceAccess;
 use App\Modules\LegacyBookings\Application\AdminBookingQueue;
 use App\Modules\LegacyBookings\Application\BookingDispatcher;
 use App\Modules\LegacyBookings\Application\BookingRejected;
@@ -60,6 +61,13 @@ class BookingController extends Controller
             "passenger_names" => "nullable|array|max:10",
             "passenger_names.*" => "nullable|string|max:100",
         ]);
+
+        // S23.1: legacy booking types map to catalogue services
+        app(ServiceAccess::class)->assertAcceptingNew(match ($validated["type"]) {
+            "bus", "trip" => "bus",
+            "private"     => "shared",
+            "rental"      => "rental",
+        });
 
         try {
             $booking = $this->bookings->create(
