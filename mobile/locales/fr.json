@@ -111,7 +111,8 @@
     "showAtStation": "À montrer à la gare",
     "view": "Voir",
     "awaitingConfirmation": "En attente de confirmation — l'admin organise votre billet",
-    "close": "Fermer"
+    "close": "Fermer",
+    "filterRides": "courses"
   },
   "login": {
     "enterPhone": "Entrez votre numéro rwandais",
@@ -859,6 +860,19 @@
       "reason_unsafe": "Je ne me sens pas en sécurité",
       "reason_traffic": "Trop d'embouteillages",
       "reason_other": "Autre"
+    },
+    "history": {
+      "error": "Impossible de charger vos courses",
+      "empty": "Aucune course pour le moment",
+      "status_requested": "Demandée",
+      "status_accepted": "Chauffeur en route",
+      "status_arrived": "Chauffeur arrivé",
+      "status_in_progress": "En course",
+      "status_completed": "Terminée",
+      "status_declined": "Refusée",
+      "status_expired": "Sans réponse",
+      "status_cancelled_by_rider": "Annulée",
+      "status_cancelled_by_driver": "Annulée par le chauffeur"
     }
   }
 }
