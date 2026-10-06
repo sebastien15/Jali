@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Modules\Locations\Contracts\Geography::class, \App\Modules\Locations\Application\Geography::class);
         $this->app->bind(\App\Modules\Locations\Contracts\ServiceAreas::class, \App\Modules\Locations\Application\ServiceAreaDirectory::class);
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderServices::class, \App\Modules\Providers\Application\VerifiedProviderServices::class);
+        $this->app->bind(\App\Modules\Support\Contracts\HelpTopics::class, \App\Modules\Support\Application\HelpCentre::class);
         $this->app->bind(\App\Modules\ServiceAccess\Contracts\ServiceAccess::class, \App\Modules\ServiceAccess\Application\ServiceAccessResolver::class);
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderEligibility::class, \App\Modules\Providers\Application\DriverEligibility::class);
         // Ride rates are owned by NearbyRides; Pricing asks it to re-check them after a guardrail change

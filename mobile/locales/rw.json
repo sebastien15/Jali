@@ -1194,5 +1194,15 @@
     "title": "Erekana ibiciro no mu",
     "sub": "Amafaranga agereranyije iruhande rwa RWF. Wishyura buri gihe muri RWF.",
     "none": "RWF gusa"
+  },
+  "help": {
+    "title": "Ubufasha",
+    "search": "Shakisha ubufasha",
+    "noResults": "Nta ngingo ihuye. Twandikire hepfo.",
+    "stillNeedHelp": "Uracyakeneye ubufasha?",
+    "whatsapp": "Vugana na Jali kuri WhatsApp",
+    "missing": "Iyi ngingo y'ubufasha ntiboneka.",
+    "forThisTrip": "Ukeneye ubufasha kuri uru rugendo?",
+    "allTopics": "Ingingo zose z'ubufasha"
   }
 }

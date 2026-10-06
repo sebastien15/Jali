@@ -223,7 +223,7 @@ export default function ProfileScreen() {
       icon: "help-circle-outline",
       label: t('profile.helpSupport'),
       sub: t('profile.helpSub'),
-      onPress: () => Linking.openURL(SUPPORT_WHATSAPP),
+      onPress: () => router.push("/help" as any),   // S16.2 help centre
     },
     ...(Platform.OS === "ios" && !APP_STORE_URL ? [] : [{
       icon: "star-outline" as const,

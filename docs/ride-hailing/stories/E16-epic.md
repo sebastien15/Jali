@@ -5,8 +5,8 @@ Masked calls, help centre, support tickets, live agent chat, fare reviews and re
 
 ## Stories
 - S16.1 — Masked phone calls (wave 2, ⬜ todo)
-- S16.2 — Help centre with trip-specific help (wave 1, ⬜ todo)
-- S16.3 — Support tickets and live chat with an agent (wave 2, ⬜ todo)
+- S16.2 — Help centre with trip-specific help (wave 1, ✅ built)
+- S16.3 — Support tickets and live chat with an agent (wave 1, ⬜ todo)
 - S16.4 — Fare review and refunds (wave 3, ⬜ todo)
 
 ## Done when

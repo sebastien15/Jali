@@ -1974,7 +1974,7 @@
   "epic": "E16",
   "issue": 113,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1983,7 +1983,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "admin"
@@ -3064,7 +3064,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-2",
+   "wave-1",
    "admin",
    "backend",
    "mobile"

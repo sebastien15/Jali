@@ -1194,5 +1194,15 @@
     "title": "Onyesha bei pia kwa",
     "sub": "Kiasi cha takriban kando ya RWF. Unalipa kila wakati kwa RWF.",
     "none": "RWF pekee"
+  },
+  "help": {
+    "title": "Kituo cha msaada",
+    "search": "Tafuta msaada",
+    "noResults": "Hakuna mada inayolingana. Wasiliana nasi hapa chini.",
+    "stillNeedHelp": "Bado unahitaji msaada?",
+    "whatsapp": "Ongea na Jali kwenye WhatsApp",
+    "missing": "Mada hii ya msaada haipatikani.",
+    "forThisTrip": "Unahitaji msaada kuhusu safari hii?",
+    "allTopics": "Mada zote za msaada"
   }
 }

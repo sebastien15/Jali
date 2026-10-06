@@ -20,6 +20,7 @@ use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\ServiceAccessController;
 use App\Http\Controllers\Admin\ServiceCatalogueController;
 use App\Http\Controllers\Admin\AdminDriverController;
@@ -227,6 +228,18 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:manage-services")->group(function () {
         Route::get("/admin/services", [ServiceCatalogueController::class, "show"]);
         Route::put("/admin/services", [ServiceCatalogueController::class, "update"]);
+    });
+
+    // Help centre (S16.2)
+    Route::middleware("permission:use-support")->prefix("help")->group(function () {
+        Route::get("/topics", [HelpController::class, "index"]);
+        Route::get("/topics/{slug}", [HelpController::class, "show"])->where("slug", "[a-z0-9-]+");
+    });
+    Route::middleware("permission:manage-support")->prefix("admin/help-topics")->group(function () {
+        Route::get("/", [HelpController::class, "adminIndex"]);
+        Route::post("/", [HelpController::class, "store"]);
+        Route::put("/{id}", [HelpController::class, "update"])->whereNumber("id");
+        Route::delete("/{id}", [HelpController::class, "destroy"])->whereNumber("id");
     });
 
     // Is a service available here? (S10.4)
