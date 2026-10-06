@@ -32,6 +32,7 @@ import {
 } from "@/components/driver/DriverActionCard";
 import { PickupZones } from "@/components/driver/PickupZones";
 import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
+import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import {
   TripsTabs,
   TripsEmptyState,
@@ -142,6 +143,7 @@ export default function DriveScreen() {
         }
       >
         {/* On-demand rides: online / offline */}
+        {canOfferRides ? <ActiveRideBanner role="driver" /> : null}
         <OnlineToggleCard enabled={canOfferRides} />
 
         {/* Week summary card */}

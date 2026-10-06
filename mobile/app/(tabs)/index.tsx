@@ -11,6 +11,7 @@ import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
 import { RideNowBar } from "@/components/home/RideNowBar";
+import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/components/home/PrivateResults";
@@ -215,6 +216,7 @@ export default function HomeScreen() {
         selectedDate={selectedDate} onDateChange={setSelectedDate}
       />
 
+      <ActiveRideBanner role="rider" />
       <RideNowBar />
 
       <ModeTabs mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />

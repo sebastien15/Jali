@@ -95,11 +95,13 @@ app/
 ├── driver/
 │   ├── setup.tsx              Driver onboarding (card presentation)
 │   ├── fleet.tsx              Driver's car fleet management
-│   └── listing.tsx            Create/edit a private seat listing
+│   ├── listing.tsx            Create/edit a private seat listing
+│   └── ride/[id].tsx          Driver trip: navigate → I've arrived → PIN start → complete (cash/MoMo) → rate rider
 │
 ├── ride/                      On-demand rides (rider) — ProtectedRoute layout
 │   ├── index.tsx              "Where to?": GPS pickup (reverse geocode), destination search, recents
-│   └── nearby.tsx             Nearby drivers with own price: sort Closest/Cheapest/Top rated, class chips
+│   ├── nearby.tsx             Nearby drivers with own price: sort Closest/Cheapest/Top rated, class chips, Request
+│   └── [id].tsx               Rider trip: waiting countdown → driver card + plate + PIN → in trip → receipt & rating
 │
 └── legal/[doc].tsx            Legal docs viewer (modal presentation)
 ```
@@ -193,7 +195,9 @@ type AdminUser = {
 
 #### `lib/usePushPermission.ts`
 - Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
-- Tapping a notification routes by `data.screen` (`routeForNotification`)
+- Tapping a notification routes by `data.screen` (`routeForNotification`); `ride` → `/ride/{id}`, `driver_ride` → `/driver/ride/{id}`
+- Active ride banners: `components/rides/ActiveRideBanner.tsx` (Home = rider, Drive tab = driver) share `useActiveRide()` → `GET /rides/active`
+- Incoming ride requests: `components/driver/IncomingRequests.tsx` polls `/driver/ride-requests` every 4 s while online
 - Backend sends through `App\Services\PushService::send($user, $title, $body, ['screen' => ..., 'id' => ...])`
   (Expo tokens → Expo push API; raw FCM tokens → Firebase). Never throws.
 

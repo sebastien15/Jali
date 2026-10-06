@@ -399,7 +399,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My current ride as rider or driver, or null */
+        /** My current ride as rider or driver, or null (poll every few seconds during a trip) */
         get: operations["getActiveRide"];
         put?: never;
         post?: never;
@@ -439,7 +439,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cancel as rider or assigned driver (reason required) */
+        /**
+         * Cancel as rider (requested/accepted/arrived) or driver (accepted/arrived)
+         * @description Rider reasons: changed_plans, driver_too_far, driver_asked_to_cancel, found_other_transport, wrong_pickup, other.
+         *     Driver reasons: rider_not_at_pickup, rider_asked_to_cancel, vehicle_problem, unsafe, traffic, other.
+         *     A rider cancelling after the driver waited longer than free_wait_min pays cancel_fee.
+         */
         post: operations["cancelRide"];
         delete?: never;
         options?: never;
@@ -460,6 +465,25 @@ export interface paths {
         put?: never;
         /** Accept a request (atomic — 409 if another driver won) */
         post: operations["acceptRide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline a request (no penalty); the rider is told to choose another driver */
+        post: operations["declineRide"];
         delete?: never;
         options?: never;
         head?: never;
@@ -905,50 +929,83 @@ export interface components {
             };
         };
         /** @enum {string} */
-        RideStatus: "requested" | "accepted" | "arrived" | "in_progress" | "completed" | "expired" | "cancelled_by_rider" | "cancelled_by_driver";
+        RideStatus: "requested" | "accepted" | "arrived" | "in_progress" | "completed" | "declined" | "expired" | "cancelled_by_rider" | "cancelled_by_driver";
+        /** @description One ride as seen by the requesting user (rider or driver) */
         Ride: {
             id: number;
+            /**
+             * @description Who is looking
+             * @enum {string}
+             */
+            role: "rider" | "driver";
             status: components["schemas"]["RideStatus"];
             /** @enum {string} */
             mode: "pick" | "broadcast";
             vehicle_class: components["schemas"]["VehicleClass"];
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
-            est_distance_km?: number;
-            est_minutes?: number;
+            est_distance_km: number;
+            est_minutes: number;
+            /** @description Locked total the rider pays (driver fare + Jali fee) */
             quoted_fare: number;
-            final_fare?: number | null;
-            service_fee?: number;
-            /** @description Only present for the rider */
-            start_pin?: string | null;
+            driver_fare: number;
+            service_fee: number;
+            final_fare: number | null;
+            /** @description Driver view only: driver fare minus commission */
+            driver_earnings: number | null;
+            cancel_fee: number;
+            cancel_reason: string | null;
+            /** @description Rider view only, while the ride is active */
+            start_pin: string | null;
             /** @enum {string|null} */
-            payment_method?: "cash" | "momo" | null;
-            driver?: null | {
-                id?: number;
-                name?: string;
-                photo?: string | null;
-                rating?: number;
-                /** @description After accept only */
-                phone?: string | null;
-                location?: {
-                    lat?: number;
-                    lng?: number;
+            payment_method: "cash" | "momo" | null;
+            /**
+             * Format: date-time
+             * @description While requested: when the driver's answer times out
+             */
+            expires_at: string | null;
+            driver: null | {
+                id: number;
+                name: string;
+                photo: string | null;
+                rating: number;
+                /** @description Rider view, once accepted */
+                phone: string | null;
+                location: null | {
+                    lat: number;
+                    lng: number;
                     heading?: number | null;
-                } | null;
-                vehicle?: components["schemas"]["Vehicle"];
+                    /** Format: date-time */
+                    at?: string | null;
+                };
+                vehicle: null | {
+                    class: components["schemas"]["VehicleClass"];
+                    model: string;
+                    color: string | null;
+                    plate: string;
+                    photo: string | null;
+                };
             };
+            /** @description Driver view only */
+            rider: null | {
+                name: string;
+                rating: number | null;
+                phone: string | null;
+            };
+            /** @description Stars I gave for this ride */
+            my_rating: number | null;
             /** Format: date-time */
-            requested_at?: string;
+            requested_at: string | null;
             /** Format: date-time */
-            accepted_at?: string | null;
+            accepted_at: string | null;
             /** Format: date-time */
-            arrived_at?: string | null;
+            arrived_at: string | null;
             /** Format: date-time */
-            started_at?: string | null;
+            started_at: string | null;
             /** Format: date-time */
-            completed_at?: string | null;
+            completed_at: string | null;
             /** Format: date-time */
-            cancelled_at?: string | null;
+            cancelled_at: string | null;
         };
         /** @description What an online driver sees before accepting (no exact pickup, no phone) */
         RideRequestCard: {
@@ -988,6 +1045,10 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+            /** @default 500 */
+            cancel_fee: number;
+            /** @default 5 */
+            free_wait_min: number;
         };
         /** @description Any subset of RideSettings; a vehicle class must be sent complete */
         RideSettingsUpdate: {
@@ -1008,6 +1069,8 @@ export interface components {
             nearby_radius_km?: number;
             presence_ttl_sec?: number;
             request_timeout_sec?: number;
+            cancel_fee?: number;
+            free_wait_min?: number;
         };
     };
     responses: {
@@ -1784,20 +1847,23 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["TripPoints"] & {
-                    /** @enum {string} */
-                    mode: "pick" | "broadcast";
-                    class: components["schemas"]["VehicleClass"];
-                    /** @description Required when mode=pick */
-                    driver_id?: number;
-                    /** @description Broadcast only */
-                    max_fare?: number;
-                    /** @enum {string} */
+                    /**
+                     * @description broadcast arrives with S3.5
+                     * @enum {string}
+                     */
+                    mode: "pick";
+                    /** @description A driver from /rides/nearby */
+                    driver_id: number;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
                     payment_method?: "cash" | "momo";
                 };
             };
         };
         responses: {
-            /** @description Ride requested */
+            /** @description Ride requested — price locked, driver notified */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -1806,6 +1872,8 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };
@@ -1850,7 +1918,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
-            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     cancelRide: {
@@ -1879,7 +1947,9 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
         };
     };
     acceptRide: {
@@ -1902,6 +1972,31 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    declineRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Declined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ride"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -1925,6 +2020,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -1954,8 +2050,20 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            /** @description Too many wrong PINs — ride flagged for support */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                    };
+                };
+            };
         };
     };
     completeRide: {
@@ -1985,6 +2093,7 @@ export interface operations {
                     "application/json": components["schemas"]["Ride"];
                 };
             };
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
     };
@@ -2008,7 +2117,9 @@ export interface operations {
         };
         responses: {
             201: components["responses"]["Message"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listDriverApplications: {

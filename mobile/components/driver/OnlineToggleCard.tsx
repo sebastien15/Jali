@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import { useDriverPresence } from "@/lib/useDriverPresence";
+import { IncomingRequests } from "@/components/driver/IncomingRequests";
 
 /** Where each blocker can be fixed */
 const FIX_ROUTE: Record<string, string> = {
@@ -24,6 +25,8 @@ export function OnlineToggleCard({ enabled }: { enabled: boolean }) {
   if (!enabled) return null;
 
   return (
+    <>
+    {online ? <IncomingRequests /> : null}
     <View style={{
       backgroundColor: online ? C.green : C.white, borderRadius: 18, padding: 16, marginBottom: 20,
       borderWidth: online ? 0 : 1, borderColor: C.border,
@@ -70,5 +73,6 @@ export function OnlineToggleCard({ enabled }: { enabled: boolean }) {
         </View>
       ) : null}
     </View>
+    </>
   );
 }
