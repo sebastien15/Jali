@@ -65,6 +65,20 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $found);
     }
 
+    /**
+     * M03-Remaining: business logic lives in app/Modules. app/Services keeps only
+     * the PushService delivery adapter (lazy binding in AppServiceProvider).
+     */
+    public function test_app_services_holds_only_the_push_service(): void
+    {
+        $files = [];
+        foreach ((new Finder())->files()->in(app_path('Services')) as $file) {
+            $files[] = str_replace('\\', '/', $file->getRelativePathname());
+        }
+
+        $this->assertSame(['PushService.php'], $files);
+    }
+
     public function test_the_check_detects_forbidden_references(): void
     {
         $root = sys_get_temp_dir() . '/jali-boundary-' . uniqid();

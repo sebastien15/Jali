@@ -45,6 +45,34 @@ class BookingDispatcher
     }
 
     /**
+     * One booking for GET /bookings/{id}: its owner, or a booking-desk admin
+     * (confirm-bookings) whose station scope covers it. Null when the viewer
+     * may not see it; 404 for an unknown id.
+     */
+    public function detailFor(User $viewer, int|string $id): ?array
+    {
+        $booking = Booking::findOrFail($id);
+
+        $isOwner = (int) $booking->user_id === (int) $viewer->id;
+        if (!$isOwner && !($viewer->hasPermission("confirm-bookings") && $booking->isManageableBy($viewer))) {
+            return null;
+        }
+
+        return [
+            "id" => $booking->id,
+            "type" => $booking->type,
+            "title" => $booking->title,
+            "sub" => $booking->sub,
+            "price" => $booking->price + $booking->service_fee,
+            "quantity" => $booking->quantity ?? 1,
+            "travel_date" => $booking->travel_date,
+            "status" => $booking->status,
+            "ticket_photo_url" => $booking->ticket_photo_url,
+            "location_id" => $booking->location_id,
+        ];
+    }
+
+    /**
      * Create a pending booking. Price, service fee, title and location always
      * come from the booked item — client values are ignored.
      *

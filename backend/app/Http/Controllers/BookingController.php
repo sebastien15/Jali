@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
 use App\Modules\LegacyBookings\Application\AdminBookingQueue;
 use App\Modules\LegacyBookings\Application\BookingDispatcher;
 use App\Modules\LegacyBookings\Application\BookingRejected;
@@ -95,26 +94,12 @@ class BookingController extends Controller
 
     public function show(Request $request, $id)
     {
-        $user = $request->user();
-        $booking = Booking::findOrFail($id);
-
-        $isOwner = (int) $booking->user_id === (int) $user->id;
-        if (!$isOwner && !($user->hasPermission("confirm-bookings") && $booking->isManageableBy($user))) {
+        $detail = $this->bookings->detailFor($request->user(), $id);
+        if ($detail === null) {
             return response()->json(["error" => "Forbidden"], 403);
         }
 
-        return response()->json([
-            "id" => $booking->id,
-            "type" => $booking->type,
-            "title" => $booking->title,
-            "sub" => $booking->sub,
-            "price" => $booking->price + $booking->service_fee,
-            "quantity" => $booking->quantity ?? 1,
-            "travel_date" => $booking->travel_date,
-            "status" => $booking->status,
-            "ticket_photo_url" => $booking->ticket_photo_url,
-            "location_id" => $booking->location_id,
-        ]);
+        return response()->json($detail);
     }
 
     /**
