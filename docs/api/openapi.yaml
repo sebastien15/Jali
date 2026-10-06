@@ -84,7 +84,6 @@ paths:
     get:
       tags: [Driver]
       operationId: getDriverProfile
-      x-jali-status: planned
       summary: Driver profile, active vehicle and all vehicles
       x-jali-permission: apply-as-driver
       responses:

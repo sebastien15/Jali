@@ -14,6 +14,7 @@ import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import type { components } from "@/lib/apiSchema";
 
 const ZONES = ["Kigali CBD", "Nyabugogo", "Remera", "Kimironko", "Gikondo", "Kicukiro", "Kanombe"];
 const CAR_TYPES = ["Sedan", "SUV", "Minivan", "Pickup"] as const;
@@ -26,15 +27,7 @@ const PHOTO_SLOTS: { key: PhotoSlot; label: string; icon: React.ComponentProps<t
   { key: "luggage",  label: "Luggage Space",  icon: "briefcase-outline" },
 ];
 
-type DriverProfileResponse = {
-  user: { name: string | null; phone: string | null };
-  profile: { allowed_zones: string[]; docs_url: string | null } | null;
-  vehicle: {
-    model: string; plate: string; seats: number; body_type: string | null;
-    amenities: string[] | null; insurance_expiry: string | null;
-    rental_price_day: number | null; rental_caution: number | null;
-  } | null;
-};
+type DriverProfileResponse = components["schemas"]["DriverProfileResponse"];
 
 type FieldErrors = Partial<Record<string, string>>;
 
