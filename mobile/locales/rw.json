@@ -1194,5 +1194,9 @@
     "title": "Erekana ibiciro no mu",
     "sub": "Amafaranga agereranyije iruhande rwa RWF. Wishyura buri gihe muri RWF.",
     "none": "RWF gusa"
+  },
+  "services": {
+    "notAvailableTitle": "Ntiraboneka",
+    "back": "Subira inyuma"
   }
 }

@@ -1194,5 +1194,9 @@
     "title": "Show prices also in",
     "sub": "An approximate amount next to RWF. You always pay in RWF.",
     "none": "RWF only"
+  },
+  "services": {
+    "notAvailableTitle": "Not available yet",
+    "back": "Back"
   }
 }
