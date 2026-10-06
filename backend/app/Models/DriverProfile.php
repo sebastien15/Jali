@@ -39,6 +39,7 @@ class DriverProfile extends Model
             'licence_expiry'     => 'date:Y-m-d',
             'verified_at'        => 'datetime',
             'submitted_at'       => 'datetime',
+            'warned_at'          => 'datetime',
             'rating_avg'         => 'float',
         ];
     }

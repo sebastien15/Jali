@@ -123,6 +123,12 @@ export default function ProfileScreen() {
       onPress: () => router.push("/driver/onboarding"),
     },
     {
+      icon: "medkit-outline",
+      label: t('safety.contactTitle'),
+      sub: t('safety.contactMenuSub'),
+      onPress: () => router.push("/safety/emergency-contact" as any),
+    },
+    {
       icon: "notifications-outline",
       label: t('profile.notifications'),
       sub: t('profile.notificationsSub'),

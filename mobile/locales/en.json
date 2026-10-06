@@ -1083,5 +1083,19 @@
     "type_settlement": "Payment to Jali",
     "type_payout": "Cash-out",
     "type_adjustment": "Adjustment"
+  },
+  "safety": {
+    "share": "Share trip",
+    "shareMessage": "Follow my Jali trip live: {{url}}",
+    "sos": "SOS",
+    "sosTitle": "Emergency",
+    "sosConfirm": "Call 112 and alert Jali and your emergency contact?",
+    "sosGo": "Call 112",
+    "contactTitle": "Emergency contact",
+    "contactMenuSub": "Who we text if you press SOS",
+    "contactSub": "If you press SOS during a trip, we text this person your location and a live trip link.",
+    "contactName": "Name",
+    "contactPhone": "Phone",
+    "saved": "Saved"
   }
 }

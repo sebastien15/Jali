@@ -46,6 +46,65 @@ class AdminDriverController extends Controller
         ])->values());
     }
 
+    /**
+     * GET /admin/drivers/review — S8.4: drivers rated below the minimum after enough rated trips,
+     * or cancelling more than the allowed share of their accepted rides recently.
+     */
+    public function review(Request $request)
+    {
+        $this->authorizeReviewer($request);
+        $rules = \App\Services\Rides\RideSettings::get()['review'];
+        $since = now()->subDays((int) $rules['days']);
+
+        $cancels = \App\Models\Ride::where('accepted_at', '>=', $since)->whereNotNull('driver_id')
+            ->selectRaw('driver_id, COUNT(*) as accepted, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled', [\App\Models\Ride::CANCELLED_BY_DRIVER])
+            ->groupBy('driver_id')->get()->keyBy('driver_id');
+
+        $profiles = DriverProfile::with('user')->where('verification_status', DriverProfile::STATUS_VERIFIED)
+            ->where(fn ($q) => $q->where(fn ($q) => $q->where('rating_count', '>=', (int) $rules['min_rated_trips'])->where('rating_avg', '<', (float) $rules['min_rating']))
+                ->orWhereIn('user_id', $cancels->keys()))
+            ->get();
+
+        $items = [];
+        foreach ($profiles as $p) {
+            $c = $cancels[$p->user_id] ?? null;
+            $cancelPct = $c && $c->accepted ? round($c->cancelled * 100 / $c->accepted, 1) : 0.0;
+            $reasons = [];
+            if ($p->rating_count >= (int) $rules['min_rated_trips'] && $p->rating_avg < (float) $rules['min_rating']) {
+                $reasons[] = 'low_rating';
+            }
+            if ($c && $c->accepted >= (int) $rules['min_accepted'] && $cancelPct > (float) $rules['max_cancel_pct']) {
+                $reasons[] = 'high_cancel_rate';
+            }
+            if (!$reasons) {
+                continue;
+            }
+            $items[] = [
+                'user_id' => $p->user_id, 'name' => $p->user?->name, 'phone' => $p->user?->phone,
+                'rating' => (float) $p->rating_avg, 'rating_count' => (int) $p->rating_count,
+                'accepted' => (int) ($c->accepted ?? 0), 'cancelled' => (int) ($c->cancelled ?? 0), 'cancel_pct' => $cancelPct,
+                'reasons' => $reasons, 'warned_at' => $p->warned_at?->toIso8601String(),
+            ];
+        }
+
+        return response()->json($items);
+    }
+
+    /** POST /admin/drivers/{userId}/warn {message} — S8.4: the driver is notified and it is logged */
+    public function warn(Request $request, PushService $push, int $userId)
+    {
+        $admin = $this->authorizeReviewer($request);
+        $message = $request->validate(['message' => 'required|string|min:5|max:500'])['message'];
+        $user = User::with('driverProfile')->findOrFail($userId);   // any driver, also ones verified before the app flow
+        abort_unless($user->driverProfile, 404);
+
+        $user->driverProfile->forceFill(['warned_at' => now(), 'warning' => $message])->save();
+        $this->log($admin, 'driver_warned', $user, ['message' => $message]);
+        $push->send($user, 'A note from Jali about your driving', $message, ['screen' => 'driver']);
+
+        return response()->json(['message' => 'Warning sent.', 'warned_at' => now()->toIso8601String()]);
+    }
+
     /** GET /admin/drivers/{userId} */
     public function show(Request $request, int $userId)
     {

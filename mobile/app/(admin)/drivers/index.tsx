@@ -47,6 +47,12 @@ export default function DriverQueueScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <AdminHeader title="Driver applications" showBack />
+      <TouchableOpacity onPress={() => router.push("/(admin)/drivers/review" as any)} accessibilityLabel="Drivers needing review"
+        style={{ marginHorizontal: 16, marginTop: 12, backgroundColor: C.orangeLt, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Ionicons name="alert-circle-outline" size={18} color={C.orange} />
+        <Text style={{ flex: 1, color: C.orange, fontWeight: "800" }}>Drivers needing review (ratings, cancellations)</Text>
+        <Ionicons name="chevron-forward" size={18} color={C.orange} />
+      </TouchableOpacity>
       <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
         {FILTERS.map(f => (
           <TouchableOpacity key={f.key} onPress={() => setStatus(f.key)} accessibilityLabel={f.label}

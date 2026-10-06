@@ -37,6 +37,8 @@ class RideSettings
             // S7.2 / S5.4: drivers who owe more than this can't go online until they settle
             'max_commission_owed' => 20000,
             'settlement_momo'     => ['number' => '', 'name' => 'Jali'],   // where drivers send commission
+            // S8.4: who appears in the admin "Needs review" list
+            'review' => ['min_rated_trips' => 20, 'min_rating' => 4.0, 'max_cancel_pct' => 15, 'min_accepted' => 10, 'days' => 30],
             // Hire a Driver (epic E6) — limits on driver-set prices and booking rules
             'hire' => [
                 'hourly_min'          => 1000,
@@ -111,6 +113,12 @@ class RideSettings
             'settlement_momo'        => 'sometimes|array',
             'settlement_momo.number' => 'sometimes|nullable|string|max:20',
             'settlement_momo.name'   => 'sometimes|nullable|string|max:100',
+            'review'                 => 'sometimes|array',
+            'review.min_rated_trips' => 'sometimes|integer|min:1|max:1000',
+            'review.min_rating'      => 'sometimes|numeric|min:1|max:5',
+            'review.max_cancel_pct'  => 'sometimes|numeric|min:0|max:100',
+            'review.min_accepted'    => 'sometimes|integer|min:1|max:1000',
+            'review.days'            => 'sometimes|integer|min:1|max:365',
             'hire'                        => 'sometimes|array',
             'hire.hourly_min'             => 'sometimes|integer|min:0',
             'hire.hourly_max'             => 'sometimes|integer|min:0',

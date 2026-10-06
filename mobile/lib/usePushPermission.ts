@@ -32,6 +32,8 @@ export function routeForNotification(data: Record<string, unknown> | undefined |
       return id ? `/hire/${id}` : "/hire";
     case "driver_hire":
       return id ? `/driver/hire/${id}` : "/(tabs)/drive";
+    case "admin_ride":
+      return id ? `/(admin)/rides/${id}` : "/(admin)/rides";
     case "driver_earnings":
       return "/driver/earnings";
     case "driver_ride":

@@ -31,6 +31,8 @@ class User extends Authenticatable
         "cashout_account_number",
         "cashout_account_name",
         "cashout_bank_name",
+        "emergency_contact_name",
+        "emergency_contact_phone",
     ];
 
     protected $hidden = [];

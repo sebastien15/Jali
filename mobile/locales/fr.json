@@ -1083,5 +1083,19 @@
     "type_settlement": "Paiement à Jali",
     "type_payout": "Retrait",
     "type_adjustment": "Ajustement"
+  },
+  "safety": {
+    "share": "Partager le trajet",
+    "shareMessage": "Suivez mon trajet Jali en direct : {{url}}",
+    "sos": "SOS",
+    "sosTitle": "Urgence",
+    "sosConfirm": "Appeler le 112 et alerter Jali et votre contact d'urgence ?",
+    "sosGo": "Appeler le 112",
+    "contactTitle": "Contact d'urgence",
+    "contactMenuSub": "La personne prévenue si vous appuyez sur SOS",
+    "contactSub": "Si vous appuyez sur SOS pendant un trajet, nous envoyons à cette personne votre position et un lien de suivi.",
+    "contactName": "Nom",
+    "contactPhone": "Téléphone",
+    "saved": "Enregistré"
   }
 }

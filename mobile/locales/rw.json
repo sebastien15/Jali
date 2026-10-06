@@ -1083,5 +1083,19 @@
     "type_settlement": "Ubwishyu kuri Jali",
     "type_payout": "Kubikuza",
     "type_adjustment": "Ihinduka"
+  },
+  "safety": {
+    "share": "Sangiza urugendo",
+    "shareMessage": "Kurikirana urugendo rwanjye rwa Jali: {{url}}",
+    "sos": "SOS",
+    "sosTitle": "Ubutabazi",
+    "sosConfirm": "Hamagara 112 kandi umenyeshe Jali n'uwo kumenyesha mu bihe by'ubutabazi?",
+    "sosGo": "Hamagara 112",
+    "contactTitle": "Uwo kumenyesha mu bihe by'ubutabazi",
+    "contactMenuSub": "Uwo twoherereza ubutumwa ukanze SOS",
+    "contactSub": "Ukanze SOS mu rugendo, twoherereza uyu muntu aho uri n'ihuza ryo gukurikirana urugendo.",
+    "contactName": "Izina",
+    "contactPhone": "Telefoni",
+    "saved": "Byabitswe"
   }
 }
