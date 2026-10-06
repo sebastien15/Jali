@@ -458,6 +458,14 @@ GET|POST /admin/help-topics, PUT|DELETE /admin/help-topics/{id}   title/body req
       6 starter topics seeded (charged wrong, driver behaviour, lost item, cancel/refunds, rental damage, account).
       App: features/support (HelpTopicsCard on ride/hire/rental details, /help, /help/[slug]); admin app/(admin)/help-topics.
 
+# Reliable push (S12.3) — Modules/Notifications
+POST  /me/notifications/{id}/opened   own pushes only (404 otherwise); app sends it on tap (data.nid)   any signed-in user
+GET   /admin/notifications/stats      ?days → per type {total, delivered, no_token, opened, sms_fallbacks, rates}  perm: view-analytics
+      Every PushSender::send is logged in push_notifications (type = data.screen) and adds `nid` to data. driver_ride
+      pushes use Android channel `ride_requests` + `ride_request.wav` (mobile/assets/sounds, expo-notifications plugin).
+      send(..., ['sms_fallback' => text]) texts the user if not opened within services.push.sms_fallback_seconds
+      (PUSH_SMS_FALLBACK_SECONDS, default 60) — used for "driver arrived". Command notifications:sms-fallback (every minute).
+
 # Service access (S23.1) — Modules/ServiceAccess (runbook M06)
 GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
                                   can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user

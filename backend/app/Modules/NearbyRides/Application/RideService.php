@@ -363,9 +363,12 @@ class RideService
     public function arrive(Ride $ride, User $driver): Ride
     {
         $ride = $this->transition($ride, $driver, [Ride::ACCEPTED], ['status' => Ride::ARRIVED, 'arrived_at' => now()], 'arrived');
+        $plate = $ride->vehicle?->plate ?? 'your driver';
         $this->push->send($ride->rider, 'Your driver has arrived',
-            sprintf('Look for %s · Your PIN is %s', $ride->vehicle?->plate ?? 'your driver', $ride->start_pin),
-            ['screen' => 'ride', 'id' => $ride->id]);
+            sprintf('Look for %s · Your PIN is %s', $plate, $ride->start_pin),
+            ['screen' => 'ride', 'id' => $ride->id],
+            // S12.3: critical — text the rider if the push isn't opened in time
+            ['sms_fallback' => sprintf('Jali: your driver has arrived. Look for %s. Your PIN is %s.', $plate, $ride->start_pin)]);
 
         return $ride;
     }

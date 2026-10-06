@@ -465,10 +465,10 @@ tmp=$(mktemp); { cat "$DIR/S23.4-one-activity-for-bookings-and-jobs-m07.md"; ech
 n=$(create "S23.4 One Activity for bookings and jobs (M07)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.4 One Activity for bookings and jobs (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.5-notification-taps-open-the-right-screen-always-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.5 Notification taps open the right screen, always (M07)" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.5 Notification taps open the right screen, always (M07)"
+n=$(create "S23.5 Notification taps open the right screen, always (M07)" "user-story,track-foundation,wave-1,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.5 Notification taps open the right screen, always (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.5" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.6-in-app-inbox-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.6 In-app inbox (M07)" "user-story,track-foundation,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.6 In-app inbox (M07)"
+n=$(create "S23.6 In-app inbox (M07)" "user-story,track-foundation,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.6 In-app inbox (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.6" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.7-provider-availability-that-survives-navigation-m08.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
 n=$(create "S23.7 Provider availability that survives navigation (M08)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.7 Provider availability that survives navigation (M08)"

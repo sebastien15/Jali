@@ -25,7 +25,7 @@ class PushSenderTest extends TestCase
 
         Http::assertSent(fn ($request) => $request->url() === PushService::EXPO_ENDPOINT
             && $request['to'] === 'ExponentPushToken[abc]' && $request['title'] === 'Title'
-            && (array) $request->data()['data'] === ['screen' => 'ride', 'id' => '7']);
+            && (array) $request->data()['data'] === ['screen' => 'ride', 'id' => '7', 'nid' => (string) \App\Models\PushNotification::value('id')]);
     }
 
     public function test_push_sender_never_throws_and_honours_a_replaced_push_service(): void
@@ -35,7 +35,8 @@ class PushSenderTest extends TestCase
         $this->assertFalse(app(PushSender::class)->send($user, 'a', 'b'));   // lazy Firebase client fails inside PushService
 
         $fake = Mockery::mock(PushService::class);
-        $fake->shouldReceive('send')->once()->with($user, 'a', 'b', ['screen' => 'x'])->andReturn(true);
+        $fake->shouldReceive('send')->once()->withArgs(fn ($u, $t, $b, $data, $options) =>
+            $u->is($user) && $t === 'a' && $b === 'b' && $data['screen'] === 'x' && isset($data['nid']) && $options === [])->andReturn(true);
         $this->app->instance(PushService::class, $fake);
 
         $this->assertTrue(app(PushSender::class)->send($user, 'a', 'b', ['screen' => 'x']));
