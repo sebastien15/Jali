@@ -513,6 +513,10 @@ POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} starte
       (no fee), driver → no_show_customer (late_cancel_pct fee). POST /driver-hire/{id}/dispute {reason, claimed_end?}
       (completed, within hire.dispute_days=7, one open per user) → hire_disputes; GET /admin/hires?disputed=1;
       POST /admin/hires/{id}/disputes/{d}/resolve {resolution} (logged, pushes both). /driver-hire/available adds `policy`.
+      S13.7 with the driver's car: hire settings offers_car + car_vehicle_id (own active vehicle) + car_hourly_rate
+      (≤ hire.car_hourly_max) + km_per_hour + extra_km_rate (≤ hire.extra_km_max). /driver-hire/available?with_car=1
+      (duration hours 2|4|8; transmission not needed) → quote.km_allowance + vehicle (no plate). Check-in needs
+      {odometer}; check-out {payment_method, odometer} → extra_km × extra_km_rate + overtime at car_hourly_rate.
 
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}

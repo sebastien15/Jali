@@ -127,8 +127,14 @@ class HireController extends Controller
             'duration_type'  => 'required|in:hours,days',
             'duration_value' => ['required', 'integer', 'min:1', $request->input('duration_type') === 'days' ? "max:$maxDays" : 'max:16'],
             'trip_type'      => ['required', Rule::in(DriverHire::TRIP_TYPES)],
-            'transmission'   => ['required', Rule::in(DriverHire::TRANSMISSIONS)],
+            // S13.7: with the driver's car — 2/4/8 h packages; the car's gearbox is the driver's business
+            'with_car'       => 'sometimes|boolean',
+            'transmission'   => ['required_unless:with_car,true,1', 'nullable', Rule::in(DriverHire::TRANSMISSIONS)],
         ];
+        if ($request->boolean('with_car')) {
+            $rules['duration_type'] = 'required|in:hours';
+            $rules['duration_value'] = ['required', 'integer', Rule::in(HireQuote::CAR_PACKAGES)];
+        }
         if ($booking) {
             $rules += [
                 'driver_id'       => 'required|integer',

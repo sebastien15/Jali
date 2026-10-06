@@ -42,6 +42,7 @@ class DriverHire extends Model
         return [
             'start_at' => 'datetime', 'end_at' => 'datetime', 'requested_at' => 'datetime', 'expires_at' => 'datetime',
             'accepted_at' => 'datetime', 'checked_in_at' => 'datetime', 'checked_out_at' => 'datetime', 'cancelled_at' => 'datetime',
+            'with_car' => 'boolean',
             'pickup_lat' => 'float', 'pickup_lng' => 'float', 'commission_pct' => 'float', 'rate_snapshot' => 'array',
             'duration_value' => 'integer',
         ];
@@ -60,6 +61,12 @@ class DriverHire extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(HireRating::class);
+    }
+
+    /** S13.7: the driver's car, for hires with a car */
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 
     public function disputes(): HasMany

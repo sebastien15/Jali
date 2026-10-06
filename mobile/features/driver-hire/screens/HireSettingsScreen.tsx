@@ -34,11 +34,19 @@ export default function HireSettingsScreen() {
   const [blocked, setBlocked] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // S13.7: hire with my car
+  const [offersCar, setOffersCar] = useState(false);
+  const [carId, setCarId] = useState<number | null>(null);
+  const [car, setCar] = useState({ car_hourly_rate: "12000", km_per_hour: "15", extra_km_rate: "500" });
   const dates = useMemo(() => nextDates(60), []);
 
   const settings = useQuery({
     queryKey: queryKeys.driver.hireSettings(),
     queryFn: () => api.get<SettingsPayload>("/driver/hire-settings").then(r => r.data),
+  });
+  const vehicles = useQuery({
+    queryKey: queryKeys.driver.vehicles(),
+    queryFn: () => api.get<{ id: number; make?: string | null; model: string; plate: string; is_active: boolean }[]>("/driver/vehicles").then(r => r.data),
   });
   const availability = useQuery({
     queryKey: queryKeys.driver.availability(),
@@ -51,6 +59,11 @@ export default function HireSettingsScreen() {
     if (s.settings) {
       setRates(Object.fromEntries(RATE_FIELDS.map(f => [f, String(s.settings![f] ?? "")])) as Record<RateField, string>);
       setActive(s.settings.is_active);
+      setOffersCar(!!s.settings.offers_car);
+      setCarId(s.settings.car_vehicle_id ?? null);
+      if (s.settings.car_hourly_rate != null) {
+        setCar({ car_hourly_rate: String(s.settings.car_hourly_rate), km_per_hour: String(s.settings.km_per_hour ?? 15), extra_km_rate: String(s.settings.extra_km_rate ?? 0) });
+      }
     }
     if (s.skills.transmissions.length) setTransmissions(s.skills.transmissions);
     if (s.skills.languages.length) setLanguages(s.skills.languages);
@@ -78,6 +91,8 @@ export default function HireSettingsScreen() {
       const saved = await api.put<SettingsPayload>("/driver/hire-settings", {
         ...Object.fromEntries(RATE_FIELDS.map(f => [f, Number(rates[f] || 0)])),
         is_active: active, transmissions, languages, years_experience: Number(years || 0),
+        offers_car: offersCar,
+        ...(offersCar ? { car_vehicle_id: carId, car_hourly_rate: Number(car.car_hourly_rate || 0), km_per_hour: Number(car.km_per_hour || 15), extra_km_rate: Number(car.extra_km_rate || 0) } : {}),
       });
       queryClient.setQueryData(queryKeys.driver.hireSettings(), saved.data);
       const weekly = WEEK.filter(d => days[d].on).map(d => ({ weekday: d, start_time: days[d].start, end_time: days[d].end }));
@@ -132,6 +147,30 @@ export default function HireSettingsScreen() {
                 onChange={v => setRates({ ...rates, [f]: v.replace(/\D/g, "") })} />
             ))}
             {limits?.commission_pct != null ? <Text style={{ color: C.muted, fontSize: 12 }}>{t("hire.settings.commission", { pct: limits.commission_pct })}</Text> : null}
+          </Card>
+
+          <Card title={t("hire.settings.withCar", "Hire with my car")} hint={t("hire.settings.withCarHint", "Customers book 2, 4 or 8 hours with your car. Each hour includes some km; extra km and time are charged at your rates.")}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <Text style={{ fontWeight: "800", color: C.dark }}>{t("hire.settings.offersCar", "Offer my car too")}</Text>
+              <Switch value={offersCar} onValueChange={setOffersCar} trackColor={{ true: C.teal, false: C.border }} accessibilityLabel={t("hire.settings.offersCar", "Offer my car too")} />
+            </View>
+            {offersCar ? (
+              <>
+                <Text style={{ color: C.mid, fontWeight: "700", fontSize: 12, marginBottom: 6 }}>{t("hire.settings.whichCar", "Which car")}</Text>
+                <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                  {(vehicles.data ?? []).filter(v => v.is_active).map(v => (
+                    <Chip key={v.id} label={`${v.make ? v.make + " " : ""}${v.model} · ${v.plate}`} on={carId === v.id} onPress={() => setCarId(v.id)} />
+                  ))}
+                </View>
+                {errors.car_vehicle_id ? <ErrorText text={errors.car_vehicle_id} /> : null}
+                <Field label={t("hire.settings.car_hourly_rate", "Price per hour with my car")} value={car.car_hourly_rate} error={errors.car_hourly_rate}
+                  onChange={v => setCar({ ...car, car_hourly_rate: v.replace(/\D/g, "") })} />
+                <Field label={t("hire.settings.km_per_hour", "Km included per hour")} value={car.km_per_hour} error={errors.km_per_hour}
+                  onChange={v => setCar({ ...car, km_per_hour: v.replace(/\D/g, "") })} />
+                <Field label={t("hire.settings.extra_km_rate", "Price per extra km")} value={car.extra_km_rate} error={errors.extra_km_rate}
+                  onChange={v => setCar({ ...car, extra_km_rate: v.replace(/\D/g, "") })} />
+              </>
+            ) : null}
           </Card>
 
           <Card title={t("hire.settings.skills")}>

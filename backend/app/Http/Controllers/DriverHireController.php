@@ -41,14 +41,16 @@ class DriverHireController extends Controller
 
     public function checkIn(Request $request, int $id)
     {
-        return $this->respond($request, $this->hires->checkIn($this->hire($id), $request->user()));
+        $odometer = $request->validate(['odometer' => 'sometimes|nullable|integer|min:0|max:9999999'])['odometer'] ?? null;   // S13.7
+
+        return $this->respond($request, $this->hires->checkIn($this->hire($id), $request->user(), $odometer));
     }
 
     public function checkOut(Request $request, int $id)
     {
-        $validated = $request->validate(['payment_method' => 'required|in:cash,momo']);
+        $validated = $request->validate(['payment_method' => 'required|in:cash,momo', 'odometer' => 'sometimes|nullable|integer|min:0|max:9999999']);
 
-        return $this->respond($request, $this->hires->checkOut($this->hire($id), $request->user(), $validated['payment_method']));
+        return $this->respond($request, $this->hires->checkOut($this->hire($id), $request->user(), $validated['payment_method'], $validated['odometer'] ?? null));
     }
 
     private function hire(int $id): DriverHire
