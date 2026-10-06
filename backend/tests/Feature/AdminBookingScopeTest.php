@@ -134,6 +134,52 @@ class AdminBookingScopeTest extends TestCase
             ActivityLog::where('entity_type', 'booking')->where('entity_id', $this->busA->id)->orderBy('id')->pluck('action')->all());
     }
 
+    public function test_ticket_upload_lifecycle_without_gd(): void
+    {
+        $admin = $this->adminOf($this->stationA);
+        $ticket = fn () => UploadedFile::fake()->create('t.jpg', 10, 'image/jpeg');
+        $id = $this->busA->id;
+
+        $this->postJson("/api/admin/bookings/{$id}/ticket", ['ticket' => $ticket()])->assertStatus(422)
+            ->assertExactJson(['message' => 'Cannot upload a ticket for a pending booking.']);
+        $this->patchJson("/api/admin/bookings/{$id}", ['ticket_photo_url' => 'https://x.test/t.jpg'])->assertStatus(422)
+            ->assertExactJson(['message' => 'Claim the booking before adding a ticket.']);
+        $this->patchJson("/api/admin/bookings/{$id}", ['status' => 'taken'])->assertOk();
+        $this->patchJson("/api/admin/bookings/{$id}", ['status' => 'ticket_ready'])->assertStatus(422)
+            ->assertExactJson(['message' => 'Upload a ticket before marking it ready.']);
+        $this->assertSame([], Storage::disk('public')->allFiles());
+
+        $url = $this->postJson("/api/admin/bookings/{$id}/ticket", ['ticket' => $ticket()])->assertOk()
+            ->assertJsonPath('status', 'ticket_ready')->json('ticket_photo_url');
+        $this->assertCount(1, Storage::disk('public')->allFiles('tickets'));
+        $this->assertSame($url, $this->busA->fresh()->ticket_photo_url);
+
+        $this->patchJson("/api/admin/bookings/{$id}", ['status' => 'delivered'])->assertOk()->assertJsonPath('status', 'delivered');
+        $this->patchJson("/api/admin/bookings/{$id}", ['status' => 'cancelled'])->assertStatus(422)
+            ->assertExactJson(['message' => 'Cannot change a delivered booking to cancelled.']);
+        $this->postJson("/api/bookings/{$id}/deliver")->assertStatus(422)
+            ->assertExactJson(['error' => 'Invalid status change', 'message' => 'Cannot change a delivered booking to delivered.']);
+
+        $this->assertSame(['booking_claimed', 'ticket_uploaded', 'booking_delivered'],
+            ActivityLog::where('admin_id', $admin->id)->where('entity_id', $id)->orderBy('id')->pluck('action')->all());
+    }
+
+    public function test_legacy_lifecycle_endpoints_log_the_same_actions(): void
+    {
+        $admin = $this->adminOf($this->stationA);
+        $id = $this->busA->id;
+
+        $this->postJson("/api/bookings/{$id}/claim")->assertOk()->assertExactJson(['status' => 'taken', 'message' => 'Booking updated.']);
+        $this->patchJson("/api/bookings/{$id}/ticket", ['ticket_photo_url' => 'nope'])->assertStatus(422);
+        $this->patchJson("/api/bookings/{$id}/ticket", ['ticket_photo_url' => 'https://x.test/t.jpg'])->assertOk();
+        $this->postJson("/api/bookings/{$id}/deliver")->assertOk();
+
+        $this->assertSame('https://x.test/t.jpg', $this->busA->fresh()->ticket_photo_url);
+        $logs = ActivityLog::where('admin_id', $admin->id)->where('entity_id', $id)->orderBy('id')->get();
+        $this->assertSame(['booking_claimed', 'ticket_uploaded', 'booking_delivered'], $logs->pluck('action')->all());
+        $this->assertSame(['title' => 'Bus A', 'from' => 'pending', 'to' => 'taken'], $logs[0]->details);
+    }
+
     public function test_superadmin_sees_and_manages_every_station(): void
     {
         $this->actingAsRole('superadmin');
