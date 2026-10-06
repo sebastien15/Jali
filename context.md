@@ -10,6 +10,14 @@ A Rwandan transport booking app. Users browse and book buses, private cars, and 
 
 ---
 
+## Release Direction
+
+Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before public-service scope, release-order or platform-pricing work. It is the agreed rollout policy: rental → scheduled private drivers → private shared journeys → nearby drivers → further passenger transport, initially with no Jali platform fees.
+
+Flag material deviations and their implications; honor explicit owner-approved changes and record them when documentation edits are authorized. Backlog dependency waves are implementation order, not public launch order. Existing code is not proof of launch readiness, and this policy does not authorize implementation, deployment or issue changes.
+
+---
+
 ## Monorepo Layout
 
 ```

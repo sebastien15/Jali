@@ -1,7 +1,7 @@
 # Jali — Project CLAUDE.md
 
 > **Read `context.md` first — it is the authoritative project reference.**
-> This file is a TOC only. Detailed docs live in `context.md` and `.claude/skills/`.
+> This file is a TOC only. Technical detail lives in `context.md` and `.claude/skills/`; rollout policy lives in `docs/RELEASE_PLAN.md`.
 
 ## Package Root
 
@@ -26,11 +26,13 @@ Jali/
 | TanStack migration plan | Mobile | `TANSTACK_PLAN.md` |
 | Ride-hailing & hire-a-driver plan | Full stack | `RIDE_HAILING_PLAN.md` |
 | Ride-hailing user stories (backlog) | Full stack | `docs/ride-hailing/USER_STORIES.md` |
+| Batch release & rollout migration policy | Product / all agents | `docs/RELEASE_PLAN.md` |
 | Multi-agent rules for ride stories | Full stack | `docs/ride-hailing/AI_AGENTS_GUIDE.md` |
 | API contract (OpenAPI, source of truth) | Full stack | `docs/api/README.md` |
 
 ## Quick Rules
 
+- **Release direction**: read `docs/RELEASE_PLAN.md` before scope, release-order or pricing work; flag deviations and honor explicit owner-approved changes. The plan does not authorize implementation or deployment.
 - **Guards**: every new backend route needs `auth:sanctum` + `permission:<x>` — see `context.md` §Guard Requirements
 - **Theme colors**: always use `C.xxx` from `constants/theme.ts`, never raw hex
 - **API instance**: always import from `lib/api.ts`, never create a new Axios instance
