@@ -16,7 +16,7 @@ import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/components/home/PrivateResults";
-import { RentalResults } from "@/components/home/RentalResults";
+import { RentalResults } from "@/features/rentals";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { toYmd } from "@/lib/date";

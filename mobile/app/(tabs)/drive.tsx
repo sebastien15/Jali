@@ -27,10 +27,10 @@ import { DriverHeader } from "@/components/driver/DriverHeader";
 import { DriverTypeBanner } from "@/components/driver/DriverTypeBanner";
 import { WeekSummaryCard } from "@/components/driver/WeekSummaryCard";
 import {
-  FleetActionCard,
   RidePricesCard,
   PrivateListingsCard,
 } from "@/components/driver/DriverActionCard";
+import { FleetActionCard } from "@/features/rentals";
 import { PickupZones } from "@/components/driver/PickupZones";
 import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
 import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";

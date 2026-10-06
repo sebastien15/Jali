@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { RentalCard } from "@/components/RentalCard";
+import { RentalCard } from "./RentalCard";
 
 interface Props {
   cars: any[];
