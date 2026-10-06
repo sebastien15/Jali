@@ -88,6 +88,7 @@ export default function AdminDashboard() {
     ] : []),
     // Help centre — manage-support (S16.2)
     ...(canManageSupport ? [
+      { label: "Support", icon: "chatbubbles-outline" as const, route: "/(admin)/support", color: C.orange },
       { label: "Help topics", icon: "help-buoy-outline" as const, route: "/(admin)/help-topics", color: C.teal },
     ] : []),
     // Car rental — manage-rentals (S24.8, S24.9)

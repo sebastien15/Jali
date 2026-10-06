@@ -231,7 +231,7 @@ export default function RiderTripScreen() {
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("ride.trip.cancel")}</Text>
           </TouchableOpacity>
         ) : null}
-        <View style={{ marginTop: 16 }}><HelpTopicsCard service="rides" /></View>
+        <View style={{ marginTop: 16 }}><HelpTopicsCard service="rides" subject={{ type: "ride", id: ride.id }} /></View>
       </ScrollView>
 
       <ReasonSheet

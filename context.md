@@ -458,6 +458,16 @@ GET|POST /admin/help-topics, PUT|DELETE /admin/help-topics/{id}   title/body req
       6 starter topics seeded (charged wrong, driver behaviour, lost item, cancel/refunds, rental damage, account).
       App: features/support (HelpTopicsCard on ride/hire/rental details, /help, /help/[slug]); admin app/(admin)/help-topics.
 
+# Support tickets (S16.3) — Modules/Support (SupportDesk)
+GET|POST /support/tickets         mine / open {category, subject_type ride|hire|rental, subject_id (must be mine), message}
+GET   /support/tickets/{id}       owner only (404 otherwise); staff shown as "Jali support"        perm: use-support
+POST  /support/tickets/{id}/messages (reopens; 409 when resolved) · POST /support/tickets/{id}/resolve
+GET   /admin/support/tickets      ?status=open|answered|resolved&mine&priority → {data, counts{open,urgent,overdue}}
+      urgent first, then first-response deadline. POST .../{id}/messages|assign|status; GET|POST|DELETE
+      /admin/support/canned-replies   perm: manage-support. Priority: safety=urgent (1 h), driver_behaviour/damage=high
+      (4 h), else normal (24 h). Urgent tickets push every manage-support user; staff replies/resolution push the
+      customer (screen support_ticket → /support/[id]). Assign/status changes are logged.
+
 # Service access (S23.1) — Modules/ServiceAccess (runbook M06)
 GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
                                   can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user
