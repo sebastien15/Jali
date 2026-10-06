@@ -16,7 +16,7 @@ use App\Modules\Payments\Contracts\MoneyRecorder;
 use App\Modules\Payments\Contracts\ReceiptMailer;
 use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -40,7 +40,7 @@ class RideService
 
     public function __construct(
         private FareService $fares,
-        private PushService $push,
+        private PushSender $push,
         private PricingPolicy $pricing,
         private Geography $geo,
         private MoneyRecorder $money,

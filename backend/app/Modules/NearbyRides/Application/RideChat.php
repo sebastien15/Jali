@@ -5,7 +5,7 @@ namespace App\Modules\NearbyRides\Application;
 use App\Models\Ride;
 use App\Models\RideMessage;
 use App\Models\User;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
  */
 class RideChat
 {
-    public function __construct(private PushService $push)
+    public function __construct(private PushSender $push)
     {
     }
 

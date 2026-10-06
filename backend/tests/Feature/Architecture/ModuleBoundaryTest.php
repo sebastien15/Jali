@@ -44,6 +44,27 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $found);
     }
 
+    /**
+     * Push delivery is owned by Notifications (M03-Remaining): module code sends
+     * through Notifications\Contracts\PushSender. Only the Notifications adapter
+     * may touch the concrete App\Services\PushService (kept with its lazy binding).
+     */
+    public function test_modules_send_push_only_through_the_notifications_contract(): void
+    {
+        $found = [];
+        foreach ((new Finder())->files()->in(app_path('Modules'))->name('*.php') as $file) {
+            $relative = str_replace('\\', '/', $file->getRelativePathname());
+            if (str_starts_with($relative, 'Notifications/Infrastructure/')) {
+                continue;
+            }
+            if (str_contains(str_replace('\\\\', '\\', $file->getContents()), 'App\\Services\\PushService')) {
+                $found[] = $relative;
+            }
+        }
+
+        $this->assertSame([], $found);
+    }
+
     public function test_the_check_detects_forbidden_references(): void
     {
         $root = sys_get_temp_dir() . '/jali-boundary-' . uniqid();

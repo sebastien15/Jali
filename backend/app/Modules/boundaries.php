@@ -11,16 +11,16 @@
  */
 return [
     'Bus'            => ['LegacyBookings', 'Locations'],   // implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
-    'DriverHire'     => ['Payments', 'Pricing', 'Providers'],   // MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
+    'DriverHire'     => ['Notifications', 'Payments', 'Pricing', 'Providers'],   // PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
     'Identity'       => ['Notifications'],   // OTP codes are sent through Notifications\Contracts\SmsSender
     'LegacyBookings' => [],
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
-    'NearbyRides'    => ['Locations', 'Payments', 'Pricing', 'Providers'],   // Geography; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
+    'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography; PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
     'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
     'Pricing'        => [],
     'Providers'      => ['Payments'],        // go-online blocker via Payments\Contracts\ProviderDebtLimit
     'Rentals'        => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=rental)
-    'Safety'         => ['Notifications', 'Providers'],   // SOS texts via SmsSender; driver short name via ProviderDisplay
+    'Safety'         => ['Notifications', 'Providers'],   // SOS pushes via PushSender and texts via SmsSender; driver short name via ProviderDisplay
     'SharedJourneys' => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=private)
 ];

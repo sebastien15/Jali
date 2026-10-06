@@ -5,7 +5,7 @@ namespace App\Modules\NearbyRides\Application;
 use App\Models\DriverRate;
 use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Pricing\Contracts\ProviderRateRevalidator;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 
 /**
  * Keeps driver-set ride rates inside the superadmin guardrails (RIDE_HAILING_PLAN.md §3.3).
@@ -14,7 +14,7 @@ use App\Services\PushService;
  */
 class RateGuardrails implements ProviderRateRevalidator
 {
-    public function __construct(private PushService $push)
+    public function __construct(private PushSender $push)
     {
     }
 
@@ -63,7 +63,7 @@ class RateGuardrails implements ProviderRateRevalidator
      * After guardrails change: mark ride rates that no longer fit and notify those drivers
      * once; clear the mark on rates that fit again. Returns how many were newly flagged.
      */
-    public static function flagOutOfBand(PushService $push): int
+    public static function flagOutOfBand(PushSender $push): int
     {
         $flagged = 0;
         DriverRate::with('vehicle', 'driver')->where('service', 'ride')->where('is_active', true)

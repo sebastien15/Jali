@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderDisplay::class, \App\Modules\Providers\Application\DisplayName::class);
         $this->app->bind(\App\Modules\Payments\Contracts\ReceiptMailer::class, \App\Modules\Payments\Application\Receipts::class);
         $this->app->bind(\App\Modules\Notifications\Contracts\SmsSender::class, \App\Modules\Notifications\Infrastructure\SmsService::class);
+        // Push goes through Notifications; the adapter resolves the lazily bound PushService above on every send
+        $this->app->bind(\App\Modules\Notifications\Contracts\PushSender::class, \App\Modules\Notifications\Infrastructure\PushServiceSender::class);
+        $this->app->bind(\App\Modules\Notifications\Contracts\PushTokens::class, \App\Modules\Notifications\Application\PushTokenRegistry::class);
         $this->app->bind(\App\Modules\Locations\Contracts\Geography::class, \App\Modules\Locations\Application\Geography::class);
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderEligibility::class, \App\Modules\Providers\Application\DriverEligibility::class);
         // Ride rates are owned by NearbyRides; Pricing asks it to re-check them after a guardrail change

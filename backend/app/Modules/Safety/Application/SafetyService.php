@@ -6,7 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Ride;
 use App\Models\RideEvent;
 use App\Models\User;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 use App\Modules\Notifications\Contracts\SmsSender;
 use App\Modules\Providers\Contracts\ProviderDisplay;
 use Illuminate\Support\Str;
@@ -15,8 +15,31 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 /** Share my trip (S8.1) and SOS (S8.2) */
 class SafetyService
 {
-    public function __construct(private PushService $push, private SmsSender $sms)
+    public function __construct(private PushSender $push, private SmsSender $sms)
     {
+    }
+
+    /** @throws \Illuminate\Database\Eloquent\ModelNotFoundException */
+    public function ride(int $id): Ride
+    {
+        return Ride::findOrFail($id);
+    }
+
+    /**
+     * What the public share link shows (PUBLIC route, the token is the secret).
+     * 404 for an unknown token; TripShareEnded once the ride is over.
+     *
+     * @throws TripShareEnded
+     */
+    public function sharedTrip(string $token): array
+    {
+        $ride = Ride::where('share_token', $token)->first();
+        abort_unless($ride, 404, 'This link is not valid.');
+        if (!$ride->isActive()) {
+            throw new TripShareEnded($ride->status);
+        }
+
+        return self::publicView($ride);
     }
 
     /** Public link to follow an active ride; works only while the ride is active */

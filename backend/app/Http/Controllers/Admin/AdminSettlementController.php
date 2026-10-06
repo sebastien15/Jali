@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\DriverSettlement;
 use App\Modules\Payments\Application\DriverLedger;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -28,7 +28,7 @@ class AdminSettlementController extends Controller
     }
 
     /** POST /admin/settlements/{id}/confirm — credits the driver's ledger */
-    public function confirm(Request $request, DriverLedger $ledger, PushService $push, int $id)
+    public function confirm(Request $request, DriverLedger $ledger, PushSender $push, int $id)
     {
         $admin = $this->authorizeOps($request);
         $settlement = DriverSettlement::findOrFail($id);
@@ -53,7 +53,7 @@ class AdminSettlementController extends Controller
     }
 
     /** POST /admin/settlements/{id}/reject {note} */
-    public function reject(Request $request, PushService $push, int $id)
+    public function reject(Request $request, PushSender $push, int $id)
     {
         $admin = $this->authorizeOps($request);
         $note = $request->validate(['note' => 'required|string|min:3|max:255'])['note'];

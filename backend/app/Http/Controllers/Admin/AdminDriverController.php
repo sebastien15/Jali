@@ -10,7 +10,7 @@ use App\Models\DriverProfile;
 use App\Models\DriverRate;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\PushService;
+use App\Modules\Notifications\Contracts\PushSender;
 use App\Modules\Providers\Application\DriverOnboarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,7 +91,7 @@ class AdminDriverController extends Controller
     }
 
     /** POST /admin/drivers/{userId}/warn {message} — S8.4: the driver is notified and it is logged */
-    public function warn(Request $request, PushService $push, int $userId)
+    public function warn(Request $request, PushSender $push, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $message = $request->validate(['message' => 'required|string|min:5|max:500'])['message'];
@@ -114,7 +114,7 @@ class AdminDriverController extends Controller
     }
 
     /** POST /admin/drivers/{userId}/verify */
-    public function verify(Request $request, PushService $push, int $userId)
+    public function verify(Request $request, PushSender $push, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $user = $this->applicant($userId);
@@ -152,7 +152,7 @@ class AdminDriverController extends Controller
     }
 
     /** POST /admin/drivers/{userId}/reject  { reason, documents?: {type: reason} } */
-    public function reject(Request $request, PushService $push, int $userId)
+    public function reject(Request $request, PushSender $push, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $validated = $request->validate([
@@ -188,7 +188,7 @@ class AdminDriverController extends Controller
     }
 
     /** POST /admin/drivers/{userId}/suspend  { reason } */
-    public function suspend(Request $request, PushService $push, int $userId)
+    public function suspend(Request $request, PushSender $push, int $userId)
     {
         $admin = $this->authorizeReviewer($request);
         $validated = $request->validate(['reason' => 'required|string|max:500']);
