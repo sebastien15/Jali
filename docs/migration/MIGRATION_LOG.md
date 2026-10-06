@@ -50,3 +50,38 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
   - `MoneyRecorder` duplicate protection is the existing unique ledger index (sequential retries only, no exactly-once claim).
   - Rental/private/bus/trip handlers live in `LegacyBookings\Infrastructure` until M03-Rental/Shared/Bus move them and register them from their owner module.
 - Next authorised task: M03-Rental.
+
+## M03-Rental — Rental logic → `Modules/Rentals` (backend)
+
+- Status: implemented (local only, not pushed). Scope A. Base `e920d37`; implementation `e191d1a`.
+- Old → new:
+  - `CarRentalController` catalogue query → `App\Modules\Rentals\Application\RentalCatalogue::available`
+  - `CarRentalController` owner CRUD (`/driver/cars/**`, incl. `priceDay` → `price` on create/update) → `Rentals\Application\OwnerFleet`
+  - `CarRentalController::toFrontend` (`price` → `priceDay`) → `Rentals\Application\RentalCarPresenter::toFrontend`
+  - `LegacyBookings\Infrastructure\RentalBookingHandler` → `Rentals\Infrastructure\RentalBookingHandler` (implements `LegacyBookings\Contracts\BookingTypeHandler`; still registered through the `BookingTypeHandler` container tag in `AppServiceProvider`, the dispatcher's existing mechanism).
+  - `CarRentalController` keeps request validation (same rules/messages) and the HTTP shape only; ownership lookup still runs before validation on PATCH (404 before 422).
+- Boundaries: `Rentals => [LegacyBookings]` (handler contract only). LegacyBookings depends on no service module; services register themselves.
+- Preserved: 168 routes/middleware (RouteInventoryTest), `car_rentals` table and `App\Models\CarRental`, public catalogue raw shape (no `priceDay`), owner shape (`priceDay` added), rental booking price/fee/title/availability rules, one writer per operation (OwnerFleet for cars, BookingDispatcher for bookings). Rental cars stay separate from driver `Vehicle`s (no shared IDs, no plate merge).
+- Tests: new `tests/Feature/CatalogueParityTest.php` (type filter, active+available only, price order, unmapped shape) — verified green against the pre-move controller first. Existing parity reused: `LegacyBookingParityTest` (rental booking), `OwnerListingsParityTest` (`/driver/cars` CRUD/ownership/validation), `ListingsTest` (status/notes).
+- Commands: `composer dump-autoload -n`, `php -l` on changed files, `php artisan test` → 231 passed, 8 failed (GD-only); grep for `LegacyBookings\Infrastructure\RentalBookingHandler` → none.
+- CarRental status/notes (runbook §2 row): **now persisted** — migration `2026_10_05_000003_add_notes_and_status_to_listings` added `car_rentals.status` (default `available`) and `notes`; both are fillable and `ListingsTest::test_car_status_is_saved_and_unavailable_cars_are_hidden_and_unbookable` proves PATCH saves them, the catalogue hides non-available cars and booking returns 404.
+- Launch gate (unchanged): rental reservation/status lifecycle is incomplete — status is an owner-set flag only; bookings do not move a car to `rented`, there is no date-range reservation calendar (only same-travel-date capacity of 1 in the dispatcher), and no return/maintenance flow. Do not declare rental booking launch-ready.
+- Next authorised task: M03-Shared (dependency adjustment below).
+
+## M03-Shared — Private-seat logic → `Modules/SharedJourneys` (backend)
+
+- Status: implemented (local only, not pushed). Scope A. Implementation `4a58ca0`.
+- Dependency adjustment: the runbook ledger orders M03-Shared after M03-Hire. SharedJourneys has no technical dependency on DriverHire (no shared code, contracts or tables), so it was done directly after M03-Rental. M03-Hire is still pending and unaffected; the public sequence is otherwise unchanged.
+- Old → new:
+  - `PrivateSeatController::index` query → `App\Modules\SharedJourneys\Application\SeatCatalogue::search`
+  - `PrivateSeatController` owner CRUD (`/driver/listings/**`) → `SharedJourneys\Application\OwnerListings`; invalid date → `InvalidListingDate`, mapped by the controller to the same 422 body
+  - `PrivateSeatController::normalizeDate` (public static, no other callers) → `SharedJourneys\Application\ListingDate::normalize`
+  - `DriverController::{stats,trips}` + private `listingBookings` → `SharedJourneys\Application\ListingActivity::{stats,trips}`; DriverController delegates. Inspection: both endpoints read **only** `type=private` bookings on the driver's own `PrivateSeat` listings — no rental (or ride/hire) data is mixed in — so no cross-module read contract or composition was needed.
+  - `LegacyBookings\Infrastructure\PrivateSeatBookingHandler` → `SharedJourneys\Infrastructure\PrivateSeatBookingHandler` (tagged as before).
+- Boundaries: `SharedJourneys => [LegacyBookings]` (handler contract only).
+- Preserved: routes/middleware, `private_seats` table/model, paginated catalogue envelope (10/page, `dep` order, undated listings match every date, unparseable `date` filter ignored), validation rules/messages, 404-before-422 on PATCH, stats/trips JSON (fields, cancelled excluded from stats but listed in trips, status mapping), private booking price/fee clamp/title.
+- Tests: new `tests/Feature/ListingActivityParityTest.php` (stats today/week/rating with cancelled, other-type and other-driver exclusions; zero-listing driver; exact trips shape/order/status; catalogue filters/order/pagination) — verified green against the pre-move controllers first. Reused: `DriverTest`, `ListingsTest`, `OwnerListingsParityTest`, `LegacyBookingParityTest`.
+- Commands: `composer dump-autoload -n`, `php -l` on changed files, `php artisan test` → 235 passed, 8 failed (GD-only); grep for the old handler path and `normalizeDate` → none.
+- Known gaps / launch gates: no stop/segment capacity exists (`seats` is per listing and per travel date) — nothing here implies intermediate stops. `/driver/stats` `rating` is the average of listing ratings, not the provider reputation contract; unchanged.
+- Remaining in `LegacyBookings\Infrastructure`: `BusBookingHandler`, `TripDepartureBookingHandler` (M03-Bus).
+- Next authorised task: M03-Hire.
