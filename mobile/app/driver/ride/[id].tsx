@@ -13,6 +13,7 @@ import { Ride, isActive, openNavigation, callPhone, DRIVER_CANCEL_REASONS, RATIN
 import { Stars } from "@/components/rides/Stars";
 import { ReasonSheet } from "@/components/rides/ReasonSheet";
 import { SafetyBar } from "@/components/rides/SafetyBar";
+import { ChatButton } from "@/components/rides/ChatSheet";
 
 /** Driver's trip screen: go to pickup → arrived → PIN start → drive → complete & rate rider (S5.3–S5.6) */
 export default function DriverTripScreen() {
@@ -159,6 +160,7 @@ export default function DriverTripScreen() {
         </View>
 
         {isActive(ride) ? <SafetyBar rideId={ride.id} canShare={false} /> : null}
+        {["accepted", "arrived", "in_progress"].includes(ride.status) ? <ChatButton rideId={ride.id} /> : null}
 
         {ride.status === "accepted" ? (
           <PrimaryButton label={t("ride.driverTrip.arrivedBtn")} onPress={() => act("arrive")} loading={busy} />

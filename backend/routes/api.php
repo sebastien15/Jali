@@ -12,6 +12,9 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\DriverRideController;
 use App\Http\Controllers\HireController;
 use App\Http\Controllers\SafetyController;
+use App\Http\Controllers\RideChatController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
@@ -51,6 +54,7 @@ Route::post("/auth/login/google", [
     AuthController::class,
     "loginWithGoogle",
 ])->middleware("throttle:auth");
+Route::post("/auth/login/apple", [AuthController::class, "loginWithApple"])->middleware("throttle:auth");
 Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
 Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
 
@@ -110,9 +114,15 @@ Route::middleware("auth:sanctum")->group(function () {
         // Safety — stories S8.1, S8.2 (rider or driver of the ride)
         Route::post("/{id}/share", [SafetyController::class, "share"])->whereNumber("id");
         Route::post("/{id}/sos", [SafetyController::class, "sos"])->whereNumber("id");
+        // Chat (S9.5) and receipts (S9.6)
+        Route::get("/{id}/messages", [RideChatController::class, "index"])->whereNumber("id");
+        Route::post("/{id}/messages", [RideChatController::class, "store"])->whereNumber("id")->middleware("throttle:30,1");
+        Route::post("/{id}/receipt", [ReceiptController::class, "ride"])->whereNumber("id");
     });
     Route::middleware("permission:request-rides")->group(function () {
         Route::get("/me/emergency-contact", [SafetyController::class, "contact"]);
+        Route::get("/fx/rates", [FxController::class, "rates"]);
+        Route::post("/driver-hire/{id}/receipt", [ReceiptController::class, "hire"])->whereNumber("id");
         Route::put("/me/emergency-contact", [SafetyController::class, "saveContact"]);
     });
     // Driver side of a ride — stories S5.2, S4.1, S4.2, S4.4

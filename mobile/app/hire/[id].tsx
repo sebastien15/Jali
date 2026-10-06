@@ -13,6 +13,8 @@ import { callPhone } from "@/lib/rides";
 import { DriverHire, isActiveHire, formatWhen, CUSTOMER_CANCEL_REASONS, RATING_TAGS_FOR_HIRE_DRIVER } from "@/lib/hire";
 import { Stars } from "@/components/rides/Stars";
 import { ReasonSheet } from "@/components/rides/ReasonSheet";
+import { useFormatPrice } from "@/lib/fx";
+import { Linking } from "react-native";
 
 /** Customer's hire screen: waiting → confirmed (driver + phone) → in progress → summary & rating (S6.3, S6.4) */
 export default function HireDetailScreen() {
@@ -24,6 +26,7 @@ export default function HireDetailScreen() {
   const [busy, setBusy] = useState(false);
   const [stars, setStars] = useState(0);
   const [tags, setTags] = useState<string[]>([]);
+  const fmt = useFormatPrice();
 
   const { data: hire, isLoading } = useQuery({
     queryKey: queryKeys.hire.detail(hireId),
@@ -134,7 +137,7 @@ export default function HireDetailScreen() {
           {hire.overtime_amount ? <Line label={t("hire.detail.overtime", { min: hire.overtime_minutes })} value={formatRwf(hire.overtime_amount)} /> : null}
           {hire.cancel_fee ? <Line label={t("hire.detail.cancelFee")} value={formatRwf(hire.cancel_fee)} /> : null}
           <View style={{ height: 1, backgroundColor: C.border, marginVertical: 8 }} />
-          <Line label={t("ride.trip.total")} value={formatRwf(hire.final_total ?? hire.quoted_total)} bold />
+          <Line label={t("ride.trip.total")} value={fmt(hire.final_total ?? hire.quoted_total)} bold />
           {hire.payment_method ? (
             <Text style={{ color: C.muted, fontSize: 12, marginTop: 4 }}>{t("ride.trip.paidBy", { method: t(`ride.trip.${hire.payment_method}`) })}</Text>
           ) : null}
@@ -157,6 +160,13 @@ export default function HireDetailScreen() {
             </View>
             <Primary label={t("ride.trip.rateSend")} onPress={rate} loading={busy} disabled={!stars} />
           </Card>
+        ) : null}
+
+        {["completed", "cancelled_by_customer", "cancelled_by_driver"].includes(hire.status) ? (
+          <TouchableOpacity onPress={() => api.post<{ url: string }>(`/driver-hire/${hire.id}/receipt`).then(r => Linking.openURL(r.data.url)).catch(() => {})}
+            accessibilityLabel={t("receipt.open")} style={{ backgroundColor: C.white, borderRadius: 14, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: C.border }}>
+            <Text style={{ fontWeight: "800", color: C.dark }}>{t("receipt.open")}</Text>
+          </TouchableOpacity>
         ) : null}
 
         {lost ? <Primary label={t("hire.detail.chooseAnother")} onPress={() => router.replace("/hire")} /> : null}

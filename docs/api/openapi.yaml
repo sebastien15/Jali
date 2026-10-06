@@ -1109,6 +1109,142 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /rides/{id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    get:
+      tags: [Rides]
+      operationId: listRideMessages
+      x-jali-story: S9.5
+      x-jali-permission: request-rides
+      summary: Chat with my driver/rider (poll with after_id)
+      parameters:
+        - { name: after_id, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [open, phrases, messages]
+                properties:
+                  open: { type: boolean, description: Chat is open between accept and completion }
+                  phrases: { type: array, items: { $ref: "#/components/schemas/ChatPhrase" } }
+                  messages: { type: array, items: { $ref: "#/components/schemas/RideMessage" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Rides]
+      operationId: postRideMessage
+      x-jali-story: S9.5
+      x-jali-permission: request-rides
+      summary: Send a quick phrase (shown in each side's language) or free text (no phone numbers or links)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phrase: { oneOf: [{ $ref: "#/components/schemas/ChatPhrase" }, { type: "null" }] }
+                body: { type: [string, "null"], maxLength: 300 }
+      responses:
+        "201":
+          description: Sent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RideMessage" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /rides/{id}/receipt:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    post:
+      tags: [Rides]
+      operationId: rideReceipt
+      x-jali-story: S9.6
+      x-jali-permission: request-rides
+      summary: Printable receipt link (save as PDF); email it again with email=true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReceiptLink" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver-hire/{id}/receipt:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Hire]
+      operationId: hireReceipt
+      x-jali-story: S9.6
+      x-jali-permission: request-rides
+      summary: Printable receipt link for my hire; email it again with email=true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReceiptLink" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /fx/rates:
+    get:
+      tags: [Rides]
+      operationId: getFxRates
+      x-jali-story: S9.4
+      x-jali-permission: request-rides
+      summary: Approximate value of 1 RWF in other currencies (refreshed daily; hidden when older than 3 days)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [base, rates, fetched_at, stale]
+                properties:
+                  base: { type: string, enum: [RWF] }
+                  rates:
+                    type: [object, "null"]
+                    properties:
+                      USD: { type: number }
+                      EUR: { type: number }
+                      GBP: { type: number }
+                      KES: { type: number }
+                  fetched_at: { type: [string, "null"], format: date-time }
+                  stale: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
   /admin/drivers/{userId}:
     parameters:
       - $ref: "#/components/parameters/UserId"
@@ -2650,6 +2786,27 @@ components:
       properties:
         name: { type: [string, "null"] }
         phone: { type: [string, "null"] }
+
+    ChatPhrase:
+      type: string
+      enum: [on_my_way, i_am_here, where_are_you, wait_2_min, cant_find_you, at_the_entrance, running_late, thank_you]
+
+    RideMessage:
+      type: object
+      required: [id, mine, phrase, body, at]
+      properties:
+        id: { type: integer }
+        mine: { type: boolean }
+        phrase: { oneOf: [{ $ref: "#/components/schemas/ChatPhrase" }, { type: "null" }] }
+        body: { type: [string, "null"] }
+        at: { type: [string, "null"], format: date-time }
+
+    ReceiptLink:
+      type: object
+      required: [url, emailed]
+      properties:
+        url: { type: string, description: "Signed link to the printable receipt, valid 30 days" }
+        emailed: { type: boolean }
 
     Place:
       type: object

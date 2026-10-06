@@ -137,7 +137,10 @@
     "googleAvailable": "Kwinjira na Google biraboneka ku bashoferi mpuzamahanga",
     "wrongCode": "Code nabi",
     "changeNumber": "Hindura numero",
-    "googleSignInFailed": "Kwinjira na Google byanze"
+    "googleSignInFailed": "Kwinjira na Google byanze",
+    "countryCode": "Kode y'igihugu",
+    "phonePlaceholder": "Nimero idafite kode y'igihugu",
+    "appleSignInFailed": "Kwinjira na Apple byanze"
   },
   "listing": {
     "privateDriver": "Umushoferi Bwite",
@@ -1097,5 +1100,32 @@
     "contactName": "Izina",
     "contactPhone": "Telefoni",
     "saved": "Byabitswe"
+  },
+  "chat": {
+    "open": "Ubutumwa",
+    "title": "Ikiganiro",
+    "empty": "Ramutsa cyangwa ukoreshe interuro yihuse.",
+    "closed": "Ikiganiro cyafunzwe kuri uru rugendo.",
+    "placeholder": "Andika ubutumwa",
+    "send": "Ohereza",
+    "phrase_on_my_way": "Ndi mu nzira",
+    "phrase_i_am_here": "Ndahageze",
+    "phrase_where_are_you": "Uri he?",
+    "phrase_wait_2_min": "Ihangane iminota 2",
+    "phrase_cant_find_you": "Sinkubona",
+    "phrase_at_the_entrance": "Ndi ku muryango",
+    "phrase_running_late": "Ndatinda gato",
+    "phrase_thank_you": "Murakoze!"
+  },
+  "receipt": {
+    "open": "Inyemezabwishyu",
+    "email": "Ohereza inyemezabwishyu",
+    "emailed": "Inyemezabwishyu yoherejwe kuri imeyili yawe.",
+    "noEmail": "Ongeraho imeyili kuri konti yawe kugira ngo ubone inyemezabwishyu."
+  },
+  "fx": {
+    "title": "Erekana ibiciro no mu",
+    "sub": "Amafaranga agereranyije iruhande rwa RWF. Wishyura buri gihe muri RWF.",
+    "none": "RWF gusa"
   }
 }

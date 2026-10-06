@@ -137,7 +137,10 @@
     "googleAvailable": "Google sign-in is available for international travelers",
     "wrongCode": "Wrong code",
     "changeNumber": "Change number",
-    "googleSignInFailed": "Google sign-in failed"
+    "googleSignInFailed": "Google sign-in failed",
+    "countryCode": "Country code",
+    "phonePlaceholder": "Number without country code",
+    "appleSignInFailed": "Apple sign-in failed"
   },
   "listing": {
     "privateDriver": "Private Driver",
@@ -1097,5 +1100,32 @@
     "contactName": "Name",
     "contactPhone": "Phone",
     "saved": "Saved"
+  },
+  "chat": {
+    "open": "Message",
+    "title": "Chat",
+    "empty": "Say hello or use a quick phrase.",
+    "closed": "Chat is closed for this trip.",
+    "placeholder": "Type a message",
+    "send": "Send",
+    "phrase_on_my_way": "I'm on my way",
+    "phrase_i_am_here": "I'm here",
+    "phrase_where_are_you": "Where are you?",
+    "phrase_wait_2_min": "Please wait 2 minutes",
+    "phrase_cant_find_you": "I can't find you",
+    "phrase_at_the_entrance": "I'm at the entrance",
+    "phrase_running_late": "I'm running a little late",
+    "phrase_thank_you": "Thank you!"
+  },
+  "receipt": {
+    "open": "Receipt",
+    "email": "Email receipt",
+    "emailed": "Receipt sent to your email.",
+    "noEmail": "Add an email to your account to receive receipts."
+  },
+  "fx": {
+    "title": "Show prices also in",
+    "sub": "An approximate amount next to RWF. You always pay in RWF.",
+    "none": "RWF only"
   }
 }
