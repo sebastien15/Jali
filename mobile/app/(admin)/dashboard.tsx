@@ -33,6 +33,7 @@ export default function AdminDashboard() {
   const canManageLocations = user?.permissions?.includes("manage-locations") ?? false;
   const canManageAgencies = user?.permissions?.includes("manage-agencies") ?? false;
   const canVerifyDrivers = user?.permissions?.includes("verify-drivers") ?? false;
+  const canManageRides = user?.permissions?.includes("manage-rides") ?? false;
 
   const earningsQuery = useQuery({
     queryKey: queryKeys.admin.analytics.earnings(),
@@ -75,6 +76,10 @@ export default function AdminDashboard() {
     // Driver applications — verify-drivers
     ...(canVerifyDrivers ? [
       { label: "Drivers", icon: "id-card-outline" as const, route: "/(admin)/drivers", color: C.green },
+    ] : []),
+    // Ride operations — manage-rides
+    ...(canManageRides ? [
+      { label: "Rides", icon: "car-sport-outline" as const, route: "/(admin)/rides", color: C.blue },
     ] : []),
     // Locations (bus stops) — superadmin or manage-locations
     ...(isSuperAdmin || canManageLocations ? [
