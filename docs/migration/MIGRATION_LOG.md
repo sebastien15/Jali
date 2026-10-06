@@ -298,3 +298,11 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
   - The teardown emits before the caller navigates; if context consumers re-render with the cleared cache before the tabs unmount, an unauthenticated `/me` can 401 and run a second (harmless) `endSession("unauthorized")` + redirect. A later login is protected by the generation check.
   - `endSession()` starts with an unguarded `await getApiToken()`; a failing AsyncStorage read on cold start would skip local cleanup (pre-existing, theoretical).
   - Admin web logout still wipes FX currency and recent places via `localStorage.clear()` (only the language is restored).
+
+## Status at end of run (2026-10-06)
+
+- **Scope A (M00–M04): implemented** on `refactor/architecture-migration`. All backend domains sit in owner modules behind contracts; all mobile service code sits in `features/*` with `core/*` composition roots; route files and API routes unchanged (168/168), boundary checks enforced in tests/CI.
+- **M05: implemented** (session teardown, per-account view state, view-only persona). Not device-tested — run the manual checklist in the M05 entry before release.
+- Verification: backend 302 passed (local 8 GD-only failures; CI green), mobile typecheck + boundary check clean.
+- **Not started (need product decisions or are out of Scope A):** M06 service-access resolver, M07 shared activity/notifications/inbox, M08 presence/performance, M09 staging/rollout; BookingSheet split; zero-platform-fee change (RideSettings defaults still 8%/200 and 10%/500); rental reservation lifecycle, segment seats, cargo (Scope C); WhatsApp delivery for OTP (owner decision, deferred); MySQL concurrency tests; mobile Jest harness.
+- Status labels: implemented ≠ staging-validated ≠ publicly activated. Nothing here was deployed.
