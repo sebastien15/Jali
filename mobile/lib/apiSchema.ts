@@ -659,6 +659,227 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/driver/hire-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My hire-a-driver prices, skills and Jali's limits (verified drivers only) */
+        get: operations["getHireSettings"];
+        /** Save hire prices (validated against superadmin limits) and skills */
+        put: operations["putHireSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly hours, blocked dates and booked hires */
+        get: operations["getAvailability"];
+        /** Replace weekly hours and blocked dates (no weekly hours = available any time) */
+        put: operations["putAvailability"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/hires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My hire requests, upcoming bookings or past hires */
+        get: operations["listDriverHires"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verified drivers free for the window who drive my transmission, with a full quote */
+        get: operations["findHireDrivers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My hires as a customer, newest first */
+        get: operations["listMyHires"];
+        put?: never;
+        /** Book a driver for my car — price locked, driver notified (status requested) */
+        post: operations["bookHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        /** Customer or driver of this hire only (404 otherwise) */
+        get: operations["getHire"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer: free while requested or until hire.free_cancel_hours before the start, then a fee. Driver: accepted hires only. */
+        post: operations["cancelHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rate the other side once, after completion */
+        post: operations["rateHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept — 409 if no longer open or it overlaps another accepted hire */
+        post: operations["acceptHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline — the customer is told to choose another driver */
+        post: operations["declineHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start — from 2 h before the start time until the booked end */
+        post: operations["checkInHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish — overtime computed from the locked rate after a grace period */
+        post: operations["checkOutHire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/rides/live": {
         parameters: {
             query?: never;
@@ -1030,6 +1251,168 @@ export interface components {
                 comment: string | null;
             }[];
         };
+        /** @enum {string} */
+        Transmission: "automatic" | "manual";
+        /**
+         * @description Kinyarwanda, English, French, Swahili, other
+         * @enum {string}
+         */
+        HireLanguage: "rw" | "en" | "fr" | "sw" | "other";
+        /** @enum {string} */
+        HireTripType: "city" | "out_of_town" | "airport";
+        HireRates: {
+            /** @description RWF per hour, within hire.hourly_min–hourly_max */
+            hourly_rate: number;
+            min_hours: number;
+            /** @description RWF per day, within hire.daily_min–daily_max */
+            daily_rate: number;
+            /** @description Hours included in a day */
+            daily_hours: number;
+            overtime_per_hour: number;
+            /** @description RWF per day when the trip leaves Kigali */
+            out_of_town_fee?: number;
+        };
+        HireSettingsPayload: {
+            settings: null | (components["schemas"]["HireRates"] & {
+                is_active: boolean;
+            });
+            skills: {
+                transmissions: components["schemas"]["Transmission"][];
+                languages: components["schemas"]["HireLanguage"][];
+                years_experience: number | null;
+                /** @description From the licence step of onboarding */
+                licence_categories: string[];
+            };
+            /** @description Superadmin guardrails (platform_settings rides.hire) */
+            limits: {
+                hourly_min?: number;
+                hourly_max?: number;
+                daily_min?: number;
+                daily_max?: number;
+                overtime_max?: number;
+                out_of_town_max?: number;
+                commission_pct?: number;
+                service_fee?: number;
+            };
+        };
+        WeeklyHours: {
+            /** @description 0 = Sunday */
+            weekday: number;
+            /** @example 07:00 */
+            start_time: string;
+            /** @example 20:00 */
+            end_time: string;
+        };
+        Availability: {
+            weekly: components["schemas"]["WeeklyHours"][];
+            blocked_dates: string[];
+            /** @description Accepted or started hires that hold my time */
+            upcoming: {
+                id: number;
+                /** Format: date-time */
+                start_at: string;
+                /** Format: date-time */
+                end_at: string;
+            }[];
+        };
+        HireQuote: {
+            /** @description Driver's price incl. out-of-town fee, rounded up to 100 RWF */
+            driver_total: number;
+            service_fee: number;
+            /** @description What the customer pays (before any overtime) */
+            total: number;
+            /** @description Hours: max(asked, min_hours). Days: days × daily_hours */
+            billable_hours: number;
+            days: number;
+        };
+        AvailableHireDriver: {
+            driver_id: number;
+            /** @description First name + last initial */
+            name: string;
+            photo: string | null;
+            rating: number;
+            rating_count: number;
+            trips_count: number;
+            years_experience: number | null;
+            languages: components["schemas"]["HireLanguage"][];
+            transmissions: components["schemas"]["Transmission"][];
+            licence_categories: string[];
+            rates: components["schemas"]["HireRates"];
+            /** Format: date-time */
+            end_at: string;
+            quote: components["schemas"]["HireQuote"];
+        };
+        /** @enum {string} */
+        HireStatus: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver";
+        DriverHire: {
+            id: number;
+            /**
+             * @description Who is looking
+             * @enum {string}
+             */
+            role: "customer" | "driver";
+            status: components["schemas"]["HireStatus"];
+            /** Format: date-time */
+            start_at: string;
+            /** Format: date-time */
+            end_at: string;
+            /** @enum {string} */
+            duration_type: "hours" | "days";
+            duration_value: number;
+            trip_type: components["schemas"]["HireTripType"];
+            transmission: components["schemas"]["Transmission"];
+            pickup: components["schemas"]["Place"];
+            car_description?: string | null;
+            notes?: string | null;
+            driver_total: number;
+            service_fee: number;
+            /** @description Locked price the customer pays (driver_total + service_fee) */
+            quoted_total: number;
+            overtime_minutes: number;
+            overtime_amount: number;
+            /** @description quoted_total + overtime, set at check-out */
+            final_total: number | null;
+            /** @description Driver view only: driver part minus commission */
+            driver_earnings: number | null;
+            cancel_fee: number;
+            /** @description Customer view while cancellable: fee if cancelled now (0 = free) */
+            cancel_fee_now: number | null;
+            cancel_reason?: string | null;
+            /** @enum {string|null} */
+            payment_method: "cash" | "momo" | null;
+            /**
+             * Format: date-time
+             * @description While requested: when the driver's answer times out
+             */
+            expires_at: string | null;
+            driver: {
+                id: number;
+                name: string;
+                photo: string | null;
+                rating: number;
+                years_experience: number | null;
+                languages: components["schemas"]["HireLanguage"][];
+                /** @description Customer view while accepted or started */
+                phone: string | null;
+            };
+            /** @description Driver view only */
+            customer: {
+                name: string;
+                /** @description While accepted or started */
+                phone: string | null;
+            } | null;
+            my_rating: number | null;
+            /** Format: date-time */
+            requested_at?: string | null;
+            /** Format: date-time */
+            accepted_at?: string | null;
+            /** Format: date-time */
+            checked_in_at?: string | null;
+            /** Format: date-time */
+            checked_out_at?: string | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
+        };
         Place: {
             lat: number;
             lng: number;
@@ -1183,6 +1566,26 @@ export interface components {
             cancel_fee: number;
             /** @default 5 */
             free_wait_min: number;
+            hire?: components["schemas"]["HireSettingsLimits"];
+        };
+        /** @description Hire a Driver limits and booking rules (epic E6) */
+        HireSettingsLimits: {
+            hourly_min?: number;
+            hourly_max?: number;
+            daily_min?: number;
+            daily_max?: number;
+            overtime_max?: number;
+            out_of_town_max?: number;
+            commission_pct?: number;
+            service_fee?: number;
+            /** @description Driver must answer within this (or before the start) */
+            request_timeout_min?: number;
+            /** @description Customer cancels free until this long before the start */
+            free_cancel_hours?: number;
+            /** @description % of the driver's price charged on a late cancellation */
+            late_cancel_pct?: number;
+            overtime_grace_min?: number;
+            max_days?: number;
         };
         /** @description Any subset of RideSettings; a vehicle class must be sent complete */
         RideSettingsUpdate: {
@@ -1205,6 +1608,7 @@ export interface components {
             request_timeout_sec?: number;
             cancel_fee?: number;
             free_wait_min?: number;
+            hire?: components["schemas"]["HireSettingsLimits"];
         };
     };
     responses: {
@@ -1295,6 +1699,7 @@ export interface components {
         UserId: number;
         DocumentId: number;
         VehicleId: number;
+        HireId: number;
         RideId: number;
     };
     requestBodies: never;
@@ -2409,6 +2814,446 @@ export interface operations {
                     "application/json": components["schemas"]["DriverApplication"];
                 };
             };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getHireSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HireSettingsPayload"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putHireSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HireRates"] & {
+                    is_active?: boolean;
+                    transmissions: components["schemas"]["Transmission"][];
+                    languages: components["schemas"]["HireLanguage"][];
+                    years_experience: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HireSettingsPayload"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Availability"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    weekly: components["schemas"]["WeeklyHours"][];
+                    blocked_dates: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Availability"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listDriverHires: {
+        parameters: {
+            query?: {
+                scope?: "requests" | "upcoming" | "past";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    findHireDrivers: {
+        parameters: {
+            query: {
+                /** @description At least 30 min from now, at most 90 days */
+                start_at: string;
+                duration_type: "hours" | "days";
+                /** @description Hours (max 16) or days (max hire.max_days) */
+                duration_value: number;
+                trip_type: components["schemas"]["HireTripType"];
+                transmission: components["schemas"]["Transmission"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Best rated first, then cheapest */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        drivers: components["schemas"]["AvailableHireDriver"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listMyHires: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DriverHire"][];
+                        next_page: number | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    bookHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    driver_id: number;
+                    /** Format: date-time */
+                    start_at: string;
+                    /** @enum {string} */
+                    duration_type: "hours" | "days";
+                    duration_value: number;
+                    trip_type: components["schemas"]["HireTripType"];
+                    transmission: components["schemas"]["Transmission"];
+                    pickup: components["schemas"]["Place"];
+                    car_description?: string | null;
+                    notes?: string | null;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
+                    payment_method?: "cash" | "momo";
+                    /** @description Must be true: fuel, damage and meals terms (legal/hire-terms) */
+                    accept_terms: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Requested */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    cancelHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Customer and driver have separate lists
+                     * @enum {string}
+                     */
+                    reason: "changed_plans" | "found_another_driver" | "driver_asked_to_cancel" | "booked_by_mistake" | "not_available" | "customer_asked_to_cancel" | "too_far" | "unsafe" | "other";
+                };
+            };
+        };
+        responses: {
+            /** @description Cancelled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    rateHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    stars: number;
+                    tags?: string[];
+                    comment?: string | null;
+                };
+            };
+        };
+        responses: {
+            201: components["responses"]["Message"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    acceptHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    declineHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    checkInHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    checkOutHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["HireId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    payment_method: "cash" | "momo";
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };

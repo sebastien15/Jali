@@ -10,6 +10,9 @@ use App\Http\Controllers\DriverPresenceController;
 use App\Http\Controllers\RideController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\DriverRideController;
+use App\Http\Controllers\HireController;
+use App\Http\Controllers\DriverHireController;
+use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
@@ -125,6 +128,28 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
         Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");
         Route::post("/{userId}/suspend", [AdminDriverController::class, "suspend"])->whereNumber("userId");
+    });
+
+    // Hire a Driver: customer side — stories S6.3, S6.4
+    Route::middleware("permission:request-rides")->prefix("driver-hire")->group(function () {
+        Route::get("/available", [HireController::class, "available"]);
+        Route::get("/", [HireController::class, "index"]);
+        Route::post("/", [HireController::class, "store"])->middleware("throttle:ride-requests");
+        Route::get("/{id}", [HireController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/cancel", [HireController::class, "cancel"])->whereNumber("id");
+        Route::post("/{id}/rate", [HireController::class, "rate"])->whereNumber("id");
+    });
+    // Hire a Driver: driver side — stories S6.1, S6.2, S6.4
+    Route::middleware("permission:offer-driver-hire")->group(function () {
+        Route::get("/driver/hire-settings", [DriverHireSettingsController::class, "show"]);
+        Route::put("/driver/hire-settings", [DriverHireSettingsController::class, "update"]);
+        Route::get("/driver/availability", [DriverHireSettingsController::class, "availability"]);
+        Route::put("/driver/availability", [DriverHireSettingsController::class, "updateAvailability"]);
+        Route::get("/driver/hires", [DriverHireController::class, "index"]);
+        Route::post("/driver-hire/{id}/accept", [DriverHireController::class, "accept"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/decline", [DriverHireController::class, "decline"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/check-in", [DriverHireController::class, "checkIn"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/check-out", [DriverHireController::class, "checkOut"])->whereNumber("id");
     });
 
     // Ride operations — stories S10.1, S10.2

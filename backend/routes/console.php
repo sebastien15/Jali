@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 // On-demand rides housekeeping (needs `php artisan schedule:run` every minute via cron)
 \Illuminate\Support\Facades\Schedule::command('rides:expire-presence')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('rides:expire-requests')->everyMinute()->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::command('hires:expire-requests')->everyMinute()->withoutOverlapping();
