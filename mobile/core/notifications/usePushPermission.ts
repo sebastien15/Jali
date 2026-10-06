@@ -32,7 +32,9 @@ export function usePushPermission() {
 
     if (Platform.OS === "web") return;
     const sub = Notifications.addNotificationResponseReceivedListener(response => {
-      openFromNotification(response.notification.request.content.data);
+      const data = response.notification.request.content.data;
+      reportOpened(data);
+      openFromNotification(data);
     });
     return () => sub.remove();
   }, []);
@@ -86,6 +88,12 @@ function openFromNotification(data: Record<string, unknown> | undefined) {
   if (route) router.push(route as any);
 }
 
+/** S12.3: tell the server the push was opened (delivery/open rates; cancels the SMS fallback) */
+function reportOpened(data: Record<string, unknown> | undefined | null) {
+  const nid = Number(data?.nid);
+  if (Number.isInteger(nid) && nid > 0) api.post(`/me/notifications/${nid}/opened`).catch(() => {});
+}
+
 async function registerForPush() {
   // Push notifications require native platform — skip on web
   if (Platform.OS === "web") return;
@@ -97,6 +105,17 @@ async function registerForPush() {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: C.blue,
+    });
+    // S12.3: ride requests ring loudly on their own channel (sound bundled via the expo-notifications plugin)
+    await Notifications.setNotificationChannelAsync("ride_requests", {
+      name: "Ride requests",
+      description: "New ride requests for drivers",
+      importance: Notifications.AndroidImportance.MAX,
+      sound: "ride_request.wav",
+      vibrationPattern: [0, 600, 300, 600, 300, 600],
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
+      lightColor: C.orange,
     });
   }
 

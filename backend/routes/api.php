@@ -20,6 +20,7 @@ use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\Admin\SupportInboxController;
@@ -86,6 +87,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::get("/me/service-access", [ServiceAccessController::class, "show"]);   // S23.1, any signed-in user
     Route::post("/me/push-token", [PushTokenController::class, "store"]);
     Route::delete("/me/push-token", [PushTokenController::class, "destroy"]);
+    Route::post("/me/notifications/{id}/opened", [PushNotificationController::class, "opened"])->whereNumber("id");   // S12.3, own only
     Route::post("/auth/logout", [AuthController::class, "logout"]);
     Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
 
@@ -261,6 +263,9 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::put("/{id}", [HelpController::class, "update"])->whereNumber("id");
         Route::delete("/{id}", [HelpController::class, "destroy"])->whereNumber("id");
     });
+
+    // Push delivery and open rates per type (S12.3)
+    Route::middleware("permission:view-analytics")->get("/admin/notifications/stats", [PushNotificationController::class, "stats"]);
 
     // Is a service available here? (S10.4)
     Route::middleware("permission:request-rides")->get("/service-areas/check", [ServiceAreaController::class, "check"]);

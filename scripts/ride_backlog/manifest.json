@@ -1484,7 +1484,7 @@
   "epic": "E12",
   "issue": 85,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2792,7 +2792,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S23.5-notification-taps-open-the-right-screen-always-m07.md",
@@ -2808,7 +2808,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile",
    "backend"
   ],
