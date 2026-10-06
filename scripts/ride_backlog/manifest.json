@@ -331,7 +331,7 @@
   ],
   "file": "docs/ride-hailing/stories/E23-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 173,
   "track": "F",
   "status": null
  },
@@ -345,7 +345,7 @@
   ],
   "file": "docs/ride-hailing/stories/E24-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 174,
   "track": "B1",
   "status": null
  },
@@ -359,7 +359,7 @@
   ],
   "file": "docs/ride-hailing/stories/E25-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 175,
   "track": "B3",
   "status": null
  },
@@ -373,7 +373,7 @@
   ],
   "file": "docs/ride-hailing/stories/E26-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 176,
   "track": "B5",
   "status": null
  },
@@ -387,7 +387,7 @@
   ],
   "file": "docs/ride-hailing/stories/E27-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 177,
   "track": "C",
   "status": null
  },
@@ -401,7 +401,7 @@
   ],
   "file": "docs/ride-hailing/stories/E28-epic.md",
   "epic": null,
-  "issue": null,
+  "issue": 178,
   "track": "F",
   "status": null
  },
@@ -954,7 +954,7 @@
   ],
   "file": "docs/ride-hailing/stories/S6.5-hire-cancellations-no-shows-and-disputes.md",
   "epic": "E6",
-  "issue": null,
+  "issue": 185,
   "track": "B2",
   "status": "todo"
  },
@@ -972,7 +972,7 @@
   ],
   "file": "docs/ride-hailing/stories/S6.6-admin-hire-operations.md",
   "epic": "E6",
-  "issue": null,
+  "issue": 186,
   "track": "B2",
   "status": "todo"
  },
@@ -1044,7 +1044,7 @@
   ],
   "file": "docs/ride-hailing/stories/S7.4-zero-jali-fees-across-every-service.md",
   "epic": "E7",
-  "issue": null,
+  "issue": 179,
   "track": "F",
   "status": "todo"
  },
@@ -2648,7 +2648,7 @@
   ],
   "file": "docs/ride-hailing/stories/S21.13-fix-production-backend-deploy-fails-after-upload.md",
   "epic": "E21",
-  "issue": null,
+  "issue": 180,
   "track": "F",
   "status": "todo"
  },
@@ -2731,7 +2731,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.1-server-side-service-availability-m06.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 181,
   "track": "F",
   "status": "todo"
  },
@@ -2747,7 +2747,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 182,
   "track": "F",
   "status": "todo"
  },
@@ -2764,7 +2764,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.3-customer-provider-mode-switch.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 183,
   "track": "F",
   "status": "partial"
  },
@@ -2781,7 +2781,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.4-one-activity-for-bookings-and-jobs-m07.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 184,
   "track": "F",
   "status": "todo"
  },
@@ -2797,7 +2797,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.5-notification-taps-open-the-right-screen-always-m07.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 187,
   "track": "F",
   "status": "todo"
  },
@@ -2814,7 +2814,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.6-in-app-inbox-m07.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 188,
   "track": "F",
   "status": "todo"
  },
@@ -2831,7 +2831,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.7-provider-availability-that-survives-navigation-m08.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 189,
   "track": "F",
   "status": "todo"
  },
@@ -2848,7 +2848,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.8-request-and-polling-budget-m08.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 190,
   "track": "F",
   "status": "todo"
  },
@@ -2865,7 +2865,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.9-split-the-shared-bookingsheet-per-service.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 191,
   "track": "F",
   "status": "todo"
  },
@@ -2882,7 +2882,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.10-provider-screens-move-to-shared-provider-infrastru.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 192,
   "track": "F",
   "status": "partial"
  },
@@ -2899,7 +2899,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.11-mobile-test-harness.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 193,
   "track": "F",
   "status": "todo"
  },
@@ -2916,7 +2916,7 @@
   ],
   "file": "docs/ride-hailing/stories/S23.12-staging-rehearsal-and-recovery-m09.md",
   "epic": "E23",
-  "issue": null,
+  "issue": 194,
   "track": "F",
   "status": "todo"
  },
@@ -2933,7 +2933,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.1-browse-available-cars-for-my-dates.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 195,
   "track": "B1",
   "status": "partial"
  },
@@ -2949,7 +2949,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.2-rental-calendar-and-no-double-booking.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 196,
   "track": "B1",
   "status": "todo"
  },
@@ -2967,7 +2967,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.3-clear-price-and-rental-terms-before-i-request.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 197,
   "track": "B1",
   "status": "todo"
  },
@@ -2984,7 +2984,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.4-request-a-car-and-get-the-owner-s-confirmation.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 198,
   "track": "B1",
   "status": "todo"
  },
@@ -3001,7 +3001,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.5-cancel-a-rental.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 199,
   "track": "B1",
   "status": "todo"
  },
@@ -3018,7 +3018,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.6-handover-and-return.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 200,
   "track": "B1",
   "status": "todo"
  },
@@ -3035,7 +3035,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.7-owner-rental-dashboard.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 201,
   "track": "B1",
   "status": "partial"
  },
@@ -3053,7 +3053,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.8-rental-owner-and-car-verification.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 202,
   "track": "B1",
   "status": "todo"
  },
@@ -3071,7 +3071,7 @@
   ],
   "file": "docs/ride-hailing/stories/S24.9-admin-rental-operations-and-support.md",
   "epic": "E24",
-  "issue": null,
+  "issue": 203,
   "track": "B1",
   "status": "todo"
  },
@@ -3088,7 +3088,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.1-publish-a-journey-with-stops-and-segment-fares.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 204,
   "track": "B3",
   "status": "partial"
  },
@@ -3104,7 +3104,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.2-seat-capacity-per-route-segment.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 205,
   "track": "B3",
   "status": "todo"
  },
@@ -3121,7 +3121,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.3-find-journeys-including-part-of-a-route.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 206,
   "track": "B3",
   "status": "partial"
  },
@@ -3138,7 +3138,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.4-request-a-seat-and-get-confirmed.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 207,
   "track": "B3",
   "status": "todo"
  },
@@ -3155,7 +3155,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.5-journey-cancellation-rules.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 208,
   "track": "B3",
   "status": "todo"
  },
@@ -3172,7 +3172,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.6-complete-the-journey-and-rate.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 209,
   "track": "B3",
   "status": "todo"
  },
@@ -3190,7 +3190,7 @@
   ],
   "file": "docs/ride-hailing/stories/S25.7-admin-journey-oversight.md",
   "epic": "E25",
-  "issue": null,
+  "issue": 210,
   "track": "B3",
   "status": "todo"
  },
@@ -3206,7 +3206,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.1-dated-departures-with-seat-inventory.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 211,
   "track": "B5",
   "status": "todo"
  },
@@ -3223,7 +3223,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.2-book-bus-seats.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 212,
   "track": "B5",
   "status": "partial"
  },
@@ -3240,7 +3240,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.3-tickets-i-can-show-at-boarding.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 213,
   "track": "B5",
   "status": "partial"
  },
@@ -3257,7 +3257,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.4-bus-ticket-cancellation.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 214,
   "track": "B5",
   "status": "todo"
  },
@@ -3275,7 +3275,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.5-operator-tools-departures-capacity-and-boarding-li.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 215,
   "track": "B5",
   "status": "partial"
  },
@@ -3292,7 +3292,7 @@
   ],
   "file": "docs/ride-hailing/stories/S26.6-retire-legacy-trip-and-bus-tables.md",
   "epic": "E26",
-  "issue": null,
+  "issue": 216,
   "track": "B5",
   "status": "todo"
  },
@@ -3308,7 +3308,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.1-cargo-scope-rules-and-operating-requirements.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 217,
   "track": "C",
   "status": "todo"
  },
@@ -3325,7 +3325,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.2-carrier-and-goods-vehicle-onboarding.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 218,
   "track": "C",
   "status": "todo"
  },
@@ -3342,7 +3342,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.3-request-a-cargo-job.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 219,
   "track": "C",
   "status": "todo"
  },
@@ -3360,7 +3360,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.4-carrier-quotes-and-confirmation.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 220,
   "track": "C",
   "status": "todo"
  },
@@ -3377,7 +3377,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.5-pickup-and-delivery-evidence.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 221,
   "track": "C",
   "status": "todo"
  },
@@ -3394,7 +3394,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.6-return-load-listings-and-matching.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 222,
   "track": "C",
   "status": "todo"
  },
@@ -3411,7 +3411,7 @@
   ],
   "file": "docs/ride-hailing/stories/S27.7-cargo-cancellation-damage-and-support.md",
   "epic": "E27",
-  "issue": null,
+  "issue": 223,
   "track": "C",
   "status": "todo"
  },
@@ -3427,7 +3427,7 @@
   ],
   "file": "docs/ride-hailing/stories/S28.1-batch-readiness-audit.md",
   "epic": "E28",
-  "issue": null,
+  "issue": 224,
   "track": "F",
   "status": "todo"
  },
@@ -3443,7 +3443,7 @@
   ],
   "file": "docs/ride-hailing/stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md",
   "epic": "E28",
-  "issue": null,
+  "issue": 225,
   "track": "F",
   "status": "todo"
  },
@@ -3459,7 +3459,7 @@
   ],
   "file": "docs/ride-hailing/stories/S28.3-google-play-closed-test.md",
   "epic": "E28",
-  "issue": null,
+  "issue": 226,
   "track": "F",
   "status": "partial"
  },
@@ -3475,7 +3475,7 @@
   ],
   "file": "docs/ride-hailing/stories/S28.4-ios-testflight-and-app-store-submission.md",
   "epic": "E28",
-  "issue": null,
+  "issue": 227,
   "track": "F",
   "status": "todo"
  },
@@ -3492,7 +3492,7 @@
   ],
   "file": "docs/ride-hailing/stories/S28.5-post-launch-review-before-the-next-batch.md",
   "epic": "E28",
-  "issue": null,
+  "issue": 228,
   "track": "F",
   "status": "todo"
  }
