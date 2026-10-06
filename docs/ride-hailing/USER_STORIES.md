@@ -87,7 +87,7 @@ Owner module: `Modules/Payments`, `Modules/Pricing`
 | [S7.1](stories/S7.1-cash-and-momo-payment-to-driver-launch.md) | [#58](https://github.com/sebastien15/Jali/issues/58) | Cash and MoMo payment to driver (launch) | ✅ built | 1 | S4.4 | — |
 | [S7.2](stories/S7.2-commission-ledger-settlement-and-driver-payouts.md) | [#59](https://github.com/sebastien15/Jali/issues/59) | Commission ledger, settlement and driver payouts | ✅ built | 1 | S4.4 | — |
 | [S7.3](stories/S7.3-in-app-momo-and-international-card-payments.md) | [#60](https://github.com/sebastien15/Jali/issues/60) | In-app MoMo and international card payments | ⬜ todo | 1 | S7.1 | — |
-| [S7.4](stories/S7.4-zero-jali-fees-across-every-service.md) | new | Zero Jali fees across every service | ⬜ todo | 1 | S2.2, S7.2 | — |
+| [S7.4](stories/S7.4-zero-jali-fees-across-every-service.md) | [#179](https://github.com/sebastien15/Jali/issues/179) | Zero Jali fees across every service | ⬜ todo | 1 | S2.2, S7.2 | — |
 
 ### E9 — International experience — feels like Uber/DiDi · [#13](https://github.com/sebastien15/Jali/issues/13)
 
@@ -182,9 +182,9 @@ Owner module: platform (CI, infra, `backend/app/Http`, `mobile/lib`)
 | [S21.10](stories/S21.10-feature-flags-and-remote-config.md) | [#149](https://github.com/sebastien15/Jali/issues/149) | Feature flags and remote config | ⬜ todo | 1 | S0.3 | — |
 | [S21.11](stories/S21.11-backups-and-disaster-recovery.md) | [#150](https://github.com/sebastien15/Jali/issues/150) | Backups and disaster recovery | ⬜ todo | 1 | — | — |
 | [S21.12](stories/S21.12-performance-on-low-end-android.md) | [#151](https://github.com/sebastien15/Jali/issues/151) | Performance on low-end Android | ⬜ todo | 1 | — | — |
-| [S21.13](stories/S21.13-fix-production-backend-deploy-fails-after-upload.md) | new | Fix: production backend deploy fails after upload | ⬜ todo | 1 | — | — |
+| [S21.13](stories/S21.13-fix-production-backend-deploy-fails-after-upload.md) | [#180](https://github.com/sebastien15/Jali/issues/180) | Fix: production backend deploy fails after upload | ⬜ todo | 1 | — | — |
 
-### E23 — Connected app & modular architecture · new
+### E23 — Connected app & modular architecture · [#173](https://github.com/sebastien15/Jali/issues/173)
 
 Finish the architecture migration (runbook M06–M09) so every service plugs into one app: server-side service availability, a customer/provider mode switch that never changes server state, one Activity and Inbox for both personas, provider availability that survives navigation, and a deploy pipeline that works every time.
 
@@ -192,20 +192,20 @@ Owner module: `core/*`, `Modules/Identity`, `Modules/Notifications`, `Modules/Pr
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S23.1](stories/S23.1-server-side-service-availability-m06.md) | new | Server-side service availability (M06) | ⬜ todo | 2 | S10.4 | — |
-| [S23.2](stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md) | new | Service registry and gated queries in the app (M06) | ⬜ todo | 3 | S23.1 | — |
-| [S23.3](stories/S23.3-customer-provider-mode-switch.md) | new | Customer/provider mode switch | 🟡 partial | 4 | S23.2 | — |
-| [S23.4](stories/S23.4-one-activity-for-bookings-and-jobs-m07.md) | new | One Activity for bookings and jobs (M07) | ⬜ todo | 4 | S23.2 | — |
-| [S23.5](stories/S23.5-notification-taps-open-the-right-screen-always-m07.md) | new | Notification taps open the right screen, always (M07) | ⬜ todo | 2 | S12.3 | — |
-| [S23.6](stories/S23.6-in-app-inbox-m07.md) | new | In-app inbox (M07) | ⬜ todo | 3 | S23.5, S15.4 | — |
-| [S23.7](stories/S23.7-provider-availability-that-survives-navigation-m08.md) | new | Provider availability that survives navigation (M08) | ⬜ todo | 1 | S5.1 | — |
-| [S23.8](stories/S23.8-request-and-polling-budget-m08.md) | new | Request and polling budget (M08) | ⬜ todo | 4 | S23.2 | — |
-| [S23.9](stories/S23.9-split-the-shared-bookingsheet-per-service.md) | new | Split the shared BookingSheet per service | ⬜ todo | 1 | — | — |
-| [S23.10](stories/S23.10-provider-screens-move-to-shared-provider-infrastru.md) | new | Provider screens move to shared provider infrastructure | 🟡 partial | 1 | — | — |
-| [S23.11](stories/S23.11-mobile-test-harness.md) | new | Mobile test harness | ⬜ todo | 1 | — | — |
-| [S23.12](stories/S23.12-staging-rehearsal-and-recovery-m09.md) | new | Staging rehearsal and recovery (M09) | ⬜ todo | 2 | S21.4, S21.13 | — |
+| [S23.1](stories/S23.1-server-side-service-availability-m06.md) | [#181](https://github.com/sebastien15/Jali/issues/181) | Server-side service availability (M06) | ⬜ todo | 2 | S10.4 | — |
+| [S23.2](stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md) | [#182](https://github.com/sebastien15/Jali/issues/182) | Service registry and gated queries in the app (M06) | ⬜ todo | 3 | S23.1 | — |
+| [S23.3](stories/S23.3-customer-provider-mode-switch.md) | [#183](https://github.com/sebastien15/Jali/issues/183) | Customer/provider mode switch | 🟡 partial | 4 | S23.2 | — |
+| [S23.4](stories/S23.4-one-activity-for-bookings-and-jobs-m07.md) | [#184](https://github.com/sebastien15/Jali/issues/184) | One Activity for bookings and jobs (M07) | ⬜ todo | 4 | S23.2 | — |
+| [S23.5](stories/S23.5-notification-taps-open-the-right-screen-always-m07.md) | [#187](https://github.com/sebastien15/Jali/issues/187) | Notification taps open the right screen, always (M07) | ⬜ todo | 2 | S12.3 | — |
+| [S23.6](stories/S23.6-in-app-inbox-m07.md) | [#188](https://github.com/sebastien15/Jali/issues/188) | In-app inbox (M07) | ⬜ todo | 3 | S23.5, S15.4 | — |
+| [S23.7](stories/S23.7-provider-availability-that-survives-navigation-m08.md) | [#189](https://github.com/sebastien15/Jali/issues/189) | Provider availability that survives navigation (M08) | ⬜ todo | 1 | S5.1 | — |
+| [S23.8](stories/S23.8-request-and-polling-budget-m08.md) | [#190](https://github.com/sebastien15/Jali/issues/190) | Request and polling budget (M08) | ⬜ todo | 4 | S23.2 | — |
+| [S23.9](stories/S23.9-split-the-shared-bookingsheet-per-service.md) | [#191](https://github.com/sebastien15/Jali/issues/191) | Split the shared BookingSheet per service | ⬜ todo | 1 | — | — |
+| [S23.10](stories/S23.10-provider-screens-move-to-shared-provider-infrastru.md) | [#192](https://github.com/sebastien15/Jali/issues/192) | Provider screens move to shared provider infrastructure | 🟡 partial | 1 | — | — |
+| [S23.11](stories/S23.11-mobile-test-harness.md) | [#193](https://github.com/sebastien15/Jali/issues/193) | Mobile test harness | ⬜ todo | 1 | — | — |
+| [S23.12](stories/S23.12-staging-rehearsal-and-recovery-m09.md) | [#194](https://github.com/sebastien15/Jali/issues/194) | Staging rehearsal and recovery (M09) | ⬜ todo | 2 | S21.4, S21.13 | — |
 
-### E28 — Release readiness & store submission · new
+### E28 — Release readiness & store submission · [#178](https://github.com/sebastien15/Jali/issues/178)
 
 Every batch launches on evidence: a readiness audit, real provider supply, device testing, accurate store listings, reviewer access and a post-launch review before the next batch.
 
@@ -213,17 +213,17 @@ Owner module: release/ops — no code module
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S28.1](stories/S28.1-batch-readiness-audit.md) | new | Batch readiness audit | ⬜ todo | 2 | S7.4 | — |
-| [S28.2](stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md) | new | Store listing, privacy disclosures and reviewer access | ⬜ todo | 3 | S28.1 | — |
-| [S28.3](stories/S28.3-google-play-closed-test.md) | new | Google Play closed test | 🟡 partial | 3 | S28.1 | — |
-| [S28.4](stories/S28.4-ios-testflight-and-app-store-submission.md) | new | iOS TestFlight and App Store submission | ⬜ todo | 3 | S28.1 | — |
-| [S28.5](stories/S28.5-post-launch-review-before-the-next-batch.md) | new | Post-launch review before the next batch | ⬜ todo | 4 | S28.2 | — |
+| [S28.1](stories/S28.1-batch-readiness-audit.md) | [#224](https://github.com/sebastien15/Jali/issues/224) | Batch readiness audit | ⬜ todo | 2 | S7.4 | — |
+| [S28.2](stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md) | [#225](https://github.com/sebastien15/Jali/issues/225) | Store listing, privacy disclosures and reviewer access | ⬜ todo | 3 | S28.1 | — |
+| [S28.3](stories/S28.3-google-play-closed-test.md) | [#226](https://github.com/sebastien15/Jali/issues/226) | Google Play closed test | 🟡 partial | 3 | S28.1 | — |
+| [S28.4](stories/S28.4-ios-testflight-and-app-store-submission.md) | [#227](https://github.com/sebastien15/Jali/issues/227) | iOS TestFlight and App Store submission | ⬜ todo | 3 | S28.1 | — |
+| [S28.5](stories/S28.5-post-launch-review-before-the-next-batch.md) | [#228](https://github.com/sebastien15/Jali/issues/228) | Post-launch review before the next batch | ⬜ todo | 4 | S28.2 | — |
 
 ## Batch 1 — Car rental
 
 First intended public batch: real cars, dates, clear prices and terms, owner confirmation, cancellation, handover/return, support.
 
-### E24 — Car rental — launch-ready · new
+### E24 — Car rental — launch-ready · [#174](https://github.com/sebastien15/Jali/issues/174)
 
 Batch 1. A customer finds a real car for their dates, sees the full price and terms, requests it, gets the owner's confirmation, picks it up and returns it — with no double booking and support at every step.
 
@@ -231,15 +231,15 @@ Owner module: `Modules/Rentals` · `features/rentals`
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S24.1](stories/S24.1-browse-available-cars-for-my-dates.md) | new | Browse available cars for my dates | 🟡 partial | 1 | — | — |
-| [S24.2](stories/S24.2-rental-calendar-and-no-double-booking.md) | new | Rental calendar and no double booking | ⬜ todo | 2 | S24.1 | — |
-| [S24.3](stories/S24.3-clear-price-and-rental-terms-before-i-request.md) | new | Clear price and rental terms before I request | ⬜ todo | 2 | S24.1, S7.4 | — |
-| [S24.4](stories/S24.4-request-a-car-and-get-the-owner-s-confirmation.md) | new | Request a car and get the owner's confirmation | ⬜ todo | 3 | S24.2, S24.3 | — |
-| [S24.5](stories/S24.5-cancel-a-rental.md) | new | Cancel a rental | ⬜ todo | 4 | S24.4 | — |
-| [S24.6](stories/S24.6-handover-and-return.md) | new | Handover and return | ⬜ todo | 4 | S24.4 | — |
-| [S24.7](stories/S24.7-owner-rental-dashboard.md) | new | Owner rental dashboard | 🟡 partial | 4 | S24.4 | — |
-| [S24.8](stories/S24.8-rental-owner-and-car-verification.md) | new | Rental owner and car verification | ⬜ todo | 1 | S1.4 | — |
-| [S24.9](stories/S24.9-admin-rental-operations-and-support.md) | new | Admin rental operations and support | ⬜ todo | 5 | S24.6, S16.2 | — |
+| [S24.1](stories/S24.1-browse-available-cars-for-my-dates.md) | [#195](https://github.com/sebastien15/Jali/issues/195) | Browse available cars for my dates | 🟡 partial | 1 | — | — |
+| [S24.2](stories/S24.2-rental-calendar-and-no-double-booking.md) | [#196](https://github.com/sebastien15/Jali/issues/196) | Rental calendar and no double booking | ⬜ todo | 2 | S24.1 | — |
+| [S24.3](stories/S24.3-clear-price-and-rental-terms-before-i-request.md) | [#197](https://github.com/sebastien15/Jali/issues/197) | Clear price and rental terms before I request | ⬜ todo | 2 | S24.1, S7.4 | — |
+| [S24.4](stories/S24.4-request-a-car-and-get-the-owner-s-confirmation.md) | [#198](https://github.com/sebastien15/Jali/issues/198) | Request a car and get the owner's confirmation | ⬜ todo | 3 | S24.2, S24.3 | — |
+| [S24.5](stories/S24.5-cancel-a-rental.md) | [#199](https://github.com/sebastien15/Jali/issues/199) | Cancel a rental | ⬜ todo | 4 | S24.4 | — |
+| [S24.6](stories/S24.6-handover-and-return.md) | [#200](https://github.com/sebastien15/Jali/issues/200) | Handover and return | ⬜ todo | 4 | S24.4 | — |
+| [S24.7](stories/S24.7-owner-rental-dashboard.md) | [#201](https://github.com/sebastien15/Jali/issues/201) | Owner rental dashboard | 🟡 partial | 4 | S24.4 | — |
+| [S24.8](stories/S24.8-rental-owner-and-car-verification.md) | [#202](https://github.com/sebastien15/Jali/issues/202) | Rental owner and car verification | ⬜ todo | 1 | S1.4 | — |
+| [S24.9](stories/S24.9-admin-rental-operations-and-support.md) | [#203](https://github.com/sebastien15/Jali/issues/203) | Admin rental operations and support | ⬜ todo | 5 | S24.6, S16.2 | — |
 
 ## Batch 2 — Scheduled private drivers
 
@@ -257,8 +257,8 @@ Owner module: `Modules/DriverHire` · `features/driver-hire`
 | [S6.2](stories/S6.2-driver-availability-calendar.md) | [#55](https://github.com/sebastien15/Jali/issues/55) | Driver availability calendar | ✅ built | 1 | S6.1 | — |
 | [S6.3](stories/S6.3-find-and-book-a-driver-for-my-car.md) | [#56](https://github.com/sebastien15/Jali/issues/56) | Find and book a driver for my car | ✅ built | 1 | S6.2 | Chauffeur services |
 | [S6.4](stories/S6.4-hire-lifecycle-accept-check-in-check-out-overtime.md) | [#57](https://github.com/sebastien15/Jali/issues/57) | Hire lifecycle: accept, check-in, check-out, overtime | ✅ built | 1 | S6.3 | — |
-| [S6.5](stories/S6.5-hire-cancellations-no-shows-and-disputes.md) | new | Hire cancellations, no-shows and disputes | ⬜ todo | 1 | S6.4 | — |
-| [S6.6](stories/S6.6-admin-hire-operations.md) | new | Admin hire operations | ⬜ todo | 1 | S6.4 | — |
+| [S6.5](stories/S6.5-hire-cancellations-no-shows-and-disputes.md) | [#185](https://github.com/sebastien15/Jali/issues/185) | Hire cancellations, no-shows and disputes | ⬜ todo | 1 | S6.4 | — |
+| [S6.6](stories/S6.6-admin-hire-operations.md) | [#186](https://github.com/sebastien15/Jali/issues/186) | Admin hire operations | ⬜ todo | 1 | S6.4 | — |
 
 ### E13 — More ways to ride · [#17](https://github.com/sebastien15/Jali/issues/17) *(only its stories in this track)*
 
@@ -270,7 +270,7 @@ Owner module: `Modules/DriverHire` · `features/driver-hire`
 
 Drivers publish routes with seats and stops; passengers request seats; capacity is checked per route segment.
 
-### E25 — Private shared journeys · new
+### E25 — Private shared journeys · [#175](https://github.com/sebastien15/Jali/issues/175)
 
 Batch 3. A driver going to Gisenyi offers spare seats with stops along the way; passengers book the whole route or an allowed part of it, and seats are never double-booked on overlapping segments.
 
@@ -278,13 +278,13 @@ Owner module: `Modules/SharedJourneys` · `features/shared-journeys`
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S25.1](stories/S25.1-publish-a-journey-with-stops-and-segment-fares.md) | new | Publish a journey with stops and segment fares | 🟡 partial | 1 | — | — |
-| [S25.2](stories/S25.2-seat-capacity-per-route-segment.md) | new | Seat capacity per route segment | ⬜ todo | 2 | S25.1 | — |
-| [S25.3](stories/S25.3-find-journeys-including-part-of-a-route.md) | new | Find journeys including part of a route | 🟡 partial | 2 | S25.1 | — |
-| [S25.4](stories/S25.4-request-a-seat-and-get-confirmed.md) | new | Request a seat and get confirmed | ⬜ todo | 3 | S25.2, S25.3 | — |
-| [S25.5](stories/S25.5-journey-cancellation-rules.md) | new | Journey cancellation rules | ⬜ todo | 4 | S25.4 | — |
-| [S25.6](stories/S25.6-complete-the-journey-and-rate.md) | new | Complete the journey and rate | ⬜ todo | 4 | S25.4 | — |
-| [S25.7](stories/S25.7-admin-journey-oversight.md) | new | Admin journey oversight | ⬜ todo | 4 | S25.4 | — |
+| [S25.1](stories/S25.1-publish-a-journey-with-stops-and-segment-fares.md) | [#204](https://github.com/sebastien15/Jali/issues/204) | Publish a journey with stops and segment fares | 🟡 partial | 1 | — | — |
+| [S25.2](stories/S25.2-seat-capacity-per-route-segment.md) | [#205](https://github.com/sebastien15/Jali/issues/205) | Seat capacity per route segment | ⬜ todo | 2 | S25.1 | — |
+| [S25.3](stories/S25.3-find-journeys-including-part-of-a-route.md) | [#206](https://github.com/sebastien15/Jali/issues/206) | Find journeys including part of a route | 🟡 partial | 2 | S25.1 | — |
+| [S25.4](stories/S25.4-request-a-seat-and-get-confirmed.md) | [#207](https://github.com/sebastien15/Jali/issues/207) | Request a seat and get confirmed | ⬜ todo | 3 | S25.2, S25.3 | — |
+| [S25.5](stories/S25.5-journey-cancellation-rules.md) | [#208](https://github.com/sebastien15/Jali/issues/208) | Journey cancellation rules | ⬜ todo | 4 | S25.4 | — |
+| [S25.6](stories/S25.6-complete-the-journey-and-rate.md) | [#209](https://github.com/sebastien15/Jali/issues/209) | Complete the journey and rate | ⬜ todo | 4 | S25.4 | — |
+| [S25.7](stories/S25.7-admin-journey-oversight.md) | [#210](https://github.com/sebastien15/Jali/issues/210) | Admin journey oversight | ⬜ todo | 4 | S25.4 | — |
 
 ## Batch 4 — Nearby drivers with their own cars and fares
 
@@ -459,7 +459,7 @@ Owner module: `Modules/Safety` · `features/nearby-rides`
 
 Operator departures, seat inventory, tickets, cancellation and operator tools. Internal order not fixed.
 
-### E26 — Bus ticketing · new
+### E26 — Bus ticketing · [#176](https://github.com/sebastien15/Jali/issues/176)
 
 Batch 5+. Reliable operator departures with dated seat inventory, ticket confirmation, cancellation and operator tools, replacing the legacy trip tables safely.
 
@@ -467,18 +467,18 @@ Owner module: `Modules/Bus`, `Modules/LegacyBookings` · `features/bus`
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S26.1](stories/S26.1-dated-departures-with-seat-inventory.md) | new | Dated departures with seat inventory | ⬜ todo | 1 | — | — |
-| [S26.2](stories/S26.2-book-bus-seats.md) | new | Book bus seats | 🟡 partial | 2 | S26.1 | — |
-| [S26.3](stories/S26.3-tickets-i-can-show-at-boarding.md) | new | Tickets I can show at boarding | 🟡 partial | 3 | S26.2 | — |
-| [S26.4](stories/S26.4-bus-ticket-cancellation.md) | new | Bus ticket cancellation | ⬜ todo | 3 | S26.2 | — |
-| [S26.5](stories/S26.5-operator-tools-departures-capacity-and-boarding-li.md) | new | Operator tools: departures, capacity and boarding list | 🟡 partial | 2 | S26.1 | — |
-| [S26.6](stories/S26.6-retire-legacy-trip-and-bus-tables.md) | new | Retire legacy trip and bus tables | ⬜ todo | 2 | S26.1 | — |
+| [S26.1](stories/S26.1-dated-departures-with-seat-inventory.md) | [#211](https://github.com/sebastien15/Jali/issues/211) | Dated departures with seat inventory | ⬜ todo | 1 | — | — |
+| [S26.2](stories/S26.2-book-bus-seats.md) | [#212](https://github.com/sebastien15/Jali/issues/212) | Book bus seats | 🟡 partial | 2 | S26.1 | — |
+| [S26.3](stories/S26.3-tickets-i-can-show-at-boarding.md) | [#213](https://github.com/sebastien15/Jali/issues/213) | Tickets I can show at boarding | 🟡 partial | 3 | S26.2 | — |
+| [S26.4](stories/S26.4-bus-ticket-cancellation.md) | [#214](https://github.com/sebastien15/Jali/issues/214) | Bus ticket cancellation | ⬜ todo | 3 | S26.2 | — |
+| [S26.5](stories/S26.5-operator-tools-departures-capacity-and-boarding-li.md) | [#215](https://github.com/sebastien15/Jali/issues/215) | Operator tools: departures, capacity and boarding list | 🟡 partial | 2 | S26.1 | — |
+| [S26.6](stories/S26.6-retire-legacy-trip-and-bus-tables.md) | [#216](https://github.com/sebastien15/Jali/issues/216) | Retire legacy trip and bus tables | ⬜ todo | 2 | S26.1 | — |
 
 ## Cargo / freight — batch TBD
 
 Goods-vehicle booking and return-load matching. Owner-approved scope; launch position not assigned.
 
-### E27 — Cargo & freight · new
+### E27 — Cargo & freight · [#177](https://github.com/sebastien15/Jali/issues/177)
 
 Batch TBD. Book a goods vehicle (e.g. a utility truck) with a clear quote, or fill a carrier's empty return journey — with proof of pickup and delivery and clear responsibility for goods.
 
@@ -486,13 +486,13 @@ Owner module: `Modules/Cargo` (new) · `features/cargo` (new)
 
 | ID | Issue | Story | Status | Wave | Depends on | Inspired by |
 |---|---|---|---|---|---|---|
-| [S27.1](stories/S27.1-cargo-scope-rules-and-operating-requirements.md) | new | Cargo scope, rules and operating requirements | ⬜ todo | 1 | — | — |
-| [S27.2](stories/S27.2-carrier-and-goods-vehicle-onboarding.md) | new | Carrier and goods-vehicle onboarding | ⬜ todo | 2 | S27.1, S1.4 | — |
-| [S27.3](stories/S27.3-request-a-cargo-job.md) | new | Request a cargo job | ⬜ todo | 2 | S27.1 | — |
-| [S27.4](stories/S27.4-carrier-quotes-and-confirmation.md) | new | Carrier quotes and confirmation | ⬜ todo | 3 | S27.2, S27.3 | — |
-| [S27.5](stories/S27.5-pickup-and-delivery-evidence.md) | new | Pickup and delivery evidence | ⬜ todo | 4 | S27.4 | — |
-| [S27.6](stories/S27.6-return-load-listings-and-matching.md) | new | Return-load listings and matching | ⬜ todo | 3 | S27.2 | — |
-| [S27.7](stories/S27.7-cargo-cancellation-damage-and-support.md) | new | Cargo cancellation, damage and support | ⬜ todo | 4 | S27.4 | — |
+| [S27.1](stories/S27.1-cargo-scope-rules-and-operating-requirements.md) | [#217](https://github.com/sebastien15/Jali/issues/217) | Cargo scope, rules and operating requirements | ⬜ todo | 1 | — | — |
+| [S27.2](stories/S27.2-carrier-and-goods-vehicle-onboarding.md) | [#218](https://github.com/sebastien15/Jali/issues/218) | Carrier and goods-vehicle onboarding | ⬜ todo | 2 | S27.1, S1.4 | — |
+| [S27.3](stories/S27.3-request-a-cargo-job.md) | [#219](https://github.com/sebastien15/Jali/issues/219) | Request a cargo job | ⬜ todo | 2 | S27.1 | — |
+| [S27.4](stories/S27.4-carrier-quotes-and-confirmation.md) | [#220](https://github.com/sebastien15/Jali/issues/220) | Carrier quotes and confirmation | ⬜ todo | 3 | S27.2, S27.3 | — |
+| [S27.5](stories/S27.5-pickup-and-delivery-evidence.md) | [#221](https://github.com/sebastien15/Jali/issues/221) | Pickup and delivery evidence | ⬜ todo | 4 | S27.4 | — |
+| [S27.6](stories/S27.6-return-load-listings-and-matching.md) | [#222](https://github.com/sebastien15/Jali/issues/222) | Return-load listings and matching | ⬜ todo | 3 | S27.2 | — |
+| [S27.7](stories/S27.7-cargo-cancellation-damage-and-support.md) | [#223](https://github.com/sebastien15/Jali/issues/223) | Cargo cancellation, damage and support | ⬜ todo | 4 | S27.4 | — |
 
 ## Later — after the core batches
 
