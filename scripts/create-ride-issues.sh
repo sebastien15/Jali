@@ -16,7 +16,7 @@ for l in epic:5319e7 user-story:0e8a16 track-foundation:c5def5 batch-1-rental:00
          safety:b60205 security:b60205 international:0e8a16 analytics:c2e0c6 bug:d73a4a tech-debt:cccccc; do
   ensure_label "${l%%:*}" "${l##*:}"
 done
-for w in $(seq 1 5); do ensure_label "wave-$w" ededed; done
+for w in $(seq 1 4); do ensure_label "wave-$w" ededed; done
 
 declare -A EPIC_NUM
 create() { # title labels file -> prints issue number
@@ -492,28 +492,28 @@ tmp=$(mktemp); { cat "$DIR/S24.1-browse-available-cars-for-my-dates.md"; echo; e
 n=$(create "S24.1 Browse available cars for my dates" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.1 Browse available cars for my dates"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.2-rental-calendar-and-no-double-booking.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.2 Rental calendar and no double booking" "user-story,batch-1-rental,wave-2,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.2 Rental calendar and no double booking"
+n=$(create "S24.2 Rental calendar and no double booking" "user-story,batch-1-rental,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.2 Rental calendar and no double booking"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.3-clear-price-and-rental-terms-before-i-request.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
 n=$(create "S24.3 Clear price and rental terms before I request" "user-story,batch-1-rental,wave-2,mobile,backend,pricing" "$tmp"); rm -f "$tmp"; echo "#$n S24.3 Clear price and rental terms before I request"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.4-request-a-car-and-get-the-owner-s-confirmation.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.4 Request a car and get the owner's confirmation" "user-story,batch-1-rental,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.4 Request a car and get the owner's confirmation"
+n=$(create "S24.4 Request a car and get the owner's confirmation" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.4 Request a car and get the owner's confirmation"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.5-cancel-a-rental.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.5 Cancel a rental" "user-story,batch-1-rental,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.5 Cancel a rental"
+n=$(create "S24.5 Cancel a rental" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.5 Cancel a rental"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.5" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.6-handover-and-return.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.6 Handover and return" "user-story,batch-1-rental,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.6 Handover and return"
+n=$(create "S24.6 Handover and return" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.6 Handover and return"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.6" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.7-owner-rental-dashboard.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.7 Owner rental dashboard" "user-story,batch-1-rental,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.7 Owner rental dashboard"
+n=$(create "S24.7 Owner rental dashboard" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.7 Owner rental dashboard"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.8-rental-owner-and-car-verification.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
 n=$(create "S24.8 Rental owner and car verification" "user-story,batch-1-rental,wave-1,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.8 Rental owner and car verification"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.8" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.9-admin-rental-operations-and-support.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-5,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
+n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-2,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.9" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.1-publish-a-journey-with-stops-and-segment-fares.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
 n=$(create "S25.1 Publish a journey with stops and segment fares" "user-story,batch-3-shared-journeys,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.1 Publish a journey with stops and segment fares"

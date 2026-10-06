@@ -40,15 +40,17 @@ export const PERSIST_SCHEMA_VERSION = "jali-query-v1";
 /**
  * Never written to disk (runbook §5.6): ride detail/active/history and chat
  * (start PINs, live positions, messages), hire job detail, the driver's own
- * onboarding/profile (licence, national ID, documents) and admin driver
- * applications (documents). They are refetched when opened.
+ * onboarding/profile (licence, national ID, documents), admin driver
+ * applications (documents) and rentals (contacts and handover records). They are refetched when opened.
  */
 export function isSensitiveQueryKey(key: readonly unknown[]): boolean {
   const [root, second] = key;
   if (root === "rides") return true;
+  // Rentals: phone numbers after acceptance, handover records, owner papers state
+  if (root === "rentals") return second === "bookings" || second === "booking";
   if (root === "hire") return typeof second === "number";
-  if (root === "driver") return second === "onboarding" || second === "profile";
-  if (root === "admin") return second === "drivers";
+  if (root === "driver") return second === "onboarding" || second === "profile" || second === "rentals" || second === "rental";
+  if (root === "admin") return second === "drivers" || second === "rentalCars" || second === "rentalCar" || second === "rentals" || second === "rental";
   return false;
 }
 

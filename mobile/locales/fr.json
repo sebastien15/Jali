@@ -123,7 +123,8 @@
     "from": "De",
     "to": "Vers",
     "filterRides": "courses",
-    "filterHires": "chauffeurs"
+    "filterHires": "chauffeurs",
+    "filterRentals": "locations"
   },
   "login": {
     "enterPhone": "Entrez votre numéro rwandais",

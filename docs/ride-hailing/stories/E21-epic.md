@@ -16,7 +16,7 @@ Monitoring, CI, staging with simulated drivers, load tests, fraud prevention, da
 - S21.10 — Feature flags and remote config (wave 1, ⬜ todo)
 - S21.11 — Backups and disaster recovery (wave 1, ⬜ todo)
 - S21.12 — Performance on low-end Android (wave 1, ⬜ todo)
-- S21.13 — Fix: production backend deploy fails after upload (wave 1, ⬜ todo)
+- S21.13 — Fix: production backend deploy fails after upload (wave 1, ✅ built)
 
 ## Done when
 - [ ] All stories in this epic are closed

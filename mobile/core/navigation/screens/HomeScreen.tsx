@@ -15,7 +15,7 @@ import { ModeTabs } from "@/components/home/ModeTabs";
 import { RideNowBar, ActiveRideBanner } from "@/features/nearby-rides";
 import { HireDriverBar } from "@/features/driver-hire";
 import { PrivateResults } from "@/features/shared-journeys";
-import { RentalResults } from "@/features/rentals";
+import { RentalSearchPanel } from "@/features/rentals";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { toYmd } from "@/lib/date";
@@ -31,7 +31,6 @@ export default function HomeScreen() {
   });
 
   const [mode, setMode]               = useState<Mode>("bus");
-  const [rentalDays, setRentalDays]   = useState(1);
   const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
 
   const [sheet, setSheet]             = useState<any>(null);
@@ -82,13 +81,7 @@ export default function HomeScreen() {
     staleTime: 60_000,
   });
 
-  // ── Car rentals — pre-fetched in background immediately on mount ──────────
-  const rentalsQuery = useQuery({
-    queryKey: queryKeys.carRentals.all(),
-    queryFn: () => api.get("/car-rentals").then(r => r.data ?? []),
-    staleTime: 15 * 60_000,
-    gcTime: 30 * 60_000,
-  });
+  // Car rentals: RentalSearchPanel loads cars for the chosen dates itself (epic E24)
 
   // ── Private seats — paginated, 10 per page, location-aware ─────────────
   const privateQuery = useInfiniteQuery({
@@ -113,27 +106,20 @@ export default function HomeScreen() {
   });
 
   const trips        = tripsQuery.data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
-  const cars         = rentalsQuery.data  ?? [];
   const privateSeats = privateQuery.data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
 
   // isLoading is true only on first load (no cached data). isFetching includes background refetches.
   const loading = mode === "bus"
     ? tripsQuery.isLoading
-    : mode === "rental"
-      ? rentalsQuery.isLoading
-      : privateQuery.isLoading;
+    : privateQuery.isLoading;
 
   const error = mode === "bus"
     ? (tripsQuery.error as any)?.response?.data?.message ?? (tripsQuery.error ? "Failed to load." : null)
-    : mode === "rental"
-      ? (rentalsQuery.error as any)?.response?.data?.message ?? (rentalsQuery.error ? "Failed to load." : null)
-      : (privateQuery.error as any)?.response?.data?.message ?? (privateQuery.error ? "Failed to load." : null);
+    : (privateQuery.error as any)?.response?.data?.message ?? (privateQuery.error ? "Failed to load." : null);
 
   const refetchActive = mode === "bus"
     ? tripsQuery.refetch
-    : mode === "rental"
-      ? rentalsQuery.refetch
-      : privateQuery.refetch;
+    : privateQuery.refetch;
 
   // Agency names extracted from past bus bookings (title format: "Agency · from → to")
   const bookedAgencyNames = useMemo(() => toBookedAgencyNames(bookingsQuery.data ?? []), [bookingsQuery.data]);
@@ -220,14 +206,7 @@ export default function HomeScreen() {
             isFetchingNextPage={privateQuery.isFetchingNextPage}
           />
         )}
-        {mode === "rental" && (
-          <RentalResults
-            cars={cars} loading={loading} error={error}
-            days={rentalDays} onChangeDays={setRentalDays}
-            onPress={(car, days) => setSheet({ type: "rental", item: car, days, travelDate: dateParam })}
-            onRetry={refetchActive}
-          />
-        )}
+        {mode === "rental" && <RentalSearchPanel />}
       </ScrollView>
 
       {sheet && (
