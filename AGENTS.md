@@ -2,7 +2,7 @@
 
 Read [context.md](context.md) first for the authoritative technical reference and guards. Read [CLAUDE.md](CLAUDE.md) for the documentation/skills index and follow the task-relevant guidance it links.
 
-Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before work affecting public service scope, release sequencing or platform pricing. It records the batch rollout, passenger-transport-only scope and initial zero-Jali-fee policy.
+Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before work affecting public service scope, release sequencing, platform pricing, architectural boundaries or shared account/navigation/mode behavior. It records the batch rollout, passenger-and-cargo scope (cargo batch TBD), initial zero-Jali-fee policy, modular architecture direction and connected customer/provider UX. Detailed navigation examples are proposals, not an approved redesign.
 
 Flag a material deviation and its implications before acting. A clear owner-approved change supersedes the baseline; do not ask for the same approval again. Record changed decisions when documentation edits are authorized.
 

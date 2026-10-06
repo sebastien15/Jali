@@ -10,11 +10,13 @@ A Rwandan transport booking app. Users browse and book buses, private cars, and 
 
 ---
 
-## Release Direction
+## Release, Architecture & Shared UX Direction
 
-Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before public-service scope, release-order or platform-pricing work. It is the agreed rollout policy: rental → scheduled private drivers → private shared journeys → nearby drivers → further passenger transport, initially with no Jali platform fees.
+Read [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md) before public-service scope, release-order, platform-pricing, module-boundary or shared account/navigation/mode work. The agreed early sequence remains rental → scheduled private drivers → private shared journeys → nearby drivers → further passenger transport, initially with no Jali platform fees. Cargo/freight is an approved separate service; its public batch is TBD. Courier/parcel and food delivery remain excluded.
 
-Flag material deviations and their implications; honor explicit owner-approved changes and record them when documentation edits are authorized. Backlog dependency waves are implementation order, not public launch order. Existing code is not proof of launch readiness, and this policy does not authorize implementation, deployment or issue changes.
+The target direction is a modular Laravel backend and modular Expo app with shared foundations, one account, connected customer/provider views and additive releases; extraction or separate apps need a justified later decision. Keep permissions, view mode, selected service, offered services and operational availability distinct. Detailed navigation examples remain proposals, not an approved redesign or a description of current implementation.
+
+Flag material deviations and their implications; honor explicit owner-approved changes and record them when documentation edits are authorized. Backlog dependency waves are implementation order, not public launch order. Existing code is not proof of launch readiness or completed modularization. This plan does not authorize implementation, service activation, infrastructure provisioning, deployment or issue changes.
 
 ---
 
