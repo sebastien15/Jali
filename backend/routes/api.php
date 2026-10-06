@@ -2,6 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PushTokenController;
+use App\Http\Controllers\DriverRateController;
+use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\DriverOnboardingController;
+use App\Http\Controllers\DriverPresenceController;
+use App\Http\Controllers\RideController;
+use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\DriverRideController;
+use App\Http\Controllers\HireController;
+use App\Http\Controllers\DriverHireController;
+use App\Http\Controllers\DriverHireSettingsController;
+use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\AdminDriverController;
+use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\CarRentalController;
@@ -28,13 +42,14 @@ use App\Http\Controllers\Admin\PermissionsController;
 Route::post("/track-access", [AppAccessController::class, "store"]);
 
 // ── Auth Routes (no token required) ──
-Route::post("/auth/login", [AuthController::class, "login"]);
+// Rate limits (S21.7) are defined in AppServiceProvider::configureRateLimits()
+Route::post("/auth/login", [AuthController::class, "login"])->middleware("throttle:auth");
 Route::post("/auth/login/google", [
     AuthController::class,
     "loginWithGoogle",
-]);
-Route::post("/auth/otp/request", [AuthController::class, "requestOtp"]);
-Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
+])->middleware("throttle:auth");
+Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
+Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {
@@ -47,6 +62,8 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
+    Route::post("/me/push-token", [PushTokenController::class, "store"]);
+    Route::delete("/me/push-token", [PushTokenController::class, "destroy"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
     Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
 
@@ -74,16 +91,112 @@ Route::middleware("auth:sanctum")->group(function () {
         ]);
     });
 
+    // Rider: on-demand rides — RIDE_HAILING_PLAN.md §4–5
+    Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
+        Route::get("/nearby", [RideController::class, "nearby"]);
+        Route::get("/", [RideController::class, "index"]);
+        Route::post("/", [RideController::class, "store"])->middleware("throttle:ride-requests");
+        Route::get("/active", [RideController::class, "active"]);
+        Route::get("/{id}", [RideController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/cancel", [RideController::class, "cancel"])->whereNumber("id");
+        Route::post("/{id}/rate", [RideController::class, "rate"])->whereNumber("id");
+    });
+    // Driver side of a ride — stories S5.2, S4.1, S4.2, S4.4
+    Route::middleware("permission:offer-rides")->group(function () {
+        Route::get("/driver/ride-requests", [DriverRideController::class, "requests"]);
+        Route::post("/rides/{id}/accept", [DriverRideController::class, "accept"])->whereNumber("id");
+        Route::post("/rides/{id}/decline", [DriverRideController::class, "decline"])->whereNumber("id");
+        Route::post("/rides/{id}/arrive", [DriverRideController::class, "arrive"])->whereNumber("id");
+        Route::post("/rides/{id}/start", [DriverRideController::class, "start"])->whereNumber("id");
+        Route::post("/rides/{id}/complete", [DriverRideController::class, "complete"])->whereNumber("id");
+    });
+    Route::middleware(["permission:request-rides", "throttle:60,1"])->prefix("places")->group(function () {
+        Route::get("/search", [PlaceController::class, "search"]);
+        Route::get("/reverse", [PlaceController::class, "reverse"]);
+    });
+
+    // Online/offline + location heartbeat — story S5.1
+    Route::middleware("permission:offer-rides")->prefix("driver")->group(function () {
+        Route::get("/presence", [DriverPresenceController::class, "show"]);
+        Route::post("/presence", [DriverPresenceController::class, "update"]);
+    });
+
+    // Driver verification queue — story S1.4
+    Route::middleware("permission:verify-drivers")->prefix("admin/drivers")->group(function () {
+        Route::get("/", [AdminDriverController::class, "index"]);
+        Route::get("/{userId}", [AdminDriverController::class, "show"])->whereNumber("userId");
+        Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
+        Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");
+        Route::post("/{userId}/suspend", [AdminDriverController::class, "suspend"])->whereNumber("userId");
+    });
+
+    // Hire a Driver: customer side — stories S6.3, S6.4
+    Route::middleware("permission:request-rides")->prefix("driver-hire")->group(function () {
+        Route::get("/available", [HireController::class, "available"]);
+        Route::get("/", [HireController::class, "index"]);
+        Route::post("/", [HireController::class, "store"])->middleware("throttle:ride-requests");
+        Route::get("/{id}", [HireController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/cancel", [HireController::class, "cancel"])->whereNumber("id");
+        Route::post("/{id}/rate", [HireController::class, "rate"])->whereNumber("id");
+    });
+    // Hire a Driver: driver side — stories S6.1, S6.2, S6.4
+    Route::middleware("permission:offer-driver-hire")->group(function () {
+        Route::get("/driver/hire-settings", [DriverHireSettingsController::class, "show"]);
+        Route::put("/driver/hire-settings", [DriverHireSettingsController::class, "update"]);
+        Route::get("/driver/availability", [DriverHireSettingsController::class, "availability"]);
+        Route::put("/driver/availability", [DriverHireSettingsController::class, "updateAvailability"]);
+        Route::get("/driver/hires", [DriverHireController::class, "index"]);
+        Route::post("/driver-hire/{id}/accept", [DriverHireController::class, "accept"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/decline", [DriverHireController::class, "decline"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/check-in", [DriverHireController::class, "checkIn"])->whereNumber("id");
+        Route::post("/driver-hire/{id}/check-out", [DriverHireController::class, "checkOut"])->whereNumber("id");
+    });
+
+    // Ride operations — stories S10.1, S10.2
+    Route::middleware("permission:manage-rides")->prefix("admin/rides")->group(function () {
+        Route::get("/live", [AdminRideController::class, "live"]);
+        Route::get("/", [AdminRideController::class, "index"]);
+        Route::get("/{id}", [AdminRideController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/adjust", [AdminRideController::class, "adjust"])->whereNumber("id");
+    });
+
+    // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3
+    Route::middleware("permission:manage-ride-pricing")->group(function () {
+        Route::get("/admin/settings/rides", [RideSettingsController::class, "show"]);
+        Route::put("/admin/settings/rides", [RideSettingsController::class, "update"]);
+    });
+
+    // Driver onboarding — any signed-in user can apply (stories S1.1–S1.3)
+    Route::middleware("permission:apply-as-driver")->prefix("driver")->group(function () {
+        Route::get("/vehicles", [VehicleController::class, "index"]);
+        Route::post("/vehicles", [VehicleController::class, "store"]);
+        Route::patch("/vehicles/{id}", [VehicleController::class, "update"])->whereNumber("id");
+        Route::delete("/vehicles/{id}", [VehicleController::class, "destroy"])->whereNumber("id");
+        Route::post("/vehicles/{id}/activate", [VehicleController::class, "activate"])->whereNumber("id");
+        Route::post("/vehicles/{id}/photos", [VehicleController::class, "uploadPhoto"])->whereNumber("id");
+
+        Route::get("/onboarding", [DriverOnboardingController::class, "show"]);
+        Route::put("/onboarding/services", [DriverOnboardingController::class, "services"]);
+        Route::put("/onboarding/licence", [DriverOnboardingController::class, "licence"]);
+        Route::post("/onboarding/submit", [DriverOnboardingController::class, "submit"]);
+        Route::post("/documents", [DriverOnboardingController::class, "uploadDocument"]);
+        // Owner or verify-drivers only — checked in the controller (404 otherwise)
+        Route::get("/documents/{id}/file", [DriverOnboardingController::class, "documentFile"])->whereNumber("id");
+
+        Route::get("/profile", [DriverController::class, "profile"]);
+        Route::patch("/profile", [DriverController::class, "updateProfile"]);
+
+        // Applicants set prices before verification; going online still needs offer-rides (S5.1)
+        Route::get("/rates", [DriverRateController::class, "show"]);
+        Route::put("/rates", [DriverRateController::class, "update"]);
+    });
+
     // Driver routes
     Route::middleware("permission:create-private-seats")
         ->prefix("driver")
         ->group(function () {
             Route::get("/stats", [DriverController::class, "stats"]);
             Route::get("/trips", [DriverController::class, "trips"]);
-            Route::patch("/profile", [
-                DriverController::class,
-                "updateProfile",
-            ]);
             Route::get("/listings", [
                 PrivateSeatController::class,
                 "driverListings",

@@ -83,6 +83,33 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function driverProfile(): HasOne
+    {
+        return $this->hasOne(DriverProfile::class);
+    }
+
+    public function driverDocuments(): HasMany
+    {
+        return $this->hasMany(DriverDocument::class);
+    }
+
+    /** Hire-a-driver prices (story S6.1) */
+    public function hireSettings(): HasOne
+    {
+        return $this->hasOne(DriverHireSetting::class);
+    }
+
+    /** Weekly hours and blocked dates (story S6.2) */
+    public function availability(): HasMany
+    {
+        return $this->hasMany(DriverAvailability::class);
+    }
+
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
+
     public function adminStation(): HasOne
     {
         return $this->hasOne(AdminStation::class);

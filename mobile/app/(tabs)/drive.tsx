@@ -27,9 +27,13 @@ import { DriverTypeBanner } from "@/components/driver/DriverTypeBanner";
 import { WeekSummaryCard } from "@/components/driver/WeekSummaryCard";
 import {
   FleetActionCard,
+  RidePricesCard,
   PrivateListingsCard,
 } from "@/components/driver/DriverActionCard";
 import { PickupZones } from "@/components/driver/PickupZones";
+import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
+import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
+import { HireRequestsCard } from "@/components/driver/HireRequestsCard";
 import {
   TripsTabs,
   TripsEmptyState,
@@ -39,7 +43,9 @@ import {
 export default function DriveScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { driverType, setDriverType } = useDriverMode();
+  const { driverType, setDriverType, permissions } = useDriverMode();
+  const canOfferRides = permissions.includes("offer-rides");
+  const canOfferHire = permissions.includes("offer-driver-hire");
   const isRental = driverType === "rental";
 
   const [online, setOnline] = useState(false);
@@ -138,6 +144,13 @@ export default function DriveScreen() {
           />
         }
       >
+        {/* On-demand rides: online / offline */}
+        {canOfferRides ? <ActiveRideBanner role="driver" /> : null}
+        <OnlineToggleCard enabled={canOfferRides} />
+
+        {/* Hire a Driver: requests, upcoming hires, prices & availability */}
+        {canOfferHire ? <HireRequestsCard /> : null}
+
         {/* Week summary card */}
         {stats && <WeekSummaryCard stats={stats} />}
 
@@ -147,6 +160,9 @@ export default function DriveScreen() {
         ) : (
           <PrivateListingsCard driverListings={driverListings} />
         )}
+
+        {/* On-demand rides: driver-set prices */}
+        <RidePricesCard />
 
         {/* Pickup zones */}
         <PickupZones activeZones={activeZones} onToggleZone={toggleZone} />

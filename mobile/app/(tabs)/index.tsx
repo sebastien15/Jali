@@ -6,10 +6,13 @@ import * as Location from "expo-location";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
 import { TripResult, TripDeparture } from "@/components/TripCard";
-import { TripBookingSheet } from "@/components/TripBookingSheet";
+import { TripBookingSheet, type TripData } from "@/components/TripBookingSheet";
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
+import { RideNowBar } from "@/components/home/RideNowBar";
+import { HireDriverBar } from "@/components/home/HireDriverBar";
+import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/components/home/PrivateResults";
@@ -45,7 +48,7 @@ export default function HomeScreen() {
   const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
 
   const [sheet, setSheet]             = useState<any>(null);
-  const [tripSheet, setTripSheet]     = useState<TripResult | null>(null);
+  const [tripSheet, setTripSheet]     = useState<TripData | null>(null);
   const [tripSheetDate, setTripSheetDate] = useState<string>("");
 
   // User location — best-effort, doesn't block rendering
@@ -213,6 +216,10 @@ export default function HomeScreen() {
         onSwap={() => { const tmp = from; setFrom(to); setTo(tmp); }}
         selectedDate={selectedDate} onDateChange={setSelectedDate}
       />
+
+      <ActiveRideBanner role="rider" />
+      <RideNowBar />
+      <HireDriverBar />
 
       <ModeTabs mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />
 

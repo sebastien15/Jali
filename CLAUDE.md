@@ -24,12 +24,17 @@ Jali/
 | Routing conventions | Mobile | `.claude/skills/routing.md` |
 | Deployment & hosting URLs | Infra | `.claude/skills/deployment.md` |
 | TanStack migration plan | Mobile | `TANSTACK_PLAN.md` |
+| Ride-hailing & hire-a-driver plan | Full stack | `RIDE_HAILING_PLAN.md` |
+| Ride-hailing user stories (backlog) | Full stack | `docs/ride-hailing/USER_STORIES.md` |
+| Multi-agent rules for ride stories | Full stack | `docs/ride-hailing/AI_AGENTS_GUIDE.md` |
+| API contract (OpenAPI, source of truth) | Full stack | `docs/api/README.md` |
 
 ## Quick Rules
 
 - **Guards**: every new backend route needs `auth:sanctum` + `permission:<x>` — see `context.md` §Guard Requirements
 - **Theme colors**: always use `C.xxx` from `constants/theme.ts`, never raw hex
 - **API instance**: always import from `lib/api.ts`, never create a new Axios instance
+- **API contract**: change `docs/api/openapi.yaml` in the same PR as the endpoint; use types from `lib/apiSchema.ts`
 - **Roles**: use `ROLES` from `constants/roles.ts` and `isAdminRole()` helper
 
 ## Self-Update Rule

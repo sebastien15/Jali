@@ -10,6 +10,8 @@ import { C } from "@/constants/theme";
 import { TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { RideHistory } from "@/components/rides/RideHistory";
+import { HireHistory } from "@/components/rides/HireHistory";
 
 const TYPE_COLOR: Record<TripType, string> = {
   bus: C.blue, rental: C.green, private: C.orange,
@@ -23,7 +25,7 @@ const STATUS_COLOR: Record<TripStatus, string> = {
 
 export default function TripsScreen() {
   const { t } = useTranslation();
-  const [filter, setFilter]   = useState<"all" | TripStatus>("all");
+  const [filter, setFilter]   = useState<"all" | "rides" | "hires" | TripStatus>("all");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const { data: bookings = [], isLoading, isRefetching, error, refetch } = useQuery({
@@ -36,7 +38,7 @@ export default function TripsScreen() {
     ?? (error as any)?.response?.data?.error
     ?? (error ? "Failed to load trips" : null);
 
-  const list = filter === "all" ? bookings : bookings.filter((t: any) => t.status === filter);
+  const list = filter === "all" || filter === "rides" || filter === "hires" ? bookings : bookings.filter((t: any) => t.status === filter);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.blue }} edges={["top", "left", "right"]}>
@@ -50,7 +52,7 @@ export default function TripsScreen() {
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 8, paddingBottom: 16 }}>
-            {(["all", "pending", "confirmed", "completed"] as const).map(f => (
+            {(["all", "rides", "hires", "pending", "confirmed", "completed"] as const).map(f => (
               <TouchableOpacity
                 key={f}
                 onPress={() => setFilter(f)}
@@ -63,7 +65,7 @@ export default function TripsScreen() {
                   color: filter === f ? C.dark : C.white,
                   fontWeight: "800", fontSize: 13, textTransform: "capitalize",
                 }}>
-                  {f === "all" ? t('trips.filterAll') : f === "pending" ? t('trips.filterPending') : f === "confirmed" ? t('trips.filterConfirmed') : t('trips.filterCompleted')}
+                  {f === "all" ? t('trips.filterAll') : f === "rides" ? t('trips.filterRides') : f === "hires" ? t('trips.filterHires') : f === "pending" ? t('trips.filterPending') : f === "confirmed" ? t('trips.filterConfirmed') : t('trips.filterCompleted')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -71,6 +73,7 @@ export default function TripsScreen() {
         </ScrollView>
       </View>
 
+      {filter === "rides" ? <RideHistory /> : filter === "hires" ? <HireHistory /> : (
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -115,10 +118,10 @@ export default function TripsScreen() {
           >
             <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
               <View style={{
-                backgroundColor: TYPE_COLOR[trip.type], borderRadius: 14,
+                backgroundColor: TYPE_COLOR[trip.type as TripType], borderRadius: 14,
                 width: 46, height: 46, alignItems: "center", justifyContent: "center",
               }}>
-                <Text style={{ fontSize: 22 }}>{TYPE_ICON[trip.type]}</Text>
+                <Text style={{ fontSize: 22 }}>{TYPE_ICON[trip.type as TripType]}</Text>
               </View>
 
               <View style={{ flex: 1 }}>
@@ -131,7 +134,7 @@ export default function TripsScreen() {
                   {trip.price.toLocaleString()} RWF
                 </Text>
                 <View style={{
-                  backgroundColor: STATUS_COLOR[trip.status],
+                  backgroundColor: STATUS_COLOR[trip.status as TripStatus],
                   borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4,
                 }}>
                   <Text style={{
@@ -177,6 +180,7 @@ export default function TripsScreen() {
           </View>
         ))}
       </ScrollView>
+      )}
 
       {/* Full-screen ticket photo viewer */}
       <Modal visible={!!photoUrl} animationType="fade" transparent>
