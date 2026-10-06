@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
-import { helpLocale, SUPPORT_WHATSAPP, type HelpTopic } from "../support";
+import { helpLocale, SUPPORT_WHATSAPP, type HelpTopic, type SubjectType } from "../support";
 
 /** Help centre: search and browse topics in the app language (S16.2) */
 export default function HelpCentreScreen() {
@@ -56,11 +56,21 @@ export default function HelpCentreScreen() {
   );
 }
 
-export function ContactCard() {
+export function ContactCard({ subject, category }: { subject?: { type: SubjectType; id: number }; category?: string } = {}) {
   const { t } = useTranslation();
+  const params = { ...(subject ? { subject_type: subject.type, subject_id: String(subject.id) } : {}), ...(category ? { category } : {}) };
   return (
-    <View style={{ backgroundColor: C.tealLt, borderRadius: 14, padding: 14, gap: 8, marginTop: 6 }}>
+    <View style={{ backgroundColor: C.tealLt, borderRadius: 14, padding: 14, gap: 10, marginTop: 6 }}>
       <Text style={{ fontWeight: "800", color: C.dark }}>{t("help.stillNeedHelp", "Still need help?")}</Text>
+      <TouchableOpacity onPress={() => router.push({ pathname: "/support/new", params } as any)} accessibilityLabel={t("help.contact", "Contact Jali support")}
+        style={{ backgroundColor: C.teal, borderRadius: 12, paddingVertical: 12, alignItems: "center" }}>
+        <Text style={{ color: C.white, fontWeight: "800" }}>{t("help.contact", "Contact Jali support")}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push("/support" as any)} accessibilityLabel={t("support.myTickets", "My support tickets")}
+        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Ionicons name="chatbubbles-outline" size={18} color={C.teal} />
+        <Text style={{ color: C.teal, fontWeight: "700" }}>{t("support.myTickets", "My support tickets")}</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => Linking.openURL(SUPPORT_WHATSAPP)} accessibilityLabel={t("help.whatsapp", "Chat with Jali on WhatsApp")}
         style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Ionicons name="logo-whatsapp" size={18} color={C.teal} />

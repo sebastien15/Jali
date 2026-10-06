@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaControll
 use App\Http\Controllers\ServiceAreaController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\SupportController;
+use App\Http\Controllers\Admin\SupportInboxController;
 use App\Http\Controllers\ServiceAccessController;
 use App\Http\Controllers\Admin\ServiceCatalogueController;
 use App\Http\Controllers\Admin\AdminDriverController;
@@ -236,6 +238,24 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:use-support")->prefix("help")->group(function () {
         Route::get("/topics", [HelpController::class, "index"]);
         Route::get("/topics/{slug}", [HelpController::class, "show"])->where("slug", "[a-z0-9-]+");
+    });
+    // Support tickets (S16.3)
+    Route::middleware("permission:use-support")->prefix("support/tickets")->group(function () {
+        Route::get("/", [SupportController::class, "index"]);
+        Route::post("/", [SupportController::class, "store"])->middleware("throttle:10,1");
+        Route::get("/{id}", [SupportController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/messages", [SupportController::class, "reply"])->whereNumber("id")->middleware("throttle:30,1");
+        Route::post("/{id}/resolve", [SupportController::class, "resolve"])->whereNumber("id");
+    });
+    Route::middleware("permission:manage-support")->prefix("admin/support")->group(function () {
+        Route::get("/tickets", [SupportInboxController::class, "index"]);
+        Route::get("/tickets/{id}", [SupportInboxController::class, "show"])->whereNumber("id");
+        Route::post("/tickets/{id}/messages", [SupportInboxController::class, "reply"])->whereNumber("id");
+        Route::post("/tickets/{id}/assign", [SupportInboxController::class, "assign"])->whereNumber("id");
+        Route::post("/tickets/{id}/status", [SupportInboxController::class, "status"])->whereNumber("id");
+        Route::get("/canned-replies", [SupportInboxController::class, "cannedIndex"]);
+        Route::post("/canned-replies", [SupportInboxController::class, "cannedStore"]);
+        Route::delete("/canned-replies/{id}", [SupportInboxController::class, "cannedDestroy"])->whereNumber("id");
     });
     Route::middleware("permission:manage-support")->prefix("admin/help-topics")->group(function () {
         Route::get("/", [HelpController::class, "adminIndex"]);

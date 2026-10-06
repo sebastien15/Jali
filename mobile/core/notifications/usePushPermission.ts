@@ -74,6 +74,10 @@ export function routeForNotification(data: Record<string, unknown> | undefined |
       return id ? `/driver/rentals/${id}` : "/driver/rentals";
     case "owner_car":
       return id ? `/driver/car/${id}` : "/driver/fleet";
+    case "support_ticket":
+      return id ? `/support/${id}` : "/support";
+    case "admin_support_ticket":
+      return id ? `/(admin)/support/${id}` : "/(admin)/support";
     default:
       return "/(tabs)/trips";
   }

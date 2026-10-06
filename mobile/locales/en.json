@@ -1207,6 +1207,44 @@
     "whatsapp": "Chat with Jali on WhatsApp",
     "missing": "This help topic is not available.",
     "forThisTrip": "Need help with this trip?",
-    "allTopics": "All help topics"
+    "allTopics": "All help topics",
+    "contact": "Contact Jali support"
+  },
+  "support": {
+    "myTickets": "My support tickets",
+    "new": "New ticket",
+    "none": "No tickets yet. Open one if you need a person to help.",
+    "error": "Could not send",
+    "tryAgain": "Please try again.",
+    "aboutTrip": "About this trip",
+    "whatHappened": "What is it about?",
+    "safetyNote": "Safety tickets are answered first. If you are in danger now, call 112.",
+    "describe": "Tell us what happened",
+    "send": "Send to Jali support",
+    "ticket": "Ticket",
+    "missing": "This ticket is not available.",
+    "urgentWait": "A Jali agent will answer within the hour.",
+    "wait": "A Jali agent will answer soon. We'll notify you.",
+    "resolved": "This ticket is resolved.",
+    "openAnother": "Open a new ticket",
+    "reply": "Write a reply",
+    "sendReply": "Send",
+    "solved": "My problem is solved",
+    "status": {
+      "open": "Waiting for Jali",
+      "answered": "Jali replied",
+      "resolved": "Resolved"
+    },
+    "cat": {
+      "charged_wrong": "Charged the wrong amount",
+      "driver_behaviour": "Driver behaviour",
+      "lost_item": "Lost item",
+      "safety": "Safety",
+      "cancel": "Cancelling",
+      "damage": "Damage",
+      "payment": "Payment",
+      "account": "My account",
+      "other": "Something else"
+    }
   }
 }

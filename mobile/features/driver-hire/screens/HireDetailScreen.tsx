@@ -177,7 +177,7 @@ export default function HireDetailScreen() {
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("hire.detail.cancel")}</Text>
           </TouchableOpacity>
         ) : null}
-        <View style={{ marginTop: 12 }}><HelpTopicsCard service="hire" /></View>
+        <View style={{ marginTop: 12 }}><HelpTopicsCard service="hire" subject={{ type: "hire", id: hire.id }} /></View>
       </ScrollView>
 
       <ReasonSheet

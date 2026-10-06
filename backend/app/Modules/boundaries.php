@@ -24,5 +24,5 @@ return [
     'Safety'         => ['Notifications', 'Providers'],   // SOS pushes via PushSender and texts via SmsSender; driver short name via ProviderDisplay
     'ServiceAccess'  => ['Locations', 'Providers'],   // S23.1 resolver: ServiceAreas (region) + ProviderServices (verified services)
     'SharedJourneys' => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (listings deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=private)
-    'Support'        => [],   // S16.2 help centre (S16.3 tickets add Notifications)
+    'Support'        => ['Notifications'],   // S16.2 help centre; S16.3 ticket replies / urgent alerts via PushSender
 ];

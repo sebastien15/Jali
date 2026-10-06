@@ -1207,6 +1207,44 @@
     "whatsapp": "Vugana na Jali kuri WhatsApp",
     "missing": "Iyi ngingo y'ubufasha ntiboneka.",
     "forThisTrip": "Ukeneye ubufasha kuri uru rugendo?",
-    "allTopics": "Ingingo zose z'ubufasha"
+    "allTopics": "Ingingo zose z'ubufasha",
+    "contact": "Vugana n'ubufasha bwa Jali"
+  },
+  "support": {
+    "myTickets": "Ibibazo nohereje",
+    "new": "Ikibazo gishya",
+    "none": "Nta kibazo urohereza. Fungura kimwe niba ukeneye umuntu wagufasha.",
+    "error": "Ntibyoherejwe",
+    "tryAgain": "Ongera ugerageze.",
+    "aboutTrip": "Ku bijyanye n'uru rugendo",
+    "whatHappened": "Ni ikihe kibazo?",
+    "safetyNote": "Ibibazo by'umutekano bikemurwa mbere. Niba uri mu kaga ubu, hamagara 112.",
+    "describe": "Tubwire ibyabaye",
+    "send": "Ohereza ku bufasha bwa Jali",
+    "ticket": "Ikibazo",
+    "missing": "Iki kibazo ntikiboneka.",
+    "urgentWait": "Umukozi wa Jali arasubiza mu isaha imwe.",
+    "wait": "Umukozi wa Jali arasubiza vuba. Tuzakumenyesha.",
+    "resolved": "Iki kibazo cyakemutse.",
+    "openAnother": "Fungura ikibazo gishya",
+    "reply": "Andika igisubizo",
+    "sendReply": "Ohereza",
+    "solved": "Ikibazo cyanjye cyakemutse",
+    "status": {
+      "open": "Gitegereje Jali",
+      "answered": "Jali yasubije",
+      "resolved": "Cyakemutse"
+    },
+    "cat": {
+      "charged_wrong": "Naciwe amafaranga atari yo",
+      "driver_behaviour": "Imyitwarire y'umushoferi",
+      "lost_item": "Ikintu cyatakaye",
+      "safety": "Umutekano",
+      "cancel": "Guhagarika",
+      "damage": "Ibyangiritse",
+      "payment": "Kwishyura",
+      "account": "Konti yanjye",
+      "other": "Ikindi"
+    }
   }
 }

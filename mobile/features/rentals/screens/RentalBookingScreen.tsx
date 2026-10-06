@@ -158,7 +158,7 @@ export default function RentalBookingScreen() {
           <SecondaryButton icon="close-circle-outline" color={C.orange} onPress={() => setCancelOpen(true)}
             label={b.cancel_fee_now ? t("rental.cancelWithFee", { fee: formatRwf(b.cancel_fee_now), defaultValue: `Cancel (fee ${formatRwf(b.cancel_fee_now)})` }) : t("rental.cancelFree", "Cancel for free")} />
         )}
-        <HelpTopicsCard service="rental" />
+        <HelpTopicsCard service="rental" subject={{ type: "rental", id: b.id }} />
       </ScrollView>
 
       <Modal visible={cancelOpen} transparent animationType="fade" onRequestClose={() => setCancelOpen(false)}>
