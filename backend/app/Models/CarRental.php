@@ -72,6 +72,6 @@ class CarRental extends Model
     /** Can be found and booked by customers */
     public function isBookable(): bool
     {
-        return $this->active && $this->verification_status === self::VERIFIED && $this->status !== 'maintenance';
+        return $this->user_id !== null && $this->active && $this->verification_status === self::VERIFIED && $this->status !== 'maintenance';
     }
 }
