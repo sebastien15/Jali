@@ -7,7 +7,7 @@ Road-accurate distance and ETA, route lines, smooth car movement and pickup poin
 - S11.1 — Road-based distance and ETA (wave 1, ⬜ todo)
 - S11.2 — Route line on the map (wave 2, ⬜ todo)
 - S11.3 — Smooth moving car on the map (wave 3, ⬜ todo)
-- S11.4 — Suggested pickup points and landmarks (wave 2, ⬜ todo, track: Shared foundations & connected app)
+- S11.4 — Suggested pickup points and landmarks (wave 1, ⬜ todo, track: Shared foundations & connected app)
 - S11.5 — Saved places with labels and driver notes (wave 1, ⬜ todo, track: Shared foundations & connected app)
 - S11.6 — Describe or photograph my pickup spot (wave 2, ⬜ todo)
 - S11.7 — Live ETA countdown (wave 2, ⬜ todo)

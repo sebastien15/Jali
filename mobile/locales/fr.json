@@ -849,7 +849,8 @@
       "priceNote": "Le prix inclut l'approche et les frais Jali. Il est bloqué à la demande.",
       "noneNow": "aucun",
       "view_list": "Liste",
-      "view_map": "Carte"
+      "view_map": "Carte",
+      "notServed": "Pas encore disponible ici."
     },
     "trip": {
       "waiting": "En attente de la réponse de {{name}}…",

@@ -10,7 +10,7 @@ A visitor who uses Uber or DiDi at home opens Jali in Kigali and instantly knows
 - S9.4 — Show prices in my home currency too (wave 1, ✅ built)
 - S9.5 — In-app chat with quick, translated phrases (wave 2, ✅ built)
 - S9.6 — Email receipts for every trip (wave 1, ✅ built)
-- S9.7 — Airport pickup at Kigali International Airport (wave 3, ⬜ todo, track: Batch 4 — Nearby drivers with their own cars and fares)
+- S9.7 — Airport pickup at Kigali International Airport (wave 2, ⬜ todo, track: Batch 4 — Nearby drivers with their own cars and fares)
 
 ## Done when
 - [ ] All stories in this epic are closed

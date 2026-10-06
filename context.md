@@ -451,6 +451,17 @@ POST  /driver/payouts             {amount} ≤ balance → cashout_requests (req
       S7.4: rides/hire commission_pct and service_fee default to 0 (migration zero_jali_fees resets saved values);
       legacy bus/private/rental bookings store service_fee 0. A superadmin can still set fees (logged).
 
+# Service areas (S10.4) — Modules/Locations
+GET   /service-areas/check        ?lat&lng&service=rides|hire|rental|shared|bus|cargo → {served, area, message}  perm: request-rides
+GET|POST /admin/service-areas     list (cities then zones) / create {name, kind city|zone, zone_type, parent_id, active,
+                                  polygon [[lat,lng]…] | geojson | circle {lat,lng,radius_km}, overrides}  perm: manage-service-areas
+GET|PUT|DELETE /admin/service-areas/{id}   (delete 409 while a city has zones). Every change → ActivityLog.
+      Contract Locations\Contracts\ServiceAreas: availability(), cityAt(), zonesAt(), zones(type) — zones are for airport
+      queue, pickup points and heatmaps. No live city ⇒ everywhere served. Rides (nearby/estimate/request) and hire requests
+      answer 422 {message: "Not available here yet. Jali currently works in Kigali."} outside a live city or when the service
+      is off there. City overrides (commission_pct, cancel_fee, free_wait_min, nearby_radius_km, broadcast_max_drivers,
+      vehicle_classes) apply through NearbyRides\Application\AreaRideSettings. Admin UI: app/(admin)/service-areas.
+
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
 POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112

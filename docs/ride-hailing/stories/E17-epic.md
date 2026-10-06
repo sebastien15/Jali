@@ -8,7 +8,7 @@ Demand heatmap, destination filter, incentives, queues, fatigue limits, instant 
 - S17.2 — Destination filter — going home (wave 1, ⬜ todo)
 - S17.3 — Driver incentives and quests (wave 1, ⬜ todo)
 - S17.4 — Driver levels and rewards (wave 2, ⬜ todo)
-- S17.5 — Airport and venue queue (wave 2, ⬜ todo)
+- S17.5 — Airport and venue queue (wave 1, ⬜ todo)
 - S17.6 — Fatigue limit (wave 1, ⬜ todo)
 - S17.7 — Document expiry reminders (wave 1, ⬜ todo)
 - S17.8 — Instant cashout to MoMo (wave 2, ⬜ todo)

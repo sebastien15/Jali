@@ -1234,7 +1234,7 @@
   "labels": [
    "user-story",
    "batch-4-nearby-rides",
-   "wave-3",
+   "wave-2",
    "mobile",
    "backend",
    "international"
@@ -1314,7 +1314,7 @@
   "epic": "E10",
   "issue": 75,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1373,7 +1373,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend",
    "admin"
@@ -2088,7 +2088,7 @@
   "labels": [
    "user-story",
    "batch-4-nearby-rides",
-   "wave-2",
+   "wave-1",
    "backend",
    "mobile"
   ],
@@ -2725,7 +2725,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "backend",
    "security"
   ],
@@ -2742,7 +2742,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-3",
+   "wave-2",
    "mobile"
   ],
   "file": "docs/ride-hailing/stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md",
@@ -2758,7 +2758,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-3",
    "mobile",
    "ux"
   ],
@@ -2775,7 +2775,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-3",
    "mobile",
    "backend"
   ],
@@ -2842,7 +2842,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-4",
+   "wave-3",
    "mobile",
    "backend"
   ],

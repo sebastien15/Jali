@@ -313,3 +313,9 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - New Rentals-owned tables: `rental_blocks`, `rental_bookings`, `rental_ratings`; `car_rentals` gains listing, policy, rules, documents and verification columns. Legacy `/bookings type=rental` keeps working unchanged; the app moves to `/rentals/**`.
 - `/driver/cars/**` now requires `offer-rentals` instead of `create-private-seats` (driver role has both). Route baseline regenerated for the new routes.
 
+
+## Service areas (S10.4) — boundary change (2026-10-08)
+
+- New `Locations\Contracts\ServiceAreas` (cities + zones, point-in-polygon, cached) implemented by `Locations\Application\ServiceAreaDirectory`; admin write path `ServiceAreaAdmin` (logged).
+- `DriverHire` may now use `Locations` (hire requests are refused where hire is not offered). `NearbyRides` already depended on `Locations`; it now applies per-city overrides via `AreaRideSettings`.
+- New table `service_areas`, permission `manage-service-areas` (superadmin). Kigali is seeded live, Musanze/Rubavu/Huye off, Kigali airport zone. With no live city the check is off (everywhere served). Route baseline regenerated.

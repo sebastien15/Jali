@@ -11,11 +11,11 @@
  */
 return [
     'Bus'            => ['Identity', 'LegacyBookings', 'Locations'],   // implements Identity\Contracts\AccountClosure (station agent unassigned); implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
-    'DriverHire'     => ['Notifications', 'Payments', 'Pricing', 'Providers'],   // PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
+    'DriverHire'     => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // ServiceAreas (hire offered at the pickup, S10.4); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
     'Identity'       => ['Notifications', 'Payments'],   // OTP codes via SmsSender, sign-out forgets the push token via PushTokens; staff earnings on the admin profile via Payments\Contracts\StaffEarnings
     'LegacyBookings' => [],
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
-    'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography; PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
+    'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography, ServiceAreas (city overrides, S10.4); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
     'Payments'       => ['Notifications', 'Pricing'],   // settlement review pushes via PushSender; commission debt limit and earnings settings from PricingPolicy
     'Pricing'        => [],

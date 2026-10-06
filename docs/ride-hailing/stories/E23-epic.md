@@ -4,14 +4,14 @@ Finish the architecture migration (runbook M06–M09) so every service plugs int
 **Release track:** Shared foundations & connected app · **Owner module:** `core/*`, `Modules/Identity`, `Modules/Notifications`, `Modules/Providers`, CI/deploy
 
 ## Stories
-- S23.1 — Server-side service availability (M06) (wave 2, ⬜ todo)
-- S23.2 — Service registry and gated queries in the app (M06) (wave 3, ⬜ todo)
-- S23.3 — Customer/provider mode switch (wave 4, 🟡 partial)
-- S23.4 — One Activity for bookings and jobs (M07) (wave 4, ⬜ todo)
+- S23.1 — Server-side service availability (M06) (wave 1, ⬜ todo)
+- S23.2 — Service registry and gated queries in the app (M06) (wave 2, ⬜ todo)
+- S23.3 — Customer/provider mode switch (wave 3, 🟡 partial)
+- S23.4 — One Activity for bookings and jobs (M07) (wave 3, ⬜ todo)
 - S23.5 — Notification taps open the right screen, always (M07) (wave 2, ⬜ todo)
 - S23.6 — In-app inbox (M07) (wave 3, ⬜ todo)
 - S23.7 — Provider availability that survives navigation (M08) (wave 1, ⬜ todo)
-- S23.8 — Request and polling budget (M08) (wave 4, ⬜ todo)
+- S23.8 — Request and polling budget (M08) (wave 3, ⬜ todo)
 - S23.9 — Split the shared BookingSheet per service (wave 1, ⬜ todo)
 - S23.10 — Provider screens move to shared provider infrastructure (wave 1, 🟡 partial)
 - S23.11 — Mobile test harness (wave 1, ⬜ todo)

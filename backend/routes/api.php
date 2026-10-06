@@ -18,6 +18,8 @@ use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
+use App\Http\Controllers\ServiceAreaController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
@@ -208,6 +210,18 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/admin/settings/rides", [RideSettingsController::class, "show"]);
         Route::put("/admin/settings/rides", [RideSettingsController::class, "update"]);
     });
+
+    // Service areas and zones (superadmin) — S10.4
+    Route::middleware("permission:manage-service-areas")->prefix("admin/service-areas")->group(function () {
+        Route::get("/", [AdminServiceAreaController::class, "index"]);
+        Route::post("/", [AdminServiceAreaController::class, "store"]);
+        Route::get("/{id}", [AdminServiceAreaController::class, "show"])->whereNumber("id");
+        Route::put("/{id}", [AdminServiceAreaController::class, "update"])->whereNumber("id");
+        Route::delete("/{id}", [AdminServiceAreaController::class, "destroy"])->whereNumber("id");
+    });
+
+    // Is a service available here? (S10.4)
+    Route::middleware("permission:request-rides")->get("/service-areas/check", [ServiceAreaController::class, "check"]);
 
     // Driver onboarding — any signed-in user can apply (stories S1.1–S1.3)
     Route::middleware("permission:apply-as-driver")->prefix("driver")->group(function () {

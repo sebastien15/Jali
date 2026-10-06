@@ -849,7 +849,8 @@
       "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba.",
       "noneNow": "hakuna sasa",
       "view_list": "Orodha",
-      "view_map": "Ramani"
+      "view_map": "Ramani",
+      "notServed": "Bado haipatikani hapa."
     },
     "trip": {
       "waiting": "Tunasubiri {{name}} akubali…",

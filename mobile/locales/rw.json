@@ -849,7 +849,8 @@
       "priceNote": "Igiciro gikubiyemo kuza kugufata n'amafaranga ya Jali. Gihagarara iyo usabye.",
       "noneNow": "nta n'umwe",
       "view_list": "Urutonde",
-      "view_map": "Ikarita"
+      "view_map": "Ikarita",
+      "notServed": "Ntiboneka hano ubu."
     },
     "trip": {
       "waiting": "Dutegereje ko {{name}} yemera…",
