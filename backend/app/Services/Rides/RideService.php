@@ -168,11 +168,8 @@ class RideService
                 'stars' => $stars, 'tags' => $tags ?: null, 'comment' => $comment,
             ]);
             // Rider rating a driver updates the driver's public rating
-            if ($toUserId === $ride->driver_id && ($profile = DriverProfile::where('user_id', $toUserId)->first())) {
-                $stats = RideRating::where('to_user_id', $toUserId)
-                    ->whereIn('ride_id', Ride::where('driver_id', $toUserId)->select('id'))
-                    ->selectRaw('AVG(stars) as avg, COUNT(*) as n')->first();
-                $profile->forceFill(['rating_avg' => round((float) $stats->avg, 1), 'rating_count' => (int) $stats->n])->save();
+            if ($toUserId === $ride->driver_id) {
+                DriverRating::refresh($toUserId);   // rides and hires together
             }
             $this->event($ride, $user, 'rated', ['stars' => $stars]);
 

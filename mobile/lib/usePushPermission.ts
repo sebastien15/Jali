@@ -28,6 +28,10 @@ export function routeForNotification(data: Record<string, unknown> | undefined |
   switch (data.screen) {
     case "ride":
       return id ? `/ride/${id}` : "/ride";
+    case "hire":
+      return id ? `/hire/${id}` : "/hire";
+    case "driver_hire":
+      return id ? `/driver/hire/${id}` : "/(tabs)/drive";
     case "driver_ride":
       return id ? `/driver/ride/${id}` : "/(tabs)/drive";
     case "booking":

@@ -42,6 +42,10 @@ tags:
     description: Rider side of on-demand rides
   - name: Driver rides
     description: Driver side of on-demand rides
+  - name: Hire
+    description: Customer side of Hire a Driver (a verified driver drives your own car)
+  - name: Driver hire
+    description: Driver side of Hire a Driver
   - name: Admin rides
     description: Ride operations and pricing settings
 
@@ -963,6 +967,367 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /driver/hire-settings:
+    get:
+      tags: [Driver hire]
+      operationId: getHireSettings
+      x-jali-story: S6.1
+      x-jali-permission: offer-driver-hire
+      summary: My hire-a-driver prices, skills and Jali's limits (verified drivers only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HireSettingsPayload" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Driver hire]
+      operationId: putHireSettings
+      x-jali-story: S6.1
+      x-jali-permission: offer-driver-hire
+      summary: Save hire prices (validated against superadmin limits) and skills
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/HireRates"
+                - type: object
+                  required: [transmissions, languages, years_experience]
+                  properties:
+                    is_active: { type: boolean }
+                    transmissions: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Transmission" } }
+                    languages: { type: array, minItems: 1, items: { $ref: "#/components/schemas/HireLanguage" } }
+                    years_experience: { type: integer, minimum: 0, maximum: 60 }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HireSettingsPayload" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/availability:
+    get:
+      tags: [Driver hire]
+      operationId: getAvailability
+      x-jali-story: S6.2
+      x-jali-permission: offer-driver-hire
+      summary: Weekly hours, blocked dates and booked hires
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Driver hire]
+      operationId: putAvailability
+      x-jali-story: S6.2
+      x-jali-permission: offer-driver-hire
+      summary: Replace weekly hours and blocked dates (no weekly hours = available any time)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [weekly, blocked_dates]
+              properties:
+                weekly: { type: array, maxItems: 7, items: { $ref: "#/components/schemas/WeeklyHours" } }
+                blocked_dates: { type: array, items: { type: string, format: date } }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/hires:
+    get:
+      tags: [Driver hire]
+      operationId: listDriverHires
+      x-jali-story: S6.4
+      x-jali-permission: offer-driver-hire
+      summary: My hire requests, upcoming bookings or past hires
+      parameters:
+        - { name: scope, in: query, schema: { type: string, enum: [requests, upcoming, past], default: requests } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/DriverHire" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver-hire/available:
+    get:
+      tags: [Hire]
+      operationId: findHireDrivers
+      x-jali-story: S6.3
+      x-jali-permission: request-rides
+      summary: Verified drivers free for the window who drive my transmission, with a full quote
+      parameters:
+        - { name: start_at, in: query, required: true, description: "At least 30 min from now, at most 90 days", schema: { type: string, format: date-time } }
+        - { name: duration_type, in: query, required: true, schema: { type: string, enum: [hours, days] } }
+        - { name: duration_value, in: query, required: true, description: "Hours (max 16) or days (max hire.max_days)", schema: { type: integer, minimum: 1 } }
+        - { name: trip_type, in: query, required: true, schema: { $ref: "#/components/schemas/HireTripType" } }
+        - { name: transmission, in: query, required: true, schema: { $ref: "#/components/schemas/Transmission" } }
+      responses:
+        "200":
+          description: Best rated first, then cheapest
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [drivers]
+                properties:
+                  drivers: { type: array, items: { $ref: "#/components/schemas/AvailableHireDriver" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver-hire:
+    get:
+      tags: [Hire]
+      operationId: listMyHires
+      x-jali-story: S6.3
+      x-jali-permission: request-rides
+      summary: My hires as a customer, newest first
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, next_page]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/DriverHire" } }
+                  next_page: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Hire]
+      operationId: bookHire
+      x-jali-story: S6.3
+      x-jali-permission: request-rides
+      summary: Book a driver for my car — price locked, driver notified (status requested)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [driver_id, start_at, duration_type, duration_value, trip_type, transmission, pickup, accept_terms]
+              properties:
+                driver_id: { type: integer }
+                start_at: { type: string, format: date-time }
+                duration_type: { type: string, enum: [hours, days] }
+                duration_value: { type: integer, minimum: 1 }
+                trip_type: { $ref: "#/components/schemas/HireTripType" }
+                transmission: { $ref: "#/components/schemas/Transmission" }
+                pickup: { $ref: "#/components/schemas/Place" }
+                car_description: { type: [string, "null"], maxLength: 200 }
+                notes: { type: [string, "null"], maxLength: 500 }
+                payment_method: { type: string, enum: [cash, momo], default: cash }
+                accept_terms: { type: boolean, description: "Must be true: fuel, damage and meals terms (legal/hire-terms)" }
+      responses:
+        "201":
+          description: Requested
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+
+  /driver-hire/{id}:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    get:
+      tags: [Hire]
+      operationId: getHire
+      x-jali-story: S6.4
+      x-jali-permission: request-rides
+      summary: Customer or driver of this hire only (404 otherwise)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver-hire/{id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Hire]
+      operationId: cancelHire
+      x-jali-story: S6.4
+      x-jali-permission: request-rides
+      summary: "Customer: free while requested or until hire.free_cancel_hours before the start, then a fee. Driver: accepted hires only."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  enum: [changed_plans, found_another_driver, driver_asked_to_cancel, booked_by_mistake, not_available, customer_asked_to_cancel, too_far, unsafe, other]
+                  description: Customer and driver have separate lists
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver-hire/{id}/rate:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Hire]
+      operationId: rateHire
+      x-jali-story: S6.4
+      x-jali-permission: request-rides
+      summary: Rate the other side once, after completion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stars]
+              properties:
+                stars: { type: integer, minimum: 1, maximum: 5 }
+                tags: { type: array, maxItems: 6, items: { type: string, maxLength: 40 } }
+                comment: { type: [string, "null"], maxLength: 500 }
+      responses:
+        "201": { $ref: "#/components/responses/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver-hire/{id}/accept:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Driver hire]
+      operationId: acceptHire
+      x-jali-story: S6.4
+      x-jali-permission: offer-driver-hire
+      summary: Accept — 409 if no longer open or it overlaps another accepted hire
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver-hire/{id}/decline:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Driver hire]
+      operationId: declineHire
+      x-jali-story: S6.4
+      x-jali-permission: offer-driver-hire
+      summary: Decline — the customer is told to choose another driver
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver-hire/{id}/check-in:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Driver hire]
+      operationId: checkInHire
+      x-jali-story: S6.4
+      x-jali-permission: offer-driver-hire
+      summary: Start — from 2 h before the start time until the booked end
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver-hire/{id}/check-out:
+    parameters:
+      - $ref: "#/components/parameters/HireId"
+    post:
+      tags: [Driver hire]
+      operationId: checkOutHire
+      x-jali-story: S6.4
+      x-jali-permission: offer-driver-hire
+      summary: Finish — overtime computed from the locked rate after a grace period
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payment_method]
+              properties:
+                payment_method: { type: string, enum: [cash, momo] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverHire" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/rides/live:
     get:
       tags: [Admin rides]
@@ -1145,6 +1510,11 @@ components:
       required: true
       schema: { type: integer }
     VehicleId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    HireId:
       name: id
       in: path
       required: true
@@ -1591,6 +1961,175 @@ components:
                   tags: { type: array, items: { type: string } }
                   comment: { type: [string, "null"] }
 
+    Transmission:
+      type: string
+      enum: [automatic, manual]
+
+    HireLanguage:
+      type: string
+      enum: [rw, en, fr, sw, other]
+      description: Kinyarwanda, English, French, Swahili, other
+
+    HireTripType:
+      type: string
+      enum: [city, out_of_town, airport]
+
+    HireRates:
+      type: object
+      required: [hourly_rate, min_hours, daily_rate, daily_hours, overtime_per_hour]
+      properties:
+        hourly_rate: { type: integer, description: "RWF per hour, within hire.hourly_min–hourly_max" }
+        min_hours: { type: integer, minimum: 1, maximum: 12 }
+        daily_rate: { type: integer, description: "RWF per day, within hire.daily_min–daily_max" }
+        daily_hours: { type: integer, minimum: 4, maximum: 16, description: Hours included in a day }
+        overtime_per_hour: { type: integer, minimum: 0 }
+        out_of_town_fee: { type: integer, minimum: 0, description: RWF per day when the trip leaves Kigali }
+
+    HireSettingsPayload:
+      type: object
+      required: [settings, skills, limits]
+      properties:
+        settings:
+          oneOf:
+            - type: "null"
+            - allOf:
+                - $ref: "#/components/schemas/HireRates"
+                - type: object
+                  required: [is_active]
+                  properties:
+                    is_active: { type: boolean }
+        skills:
+          type: object
+          required: [transmissions, languages, years_experience, licence_categories]
+          properties:
+            transmissions: { type: array, items: { $ref: "#/components/schemas/Transmission" } }
+            languages: { type: array, items: { $ref: "#/components/schemas/HireLanguage" } }
+            years_experience: { type: [integer, "null"] }
+            licence_categories: { type: array, items: { type: string }, description: From the licence step of onboarding }
+        limits:
+          type: object
+          description: Superadmin guardrails (platform_settings rides.hire)
+          properties:
+            hourly_min: { type: integer }
+            hourly_max: { type: integer }
+            daily_min: { type: integer }
+            daily_max: { type: integer }
+            overtime_max: { type: integer }
+            out_of_town_max: { type: integer }
+            commission_pct: { type: number }
+            service_fee: { type: integer }
+
+    WeeklyHours:
+      type: object
+      required: [weekday, start_time, end_time]
+      properties:
+        weekday: { type: integer, minimum: 0, maximum: 6, description: "0 = Sunday" }
+        start_time: { type: string, pattern: "^\\d{2}:\\d{2}$", example: "07:00" }
+        end_time: { type: string, pattern: "^\\d{2}:\\d{2}$", example: "20:00" }
+
+    Availability:
+      type: object
+      required: [weekly, blocked_dates, upcoming]
+      properties:
+        weekly: { type: array, items: { $ref: "#/components/schemas/WeeklyHours" } }
+        blocked_dates: { type: array, items: { type: string, format: date } }
+        upcoming:
+          type: array
+          description: Accepted or started hires that hold my time
+          items:
+            type: object
+            required: [id, start_at, end_at]
+            properties:
+              id: { type: integer }
+              start_at: { type: string, format: date-time }
+              end_at: { type: string, format: date-time }
+
+    HireQuote:
+      type: object
+      required: [driver_total, service_fee, total, billable_hours, days]
+      properties:
+        driver_total: { type: integer, description: "Driver's price incl. out-of-town fee, rounded up to 100 RWF" }
+        service_fee: { type: integer }
+        total: { type: integer, description: What the customer pays (before any overtime) }
+        billable_hours: { type: integer, description: "Hours: max(asked, min_hours). Days: days × daily_hours" }
+        days: { type: integer }
+
+    AvailableHireDriver:
+      type: object
+      required: [driver_id, name, photo, rating, rating_count, trips_count, years_experience, languages, transmissions, licence_categories, rates, end_at, quote]
+      properties:
+        driver_id: { type: integer }
+        name: { type: string, description: "First name + last initial" }
+        photo: { type: [string, "null"] }
+        rating: { type: number }
+        rating_count: { type: integer }
+        trips_count: { type: integer }
+        years_experience: { type: [integer, "null"] }
+        languages: { type: array, items: { $ref: "#/components/schemas/HireLanguage" } }
+        transmissions: { type: array, items: { $ref: "#/components/schemas/Transmission" } }
+        licence_categories: { type: array, items: { type: string } }
+        rates: { $ref: "#/components/schemas/HireRates" }
+        end_at: { type: string, format: date-time }
+        quote: { $ref: "#/components/schemas/HireQuote" }
+
+    HireStatus:
+      type: string
+      enum: [requested, accepted, started, completed, declined, expired, cancelled_by_customer, cancelled_by_driver]
+
+    DriverHire:
+      type: object
+      required: [id, role, status, start_at, end_at, duration_type, duration_value, trip_type, transmission, pickup, driver_total, service_fee, quoted_total,
+        overtime_minutes, overtime_amount, final_total, driver_earnings, cancel_fee, cancel_fee_now, payment_method, expires_at, driver, customer, my_rating]
+      properties:
+        id: { type: integer }
+        role: { type: string, enum: [customer, driver], description: Who is looking }
+        status: { $ref: "#/components/schemas/HireStatus" }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        duration_type: { type: string, enum: [hours, days] }
+        duration_value: { type: integer }
+        trip_type: { $ref: "#/components/schemas/HireTripType" }
+        transmission: { $ref: "#/components/schemas/Transmission" }
+        pickup: { $ref: "#/components/schemas/Place" }
+        car_description: { type: [string, "null"] }
+        notes: { type: [string, "null"] }
+        driver_total: { type: integer }
+        service_fee: { type: integer }
+        quoted_total: { type: integer, description: Locked price the customer pays (driver_total + service_fee) }
+        overtime_minutes: { type: integer }
+        overtime_amount: { type: integer }
+        final_total: { type: [integer, "null"], description: "quoted_total + overtime, set at check-out" }
+        driver_earnings: { type: [integer, "null"], description: "Driver view only: driver part minus commission" }
+        cancel_fee: { type: integer }
+        cancel_fee_now: { type: [integer, "null"], description: "Customer view while cancellable: fee if cancelled now (0 = free)" }
+        cancel_reason: { type: [string, "null"] }
+        payment_method: { type: [string, "null"], enum: [cash, momo, null] }
+        expires_at: { type: [string, "null"], format: date-time, description: "While requested: when the driver's answer times out" }
+        driver:
+          type: object
+          required: [id, name, photo, rating, years_experience, languages, phone]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            photo: { type: [string, "null"] }
+            rating: { type: number }
+            years_experience: { type: [integer, "null"] }
+            languages: { type: array, items: { $ref: "#/components/schemas/HireLanguage" } }
+            phone: { type: [string, "null"], description: "Customer view while accepted or started" }
+        customer:
+          description: Driver view only
+          type: [object, "null"]
+          required: [name, phone]
+          properties:
+            name: { type: string }
+            phone: { type: [string, "null"], description: While accepted or started }
+        my_rating: { type: [integer, "null"] }
+        requested_at: { type: [string, "null"], format: date-time }
+        accepted_at: { type: [string, "null"], format: date-time }
+        checked_in_at: { type: [string, "null"], format: date-time }
+        checked_out_at: { type: [string, "null"], format: date-time }
+        cancelled_at: { type: [string, "null"], format: date-time }
+
     Place:
       type: object
       required: [lat, lng]
@@ -1749,6 +2288,25 @@ components:
         request_timeout_sec: { type: integer, default: 30 }
         cancel_fee: { type: integer, default: 500 }
         free_wait_min: { type: integer, default: 5 }
+        hire: { $ref: "#/components/schemas/HireSettingsLimits" }
+
+    HireSettingsLimits:
+      type: object
+      description: Hire a Driver limits and booking rules (epic E6)
+      properties:
+        hourly_min: { type: integer }
+        hourly_max: { type: integer }
+        daily_min: { type: integer }
+        daily_max: { type: integer }
+        overtime_max: { type: integer }
+        out_of_town_max: { type: integer }
+        commission_pct: { type: number }
+        service_fee: { type: integer }
+        request_timeout_min: { type: integer, description: Driver must answer within this (or before the start) }
+        free_cancel_hours: { type: integer, description: Customer cancels free until this long before the start }
+        late_cancel_pct: { type: integer, description: "% of the driver's price charged on a late cancellation" }
+        overtime_grace_min: { type: integer }
+        max_days: { type: integer }
 
     RideSettingsUpdate:
       description: Any subset of RideSettings; a vehicle class must be sent complete
@@ -1776,3 +2334,4 @@ components:
         request_timeout_sec: { type: integer, minimum: 10, maximum: 300 }
         cancel_fee: { type: integer, minimum: 0, maximum: 10000 }
         free_wait_min: { type: integer, minimum: 0, maximum: 30 }
+        hire: { $ref: "#/components/schemas/HireSettingsLimits" }

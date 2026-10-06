@@ -96,8 +96,11 @@ app/
 │   ├── setup.tsx              Driver onboarding (card presentation)
 │   ├── fleet.tsx              Driver's car fleet management
 │   ├── listing.tsx            Create/edit a private seat listing
-│   └── ride/[id].tsx          Driver trip: navigate → I've arrived → PIN start → complete (cash/MoMo) → rate rider
+│   ├── ride/[id].tsx          Driver trip: navigate → I've arrived → PIN start → complete (cash/MoMo) → rate rider
+│   ├── hire-settings.tsx      Hire a Driver: prices, skills, weekly hours, days off
+│   └── hire/[id].tsx          Driver hire: accept → navigate → check in → check out (cash/MoMo) → rate customer
 │
+├── hire/                      Hire a Driver (customer) — index.tsx search & book, [id].tsx status/cancel/rate
 ├── ride/                      On-demand rides (rider) — ProtectedRoute layout
 │   ├── index.tsx              "Where to?": GPS pickup (reverse geocode), destination search, recents
 │   ├── nearby.tsx             Nearby drivers with own price: sort Closest/Cheapest/Top rated, class chips, Request
@@ -402,6 +405,22 @@ GET   /admin/drivers/{userId}     application: licence, checklist, documents, ve
 POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approved; push
 POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
 POST  /admin/drivers/{userId}/suspend   {reason}; push
+
+# Hire a Driver (epic E6) — a verified driver drives the customer's own car
+# perm: offer-driver-hire (verified drivers; controller also checks verification)
+GET|PUT /driver/hire-settings     hourly (+min hours), daily (+hours included), overtime, out-of-town; skills (transmissions, languages, years)
+GET|PUT /driver/availability      {weekly:[{weekday 0=Sun,start_time,end_time}], blocked_dates:[Y-m-d]} — no weekly rows = any time (Kigali time)
+GET   /driver/hires?scope=requests|upcoming|past
+POST  /driver-hire/{id}/accept · /decline · /check-in (from start−2h) · /check-out {payment_method} (overtime after grace)
+# perm: request-rides — customer side
+GET   /driver-hire/available?start_at&duration_type=hours|days&duration_value&trip_type=city|airport|out_of_town&transmission
+POST  /driver-hire                {driver_id, …, pickup{lat,lng,address}, accept_terms:true} → requested (price locked)
+GET   /driver-hire · /driver-hire/{id} · POST /driver-hire/{id}/cancel {reason} · /rate
+      States: requested → accepted → started → completed | declined | expired | cancelled_by_customer | cancelled_by_driver
+      Rules in platform_settings rides.hire (limits, commission, fee, timeout, free-cancel hours, late fee %, grace, max days)
+      Scheduler: `hires:expire-requests` every minute. Services: app/Services/Hire/*. Driver rating = rides + hires.
+      Mobile: app/hire (book), app/hire/[id], app/driver/hire-settings, app/driver/hire/[id], HireRequestsCard (Drive tab),
+      HireDriverBar (Home), Trips → hires filter, legal/hire-terms
 
 # perm: manage-rides (admin, superadmin) — ride operations (S10.1, S10.2)
 GET   /admin/rides/live           counters (online by class, on trip, by status, expired 1h, completed today), drivers, active rides

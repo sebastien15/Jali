@@ -43,6 +43,44 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
     ],
   },
 
+  "hire-terms": {
+    title: "Hire a Driver — Terms",
+    sections: [
+      {
+        heading: "1. What you are booking",
+        body: "You book a verified Jali driver to drive your own car (or a car you rented) for the hours or days you chose. Jali connects you with the driver; the driver provides the driving service.",
+      },
+      {
+        heading: "2. Your car",
+        body: "The car must be roadworthy, insured, and have valid papers (registration card, insurance, technical inspection). Tell the driver about anything unusual (manual gearbox, warning lights, child seats) before the start.",
+      },
+      {
+        heading: "3. Fuel, tolls and parking",
+        body: "You pay for fuel, parking, tolls and car washes. They are not included in the price shown in the app.",
+      },
+      {
+        heading: "4. Damage, fines and accidents",
+        body: "Your car insurance covers the car. The driver is responsible for driving carefully and following the traffic code; traffic fines caused by the driver's driving are the driver's responsibility. Report any accident or damage in the app the same day. Jali helps both sides with evidence (times, route, ratings) but is not the insurer.",
+      },
+      {
+        heading: "5. Meals and out-of-town trips",
+        body: "For bookings longer than 6 hours you give the driver a meal break or pay for a meal. Trips outside Kigali include the driver's out-of-town fee per day; for overnight trips you also provide or pay for the driver's accommodation.",
+      },
+      {
+        heading: "6. Time, overtime and payment",
+        body: "The price is locked when you book. If the driver works past the booked time, overtime is charged at the driver's overtime rate after a short grace period. You pay the driver in cash or MoMo at the end, as shown in the app.",
+      },
+      {
+        heading: "7. Cancellation",
+        body: "You can cancel free of charge while the request is waiting and until 3 hours before the start. Later cancellations cost a share of the driver's price, shown in the app before you confirm. Drivers who cancel are reviewed by Jali.",
+      },
+      {
+        heading: "8. Safety",
+        body: "Drivers are identity- and licence-checked before they can be hired. You can see the driver's name, photo, rating and phone number once they accept. Never hand over your car to someone whose name and photo do not match the app.",
+      },
+    ],
+  },
+
   terms: {
     title: "Terms & Conditions",
     sections: [

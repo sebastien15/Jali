@@ -41,6 +41,12 @@ export const queryKeys = {
     mine: () => ["rides", "mine"] as const,
   },
 
+  hire: {
+    available: (q: object | null) => ["hire", "available", q] as const,
+    mine: () => ["hire", "mine"] as const,
+    detail: (id: number) => ["hire", id] as const,
+  },
+
   // ── Driver ────────────────────────────────────────────────────────────────
   driver: {
     stats: () => ["driver", "stats"] as const,
@@ -54,6 +60,9 @@ export const queryKeys = {
     onboarding: () => ["driver", "onboarding"] as const,
     presence: () => ["driver", "presence"] as const,
     rideRequests: () => ["driver", "rideRequests"] as const,
+    hireSettings: () => ["driver", "hireSettings"] as const,
+    availability: () => ["driver", "availability"] as const,
+    hires: (scope: string) => ["driver", "hires", scope] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
