@@ -47,6 +47,21 @@ class AppServiceProvider extends ServiceProvider
         $this->app->when(\App\Modules\LegacyBookings\Application\BookingDispatcher::class)
             ->needs('$handlers')
             ->giveTagged(\App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
+
+        // Staff (station agent) earnings shown on the admin profile come from Payments
+        $this->app->bind(\App\Modules\Payments\Contracts\StaffEarnings::class, \App\Modules\Payments\Application\StaffCashouts::class);
+
+        // Account deletion (Identity): each owning service closes its part, in this order,
+        // inside Identity's transaction (station unassigned, listings and cars off, driver profile removed).
+        $this->app->tag([
+            \App\Modules\Bus\Infrastructure\StationAgentAccountClosure::class,
+            \App\Modules\SharedJourneys\Infrastructure\ListingAccountClosure::class,
+            \App\Modules\Rentals\Infrastructure\RentalCarAccountClosure::class,
+            \App\Modules\Providers\Infrastructure\DriverProfileAccountClosure::class,
+        ], \App\Modules\Identity\Contracts\AccountClosure::class);
+        $this->app->when(\App\Modules\Identity\Application\AccountDeletion::class)
+            ->needs('$closures')
+            ->giveTagged(\App\Modules\Identity\Contracts\AccountClosure::class);
     }
 
     /**

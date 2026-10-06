@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AppAccess;
+use App\Modules\Identity\Application\AppAccessLog;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Identity (M03-Remaining): validation + HTTP shape only. */
 class AppAccessController extends Controller
 {
+    public function __construct(private readonly AppAccessLog $accesses)
+    {
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -15,98 +20,33 @@ class AppAccessController extends Controller
             'lng'      => 'nullable|numeric|between:-180,180',
         ]);
 
-        $district = null;
-        if ($request->filled('lat') && $request->filled('lng')) {
-            // ~1 km grid cache so app opens don't each hit Nominatim (1 req/s policy).
-            $key = sprintf('district:%.2f,%.2f', $request->lat, $request->lng);
-            $district = \Illuminate\Support\Facades\Cache::remember($key, now()->addDays(30),
-                fn () => $this->districtFromCoords((float) $request->lat, (float) $request->lng) ?? '');
-            $district = $district ?: null;
-        }
-
-        AppAccess::create([
-            'platform'   => $request->platform,
+        $this->accesses->record(
+            $request->platform,
             // Public route: resolve the Sanctum user manually when a token is sent.
-            'user_id'    => auth('sanctum')->id(),
-            'ip_address' => $request->ip(),
-            'lat'        => $request->lat,
-            'lng'        => $request->lng,
-            'district'   => $district,
-        ]);
+            auth('sanctum')->id(),
+            $request->ip(),
+            $request->lat,
+            $request->lng,
+            $request->filled('lat') && $request->filled('lng'),
+        );
 
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * Reverse-geocode via Nominatim to get a district name.
-     * Returns null silently on any failure — never blocks the request.
-     */
-    private function districtFromCoords(float $lat, float $lng): ?string
-    {
-        try {
-            $resp = \Illuminate\Support\Facades\Http::timeout(3)
-                ->withHeaders(['User-Agent' => 'Jali/1.0 contact@jali.rw'])
-                ->get('https://nominatim.openstreetmap.org/reverse', [
-                    'lat'          => $lat,
-                    'lon'          => $lng,
-                    'format'       => 'json',
-                    'zoom'         => 10,
-                    'addressdetails' => 1,
-                ]);
-
-            if (!$resp->ok()) return null;
-
-            $addr = $resp->json('address', []);
-            // Rwanda: county = district, city / town / village as fallback
-            return $addr['county'] ?? $addr['city_district'] ?? $addr['city'] ?? $addr['town'] ?? null;
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
     public function index(Request $request)
     {
-        $query = AppAccess::with('user')
-            ->orderBy('accessed_at', 'desc');
-
-        if ($request->filled('platform')) {
-            $query->where('platform', $request->platform);
-        }
-        if ($request->filled('from_date')) {
-            $query->whereDate('accessed_at', '>=', $request->from_date);
-        }
-        if ($request->filled('to_date')) {
-            $query->whereDate('accessed_at', '<=', $request->to_date);
-        }
-
+        $filters = array_filter(
+            ['platform' => 'platform', 'from_date' => 'from_date', 'to_date' => 'to_date'],
+            fn ($key) => $request->filled($key),
+        );
+        $filters = array_map(fn ($key) => $request->input($key), $filters);
         $perPage = min((int) $request->get('per_page', 50), 200);
-        $rows = $query->paginate($perPage);
 
-        return response()->json($rows->through(fn($r) => [
-            'id'          => $r->id,
-            'platform'    => $r->platform,
-            'user_email'  => $r->user?->email,
-            'user_name'   => $r->user?->name,
-            'ip_address'  => $r->ip_address,
-            'district'    => $r->district,
-            'accessed_at' => $r->accessed_at,
-        ]));
+        return response()->json($this->accesses->page($filters, $perPage));
     }
 
     public function stats()
     {
-        $totals = AppAccess::selectRaw('platform, COUNT(*) as count')
-            ->groupBy('platform')
-            ->pluck('count', 'platform');
-
-        $last30 = AppAccess::selectRaw('platform, COUNT(*) as count')
-            ->where('accessed_at', '>=', now()->subDays(30))
-            ->groupBy('platform')
-            ->pluck('count', 'platform');
-
-        return response()->json([
-            'all_time'     => $totals,
-            'last_30_days' => $last30,
-        ]);
+        return response()->json($this->accesses->stats());
     }
 }

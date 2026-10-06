@@ -10,17 +10,17 @@
  * reviewed architecture decision — record it in docs/migration/MIGRATION_LOG.md.
  */
 return [
-    'Bus'            => ['LegacyBookings', 'Locations'],   // implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
+    'Bus'            => ['Identity', 'LegacyBookings', 'Locations'],   // implements Identity\Contracts\AccountClosure (station agent unassigned); implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
     'DriverHire'     => ['Notifications', 'Payments', 'Pricing', 'Providers'],   // PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
-    'Identity'       => ['Notifications'],   // OTP codes are sent through Notifications\Contracts\SmsSender
+    'Identity'       => ['Notifications', 'Payments'],   // OTP codes via SmsSender, sign-out forgets the push token via PushTokens; staff earnings on the admin profile via Payments\Contracts\StaffEarnings
     'LegacyBookings' => [],
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
     'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography; PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
     'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
     'Pricing'        => [],
-    'Providers'      => ['Payments'],        // go-online blocker via Payments\Contracts\ProviderDebtLimit
-    'Rentals'        => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=rental)
+    'Providers'      => ['Identity', 'Payments'],   // implements Identity\Contracts\AccountClosure (driver profile removed); go-online blocker via Payments\Contracts\ProviderDebtLimit
+    'Rentals'        => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental)
     'Safety'         => ['Notifications', 'Providers'],   // SOS pushes via PushSender and texts via SmsSender; driver short name via ProviderDisplay
-    'SharedJourneys' => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=private)
+    'SharedJourneys' => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (listings deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=private)
 ];

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
 use App\Models\CashoutRequest;
-use App\Models\User;
+use App\Modules\Payments\Contracts\StaffEarnings;
 use Illuminate\Http\Request;
 
 class CashoutController extends Controller
@@ -50,7 +49,7 @@ class CashoutController extends Controller
             'amount' => 'required|numeric|min:1',
         ]);
 
-        $available = self::availableFor($user);
+        $available = app(StaffEarnings::class)->availableFor($user);
         if ($request->amount > $available) {
             return response()->json([
                 'message'   => 'Amount exceeds your available balance (' . number_format($available) . ' RWF).',
@@ -69,24 +68,6 @@ class CashoutController extends Controller
         ]);
 
         return response()->json($cashout, 201);
-    }
-
-    /** 50% of the service fee on delivered bookings this admin handled. */
-    public static function earnedBy(User $user): float
-    {
-        return (float) Booking::where('confirmed_by', $user->id)
-            ->where('status', 'delivered')
-            ->sum('service_fee') * 0.5;
-    }
-
-    /** Earnings not already requested (pending/processing/completed requests count). */
-    public static function availableFor(User $user): float
-    {
-        $requested = (float) CashoutRequest::where('admin_id', $user->id)
-            ->where('status', '!=', 'rejected')
-            ->sum('amount');
-
-        return max(0, self::earnedBy($user) - $requested);
     }
 
     /** List cashout requests for the authenticated admin. */
