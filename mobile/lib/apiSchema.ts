@@ -1296,6 +1296,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/service-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Services this account can see, use and offer here (additive; old clients don't call it)
+         * @description Resolved on the server from release flags, region (S10.4), permissions and provider verification — never from a client persona. New requests to a service whose `accepting_new_requests` is false are refused with 403 `{message, reason_code}`; history, active work and support stay reachable. Clients that send no version (no `app_version` and no `X-App-Version` header) are not version-gated.
+         */
+        get: operations["getServiceAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Release flags per service (defaults keep every built service on; cargo off) */
+        get: operations["getServiceCatalogue"];
+        /** Release, pause or hide services; set a minimum app version (partial; logged) */
+        put: operations["putServiceCatalogue"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/service-areas/check": {
         parameters: {
             query?: never;
@@ -1923,6 +1961,58 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ServiceFlags: {
+            discoverable: boolean;
+            accepting_new_requests: boolean;
+            minimum_app_version: string | null;
+        };
+        ServiceCatalogue: {
+            rides: components["schemas"]["ServiceFlags"];
+            hire: components["schemas"]["ServiceFlags"];
+            rental: components["schemas"]["ServiceFlags"];
+            shared: components["schemas"]["ServiceFlags"];
+            bus: components["schemas"]["ServiceFlags"];
+            cargo: components["schemas"]["ServiceFlags"];
+        };
+        /** @description Any subset of services and flags. Cargo is not built and can't be switched on. */
+        ServiceCatalogueUpdate: {
+            [key: string]: {
+                discoverable?: boolean;
+                accepting_new_requests?: boolean;
+                minimum_app_version?: string | null;
+            };
+        };
+        ServiceAccessEntry: {
+            id: components["schemas"]["ServiceKey"];
+            label: string;
+            /** @description Show it in navigation */
+            discoverable: boolean;
+            /** @description This account can start new work here now */
+            accepting_new_requests: boolean;
+            /** @description Has the customer permission */
+            can_use: boolean;
+            /** @description Permitted and verified to take work */
+            can_offer: boolean;
+            /** @description Can set it up as a provider: apply, list a car */
+            can_configure: boolean;
+            /** @enum {string|null} */
+            reason_code: "not_released" | "paused" | "app_update_required" | "not_in_area" | "off_in_area" | "no_permission" | null;
+            minimum_app_version: string | null;
+            area: {
+                id: number;
+                name: string;
+            } | null;
+        };
+        ServiceAccess: {
+            /** @constant */
+            version: 1;
+            services: components["schemas"]["ServiceAccessEntry"][];
+        };
+        ServiceUnavailable: {
+            message: string;
+            /** @enum {string} */
+            reason_code: "not_released" | "paused" | "app_update_required";
+        };
         /** @enum {string} */
         ServiceKey: "rides" | "hire" | "rental" | "shared" | "bus" | "cargo";
         ServiceAvailability: {
@@ -3168,6 +3258,18 @@ export interface components {
                 };
             };
         };
+        /** @description Missing permission, or the service is not taking new requests (S23.1) — then `reason_code` is set (not_released, paused, app_update_required). Existing work is unaffected. */
+        ForbiddenOrPaused: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ServiceUnavailable"] | {
+                    error?: string;
+                    message?: string;
+                };
+            };
+        };
         /** @description Validation failed (`errors` present), or the pickup is outside every active service area / the service is switched off there (S10.4) — `message` is user-facing, e.g. "Not available here yet. Jali currently works in Kigali." */
         ValidationOrNotServed: {
             headers: {
@@ -3945,7 +4047,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
@@ -4986,7 +5088,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
@@ -5673,6 +5775,82 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    getServiceAccess: {
+        parameters: {
+            query?: {
+                /** @description Customer position — adds region checks */
+                lat?: number;
+                lng?: number;
+                app_version?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccess"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getServiceCatalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceCatalogue"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putServiceCatalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceCatalogueUpdate"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceCatalogue"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     checkServiceArea: {
         parameters: {
             query: {
@@ -5969,7 +6147,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            403: components["responses"]["ForbiddenOrPaused"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };

@@ -11,16 +11,17 @@
  */
 return [
     'Bus'            => ['Identity', 'LegacyBookings', 'Locations'],   // implements Identity\Contracts\AccountClosure (station agent unassigned); implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
-    'DriverHire'     => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // ServiceAreas (hire offered at the pickup, S10.4); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
+    'DriverHire'     => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers', 'ServiceAccess'],   // ServiceAreas (hire offered at the pickup, S10.4); ServiceAccess (hire taking new requests, S23.1); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
     'Identity'       => ['Notifications', 'Payments'],   // OTP codes via SmsSender, sign-out forgets the push token via PushTokens; staff earnings on the admin profile via Payments\Contracts\StaffEarnings
     'LegacyBookings' => [],
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
-    'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers'],   // Geography, ServiceAreas (city overrides, S10.4); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
+    'NearbyRides'    => ['Locations', 'Notifications', 'Payments', 'Pricing', 'Providers', 'ServiceAccess'],   // ServiceAccess (rides taking new requests, S23.1); Geography, ServiceAreas (city overrides, S10.4); PushSender; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
     'Payments'       => ['Notifications', 'Pricing'],   // settlement review pushes via PushSender; commission debt limit and earnings settings from PricingPolicy
     'Pricing'        => [],
     'Providers'      => ['Identity', 'Notifications', 'Payments', 'Pricing'],   // implements Identity\Contracts\AccountClosure (driver profile removed), promotes verified riders via ProviderRoles; verification pushes via PushSender and setup saves the push token via PushTokens; go-online blocker via Payments\Contracts\ProviderDebtLimit; review thresholds from PricingPolicy
-    'Rentals'        => ['Identity', 'LegacyBookings', 'Notifications'],  // implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental); rental request/answer pushes via PushSender
+    'Rentals'        => ['Identity', 'LegacyBookings', 'Notifications', 'ServiceAccess'],  // ServiceAccess (rental taking new requests, S23.1); implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental); rental request/answer pushes via PushSender
     'Safety'         => ['Notifications', 'Providers'],   // SOS pushes via PushSender and texts via SmsSender; driver short name via ProviderDisplay
+    'ServiceAccess'  => ['Locations', 'Providers'],   // S23.1 resolver: ServiceAreas (region) + ProviderServices (verified services)
     'SharedJourneys' => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (listings deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=private)
 ];

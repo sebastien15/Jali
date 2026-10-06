@@ -456,13 +456,13 @@ tmp=$(mktemp); { cat "$DIR/S23.1-server-side-service-availability-m06.md"; echo;
 n=$(create "S23.1 Server-side service availability (M06)" "user-story,track-foundation,wave-1,backend,security" "$tmp"); rm -f "$tmp"; echo "#$n S23.1 Server-side service availability (M06)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.2-service-registry-and-gated-queries-in-the-app-m06.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.2 Service registry and gated queries in the app (M06)" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.2 Service registry and gated queries in the app (M06)"
+n=$(create "S23.2 Service registry and gated queries in the app (M06)" "user-story,track-foundation,wave-1,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.2 Service registry and gated queries in the app (M06)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.3-customer-provider-mode-switch.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.3 Customer/provider mode switch" "user-story,track-foundation,wave-3,mobile,ux" "$tmp"); rm -f "$tmp"; echo "#$n S23.3 Customer/provider mode switch"
+n=$(create "S23.3 Customer/provider mode switch" "user-story,track-foundation,wave-2,mobile,ux" "$tmp"); rm -f "$tmp"; echo "#$n S23.3 Customer/provider mode switch"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.4-one-activity-for-bookings-and-jobs-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.4 One Activity for bookings and jobs (M07)" "user-story,track-foundation,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.4 One Activity for bookings and jobs (M07)"
+n=$(create "S23.4 One Activity for bookings and jobs (M07)" "user-story,track-foundation,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.4 One Activity for bookings and jobs (M07)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.5-notification-taps-open-the-right-screen-always-m07.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
 n=$(create "S23.5 Notification taps open the right screen, always (M07)" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S23.5 Notification taps open the right screen, always (M07)"
@@ -474,7 +474,7 @@ tmp=$(mktemp); { cat "$DIR/S23.7-provider-availability-that-survives-navigation-
 n=$(create "S23.7 Provider availability that survives navigation (M08)" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.7 Provider availability that survives navigation (M08)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.8-request-and-polling-budget-m08.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
-n=$(create "S23.8 Request and polling budget (M08)" "user-story,track-foundation,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.8 Request and polling budget (M08)"
+n=$(create "S23.8 Request and polling budget (M08)" "user-story,track-foundation,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S23.8 Request and polling budget (M08)"
 gh issue comment "${EPIC_NUM[E23]}" --repo "$REPO" --body "- [ ] #$n S23.8" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S23.9-split-the-shared-bookingsheet-per-service.md"; echo; echo "Part of #${EPIC_NUM[E23]}"; } > "$tmp"
 n=$(create "S23.9 Split the shared BookingSheet per service" "user-story,track-foundation,wave-1,mobile,tech-debt" "$tmp"); rm -f "$tmp"; echo "#$n S23.9 Split the shared BookingSheet per service"

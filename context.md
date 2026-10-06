@@ -451,6 +451,15 @@ POST  /driver/payouts             {amount} ≤ balance → cashout_requests (req
       S7.4: rides/hire commission_pct and service_fee default to 0 (migration zero_jali_fees resets saved values);
       legacy bus/private/rental bookings store service_fee 0. A superadmin can still set fees (logged).
 
+# Service access (S23.1) — Modules/ServiceAccess (runbook M06)
+GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
+                                  can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user
+GET|PUT /admin/services           release flags {rides|hire|rental|shared|bus|cargo: {discoverable, accepting_new_requests,
+                                  minimum_app_version}} perm: manage-services (logged). Cargo can't be enabled (not built).
+      New intake refused with 403 {message, reason_code: not_released|paused|app_update_required} — rides, hire, rental
+      requests and legacy /bookings. Region reasons (not_in_area/off_in_area) come from S10.4. App sends X-App-Version;
+      clients without it aren't version-gated. Admin UI: app/(admin)/settings/services.
+
 # Service areas (S10.4) — Modules/Locations
 GET   /service-areas/check        ?lat&lng&service=rides|hire|rental|shared|bus|cargo → {served, area, message}  perm: request-rides
 GET|POST /admin/service-areas     list (cities then zones) / create {name, kind city|zone, zone_type, parent_id, active,
