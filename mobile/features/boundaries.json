@@ -3,5 +3,6 @@
   "rentals": [],
   "shared-journeys": [],
   "driver-hire": [],
-  "nearby-rides": []
+  "nearby-rides": [],
+  "bus": []
 }

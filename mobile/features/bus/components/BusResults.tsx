@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { TripCard, TripResult, TripDeparture } from "@/components/TripCard";
+import { TripCard, TripResult, TripDeparture } from "./TripCard";
 import { StationObj } from "@/components/StationPicker";
 
 interface Props {

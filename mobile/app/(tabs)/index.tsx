@@ -5,15 +5,15 @@ import { useQuery, useInfiniteQuery, useQueryClient, keepPreviousData } from "@t
 import * as Location from "expo-location";
 import { C } from "@/constants/theme";
 import { StationObj } from "@/components/StationPicker";
-import { TripResult, TripDeparture } from "@/components/TripCard";
-import { TripBookingSheet, type TripData } from "@/components/TripBookingSheet";
+import {
+  BusResults, AgencyFilterBar, TripBookingSheet, bookedAgencyNames as toBookedAgencyNames, orderAgencies, filterBusTrips,
+  type TripResult, type TripDeparture, type TripData,
+} from "@/features/bus";
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
 import { RideNowBar, ActiveRideBanner } from "@/features/nearby-rides";
 import { HireDriverBar } from "@/features/driver-hire";
-import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
-import { BusResults } from "@/components/home/BusResults";
 import { PrivateResults } from "@/features/shared-journeys";
 import { RentalResults } from "@/features/rentals";
 import api from "@/lib/api";
@@ -136,25 +136,10 @@ export default function HomeScreen() {
       : privateQuery.refetch;
 
   // Agency names extracted from past bus bookings (title format: "Agency · from → to")
-  const bookedAgencyNames = useMemo(() => {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const b of (bookingsQuery.data ?? [])) {
-      if (b.type !== "trip") continue;
-      const agency = b.title?.split(" · ")[0];
-      if (agency && !seen.has(agency)) { seen.add(agency); result.push(agency); }
-    }
-    return result;
-  }, [bookingsQuery.data]);
+  const bookedAgencyNames = useMemo(() => toBookedAgencyNames(bookingsQuery.data ?? []), [bookingsQuery.data]);
 
   // Booked agencies shown first, rest sorted alphabetically
-  const agencies = useMemo(() => {
-    const all = [...new Set(trips.map((t: TripResult) => t.agency_name).filter(Boolean))];
-    const bookedSet = new Set(bookedAgencyNames);
-    const bookedFirst = bookedAgencyNames.filter(a => all.includes(a));
-    const rest = all.filter(a => !bookedSet.has(a)).sort();
-    return [...bookedFirst, ...rest];
-  }, [trips, bookedAgencyNames]);
+  const agencies = useMemo(() => orderAgencies(trips, bookedAgencyNames), [trips, bookedAgencyNames]);
 
   // For today, never offer departures that have already left: filter from the
   // later of "now" and the time the user picked.
@@ -163,17 +148,10 @@ export default function HomeScreen() {
   const pickedMins = timeSet ? selectedDate.getHours() * 60 + selectedDate.getMinutes() : 0;
   const timeFilterMins = todaySelected ? Math.max(nowMins, pickedMins) : undefined;
 
-  const filteredTrips = useMemo(() => trips.filter((trip: TripResult) => {
-    if (agencyFilter && trip.agency_name !== agencyFilter) return false;
-    if (timeFilterMins != null) {
-      const hasUpcoming = trip.departures?.some(d => {
-        const [h, m] = d.departure_time.split(":").map(Number);
-        return h * 60 + m >= timeFilterMins;
-      });
-      if (!hasUpcoming) return false;
-    }
-    return true;
-  }), [trips, agencyFilter, timeFilterMins]);
+  const filteredTrips = useMemo(
+    () => filterBusTrips(trips, agencyFilter, timeFilterMins),
+    [trips, agencyFilter, timeFilterMins],
+  );
 
   function openTripSheet(trip: TripResult, departure: TripDeparture) {
     setTripSheet({
