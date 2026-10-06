@@ -3,10 +3,10 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
-import { useDriverMode } from "@/lib/DriverModeContext";
+import { useDriverMode } from "@/core/session/DriverModeContext";
 import { useMe, isDriverRole } from "@/lib/useMe";
-import { usePushPermission } from "@/lib/usePushPermission";
-import ProtectedRoute from "@/lib/ProtectedRoute";
+import { usePushPermission } from "@/core/notifications/usePushPermission";
+import ProtectedRoute from "@/core/session/ProtectedRoute";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 

@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
-import { useDriverMode } from "@/lib/DriverModeContext";
+import { useDriverMode } from "@/core/session/DriverModeContext";
 import { DriverHire, isActiveHire, formatWhen } from "../hire";
 
 type Page = { data: DriverHire[]; next_page: number | null };

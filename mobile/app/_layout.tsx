@@ -11,7 +11,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { queryClient, persister } from "@/lib/queryClient";
 import api from "@/lib/api";
 import * as Location from "expo-location";
-import { DriverModeProvider } from "@/lib/DriverModeContext";
+import { DriverModeProvider } from "@/core/session/DriverModeContext";
 
 function I18nWrapper({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
