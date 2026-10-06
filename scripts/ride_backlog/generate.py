@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/ride-hailing/{stories/*.md, USER_STORIES.md} and scripts/create-ride-issues.sh.
+"""Generate docs/ride-hailing/{stories/*.md, USER_STORIES.md}, scripts/create-ride-issues.sh and scripts/ride_backlog/manifest.json.
 
 Usage: python3 scripts/ride_backlog/generate.py   (edit stories here, never the generated files)
 """
@@ -481,26 +481,45 @@ story("S10.3", "E10", "Ride analytics", ["admin", "backend", "analytics"],
    "Requires `view-analytics`; uses existing analytics screen patterns."],
   [])
 
-exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'stories_level2_3.py')).read())
+_HERE = os.path.dirname(os.path.abspath(__file__))
+exec(open(os.path.join(_HERE, 'stories_level2_3.py')).read())
+exec(open(os.path.join(_HERE, 'stories_batches.py')).read())
 
 IDS = {s[0] for s in S}
 for k, v in DEPS.items():
     assert k in IDS, k
     for d in v: assert d in IDS, (k, d)
+for k in [i for _, ids in NEXT_UP for i in ids] + list(STORY_TRACK) + list(STORY_MODULE) + list(PARTIAL) + BUILT + list(AC_ADD) + list(NOTE_ADD):
+    assert k in IDS, k
+assert len(IDS) == len(S), "duplicate story id"
 
-# dependency waves (topological levels) — stories in the same wave can be built in parallel
+# dependency waves (topological levels) — stories in the same wave can be built in parallel.
+# Built stories are already merged, so they don't push open work into later waves.
 WAVE = {}
 def wave(sid, seen=()):
     if sid in WAVE: return WAVE[sid]
     assert sid not in seen, f"cycle at {sid}"
-    WAVE[sid] = 1 + max((wave(d, seen + (sid,)) for d in DEPS.get(sid, [])), default=0)
+    WAVE[sid] = 1 + max((wave(d, seen + (sid,)) for d in DEPS.get(sid, []) if d not in BUILT), default=0)
     return WAVE[sid]
 for s in S: wave(s[0])
+
+def track(sid, eid): return STORY_TRACK.get(sid, EPIC_TRACK[eid])
+def module(sid, eid): return STORY_MODULE.get(sid, EPIC_MODULE[eid])
+def status(sid):
+    if sid in BUILT: return "built"
+    if sid in PARTIAL: return "partial"
+    return "todo"
+STATUS_ICON = {"built": "✅ built", "partial": "🟡 partial", "todo": "⬜ todo"}
+TRACK_LABEL = {"F": "track-foundation", "B1": "batch-1-rental", "B2": "batch-2-driver-hire", "B3": "batch-3-shared-journeys",
+               "B4": "batch-4-nearby-rides", "B5": "batch-5-bus", "C": "batch-tbd-cargo", "L": "later",
+               "D": "deferred-owner-decision", "X": "out-of-scope"}
 
 UI = {"mobile", "ux"}
 
 def story_body(s):
     sid, eid, title, labels, who, want, why, ac, tech = s
+    ac = list(ac) + AC_ADD.get(sid, [])
+    tech = list(tech) + NOTE_ADD.get(sid, [])
     b = f"## User story\n**As a** {who},\n**I want** {want},\n**so that** {why}.\n\n"
     b += "## Acceptance criteria\n" + "".join(f"- [ ] {a}\n" for a in ac)
     if UI & set(labels):
@@ -511,18 +530,26 @@ def story_body(s):
         b += "\n## Notes\n" + "".join(f"- {t}\n" for t in tech)
     b += "\n## Planning\n"
     b += f"- **Story ID:** {sid} · **Epic:** {eid} · **Wave:** {WAVE[sid]}\n"
+    b += f"- **Release track:** {TRACK_NAME[track(sid, eid)]}\n"
+    st = status(sid)
+    b += f"- **Status:** {STATUS_ICON[st]}" + (f" — {PARTIAL[sid]}" if st == "partial" else " — merged, awaiting owner testing" if st == "built" else "") + "\n"
+    b += f"- **Owner module:** {module(sid, eid)}\n"
     deps = DEPS.get(sid, [])
     b += f"- **Depends on:** {', '.join(deps) if deps else 'nothing — can start anytime'}\n"
     if sid in SRC:
         b += f"- **Inspired by:** {SRC[sid]}\n"
-    b += f"- **Architecture:** `{PLAN}`\n"
+    b += f"- **Architecture:** {EPIC_ARCH.get(eid, f'`{PLAN}`')} · release order: `{RELEASE}`\n"
     return b
 
 def epic_body(e):
     eid, title, phase, goal = e
     items = [s for s in S if s[1] == eid]
-    b = f"## Goal\n{goal}\n\n## Stories\n" + "".join(f"- {s[0]} — {s[2]} (wave {WAVE[s[0]]})\n" for s in items)
-    b += f"\n## Done when\n- [ ] All stories in this epic are closed\n- [ ] CI is green and the app builds with EAS\n\nArchitecture: `{PLAN}`\n"
+    b = f"## Goal\n{goal}\n\n"
+    b += f"**Release track:** {TRACK_NAME[EPIC_TRACK[eid]]} · **Owner module:** {EPIC_MODULE[eid]}\n\n"
+    b += "## Stories\n" + "".join(
+        f"- {s[0]} — {s[2]} (wave {WAVE[s[0]]}, {STATUS_ICON[status(s[0])]}"
+        + (f", track: {TRACK_NAME[track(s[0], eid)]}" if track(s[0], eid) != EPIC_TRACK[eid] else "") + ")\n" for s in items)
+    b += f"\n## Done when\n- [ ] All stories in this epic are closed\n- [ ] CI is green and the app builds with EAS\n\nArchitecture: {EPIC_ARCH.get(eid, f'`{PLAN}`')} · release order: `{RELEASE}`\n"
     return b
 
 def slug(t):
@@ -545,62 +572,83 @@ manifest = []
 for e in EPICS:
     fn = f"{e[0]}-epic.md"
     open(f"{OUT}/stories/{fn}", "w").write(epic_body(e))
-    manifest.append(("epic", e[0], f"[Epic] {e[0]} — {e[1]}", ["epic", "ride-hailing", e[2]], fn, ""))
+    manifest.append(("epic", e[0], f"[Epic] {e[0]} — {e[1]}", ["epic", TRACK_LABEL[EPIC_TRACK[e[0]]]], fn, ""))
 for s in S:
     fn = f"{s[0]}-{slug(s[2])}.md"
     open(f"{OUT}/stories/{fn}", "w").write(story_body(s))
-    phase = next((l for l in s[3] if l.startswith("phase-")), next(e[2] for e in EPICS if e[0] == s[1]))
-    labels = ["user-story", "ride-hailing", phase, f"wave-{WAVE[s[0]]}"] + [l for l in s[3] if not l.startswith("phase-")]
+    labels = ["user-story", TRACK_LABEL[track(s[0], s[1])], f"wave-{WAVE[s[0]]}"] + [l for l in s[3] if not l.startswith("phase-")]
     manifest.append(("story", s[0], f"{s[0]} {s[2]}", labels, fn, s[1]))
 FILE = {m[1]: m[4] for m in manifest}
 
 # GitHub issue numbers, once created (scripts/ride_backlog/issues.json)
-_iss = os.path.join(os.path.dirname(os.path.abspath(__file__)), "issues.json")
+_iss = os.path.join(_HERE, "issues.json")
 ISSUE = json.load(open(_iss)) if os.path.exists(_iss) else {}
-def iss(k): return f"[#{ISSUE[k]}](https://github.com/sebastien15/Jali/issues/{ISSUE[k]})" if k in ISSUE else "—"
+def iss(k): return f"[#{ISSUE[k]}](https://github.com/sebastien15/Jali/issues/{ISSUE[k]})" if k in ISSUE else "new"
 
 # overview
+ACTIVE = ("F", "B1", "B2", "B3", "B4", "B5", "C")  # "L", "D", "X" are not listed in the waves
 nw = max(WAVE.values())
-by_phase = {}
-for m in manifest:
-    if m[0] == "story":
-        ph = m[3][2]; by_phase[ph] = by_phase.get(ph, 0) + 1
-ov = ["# Jali Ride & Hire-a-Driver — User Stories", "",
-      f"> Full backlog for the on-demand products described in `{PLAN}` — the best features of Uber, DiDi, Bolt, inDrive, Careem and Grab, plus Jali's own driver-set pricing.",
-      "> Each story has acceptance criteria and is tracked as a GitHub issue (column *Issue*; epics are parent issues with the stories as sub-issues).", "",
-      f"**{len(EPICS)} epics · {len(S)} stories · {nw} dependency waves**", "",
-      "| Level | Phase label | Stories | Meaning |", "|---|---|---|---|",
-      f"| 1 — MVP | `phase-0`, `phase-1` | {by_phase.get('phase-0',0) + by_phase.get('phase-1',0)} | Rides work end-to-end, safely, in one city |",
-      f"| 2 — Uber parity | `phase-2` | {by_phase.get('phase-2',0)} | Everything a visitor expects from Uber/DiDi/Bolt |",
-      f"| 3 — Beyond | `phase-3` | {by_phase.get('phase-3',0)} | Subscriptions, loyalty, fleets, partners, delivery, web |", "",
-      "Working with several AI agents? Read `AI_AGENTS_GUIDE.md` first. Every UI story must pass `UX_QUALITY_CHECKLIST.md`.", "",
-      "## Build order — dependency waves", "",
-      "Stories in the same wave don't depend on each other and can be built **in parallel**. A story can start once everything in its *Depends on* list is merged.", ""]
+count = {t[0]: {"built": 0, "partial": 0, "todo": 0} for t in TRACKS}
+for s in S: count[track(s[0], s[1])][status(s[0])] += 1
+total = {k: sum(c[k] for c in count.values()) for k in ("built", "partial", "todo")}
+ov = ["# Jali — Product backlog: epics & user stories", "",
+      f"> Backlog for every Jali transport service, ordered by the release plan (`{RELEASE}`) and owned by the modules from the architecture migration (`{RUNBOOK}`).",
+      "> Generated by `scripts/ride_backlog/generate.py` — edit stories there, never this file. Each story is a GitHub issue (*Issue* column; `new` = not created yet).", "",
+      f"**{len(EPICS)} epics · {len(S)} stories** — ✅ {total['built']} built · 🟡 {total['partial']} partial · ⬜ {total['todo']} todo", "",
+      "*Built* means merged to `develop`/`main` and waiting for owner testing — not validated or publicly released.", "",
+      "## Release tracks", "",
+      "Tracks follow the agreed public release order. Dependency waves (below) are only the build order *inside* the work you choose.", "",
+      "| Track | Meaning | ✅ | 🟡 | ⬜ |", "|---|---|---|---|---|"]
+for t in TRACKS:
+    c = count[t[0]]
+    ov.append(f"| [{t[1]}](#{slug(t[1])}) | {t[2]} | {c['built']} | {c['partial']} | {c['todo']} |")
+ov += ["",
+       "Working with several AI agents? Read `AI_AGENTS_GUIDE.md` first: pick stories from the batch the owner selected, one agent per **owner module** at a time. Every UI story must pass `UX_QUALITY_CHECKLIST.md`.", "",
+       "## Next up — path to Batch 1 (car rental)", "",
+       "Recommended order derived from the release plan; the owner still selects what is built.", ""]
+for step, ids in NEXT_UP:
+    ov.append(f"1. **{step}:** " + ", ".join(f"[{i}](stories/{FILE[i]}) {next(x[2] for x in S if x[0] == i)} ({STATUS_ICON[status(i)].split()[0]})" for i in ids))
+ov += ["",
+       "## Build order — dependency waves (open stories in active tracks)", "",
+       "A story can start once everything in its *Depends on* list is merged; merged (built) dependencies are already satisfied. Later, deferred and out-of-scope stories are left out.", ""]
 for w in range(1, nw + 1):
-    ids = [s[0] for s in S if WAVE[s[0]] == w]
-    ov.append(f"- **Wave {w}** ({len(ids)}): " + ", ".join(f"[{i}](stories/{FILE[i]})" for i in ids))
+    ids = [s[0] for s in S if WAVE[s[0]] == w and status(s[0]) != "built" and track(s[0], s[1]) in ACTIVE]
+    if ids:
+        ov.append(f"- **Wave {w}** ({len(ids)}): " + ", ".join(f"[{i}](stories/{FILE[i]})" for i in ids))
 ov.append("")
-for e in EPICS:
-    ov += [f"## {e[0]} — {e[1]}  `{e[2]}` · {iss(e[0])}", "", e[3], "", "| ID | Issue | Story | Wave | Depends on | Inspired by |", "|---|---|---|---|---|---|"]
-    for s in S:
-        if s[1] == e[0]:
-            ov.append(f"| [{s[0]}](stories/{FILE[s[0]]}) | {iss(s[0])} | {s[2]} | {WAVE[s[0]]} | {', '.join(DEPS.get(s[0], [])) or '—'} | {SRC.get(s[0], '—')} |")
-    ov.append("")
+for t in TRACKS:
+    tid = t[0]
+    ov += [f"## {t[1]}", "", t[2], ""]
+    for e in EPICS:
+        rows = [s for s in S if s[1] == e[0] and track(s[0], e[0]) == tid]
+        if not rows: continue
+        moved = EPIC_TRACK[e[0]] != tid
+        ov += [f"### {e[0]} — {e[1]} · {iss(e[0])}" + (" *(only its stories in this track)*" if moved else ""), ""]
+        if not moved: ov += [e[3], "", f"Owner module: {EPIC_MODULE[e[0]]}", ""]
+        ov += ["| ID | Issue | Story | Status | Wave | Depends on | Inspired by |", "|---|---|---|---|---|---|---|"]
+        for s in rows:
+            ov.append(f"| [{s[0]}](stories/{FILE[s[0]]}) | {iss(s[0])} | {s[2]} | {STATUS_ICON[status(s[0])]} | {WAVE[s[0]]} | {', '.join(DEPS.get(s[0], [])) or '—'} | {SRC.get(s[0], '—')} |")
+        ov.append("")
+ov += ["## History", "",
+       "- 2026-10-05: backlog created as *Jali Ride & Hire-a-Driver* (23 epics, 129 stories, phases 0–3).",
+       f"- 2026-10-06: regrouped by the release plan — tracks replace phases; added E23–E28 (connected app, car rental, shared journeys, bus, cargo, release readiness) and new stories in E6, E7 and E21; fee stories aligned to zero Jali fees; E14 money products deferred; E20 package delivery out of scope. Story IDs and issue numbers unchanged.", ""]
 open(f"{OUT}/USER_STORIES.md", "w").write("\n".join(ov))
 
-# issue creation script
+# issue creation script (fresh repositories only)
 sh = ['#!/usr/bin/env bash',
-      '# Creates the Jali Ride user stories as GitHub issues (epics first, then stories linked to them).',
+      '# Creates the Jali backlog as GitHub issues (epics first, then stories linked to them).',
       '# Generated from docs/ride-hailing/stories — do not edit by hand.',
       '# Usage: scripts/create-ride-issues.sh [owner/repo]   (requires: gh auth login)',
-      '# NOTE: sebastien15/Jali already has these issues (#4-#155, see scripts/ride_backlog/issues.json).',
+      '# NOTE: sebastien15/Jali already has most of these issues (see scripts/ride_backlog/issues.json).',
       '#       Only run this against a fresh repository or fork.',
       'set -euo pipefail',
       'REPO="${1:-sebastien15/Jali}"',
       'DIR="$(cd "$(dirname "$0")/.." && pwd)/docs/ride-hailing/stories"',
       '',
       'ensure_label() { gh label create "$1" --repo "$REPO" --color "$2" --force >/dev/null; }',
-      'for l in epic:5319e7 user-story:0e8a16 ride-hailing:0055cc phase-0:c5def5 phase-1:bfd4f2 phase-2:d4c5f9 phase-3:e4e669 \\',
+      'for l in epic:5319e7 user-story:0e8a16 track-foundation:c5def5 batch-1-rental:0055cc batch-2-driver-hire:1d76db \\',
+      '         batch-3-shared-journeys:009e8e batch-4-nearby-rides:bfd4f2 batch-5-bus:d4c5f9 batch-tbd-cargo:e4e669 \\',
+      '         later:ededed deferred-owner-decision:fbca04 out-of-scope:cccccc \\',
       '         backend:1d76db mobile:009e8e admin:7c3aed ux:fbca04 payments:00a63e pricing:ff5c00 \\',
       '         safety:b60205 security:b60205 international:0e8a16 analytics:c2e0c6 bug:d73a4a tech-debt:cccccc; do',
       '  ensure_label "${l%%:*}" "${l##*:}"',
@@ -625,4 +673,11 @@ for m in manifest:
 sh.append('echo "Done."')
 open(f"{ROOT}/scripts/create-ride-issues.sh", "w").write("\n".join(sh) + "\n")
 os.chmod(f"{ROOT}/scripts/create-ride-issues.sh", 0o755)
-print(len(EPICS), "epics,", len(S), "stories,", nw, "waves", by_phase)
+
+# machine-readable manifest for syncing existing issues (titles, labels, bodies, new issues)
+json.dump([{"kind": m[0], "id": m[1], "title": m[2], "labels": m[3], "file": f"docs/ride-hailing/stories/{m[4]}",
+            "epic": m[5] or None, "issue": ISSUE.get(m[1]),
+            "track": EPIC_TRACK[m[1]] if m[0] == "epic" else track(m[1], m[5]),
+            "status": None if m[0] == "epic" else status(m[1])} for m in manifest],
+          open(os.path.join(_HERE, "manifest.json"), "w"), indent=1, ensure_ascii=False)
+print(len(EPICS), "epics,", len(S), "stories,", nw, "waves", total, {k: sum(v.values()) for k, v in count.items()})

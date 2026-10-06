@@ -25,9 +25,9 @@ Jali/
 | Deployment & hosting URLs | Infra | `.claude/skills/deployment.md` |
 | TanStack migration plan | Mobile | `TANSTACK_PLAN.md` |
 | Ride-hailing & hire-a-driver plan | Full stack | `RIDE_HAILING_PLAN.md` |
-| Ride-hailing user stories (backlog) | Full stack | `docs/ride-hailing/USER_STORIES.md` |
+| Product backlog (epics & stories by release batch) | Full stack | `docs/ride-hailing/USER_STORIES.md` |
 | Batch release, architecture & shared UX | Product / all agents | `docs/RELEASE_PLAN.md` |
-| Multi-agent rules for ride stories | Full stack | `docs/ride-hailing/AI_AGENTS_GUIDE.md` |
+| Multi-agent rules (stories, module ownership) | Full stack | `docs/ride-hailing/AI_AGENTS_GUIDE.md` |
 | API contract (OpenAPI, source of truth) | Full stack | `docs/api/README.md` |
 
 ## Quick Rules
