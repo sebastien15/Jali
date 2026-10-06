@@ -659,6 +659,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/rides/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online drivers, active rides and counters (poll every 10 s) */
+        get: operations["getLiveOperations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All rides, newest first, with filters */
+        get: operations["listAdminRides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        /** Ride with timeline, fare breakdown and ratings */
+        get: operations["getAdminRide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rides/{id}/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the final fare and/or commission of a completed ride (note required, logged) */
+        post: operations["adjustRide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings/rides": {
         parameters: {
             query?: never;
@@ -895,6 +967,68 @@ export interface components {
         TripPoints: {
             pickup: components["schemas"]["Place"];
             dropoff: components["schemas"]["Place"];
+        };
+        AdminPerson: {
+            id: number;
+            name: string | null;
+            phone: string | null;
+        } | null;
+        AdminRideSummary: {
+            id: number;
+            status: components["schemas"]["RideStatus"];
+            vehicle_class: components["schemas"]["VehicleClass"];
+            rider: components["schemas"]["AdminPerson"];
+            driver: components["schemas"]["AdminPerson"];
+            pickup: components["schemas"]["Place"];
+            dropoff: components["schemas"]["Place"];
+            quoted_fare: number;
+            final_fare: number | null;
+            flagged: boolean;
+            /** Format: date-time */
+            requested_at: string | null;
+        };
+        AdminRideDetail: components["schemas"]["AdminRideSummary"] & {
+            /** @enum {string|null} */
+            payment_method: "cash" | "momo" | null;
+            cancel_reason: string | null;
+            /** @enum {string|null} */
+            cancelled_by: "rider" | "driver" | "system" | null;
+            pin_attempts: number;
+            vehicle: {
+                plate?: string;
+                model?: string;
+                color?: string | null;
+            } | null;
+            fare: {
+                est_distance_km: number;
+                est_minutes: number;
+                pickup_km: number;
+                /** @description Driver's prices locked at request time */
+                rate: Record<string, never>;
+                driver_fare: number;
+                service_fee: number;
+                quoted_fare: number;
+                cancel_fee: number;
+                commission_pct: number;
+                commission: number | null;
+                final_fare: number | null;
+            };
+            timeline: {
+                /** @description requested, accepted, arrived, pin_failed, started, completed, cancelled, expired, adjusted, … */
+                type: string;
+                /** @description Name, or "system" */
+                actor: string | null;
+                payload: Record<string, never> | unknown[] | null;
+                /** Format: date-time */
+                at: string | null;
+            }[];
+            ratings: {
+                /** @enum {string} */
+                from: "rider" | "driver";
+                stars: number;
+                tags: string[];
+                comment: string | null;
+            }[];
         };
         Place: {
             lat: number;
@@ -2275,6 +2409,152 @@ export interface operations {
                     "application/json": components["schemas"]["DriverApplication"];
                 };
             };
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getLiveOperations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        counters: {
+                            drivers_online: number;
+                            drivers_online_by_class: {
+                                [key: string]: number;
+                            };
+                            drivers_on_trip: number;
+                            rides_by_status: {
+                                [key: string]: number;
+                            };
+                            expired_last_hour: number;
+                            completed_today: number;
+                        };
+                        drivers: {
+                            user_id: number;
+                            name: string | null;
+                            class: components["schemas"]["VehicleClass"] | null;
+                            plate: string | null;
+                            lat: number | null;
+                            lng: number | null;
+                            on_trip: boolean;
+                            /** Format: date-time */
+                            last_seen_at: string | null;
+                        }[];
+                        rides: components["schemas"]["AdminRideSummary"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    listAdminRides: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["RideStatus"];
+                /** @description Kigali date, inclusive */
+                from?: string;
+                /** @description Kigali date, inclusive */
+                to?: string;
+                /** @description Name or phone contains */
+                rider?: string;
+                /** @description Name or phone contains */
+                driver?: string;
+                /** @description PIN-locked or rated 2★ or less */
+                flagged?: boolean;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminRideSummary"][];
+                        next_page: number | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getAdminRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRideDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adjustRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    final_fare?: number | null;
+                    commission?: number | null;
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Adjusted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRideDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };

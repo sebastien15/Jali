@@ -963,6 +963,133 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /admin/rides/live:
+    get:
+      tags: [Admin rides]
+      operationId: getLiveOperations
+      x-jali-story: S10.1
+      x-jali-permission: manage-rides
+      summary: Online drivers, active rides and counters (poll every 10 s)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [counters, drivers, rides]
+                properties:
+                  counters:
+                    type: object
+                    required: [drivers_online, drivers_online_by_class, drivers_on_trip, rides_by_status, expired_last_hour, completed_today]
+                    properties:
+                      drivers_online: { type: integer }
+                      drivers_online_by_class: { type: object, additionalProperties: { type: integer } }
+                      drivers_on_trip: { type: integer }
+                      rides_by_status: { type: object, additionalProperties: { type: integer } }
+                      expired_last_hour: { type: integer }
+                      completed_today: { type: integer }
+                  drivers:
+                    type: array
+                    items:
+                      type: object
+                      required: [user_id, name, class, plate, lat, lng, on_trip, last_seen_at]
+                      properties:
+                        user_id: { type: integer }
+                        name: { type: [string, "null"] }
+                        class: { oneOf: [{ $ref: "#/components/schemas/VehicleClass" }, { type: "null" }] }
+                        plate: { type: [string, "null"] }
+                        lat: { type: [number, "null"] }
+                        lng: { type: [number, "null"] }
+                        on_trip: { type: boolean }
+                        last_seen_at: { type: [string, "null"], format: date-time }
+                  rides:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminRideSummary" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/rides:
+    get:
+      tags: [Admin rides]
+      operationId: listAdminRides
+      x-jali-story: S10.2
+      x-jali-permission: manage-rides
+      summary: All rides, newest first, with filters
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/RideStatus" } }
+        - { name: from, in: query, description: "Kigali date, inclusive", schema: { type: string, format: date } }
+        - { name: to, in: query, description: "Kigali date, inclusive", schema: { type: string, format: date } }
+        - { name: rider, in: query, description: Name or phone contains, schema: { type: string } }
+        - { name: driver, in: query, description: Name or phone contains, schema: { type: string } }
+        - { name: flagged, in: query, description: "PIN-locked or rated 2★ or less", schema: { type: boolean } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, next_page]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/AdminRideSummary" } }
+                  next_page: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/rides/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    get:
+      tags: [Admin rides]
+      operationId: getAdminRide
+      x-jali-story: S10.2
+      x-jali-permission: manage-rides
+      summary: Ride with timeline, fare breakdown and ratings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRideDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/rides/{id}/adjust:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    post:
+      tags: [Admin rides]
+      operationId: adjustRide
+      x-jali-story: S10.2
+      x-jali-permission: manage-rides
+      summary: Change the final fare and/or commission of a completed ride (note required, logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                final_fare: { type: [integer, "null"], minimum: 0 }
+                commission: { type: [integer, "null"], minimum: 0 }
+                note: { type: string, minLength: 5, maxLength: 500 }
+      responses:
+        "200":
+          description: Adjusted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRideDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/settings/rides:
     get:
       tags: [Admin rides]
@@ -1387,6 +1514,82 @@ components:
       properties:
         pickup: { $ref: "#/components/schemas/Place" }
         dropoff: { $ref: "#/components/schemas/Place" }
+
+    AdminPerson:
+      type: [object, "null"]
+      required: [id, name, phone]
+      properties:
+        id: { type: integer }
+        name: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+
+    AdminRideSummary:
+      type: object
+      required: [id, status, vehicle_class, rider, driver, pickup, dropoff, quoted_fare, final_fare, flagged, requested_at]
+      properties:
+        id: { type: integer }
+        status: { $ref: "#/components/schemas/RideStatus" }
+        vehicle_class: { $ref: "#/components/schemas/VehicleClass" }
+        rider: { $ref: "#/components/schemas/AdminPerson" }
+        driver: { $ref: "#/components/schemas/AdminPerson" }
+        pickup: { $ref: "#/components/schemas/Place" }
+        dropoff: { $ref: "#/components/schemas/Place" }
+        quoted_fare: { type: integer }
+        final_fare: { type: [integer, "null"] }
+        flagged: { type: boolean }
+        requested_at: { type: [string, "null"], format: date-time }
+
+    AdminRideDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminRideSummary"
+        - type: object
+          required: [payment_method, cancel_reason, cancelled_by, pin_attempts, vehicle, fare, timeline, ratings]
+          properties:
+            payment_method: { type: [string, "null"], enum: [cash, momo, null] }
+            cancel_reason: { type: [string, "null"] }
+            cancelled_by: { type: [string, "null"], enum: [rider, driver, system, null] }
+            pin_attempts: { type: integer }
+            vehicle:
+              type: [object, "null"]
+              properties:
+                plate: { type: string }
+                model: { type: string }
+                color: { type: [string, "null"] }
+            fare:
+              type: object
+              required: [est_distance_km, est_minutes, pickup_km, rate, driver_fare, service_fee, quoted_fare, cancel_fee, commission_pct, commission, final_fare]
+              properties:
+                est_distance_km: { type: number }
+                est_minutes: { type: integer }
+                pickup_km: { type: number }
+                rate: { type: object, description: Driver's prices locked at request time }
+                driver_fare: { type: integer }
+                service_fee: { type: integer }
+                quoted_fare: { type: integer }
+                cancel_fee: { type: integer }
+                commission_pct: { type: number }
+                commission: { type: [integer, "null"] }
+                final_fare: { type: [integer, "null"] }
+            timeline:
+              type: array
+              items:
+                type: object
+                required: [type, actor, payload, at]
+                properties:
+                  type: { type: string, description: "requested, accepted, arrived, pin_failed, started, completed, cancelled, expired, adjusted, …" }
+                  actor: { type: [string, "null"], description: "Name, or \"system\"" }
+                  payload: { type: [object, array, "null"] }
+                  at: { type: [string, "null"], format: date-time }
+            ratings:
+              type: array
+              items:
+                type: object
+                required: [from, stars, tags, comment]
+                properties:
+                  from: { type: string, enum: [rider, driver] }
+                  stars: { type: integer, minimum: 1, maximum: 5 }
+                  tags: { type: array, items: { type: string } }
+                  comment: { type: [string, "null"] }
 
     Place:
       type: object

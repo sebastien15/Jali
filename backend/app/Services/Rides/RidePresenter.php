@@ -60,7 +60,7 @@ class RidePresenter
             'driver_fare'     => $ride->driver_fare,
             'service_fee'     => $ride->service_fee,
             'final_fare'      => $ride->final_fare,
-            'driver_earnings' => $isRider ? null : $ride->driver_fare - (int) round($ride->driver_fare * $ride->commission_pct / 100),
+            'driver_earnings' => $isRider ? null : $ride->driver_fare - ($ride->commission ?? (int) round($ride->driver_fare * $ride->commission_pct / 100)),
             'cancel_fee'      => $ride->cancel_fee,
             'cancel_reason'   => $ride->cancel_reason,
             'start_pin'       => $isRider && in_array($ride->status, Ride::ACTIVE, true) ? $ride->start_pin : null,

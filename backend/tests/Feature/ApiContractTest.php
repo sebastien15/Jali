@@ -22,7 +22,7 @@ class ApiContractTest extends TestCase
     private const CONTRACT_PREFIXES = [
         'api/me', 'api/driver/profile', 'api/driver/vehicles', 'api/driver/rates',
         'api/driver/onboarding', 'api/driver/documents', 'api/admin/drivers', 'api/places', 'api/driver/presence',
-        'api/driver/ride-requests', 'api/rides', 'api/admin/settings/rides',
+        'api/driver/ride-requests', 'api/rides', 'api/admin/settings/rides', 'api/admin/rides',
     ];
 
     private function laravelRoutes(): array
