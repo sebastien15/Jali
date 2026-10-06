@@ -190,6 +190,21 @@ class HireDriverTest extends TestCase
     }
 
     /** @test */
+    public function hire_is_refused_outside_service_areas_or_where_it_is_switched_off()
+    {
+        Sanctum::actingAs($this->customer);
+        $musanze = ['lat' => -1.4993, 'lng' => 29.6345, 'address' => 'Musanze'];
+        $this->postJson('/api/driver-hire', $this->booking(['pickup' => $musanze]))
+            ->assertStatus(422)->assertJsonPath('message', 'Not available here yet. Jali currently works in Kigali.');
+
+        \App\Models\ServiceArea::where('name', 'Kigali')->update(['overrides' => json_encode(['services' => ['hire' => false]])]);
+        \App\Modules\Locations\Application\ServiceAreaDirectory::forget();
+        $this->postJson('/api/driver-hire', $this->booking())
+            ->assertStatus(422)->assertJsonPath('message', 'Hire a driver is not available in Kigali yet.');
+        $this->assertSame(0, DriverHire::count());
+    }
+
+    /** @test */
     public function booking_locks_the_price_requires_terms_and_notifies_the_driver()
     {
         Sanctum::actingAs($this->customer);

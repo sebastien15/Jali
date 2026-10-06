@@ -7,7 +7,7 @@ Admins can watch live operations, investigate rides, resolve disputes and see ri
 - S10.1 — Live operations view (wave 1, ✅ built)
 - S10.2 — Rides list, detail and dispute handling (wave 1, ✅ built)
 - S10.3 — Ride analytics (wave 1, ✅ built)
-- S10.4 — Service areas, cities & geofences (wave 1, ⬜ todo, track: Shared foundations & connected app)
+- S10.4 — Service areas, cities & geofences (wave 1, ✅ built, track: Shared foundations & connected app)
 
 ## Done when
 - [ ] All stories in this epic are closed

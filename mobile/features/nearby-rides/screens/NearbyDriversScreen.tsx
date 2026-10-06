@@ -43,12 +43,17 @@ export default function NearbyDriversScreen() {
     ...(vehicleClass ? { class: vehicleClass } : {}),
   } : null;
 
-  const { data, isLoading, isRefetching, refetch } = useQuery({
+  const { data, isLoading, isRefetching, refetch, error } = useQuery({
     queryKey: queryKeys.rides.nearby(query),
     queryFn: () => api.get<NearbyResponse>("/rides/nearby", { params: query }).then(r => r.data),
     enabled: !!query,
-    refetchInterval: 10_000,
+    // S10.4: outside a live service area the API answers 422 — no point polling
+    refetchInterval: q => (q.state.error as any)?.response?.status === 422 ? false : 10_000,
+    retry: (count, err: any) => err?.response?.status !== 422 && count < 2,
   });
+  const notServed: string | null = (error as any)?.response?.status === 422 && !(error as any)?.response?.data?.errors
+    ? ((error as any).response.data?.message ?? t("ride.nearby.notServed", "Not available here yet."))
+    : null;
 
   // Price range and nearest ETA per class (S3.6)
   const estimate = useQuery({
@@ -149,6 +154,11 @@ export default function NearbyDriversScreen() {
         ListEmptyComponent={isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map(i => <View key={i} style={{ height: 96, borderRadius: 16, backgroundColor: C.border, opacity: 0.5 }} />)}
+          </View>
+        ) : notServed ? (
+          <View style={{ alignItems: "center", padding: 32, gap: 10 }}>
+            <Ionicons name="map-outline" size={44} color={C.muted} />
+            <Text style={{ fontWeight: "800", color: C.dark, fontSize: 16, textAlign: "center" }}>{notServed}</Text>
           </View>
         ) : (
           <View style={{ alignItems: "center", padding: 32, gap: 10 }}>

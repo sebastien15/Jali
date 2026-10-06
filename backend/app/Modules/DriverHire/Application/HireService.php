@@ -9,6 +9,7 @@ use App\Modules\Payments\Contracts\MoneyRecorder;
 use App\Modules\Payments\Contracts\ReceiptMailer;
 use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
+use App\Modules\Locations\Contracts\ServiceAreas;
 use App\Modules\Notifications\Contracts\PushSender;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -29,12 +30,18 @@ class HireService
         private MoneyRecorder $money,
         private ReceiptMailer $receipts,
         private ProviderReputation $reputation,
+        private ServiceAreas $areas,
     ) {
     }
 
     /** POST /driver-hire — price and end time are computed here, never taken from the client */
     public function request(User $customer, User $driver, array $data, CarbonInterface $start): DriverHire
     {
+        // S10.4: only where hire is offered
+        $where = $this->areas->availability((float) $data['pickup']['lat'], (float) $data['pickup']['lng'], 'hire');
+        if (!$where['served']) {
+            throw new HttpException(422, $where['message']);
+        }
         $settings = $driver->hireSettings;
         $rate = $settings->snapshot();
         $quote = HireQuote::quote($rate, $data['duration_type'], (int) $data['duration_value'], $data['trip_type']);

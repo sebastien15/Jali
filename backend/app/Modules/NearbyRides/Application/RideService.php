@@ -46,6 +46,7 @@ class RideService
         private MoneyRecorder $money,
         private ReceiptMailer $receipts,
         private ProviderReputation $reputation,
+        private AreaRideSettings $area,
     ) {
     }
 
@@ -61,6 +62,7 @@ class RideService
         if ($driverId === $rider->id) {
             throw ValidationException::withMessages(['driver_id' => 'You cannot request yourself.']);
         }
+        $this->area->assertServed($pickup['lat'], $pickup['lng']);
         $offer = $this->offerFrom($driverId, $pickup, $dropoff);
         if (!$offer) {
             throw new HttpException(409, 'This driver is no longer available. Choose another driver.');
@@ -97,7 +99,7 @@ class RideService
                                      ?string $class = null, ?int $maxFare = null): Ride
     {
         $this->assertCanRequest($rider);
-        $settings = $this->pricing->settings();
+        $settings = $this->area->at($pickup['lat'], $pickup['lng']);
         $nearby = app(NearbyDrivers::class)->search($pickup['lat'], $pickup['lng'], $dropoff['lat'], $dropoff['lng'], $class, $rider->id);
 
         $offers = [];
@@ -185,7 +187,8 @@ class RideService
         ])->whereNull('out_of_band_at')->first() : null;
 
         if (!$presence || !$rate || !$presence->vehicle->is_active
-            || $presence->driver->driverProfile?->verification_status !== DriverProfile::STATUS_VERIFIED) {
+            || $presence->driver->driverProfile?->verification_status !== DriverProfile::STATUS_VERIFIED
+            || !AreaRideSettings::rateFits($this->area->at($pickup['lat'], $pickup['lng']), $rate, $presence->vehicle->class)) {
             return null;
         }
 
@@ -211,7 +214,7 @@ class RideService
 
     private function createRide(User $rider, string $mode, array $offer, array $pickup, array $dropoff, string $paymentMethod, array $extra): Ride
     {
-        $settings = $this->pricing->settings();
+        $settings = $this->area->at($pickup['lat'], $pickup['lng']);   // city commission (S10.4)
         $fare = $offer['fare'];
 
         return Ride::create($extra + [
@@ -273,7 +276,7 @@ class RideService
     /** Fee when the rider cancels after the driver has waited longer than the free time. */
     public static function cancelFee(Ride $ride): int
     {
-        $settings = app(PricingPolicy::class)->settings();
+        $settings = app(AreaRideSettings::class)->at((float) $ride->pickup_lat, (float) $ride->pickup_lng);
         if ($ride->status !== Ride::ARRIVED || !$ride->arrived_at) {
             return 0;
         }

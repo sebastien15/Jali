@@ -28,6 +28,7 @@ class NearbyDrivers
         private FareService $fares,
         private PricingPolicy $pricing,
         private Geography $geo,
+        private AreaRideSettings $area,
     ) {
     }
 
@@ -37,7 +38,8 @@ class NearbyDrivers
     public function search(float $lat, float $lng, float $destLat, float $destLng, ?string $class = null,
                            ?int $excludeUserId = null, ?CarbonInterface $at = null): array
     {
-        $settings = $this->pricing->settings();
+        $this->area->assertServed($lat, $lng);
+        $settings = $this->area->at($lat, $lng);   // city overrides (S10.4)
         $radiusKm = (float) $settings['nearby_radius_km'];
         $dLat = $radiusKm / 111.0;
         $dLng = $radiusKm / (111.0 * max(0.01, cos(deg2rad($lat))));
@@ -66,7 +68,7 @@ class NearbyDrivers
         $results = [];
         foreach ($candidates as $p) {
             $rate = $rates[$p->user_id . ':' . $p->vehicle_id] ?? null;
-            if (!$rate) {
+            if (!$rate || !AreaRideSettings::rateFits($settings, $rate, $p->vehicle->class)) {
                 continue;
             }
             $distance = $this->geo->straightKm($lat, $lng, $p->lat, $p->lng);

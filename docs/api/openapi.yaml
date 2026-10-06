@@ -54,6 +54,8 @@ tags:
     description: Car owners — listings, photos, papers, calendar, requests, handover and return
   - name: Admin rentals
     description: Rental car verification and rental operations
+  - name: Service areas
+    description: Cities and zones where services are offered (S10.4)
 
 paths:
   /me:
@@ -560,7 +562,7 @@ paths:
                     items: { $ref: "#/components/schemas/NearbyDriver" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
 
   /rides/estimate:
     post:
@@ -603,7 +605,7 @@ paths:
                         nearest_eta_min: { type: [integer, "null"] }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
 
   /rides:
     get:
@@ -656,7 +658,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /rides/active:
@@ -1532,7 +1534,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
-        "422": { $ref: "#/components/responses/ValidationError" }
+        "422": { $ref: "#/components/responses/ValidationOrNotServed" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /driver-hire/{id}:
@@ -2127,6 +2129,122 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
+
+  # ── Service areas (S10.4) ───────────────────────────────────────────────
+  /service-areas/check:
+    get:
+      tags: [Service areas]
+      operationId: checkServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: request-rides
+      summary: Is a service offered at this point? (served everywhere while no city is active)
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number } }
+        - { name: lng, in: query, required: true, schema: { type: number } }
+        - name: service
+          in: query
+          schema: { $ref: "#/components/schemas/ServiceKey" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAvailability" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/service-areas:
+    get:
+      tags: [Service areas]
+      operationId: listServiceAreas
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Cities first, then zones
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Service areas]
+      operationId: createServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Add a city or zone from points, an uploaded GeoJSON polygon, or a circle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAreaInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/service-areas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Service areas]
+      operationId: getServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: One city or zone
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Service areas]
+      operationId: updateServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Change name, shape, on/off or per-city overrides (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAreaInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceArea" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Service areas]
+      operationId: deleteServiceArea
+      x-jali-story: S10.4
+      x-jali-permission: manage-service-areas
+      summary: Delete a zone, or a city without zones
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
 
   # ── Car rental (epic E24, Batch 1) ──────────────────────────────────────
   /rentals/cars:
@@ -3052,6 +3170,23 @@ components:
             type: object
             properties:
               message: { type: string }
+    ValidationOrNotServed:
+      description: >-
+        Validation failed (`errors` present), or the pickup is outside every active
+        service area / the service is switched off there (S10.4) — `message` is
+        user-facing, e.g. "Not available here yet. Jali currently works in Kigali."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              message: { type: string }
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }
     ValidationError:
       description: Validation failed
       content:
@@ -3068,6 +3203,99 @@ components:
                   items: { type: string }
 
   schemas:
+    ServiceKey:
+      type: string
+      enum: [rides, hire, rental, shared, bus, cargo]
+    ServiceAvailability:
+      type: object
+      required: [served, area, message]
+      properties:
+        served: { type: boolean }
+        area:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        message: { type: [string, "null"], description: User-facing reason when not served }
+    LatLng:
+      type: array
+      description: "[lat, lng]"
+      minItems: 2
+      maxItems: 2
+      items: { type: number }
+    ServiceAreaOverrides:
+      type: object
+      description: Per-city ride settings (empty = global value) and service switches (missing = on)
+      properties:
+        commission_pct: { type: number }
+        cancel_fee: { type: integer }
+        free_wait_min: { type: integer }
+        nearby_radius_km: { type: number }
+        broadcast_max_drivers: { type: integer }
+        vehicle_classes:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              per_km_min: { type: integer }
+              per_km_max: { type: integer }
+              min_fare_max: { type: integer }
+        services:
+          type: object
+          additionalProperties: { type: boolean }
+    ServiceArea:
+      type: object
+      required: [id, name, kind, zone_type, parent_id, parent_name, active, polygon, center, overrides, zones_count, updated_at]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        kind: { type: string, enum: [city, zone] }
+        zone_type: { type: [string, "null"], enum: [airport, stadium, station, pickup, other, null] }
+        parent_id: { type: [integer, "null"] }
+        parent_name: { type: [string, "null"] }
+        active: { type: boolean }
+        polygon:
+          type: array
+          items: { $ref: "#/components/schemas/LatLng" }
+        center:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+        overrides: { $ref: "#/components/schemas/ServiceAreaOverrides" }
+        zones_count: { type: integer }
+        updated_at: { type: [string, "null"], format: date-time }
+    ServiceAreaInput:
+      type: object
+      description: Give one shape — `polygon`, `geojson` (Polygon/Feature, as object or text) or `circle` — required on create
+      properties:
+        name: { type: string, maxLength: 80 }
+        kind: { type: string, enum: [city, zone] }
+        zone_type: { type: [string, "null"], enum: [airport, stadium, station, pickup, other, null] }
+        parent_id: { type: [integer, "null"], description: City of a zone }
+        active: { type: boolean }
+        polygon:
+          type: array
+          minItems: 3
+          maxItems: 500
+          items: { $ref: "#/components/schemas/LatLng" }
+        geojson:
+          oneOf:
+            - type: string
+            - type: object
+        circle:
+          type: object
+          required: [lat, lng, radius_km]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+            radius_km: { type: number, minimum: 0.1, maximum: 100 }
+        overrides:
+          oneOf:
+            - { $ref: "#/components/schemas/ServiceAreaOverrides" }
+            - type: "null"
     # ── Car rental ─────────────────────────────────────────────────────────
     RentalCarType:
       type: string

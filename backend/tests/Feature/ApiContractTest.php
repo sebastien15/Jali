@@ -26,6 +26,7 @@ class ApiContractTest extends TestCase
         'api/driver-hire', 'api/driver/hire-settings', 'api/driver/availability', 'api/driver/hires',
         'api/driver/earnings', 'api/driver/settlements', 'api/driver/momo', 'api/driver/payouts', 'api/admin/settlements', 'api/share', 'api/fx', 'api/analytics/rides',
         'api/rentals', 'api/driver/cars', 'api/driver/rentals', 'api/admin/rental-cars', 'api/admin/rentals',
+        'api/service-areas', 'api/admin/service-areas',
     ];
 
     private function laravelRoutes(): array

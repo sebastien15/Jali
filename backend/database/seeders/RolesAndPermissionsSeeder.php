@@ -42,6 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'verify-drivers' => 'Review and verify driver applications',
             'manage-rides' => 'Monitor rides and handle disputes',
             'manage-ride-pricing' => 'Configure ride pricing guardrails',
+            'manage-service-areas' => 'Define service areas, zones and per-city settings',
             'apply-as-driver' => 'Apply to drive: profile, vehicles and documents',
         ];
         // Car rental (epic E24)

@@ -1296,6 +1296,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/service-areas/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Is a service offered at this point? (served everywhere while no city is active) */
+        get: operations["checkServiceArea"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cities first, then zones */
+        get: operations["listServiceAreas"];
+        put?: never;
+        /** Add a city or zone from points, an uploaded GeoJSON polygon, or a circle */
+        post: operations["createServiceArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-areas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** One city or zone */
+        get: operations["getServiceArea"];
+        /** Change name, shape, on/off or per-city overrides (partial; logged) */
+        put: operations["updateServiceArea"];
+        post?: never;
+        /** Delete a zone, or a city without zones */
+        delete: operations["deleteServiceArea"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rentals/cars": {
         parameters: {
             query?: never;
@@ -1867,6 +1923,76 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        ServiceKey: "rides" | "hire" | "rental" | "shared" | "bus" | "cargo";
+        ServiceAvailability: {
+            served: boolean;
+            area: {
+                id: number;
+                name: string;
+            } | null;
+            /** @description User-facing reason when not served */
+            message: string | null;
+        };
+        /** @description [lat, lng] */
+        LatLng: number[];
+        /** @description Per-city ride settings (empty = global value) and service switches (missing = on) */
+        ServiceAreaOverrides: {
+            commission_pct?: number;
+            cancel_fee?: number;
+            free_wait_min?: number;
+            nearby_radius_km?: number;
+            broadcast_max_drivers?: number;
+            vehicle_classes?: {
+                [key: string]: {
+                    per_km_min?: number;
+                    per_km_max?: number;
+                    min_fare_max?: number;
+                };
+            };
+            services?: {
+                [key: string]: boolean;
+            };
+        };
+        ServiceArea: {
+            id: number;
+            name: string;
+            /** @enum {string} */
+            kind: "city" | "zone";
+            /** @enum {string|null} */
+            zone_type: "airport" | "stadium" | "station" | "pickup" | "other" | null;
+            parent_id: number | null;
+            parent_name: string | null;
+            active: boolean;
+            polygon: components["schemas"]["LatLng"][];
+            center: {
+                lat: number;
+                lng: number;
+            };
+            overrides: components["schemas"]["ServiceAreaOverrides"];
+            zones_count: number;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        /** @description Give one shape — `polygon`, `geojson` (Polygon/Feature, as object or text) or `circle` — required on create */
+        ServiceAreaInput: {
+            name?: string;
+            /** @enum {string} */
+            kind?: "city" | "zone";
+            /** @enum {string|null} */
+            zone_type?: "airport" | "stadium" | "station" | "pickup" | "other" | null;
+            /** @description City of a zone */
+            parent_id?: number | null;
+            active?: boolean;
+            polygon?: components["schemas"]["LatLng"][];
+            geojson?: string | Record<string, never>;
+            circle?: {
+                lat: number;
+                lng: number;
+                radius_km: number;
+            };
+            overrides?: components["schemas"]["ServiceAreaOverrides"] | null;
+        };
         /** @enum {string} */
         RentalCarType: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Van" | "Luxury";
         /**
@@ -3042,6 +3168,20 @@ export interface components {
                 };
             };
         };
+        /** @description Validation failed (`errors` present), or the pickup is outside every active service area / the service is switched off there (S10.4) — `message` is user-facing, e.g. "Not available here yet. Jali currently works in Kigali." */
+        ValidationOrNotServed: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message: string;
+                    errors?: {
+                        [key: string]: string[];
+                    };
+                };
+            };
+        };
         /** @description Validation failed */
         ValidationError: {
             headers: {
@@ -3697,7 +3837,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
         };
     };
     estimateRide: {
@@ -3737,7 +3877,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
         };
     };
     listMyRides: {
@@ -3807,7 +3947,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
         };
     };
@@ -4848,7 +4988,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
+            422: components["responses"]["ValidationOrNotServed"];
             429: components["responses"]["TooManyRequests"];
         };
     };
@@ -5531,6 +5671,163 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    checkServiceArea: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                service?: components["schemas"]["ServiceKey"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAvailability"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listServiceAreas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceArea"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAreaInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAreaInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceArea"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteServiceArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
     searchRentalCars: {

@@ -849,7 +849,8 @@
       "priceNote": "Price includes pickup and Jali fee. It's locked when you request.",
       "noneNow": "none now",
       "view_list": "List",
-      "view_map": "Map"
+      "view_map": "Map",
+      "notServed": "Not available here yet."
     },
     "trip": {
       "waiting": "Waiting for {{name}} to accept…",
