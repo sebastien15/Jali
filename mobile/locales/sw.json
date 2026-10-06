@@ -1246,5 +1246,10 @@
       "account": "Akaunti yangu",
       "other": "Kitu kingine"
     }
+  },
+  "notifications": {
+    "unavailableTitle": "Hii haipatikani tena",
+    "unavailableText": "Huenda imeondolewa, au ni ya akaunti nyingine.",
+    "goHome": "Nenda nyumbani"
   }
 }
