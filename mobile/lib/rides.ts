@@ -1,4 +1,3 @@
-import { Linking, Platform } from "react-native";
 import { haversineDistance } from "@/lib/serviceFee";
 import type { components } from "@/lib/apiSchema";
 
@@ -32,17 +31,6 @@ export function secondsLeft(iso: string | null | undefined): number {
   return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000));
 }
 
-/** Opens Google Maps (or Apple Maps on iOS without Google Maps) with driving directions. */
-export async function openNavigation(lat: number, lng: number): Promise<void> {
-  const google = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-  const waze = `waze://?ll=${lat},${lng}&navigate=yes`;
-  if (await Linking.canOpenURL(waze).catch(() => false)) return Linking.openURL(waze);
-  if (Platform.OS === "ios" && !(await Linking.canOpenURL("comgooglemaps://").catch(() => false))) {
-    return Linking.openURL(`http://maps.apple.com/?daddr=${lat},${lng}`);
-  }
-  return Linking.openURL(google);
-}
-
-export function callPhone(phone: string | null | undefined): void {
-  if (phone) Linking.openURL(`tel:${phone}`).catch(() => {});
-}
+// Generic platform actions, used by more than rides (e.g. driver hire). Kept here as
+// compatibility re-exports; new code imports them from "@/lib/platformActions".
+export { openNavigation, callPhone } from "@/lib/platformActions";

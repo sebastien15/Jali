@@ -11,7 +11,7 @@ import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
 import { RideNowBar } from "@/components/home/RideNowBar";
-import { HireDriverBar } from "@/components/home/HireDriverBar";
+import { HireDriverBar } from "@/features/driver-hire";
 import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { AgencyFilterBar } from "@/components/home/AgencyFilterBar";
 import { BusResults } from "@/components/home/BusResults";

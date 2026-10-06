@@ -12,7 +12,7 @@ import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatYmd } from "@/lib/date";
 import { RideHistory } from "@/components/rides/RideHistory";
-import { HireHistory } from "@/components/rides/HireHistory";
+import { HireHistory } from "@/features/driver-hire";
 
 const TYPE_COLOR: Record<TripType, string> = {
   trip: C.blue, bus: C.blue, rental: C.green, private: C.orange,

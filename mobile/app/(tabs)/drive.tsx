@@ -32,7 +32,7 @@ import { PrivateListingsCard } from "@/features/shared-journeys";
 import { PickupZones } from "@/components/driver/PickupZones";
 import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
 import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
-import { HireRequestsCard } from "@/components/driver/HireRequestsCard";
+import { HireRequestsCard } from "@/features/driver-hire";
 import { EarningsCard } from "@/components/driver/EarningsCard";
 import {
   TripsTabs,

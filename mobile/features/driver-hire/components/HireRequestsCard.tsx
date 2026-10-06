@@ -8,7 +8,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
-import { DriverHire, formatWhen } from "@/lib/hire";
+import { DriverHire, formatWhen } from "../hire";
 
 /** Drive tab: hire requests to answer, upcoming hires, and a link to hire settings (S6.1, S6.4). */
 export function HireRequestsCard() {
