@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, Modal, ActivityIndicator, StatusBar, RefreshControl } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, Modal, ActivityIndicator, StatusBar, RefreshControl, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -161,14 +161,50 @@ export default function NearbyDriversScreen() {
   );
 }
 
-/** Wired to POST /rides in S3.4 */
-function RequestButton({ driver }: { driver: NearbyDriver; pickupParam?: string; destinationParam?: string; vehicleClass: VehicleClass }) {
+/** Request this driver (story S3.4): price is computed and locked by the server. */
+function RequestButton({ driver, pickupParam, destinationParam }: {
+  driver: NearbyDriver; pickupParam?: string; destinationParam?: string; vehicleClass: VehicleClass;
+}) {
   const { t } = useTranslation();
+  const [payment, setPayment] = useState<"cash" | "momo">("cash");
+  const [sending, setSending] = useState(false);
+  const pickup = parsePlace(pickupParam);
+  const destination = parsePlace(destinationParam);
+
+  async function request() {
+    if (!pickup || !destination) return;
+    setSending(true);
+    try {
+      const res = await api.post<{ id: number }>("/rides", {
+        mode: "pick", driver_id: driver.driver_id, payment_method: payment,
+        pickup: { lat: pickup.lat, lng: pickup.lng, address: pickup.address || pickup.name },
+        dropoff: { lat: destination.lat, lng: destination.lng, address: destination.address || destination.name },
+      });
+      router.push(`/ride/${res.data.id}` as any);
+    } catch (err: any) {
+      Alert.alert(err?.response?.data?.message ?? "Error");
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
-    <TouchableOpacity disabled accessibilityLabel={t("ride.nearby.request", { name: driver.name })}
-      style={{ backgroundColor: C.muted, borderRadius: 16, paddingVertical: 16, alignItems: "center", marginTop: 16 }}>
-      <Text style={{ color: C.white, fontWeight: "900", fontSize: 16 }}>{t("ride.nearby.request", { name: driver.name })}</Text>
-    </TouchableOpacity>
+    <>
+      <Text style={{ color: C.mid, fontWeight: "700", fontSize: 12, marginTop: 14, marginBottom: 6 }}>{t("ride.trip.payWith")}</Text>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        {(["cash", "momo"] as const).map(m => (
+          <TouchableOpacity key={m} onPress={() => setPayment(m)} accessibilityLabel={t(`ride.driverTrip.${m}`)} accessibilityState={{ selected: payment === m }}
+            style={{ flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center", backgroundColor: payment === m ? C.dark : C.bg }}>
+            <Text style={{ color: payment === m ? C.white : C.mid, fontWeight: "800" }}>{t(`ride.driverTrip.${m}`)}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TouchableOpacity onPress={request} disabled={sending} accessibilityLabel={t("ride.nearby.request", { name: driver.name })}
+        style={{ backgroundColor: C.dark, borderRadius: 16, paddingVertical: 16, alignItems: "center", marginTop: 14 }}>
+        {sending ? <ActivityIndicator color={C.white} />
+          : <Text style={{ color: C.white, fontWeight: "900", fontSize: 16 }}>{t("ride.nearby.request", { name: driver.name })}</Text>}
+      </TouchableOpacity>
+    </>
   );
 }
 

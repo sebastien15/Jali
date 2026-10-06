@@ -53,6 +53,7 @@ export const queryKeys = {
     vehicles: () => ["driver", "vehicles"] as const,
     onboarding: () => ["driver", "onboarding"] as const,
     presence: () => ["driver", "presence"] as const,
+    rideRequests: () => ["driver", "rideRequests"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
