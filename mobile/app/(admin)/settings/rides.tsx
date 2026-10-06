@@ -29,7 +29,26 @@ type Form = {
   nearby_radius_km: string;
   presence_ttl_sec: string;
   request_timeout_sec: string;
+  hire: Record<HireKey, string>;
 };
+
+/** Hire a Driver limits and booking rules (platform_settings rides.hire) */
+const HIRE_FIELDS: { key: HireKey; label: string }[] = [
+  { key: "hourly_min", label: "Hourly min (RWF)" },
+  { key: "hourly_max", label: "Hourly max (RWF)" },
+  { key: "daily_min", label: "Daily min (RWF)" },
+  { key: "daily_max", label: "Daily max (RWF)" },
+  { key: "overtime_max", label: "Overtime max / h" },
+  { key: "out_of_town_max", label: "Out-of-town max / day" },
+  { key: "commission_pct", label: "Commission %" },
+  { key: "service_fee", label: "Service fee (RWF)" },
+  { key: "request_timeout_min", label: "Answer within (min)" },
+  { key: "free_cancel_hours", label: "Free cancel until (h before)" },
+  { key: "late_cancel_pct", label: "Late cancel fee %" },
+  { key: "overtime_grace_min", label: "Overtime grace (min)" },
+  { key: "max_days", label: "Max days" },
+];
+type HireKey = keyof components["schemas"]["HireSettingsLimits"];
 
 function toForm(s: RideSettings): Form {
   const classes: Form["classes"] = {};
@@ -50,6 +69,7 @@ function toForm(s: RideSettings): Form {
     nearby_radius_km: String(s.nearby_radius_km ?? 5),
     presence_ttl_sec: String(s.presence_ttl_sec ?? 60),
     request_timeout_sec: String(s.request_timeout_sec ?? 30),
+    hire: Object.fromEntries(HIRE_FIELDS.map(({ key }) => [key, String(s.hire?.[key] ?? "")])) as Record<HireKey, string>,
   };
 }
 
@@ -70,6 +90,7 @@ function toPayload(f: Form): components["schemas"]["RideSettingsUpdate"] {
     nearby_radius_km: Number(f.nearby_radius_km),
     presence_ttl_sec: Number(f.presence_ttl_sec),
     request_timeout_sec: Number(f.request_timeout_sec),
+    hire: Object.fromEntries(HIRE_FIELDS.filter(({ key }) => f.hire[key] !== "").map(({ key }) => [key, Number(f.hire[key])])),
   };
 }
 
@@ -189,6 +210,17 @@ export default function RideSettingsScreen() {
                 onChange={v => setField("presence_ttl_sec", v)} error={errors.presence_ttl_sec} />
               <NumberField label="Request timeout (s)" value={form.request_timeout_sec}
                 onChange={v => setField("request_timeout_sec", v)} error={errors.request_timeout_sec} />
+            </View>
+          </Section>
+
+          <Section title="Hire a driver">
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {HIRE_FIELDS.map(({ key, label }) => (
+                <View key={key} style={{ width: "48%" }}>
+                  <NumberField label={label} value={form.hire[key]}
+                    onChange={v => setForm({ ...form, hire: { ...form.hire, [key]: v } })} error={errors[`hire.${key}`]} />
+                </View>
+              ))}
             </View>
           </Section>
 

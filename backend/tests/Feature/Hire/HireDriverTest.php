@@ -102,6 +102,20 @@ class HireDriverTest extends TestCase
     }
 
     /** @test */
+    public function superadmin_hire_limits_apply_to_driver_prices()
+    {
+        $admin = User::create(['name' => 'Root', 'email' => 'root@jali.rw', 'role_id' => Role::where('name', 'superadmin')->value('id')]);
+        Sanctum::actingAs($admin);
+        $this->putJson('/api/admin/settings/rides', ['hire' => ['hourly_max' => 2500, 'commission_pct' => 5]])->assertOk()
+            ->assertJsonPath('hire.hourly_max', 2500)->assertJsonPath('hire.daily_max', 150000);
+        $this->putJson('/api/admin/settings/rides', ['hire' => ['late_cancel_pct' => 300]])->assertStatus(422);
+
+        Sanctum::actingAs($this->driver);
+        $this->putJson('/api/driver/hire-settings', self::RATES)->assertStatus(422)->assertJsonValidationErrors('hourly_rate');
+        $this->putJson('/api/driver/hire-settings', ['hourly_rate' => 2500] + self::RATES)->assertOk()->assertJsonPath('limits.commission_pct', 5);
+    }
+
+    /** @test */
     public function only_verified_drivers_with_hire_permission_can_set_up_hire()
     {
         Sanctum::actingAs($this->customer);
