@@ -20,6 +20,7 @@ class DriverEligibility
     public const NO_FRONT_PHOTO = 'no_vehicle_photo';
     public const NO_RATES = 'no_rates';
     public const RATES_OUT_OF_BAND = 'rates_outside_limits';
+    public const COMMISSION_OWED = 'commission_owed';
 
     /** @return string[] empty when the driver may go online */
     public static function blockers(User $user): array
@@ -34,6 +35,9 @@ class DriverEligibility
         }
         if (!$profile?->isVerified()) {
             $reasons[] = self::NOT_VERIFIED;
+        }
+        if (\App\Services\Payments\DriverLedger::overLimit($user->id)) {
+            $reasons[] = self::COMMISSION_OWED;   // S5.4: settle before going online
         }
 
         /** @var Vehicle|null $vehicle */

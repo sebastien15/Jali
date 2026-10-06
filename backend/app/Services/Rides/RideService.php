@@ -391,6 +391,7 @@ class RideService
         ], 'completed', ['final_fare' => $ride->quoted_fare, 'payment_method' => $paymentMethod, 'commission' => $commission]);
 
         DriverProfile::where('user_id', $driver->id)->increment('trips_count');
+        app(\App\Services\Payments\DriverLedger::class)->recordRide($ride);   // S7.2
         $this->push->send($ride->rider, 'You have arrived',
             sprintf('Trip total %s RWF (%s). Tap to rate your driver.', number_format($ride->final_fare), $paymentMethod === 'momo' ? 'MoMo' : 'cash'),
             ['screen' => 'ride', 'id' => $ride->id]);

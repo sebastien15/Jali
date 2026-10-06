@@ -15,6 +15,7 @@ const FIX_ROUTE: Record<string, string> = {
   no_vehicle_photo: "/driver/vehicles",
   no_rates: "/driver/rates",
   rates_outside_limits: "/driver/rates",
+  commission_owed: "/driver/earnings",
 };
 
 /** Big Online/Offline switch for on-demand rides (story S5.1). */

@@ -80,6 +80,7 @@ export default function AdminDashboard() {
     // Ride operations — manage-rides
     ...(canManageRides ? [
       { label: "Rides", icon: "car-sport-outline" as const, route: "/(admin)/rides", color: C.blue },
+      { label: "Settlements", icon: "cash-outline" as const, route: "/(admin)/settlements", color: C.green },
     ] : []),
     // Locations (bus stops) — superadmin or manage-locations
     ...(isSuperAdmin || canManageLocations ? [
