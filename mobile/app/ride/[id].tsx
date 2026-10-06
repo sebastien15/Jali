@@ -14,6 +14,7 @@ import {
 } from "@/lib/rides";
 import { Stars } from "@/components/rides/Stars";
 import { ReasonSheet } from "@/components/rides/ReasonSheet";
+import { SafetyBar } from "@/components/rides/SafetyBar";
 
 /** Rider's live trip screen: waiting → driver on the way → arrived (PIN) → in trip → receipt & rating (S4.1–S4.6) */
 export default function RiderTripScreen() {
@@ -143,6 +144,8 @@ export default function RiderTripScreen() {
             ) : null}
           </View>
         ) : null}
+
+        {isActive(ride) && ride.status !== "requested" ? <SafetyBar rideId={ride.id} canShare /> : null}
 
         {ride.driver?.momo ? (
           <View style={{ backgroundColor: C.yellow, borderRadius: 18, padding: 16, marginTop: 12 }}>

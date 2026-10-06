@@ -1083,5 +1083,19 @@
     "type_settlement": "Malipo kwa Jali",
     "type_payout": "Kutoa pesa",
     "type_adjustment": "Marekebisho"
+  },
+  "safety": {
+    "share": "Shiriki safari",
+    "shareMessage": "Fuatilia safari yangu ya Jali moja kwa moja: {{url}}",
+    "sos": "SOS",
+    "sosTitle": "Dharura",
+    "sosConfirm": "Piga 112 na uwajulishe Jali na mtu wako wa dharura?",
+    "sosGo": "Piga 112",
+    "contactTitle": "Mtu wa dharura",
+    "contactMenuSub": "Tunayemtumia ujumbe ukibonyeza SOS",
+    "contactSub": "Ukibonyeza SOS wakati wa safari, tunamtumia mtu huyu mahali ulipo na kiungo cha kufuatilia safari.",
+    "contactName": "Jina",
+    "contactPhone": "Simu",
+    "saved": "Imehifadhiwa"
   }
 }

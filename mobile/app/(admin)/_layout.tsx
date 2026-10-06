@@ -151,6 +151,7 @@ function TabsNavigator() {
       <Tabs.Screen name="settings/rides"  options={{ href: null }} />
       <Tabs.Screen name="drivers/index"   options={{ href: null }} />
       <Tabs.Screen name="drivers/[id]"    options={{ href: null }} />
+      <Tabs.Screen name="drivers/review"  options={{ href: null }} />
       <Tabs.Screen name="rides/index"     options={{ href: null }} />
       <Tabs.Screen name="rides/[id]"      options={{ href: null }} />
       <Tabs.Screen name="settlements/index" options={{ href: null }} />

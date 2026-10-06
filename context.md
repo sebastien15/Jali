@@ -416,6 +416,12 @@ POST  /driver/payouts             {amount} ≤ balance → cashout_requests (req
       Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
       collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
 
+# Safety (E8) — perm: request-rides (rider or driver of the ride)
+POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
+POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112
+GET|PUT /me/emergency-contact     {name, phone}
+GET   /admin/drivers/review       (verify-drivers) low rating after N rated trips or high cancel rate (rides.review) · POST /admin/drivers/{id}/warn
+
 # Hire a Driver (epic E6) — a verified driver drives the customer's own car
 # perm: offer-driver-hire (verified drivers; controller also checks verification)
 GET|PUT /driver/hire-settings     hourly (+min hours), daily (+hours included), overtime, out-of-town; skills (transmissions, languages, years)

@@ -889,6 +889,226 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
+  /rides/{id}/share:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    post:
+      tags: [Rides]
+      operationId: shareRide
+      x-jali-story: S8.1
+      x-jali-permission: request-rides
+      summary: Live link for family/friends — works only while the ride is active
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url: { type: string, description: "https://…/t/{token}" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /rides/{id}/sos:
+    parameters:
+      - $ref: "#/components/parameters/RideId"
+    post:
+      tags: [Rides]
+      operationId: rideSos
+      x-jali-story: S8.2
+      x-jali-permission: request-rides
+      summary: "SOS: flag the ride, alert admins, text my emergency contact; the app then dials 112"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lat: { type: [number, "null"] }
+                lng: { type: [number, "null"] }
+      responses:
+        "200":
+          description: Alert sent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [flagged, emergency_contact_notified, share_url, call]
+                properties:
+                  flagged: { type: boolean }
+                  emergency_contact_notified: { type: boolean }
+                  share_url: { type: [string, "null"] }
+                  call: { type: string, enum: ["112"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /me/emergency-contact:
+    get:
+      tags: [Identity]
+      operationId: getEmergencyContact
+      x-jali-story: S8.2
+      x-jali-permission: request-rides
+      summary: My emergency contact
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmergencyContact" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Identity]
+      operationId: putEmergencyContact
+      x-jali-story: S8.2
+      x-jali-permission: request-rides
+      summary: Set my emergency contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, phone]
+              properties:
+                name: { type: string }
+                phone: { type: string }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmergencyContact" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /share/{token}:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string, pattern: "^[A-Za-z0-9]{40}$" } }
+    get:
+      tags: [Rides]
+      operationId: getSharedTrip
+      x-jali-story: S8.1
+      security: []
+      summary: "PUBLIC: what someone with the link sees (first names only, ~100 m position). 410 once the ride ended"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, active, rider, driver, vehicle, position, updated_at]
+                properties:
+                  status: { $ref: "#/components/schemas/RideStatus" }
+                  active: { type: boolean }
+                  rider:
+                    type: object
+                    properties:
+                      first_name: { type: string }
+                  driver:
+                    type: [object, "null"]
+                    properties:
+                      name: { type: string }
+                      photo: { type: [string, "null"] }
+                  vehicle:
+                    type: [object, "null"]
+                    properties:
+                      model: { type: string }
+                      color: { type: [string, "null"] }
+                      plate: { type: string }
+                      photo: { type: [string, "null"] }
+                  position:
+                    type: [object, "null"]
+                    properties:
+                      lat: { type: number }
+                      lng: { type: number }
+                      at: { type: [string, "null"] }
+                  pickup: { type: [string, "null"] }
+                  dropoff: { type: [string, "null"] }
+                  updated_at: { type: string, format: date-time }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "410":
+          description: The trip has ended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  status: { $ref: "#/components/schemas/RideStatus" }
+
+  /admin/drivers/review:
+    get:
+      tags: [Admin rides]
+      operationId: listDriversForReview
+      x-jali-story: S8.4
+      x-jali-permission: verify-drivers
+      summary: Drivers with a low rating (after enough rated trips) or a high recent cancel rate
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [user_id, name, rating, rating_count, accepted, cancelled, cancel_pct, reasons, warned_at]
+                  properties:
+                    user_id: { type: integer }
+                    name: { type: [string, "null"] }
+                    phone: { type: [string, "null"] }
+                    rating: { type: number }
+                    rating_count: { type: integer }
+                    accepted: { type: integer }
+                    cancelled: { type: integer }
+                    cancel_pct: { type: number }
+                    reasons: { type: array, items: { type: string, enum: [low_rating, high_cancel_rate] } }
+                    warned_at: { type: [string, "null"], format: date-time }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/drivers/{userId}/warn:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Admin rides]
+      operationId: warnDriver
+      x-jali-story: S8.4
+      x-jali-permission: verify-drivers
+      summary: Send the driver a warning (push) — logged
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string, minLength: 5, maxLength: 500 }
+      responses:
+        "200":
+          description: Sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  warned_at: { type: string, format: date-time }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/drivers/{userId}:
     parameters:
       - $ref: "#/components/parameters/UserId"
@@ -2424,6 +2644,13 @@ components:
               status: { type: string }
               at: { type: [string, "null"], format: date-time }
 
+    EmergencyContact:
+      type: object
+      required: [name, phone]
+      properties:
+        name: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+
     Place:
       type: object
       required: [lat, lng]
@@ -2590,6 +2817,15 @@ components:
         request_timeout_sec: { type: integer, default: 30 }
         broadcast_max_drivers: { type: integer, default: 5, description: "S3.5: how many nearest drivers get a broadcast" }
         max_commission_owed: { type: integer, default: 20000, description: "S5.4: drivers owing more can't go online" }
+        review:
+          type: object
+          description: "S8.4: who appears in Needs review"
+          properties:
+            min_rated_trips: { type: integer }
+            min_rating: { type: number }
+            max_cancel_pct: { type: number }
+            min_accepted: { type: integer }
+            days: { type: integer }
         settlement_momo:
           type: object
           description: Where drivers send commission (S7.2)

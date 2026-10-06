@@ -11,6 +11,7 @@ use App\Http\Controllers\RideController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\DriverRideController;
 use App\Http\Controllers\HireController;
+use App\Http\Controllers\SafetyController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
@@ -52,6 +53,9 @@ Route::post("/auth/login/google", [
 ])->middleware("throttle:auth");
 Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
 Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
+
+// Share my trip (S8.1) — PUBLIC by design: the 40-character token is the secret, and it stops working when the ride ends
+Route::get("/share/{token}", [SafetyController::class, "publicShare"])->where("token", "[A-Za-z0-9]{40}")->middleware("throttle:60,1");
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {
@@ -103,6 +107,13 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{id}", [RideController::class, "show"])->whereNumber("id");
         Route::post("/{id}/cancel", [RideController::class, "cancel"])->whereNumber("id");
         Route::post("/{id}/rate", [RideController::class, "rate"])->whereNumber("id");
+        // Safety — stories S8.1, S8.2 (rider or driver of the ride)
+        Route::post("/{id}/share", [SafetyController::class, "share"])->whereNumber("id");
+        Route::post("/{id}/sos", [SafetyController::class, "sos"])->whereNumber("id");
+    });
+    Route::middleware("permission:request-rides")->group(function () {
+        Route::get("/me/emergency-contact", [SafetyController::class, "contact"]);
+        Route::put("/me/emergency-contact", [SafetyController::class, "saveContact"]);
     });
     // Driver side of a ride — stories S5.2, S4.1, S4.2, S4.4
     Route::middleware("permission:offer-rides")->group(function () {
@@ -127,6 +138,8 @@ Route::middleware("auth:sanctum")->group(function () {
     // Driver verification queue — story S1.4
     Route::middleware("permission:verify-drivers")->prefix("admin/drivers")->group(function () {
         Route::get("/", [AdminDriverController::class, "index"]);
+        Route::get("/review", [AdminDriverController::class, "review"]);
+        Route::post("/{userId}/warn", [AdminDriverController::class, "warn"])->whereNumber("userId");
         Route::get("/{userId}", [AdminDriverController::class, "show"])->whereNumber("userId");
         Route::post("/{userId}/verify", [AdminDriverController::class, "verify"])->whereNumber("userId");
         Route::post("/{userId}/reject", [AdminDriverController::class, "reject"])->whereNumber("userId");

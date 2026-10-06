@@ -583,6 +583,117 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Live link for family/friends — works only while the ride is active */
+        post: operations["shareRide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{id}/sos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SOS: flag the ride, alert admins, text my emergency contact; the app then dials 112 */
+        post: operations["rideSos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/emergency-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My emergency contact */
+        get: operations["getEmergencyContact"];
+        /** Set my emergency contact */
+        put: operations["putEmergencyContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/share/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        /** PUBLIC: what someone with the link sees (first names only, ~100 m position). 410 once the ride ended */
+        get: operations["getSharedTrip"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drivers with a low rating (after enough rated trips) or a high recent cancel rate */
+        get: operations["listDriversForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/drivers/{userId}/warn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the driver a warning (push) — logged */
+        post: operations["warnDriver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/drivers/{userId}": {
         parameters: {
             query?: never;
@@ -1595,6 +1706,10 @@ export interface components {
                 at?: string | null;
             }[];
         };
+        EmergencyContact: {
+            name: string | null;
+            phone: string | null;
+        };
         Place: {
             lat: number;
             lng: number;
@@ -1763,6 +1878,14 @@ export interface components {
              * @default 20000
              */
             max_commission_owed: number;
+            /** @description S8.4: who appears in Needs review */
+            review?: {
+                min_rated_trips?: number;
+                min_rating?: number;
+                max_cancel_pct?: number;
+                min_accepted?: number;
+                days?: number;
+            };
             /** @description Where drivers send commission (S7.2) */
             settlement_momo?: {
                 number?: string | null;
@@ -2925,6 +3048,256 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    shareRide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description https://…/t/{token} */
+                        url: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rideSos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RideId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    lat?: number | null;
+                    lng?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Alert sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        flagged: boolean;
+                        emergency_contact_notified: boolean;
+                        share_url: string | null;
+                        /** @enum {string} */
+                        call: "112";
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getEmergencyContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyContact"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putEmergencyContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    phone: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyContact"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getSharedTrip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        status: components["schemas"]["RideStatus"];
+                        active: boolean;
+                        rider: {
+                            first_name?: string;
+                        };
+                        driver: {
+                            name?: string;
+                            photo?: string | null;
+                        } | null;
+                        vehicle: {
+                            model?: string;
+                            color?: string | null;
+                            plate?: string;
+                            photo?: string | null;
+                        } | null;
+                        position: {
+                            lat?: number;
+                            lng?: number;
+                            at?: string | null;
+                        } | null;
+                        pickup?: string | null;
+                        dropoff?: string | null;
+                        /** Format: date-time */
+                        updated_at: string;
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description The trip has ended */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                        status?: components["schemas"]["RideStatus"];
+                    };
+                };
+            };
+        };
+    };
+    listDriversForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user_id: number;
+                        name: string | null;
+                        phone?: string | null;
+                        rating: number;
+                        rating_count: number;
+                        accepted: number;
+                        cancelled: number;
+                        cancel_pct: number;
+                        reasons: ("low_rating" | "high_cancel_rate")[];
+                        /** Format: date-time */
+                        warned_at: string | null;
+                    }[];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    warnDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    message: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message?: string;
+                        /** Format: date-time */
+                        warned_at?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
         };
     };
     getDriverApplication: {
