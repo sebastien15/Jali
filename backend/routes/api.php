@@ -22,6 +22,9 @@ use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
 use App\Http\Controllers\Admin\AdminSettlementController;
 use App\Http\Controllers\Admin\RideAnalyticsController;
+use App\Http\Controllers\Admin\AdminRentalController;
+use App\Http\Controllers\RentalController;
+use App\Http\Controllers\OwnerRentalController;
 use App\Http\Controllers\DriverEarningsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
@@ -250,17 +253,54 @@ Route::middleware("auth:sanctum")->group(function () {
                 PrivateSeatController::class,
                 "destroy",
             ]);
-            Route::get("/cars", [CarRentalController::class, "driverCars"]);
-            Route::post("/cars", [CarRentalController::class, "storeCar"]);
-            Route::patch("/cars/{id}", [
-                CarRentalController::class,
-                "updateCar",
-            ]);
-            Route::delete("/cars/{id}", [
-                CarRentalController::class,
-                "destroyCar",
-            ]);
         });
+
+    // Car rental — owners (epic E24): listings, photos, papers, blocked days, requests, handover/return
+    Route::middleware("permission:offer-rentals")->prefix("driver")->group(function () {
+        Route::get("/cars", [CarRentalController::class, "driverCars"]);
+        Route::post("/cars", [CarRentalController::class, "storeCar"]);
+        Route::get("/cars/{id}", [CarRentalController::class, "showCar"])->whereNumber("id");
+        Route::patch("/cars/{id}", [CarRentalController::class, "updateCar"]);
+        Route::delete("/cars/{id}", [CarRentalController::class, "destroyCar"]);
+        Route::post("/cars/{id}/photos", [CarRentalController::class, "uploadPhoto"]);
+        Route::delete("/cars/{id}/photos/{index}", [CarRentalController::class, "deletePhoto"])->whereNumber("index");
+        Route::post("/cars/{id}/photos/{index}/cover", [CarRentalController::class, "coverPhoto"])->whereNumber("index");
+        Route::post("/cars/{id}/documents", [CarRentalController::class, "uploadDocument"]);
+        Route::get("/cars/{id}/documents/{type}", [CarRentalController::class, "document"]);
+        Route::post("/cars/{id}/blocks", [CarRentalController::class, "addBlock"]);
+        Route::delete("/cars/{id}/blocks/{blockId}", [CarRentalController::class, "removeBlock"]);
+
+        Route::get("/rentals", [OwnerRentalController::class, "index"]);
+        Route::get("/rentals/summary", [OwnerRentalController::class, "summary"]);
+        Route::get("/rentals/{id}", [OwnerRentalController::class, "show"])->whereNumber("id");
+        Route::post("/rentals/{id}/accept", [OwnerRentalController::class, "accept"]);
+        Route::post("/rentals/{id}/decline", [OwnerRentalController::class, "decline"]);
+        Route::post("/rentals/{id}/cancel", [OwnerRentalController::class, "cancel"]);
+        Route::post("/rentals/{id}/handover", [OwnerRentalController::class, "handover"]);
+        Route::post("/rentals/{id}/return", [OwnerRentalController::class, "returnCar"]);
+        Route::post("/rentals/{id}/rate", [OwnerRentalController::class, "rate"]);
+    });
+
+    // Car rental — customers (epic E24)
+    Route::middleware("permission:rent-cars")->prefix("rentals")->group(function () {
+        Route::get("/cars", [RentalController::class, "search"]);
+        Route::get("/cars/{id}", [RentalController::class, "car"])->whereNumber("id");
+        Route::get("/bookings", [RentalController::class, "index"]);
+        Route::post("/bookings", [RentalController::class, "store"]);
+        Route::get("/bookings/{id}", [RentalController::class, "show"])->whereNumber("id");
+        Route::post("/bookings/{id}/cancel", [RentalController::class, "cancel"]);
+        Route::post("/bookings/{id}/rate", [RentalController::class, "rate"]);
+    });
+
+    // Car rental — admins: verification queue and operations (S24.8, S24.9)
+    Route::middleware("permission:manage-rentals")->prefix("admin")->group(function () {
+        Route::get("/rental-cars", [AdminRentalController::class, "cars"]);
+        Route::get("/rental-cars/{id}", [AdminRentalController::class, "car"])->whereNumber("id");
+        Route::post("/rental-cars/{id}/review", [AdminRentalController::class, "review"]);
+        Route::get("/rental-cars/{id}/documents/{type}", [AdminRentalController::class, "document"]);
+        Route::get("/rentals", [AdminRentalController::class, "rentals"]);
+        Route::get("/rentals/{id}", [AdminRentalController::class, "rental"])->whereNumber("id");
+    });
 
     // Analytics
     Route::middleware("permission:view-analytics")->group(function () {

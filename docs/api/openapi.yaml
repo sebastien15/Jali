@@ -48,6 +48,12 @@ tags:
     description: Driver side of Hire a Driver
   - name: Admin rides
     description: Ride operations and pricing settings
+  - name: Rentals
+    description: Customer side of car rental (Batch 1)
+  - name: Owner rentals
+    description: Car owners — listings, photos, papers, calendar, requests, handover and return
+  - name: Admin rentals
+    description: Rental car verification and rental operations
 
 paths:
   /me:
@@ -2122,6 +2128,820 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Car rental (epic E24, Batch 1) ──────────────────────────────────────
+  /rentals/cars:
+    get:
+      tags: [Rentals]
+      operationId: searchRentalCars
+      x-jali-story: S24.1
+      x-jali-permission: rent-cars
+      summary: Verified cars free for the dates, with the owner's price (no Jali fee)
+      parameters:
+        - { name: start_at, in: query, description: "Pickup time (ISO 8601). With end_at, only free cars are listed and each has a quote", schema: { type: string, format: date-time } }
+        - { name: end_at, in: query, schema: { type: string, format: date-time } }
+        - { name: type, in: query, schema: { $ref: "#/components/schemas/RentalCarType" } }
+        - { name: transmission, in: query, schema: { type: string, enum: [automatic, manual] } }
+        - { name: seats, in: query, description: Minimum seats, schema: { type: integer } }
+        - { name: max_price, in: query, description: Maximum price per day, schema: { type: integer } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: q, in: query, description: "Make, model, name or pickup area contains", schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [price, rating] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, cities]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RentalCar" } }
+                  cities: { type: array, items: { type: string } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /rentals/cars/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    get:
+      tags: [Rentals]
+      operationId: getRentalCar
+      x-jali-story: S24.1
+      x-jali-permission: rent-cars
+      summary: Car detail with rules, busy calendar and (with dates) the price
+      parameters:
+        - { name: start_at, in: query, schema: { type: string, format: date-time } }
+        - { name: end_at, in: query, schema: { type: string, format: date-time } }
+        - { name: pickup_method, in: query, schema: { type: string, enum: [pickup, delivery] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalCarDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /rentals/bookings:
+    get:
+      tags: [Rentals]
+      operationId: listMyRentals
+      x-jali-story: S24.4
+      x-jali-permission: rent-cars
+      summary: My rentals, newest pickup first
+      parameters:
+        - { name: scope, in: query, schema: { type: string, enum: [upcoming, past] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RentalBooking" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Rentals]
+      operationId: requestRental
+      x-jali-story: S24.4
+      x-jali-permission: rent-cars
+      summary: Ask the owner for a car; the dates are held until the owner answers or the request expires
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [car_id, start_at, end_at, pickup_method, payment_method, accept_terms, driver_confirmed]
+              properties:
+                car_id: { type: integer }
+                start_at: { type: string, format: date-time }
+                end_at: { type: string, format: date-time }
+                pickup_method: { type: string, enum: [pickup, delivery] }
+                delivery_address: { type: [string, "null"], description: Required for delivery }
+                payment_method: { type: string, enum: [cash, momo], description: Paid to the owner at pickup }
+                note: { type: [string, "null"], maxLength: 500 }
+                accept_terms: { type: boolean, description: Must be true }
+                driver_confirmed: { type: boolean, description: "Must be true: the driver meets the age and licence rules" }
+      responses:
+        "201":
+          description: Requested
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /rentals/bookings/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    get:
+      tags: [Rentals]
+      operationId: getMyRental
+      x-jali-story: S24.4
+      x-jali-permission: rent-cars
+      summary: One of my rentals (owner phone after acceptance)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /rentals/bookings/{id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Rentals]
+      operationId: cancelMyRental
+      x-jali-story: S24.5
+      x-jali-permission: rent-cars
+      summary: Cancel a request (free) or a confirmed rental (fee by the owner's policy, owed to the owner)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, enum: [changed_plans, found_another_car, owner_asked_to_cancel, booked_by_mistake, other] }
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /rentals/bookings/{id}/rate:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Rentals]
+      operationId: rateMyRental
+      x-jali-story: S24.6
+      x-jali-permission: rent-cars
+      summary: Rate the car and owner after return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RentalRatingInput" }
+      responses:
+        "201":
+          description: Rated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/cars:
+    get:
+      tags: [Owner rentals]
+      operationId: listMyRentalCars
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: My rental cars with review state and what is missing
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/OwnerRentalCar" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Owner rentals]
+      operationId: createRentalCar
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: List a car for rent (waits for admin verification)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RentalCarInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/cars/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    get:
+      tags: [Owner rentals]
+      operationId: getMyRentalCar
+      x-jali-story: S24.2
+      x-jali-permission: offer-rentals
+      summary: One of my cars with blocked days and the busy calendar
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/OwnerRentalCar"
+                  - type: object
+                    required: [blocks, busy]
+                    properties:
+                      blocks: { type: array, items: { $ref: "#/components/schemas/RentalBlock" } }
+                      busy: { type: array, items: { $ref: "#/components/schemas/RentalBusyRange" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Owner rentals]
+      operationId: updateRentalCar
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Edit a listing (a new plate or a rejected listing goes back to review)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RentalCarInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Owner rentals]
+      operationId: deleteRentalCar
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Remove a car without open rentals
+      responses:
+        "204": { description: Removed }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver/cars/{id}/photos:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    post:
+      tags: [Owner rentals]
+      operationId: addRentalCarPhoto
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Add a photo (up to 12; the first is the cover)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo: { type: string, format: binary, description: "image, max 8 MB" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/cars/{id}/photos/{index}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+      - $ref: "#/components/parameters/PhotoIndex"
+    delete:
+      tags: [Owner rentals]
+      operationId: deleteRentalCarPhoto
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Remove a photo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/cars/{id}/photos/{index}/cover:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+      - $ref: "#/components/parameters/PhotoIndex"
+    post:
+      tags: [Owner rentals]
+      operationId: setRentalCarCover
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Make a photo the cover
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/cars/{id}/documents:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    post:
+      tags: [Owner rentals]
+      operationId: uploadRentalCarDocument
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Upload the registration card or insurance (stored privately; sends the car back to review)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [type, file]
+              properties:
+                type: { type: string, enum: [registration, insurance] }
+                file: { type: string, format: binary, description: "jpg/png/webp/pdf, max 10 MB" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/cars/{id}/documents/{type}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+      - $ref: "#/components/parameters/RentalDocumentType"
+    get:
+      tags: [Owner rentals]
+      operationId: getRentalCarDocument
+      x-jali-story: S24.8
+      x-jali-permission: offer-rentals
+      summary: Download my car's document file
+      responses:
+        "200":
+          description: The file
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/cars/{id}/blocks:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    post:
+      tags: [Owner rentals]
+      operationId: blockRentalCarDays
+      x-jali-story: S24.2
+      x-jali-permission: offer-rentals
+      summary: Keep a car off the market on some days (Kigali dates, inclusive)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [start_date, end_date]
+              properties:
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                reason: { type: [string, "null"], maxLength: 120 }
+      responses:
+        "201":
+          description: Blocked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBlock" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/cars/{id}/blocks/{blockId}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+      - { name: blockId, in: path, required: true, schema: { type: integer } }
+    delete:
+      tags: [Owner rentals]
+      operationId: unblockRentalCarDays
+      x-jali-story: S24.2
+      x-jali-permission: offer-rentals
+      summary: Remove blocked days
+      responses:
+        "204": { description: Removed }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/rentals:
+    get:
+      tags: [Owner rentals]
+      operationId: listOwnerRentals
+      x-jali-story: S24.7
+      x-jali-permission: offer-rentals
+      summary: Requests and rentals of my cars
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [requested, upcoming, active, past] } }
+        - { name: car_id, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RentalBooking" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/rentals/summary:
+    get:
+      tags: [Owner rentals]
+      operationId: getOwnerRentalSummary
+      x-jali-story: S24.7
+      x-jali-permission: offer-rentals
+      summary: Dashboard counters, next handover and income per car
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnerRentalSummary" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /driver/rentals/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    get:
+      tags: [Owner rentals]
+      operationId: getOwnerRental
+      x-jali-story: S24.7
+      x-jali-permission: offer-rentals
+      summary: One rental of my car (customer phone after acceptance)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /driver/rentals/{id}/accept:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: acceptRental
+      x-jali-story: S24.4
+      x-jali-permission: offer-rentals
+      summary: Accept a request before it expires
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /driver/rentals/{id}/decline:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: declineRental
+      x-jali-story: S24.4
+      x-jali-permission: offer-rentals
+      summary: Decline a request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: [string, "null"], maxLength: 300 }
+      responses:
+        "200":
+          description: Declined
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/rentals/{id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: ownerCancelRental
+      x-jali-story: S24.5
+      x-jali-permission: offer-rentals
+      summary: Cancel a confirmed rental before handover (no fee for the customer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, enum: [car_not_available, car_broke_down, customer_asked_to_cancel, customer_not_reachable, other] }
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/rentals/{id}/handover:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: handOverRental
+      x-jali-story: S24.6
+      x-jali-permission: offer-rentals
+      summary: Record the handover (from 24 h before pickup)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/RentalRecordInput" }
+      responses:
+        "200":
+          description: Car handed over
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/rentals/{id}/return:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: returnRental
+      x-jali-story: S24.6
+      x-jali-permission: offer-rentals
+      summary: Record the return; late days, extra km and listed charges make the final total
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/RentalRecordInput"
+                - type: object
+                  properties:
+                    other_charges:
+                      type: array
+                      maxItems: 5
+                      items:
+                        type: object
+                        required: [label, amount]
+                        properties:
+                          label: { type: string, maxLength: 80 }
+                          amount: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Rental completed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/rentals/{id}/rate:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    post:
+      tags: [Owner rentals]
+      operationId: ownerRateRental
+      x-jali-story: S24.6
+      x-jali-permission: offer-rentals
+      summary: Rate the customer after return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RentalRatingInput" }
+      responses:
+        "201":
+          description: Rated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/rental-cars:
+    get:
+      tags: [Admin rentals]
+      operationId: listRentalCarsForReview
+      x-jali-story: S24.8
+      x-jali-permission: manage-rentals
+      summary: Owner-listed cars by review state (oldest change first)
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, verified, rejected], default: pending } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/AdminRentalCar" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/rental-cars/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    get:
+      tags: [Admin rentals]
+      operationId: getRentalCarForReview
+      x-jali-story: S24.8
+      x-jali-permission: manage-rentals
+      summary: A listing with owner contact and what is missing
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/rental-cars/{id}/review:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+    post:
+      tags: [Admin rentals]
+      operationId: reviewRentalCar
+      x-jali-story: S24.8
+      x-jali-permission: manage-rentals
+      summary: Approve a complete listing or reject it with a note (logged, owner notified)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, reject] }
+                note: { type: [string, "null"], maxLength: 500, description: Required to reject }
+      responses:
+        "200":
+          description: Reviewed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminRentalCar" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/rental-cars/{id}/documents/{type}:
+    parameters:
+      - $ref: "#/components/parameters/RentalCarId"
+      - $ref: "#/components/parameters/RentalDocumentType"
+    get:
+      tags: [Admin rentals]
+      operationId: getRentalCarDocumentForReview
+      x-jali-story: S24.8
+      x-jali-permission: manage-rentals
+      summary: Download a listing's document file
+      responses:
+        "200":
+          description: The file
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/rentals:
+    get:
+      tags: [Admin rentals]
+      operationId: listAdminRentals
+      x-jali-story: S24.9
+      x-jali-permission: manage-rentals
+      summary: All rentals, newest first
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/RentalStatus" } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, next_page]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RentalBooking" } }
+                  next_page: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/rentals/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RentalBookingId"
+    get:
+      tags: [Admin rentals]
+      operationId: getAdminRental
+      x-jali-story: S24.9
+      x-jali-permission: manage-rentals
+      summary: A rental with contacts, records and ratings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RentalBooking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2130,6 +2950,27 @@ components:
       description: Sanctum personal access token from `/auth/login` or `/auth/login/google`.
 
   parameters:
+    RentalCarId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    RentalBookingId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    PhotoIndex:
+      name: index
+      in: path
+      required: true
+      description: Position in the photos list, from 0
+      schema: { type: integer, minimum: 0 }
+    RentalDocumentType:
+      name: type
+      in: path
+      required: true
+      schema: { type: string, enum: [registration, insurance] }
     UserId:
       name: userId
       in: path
@@ -2227,6 +3068,361 @@ components:
                   items: { type: string }
 
   schemas:
+    # ── Car rental ─────────────────────────────────────────────────────────
+    RentalCarType:
+      type: string
+      enum: [Sedan, SUV, Minivan, Pickup, Hatchback, Van, Luxury]
+    RentalStatus:
+      type: string
+      enum: [requested, accepted, active, completed, declined, expired, cancelled]
+      description: "active = car handed over; completed = car returned"
+    RentalAllowed:
+      type: object
+      required: [smoking, pets, outside_kigali, cross_border]
+      properties:
+        smoking: { type: boolean }
+        pets: { type: boolean }
+        outside_kigali: { type: boolean }
+        cross_border: { type: boolean }
+    RentalQuote:
+      type: object
+      description: The owner's price; Jali adds no fee. The deposit is paid back at return and is not in the total.
+      required: [currency, price_per_day, days, base, discount_pct, discount, delivery_fee, jali_fee, total, deposit]
+      properties:
+        currency: { type: string, enum: [RWF] }
+        price_per_day: { type: integer }
+        days: { type: integer, description: Started 24-hour periods }
+        base: { type: integer }
+        discount_pct: { type: integer, description: Weekly (7+ days) or monthly (28+ days) discount }
+        discount: { type: integer }
+        delivery_fee: { type: integer }
+        jali_fee: { type: integer, enum: [0] }
+        total: { type: integer }
+        deposit: { type: integer }
+    RentalTerms:
+      type: object
+      required: [mileage_limit_km, extra_km_fee, fuel_policy, min_driver_age, min_licence_years, cancellation_policy, allowed, rules]
+      properties:
+        mileage_limit_km: { type: [integer, "null"], description: Per day; null = unlimited }
+        extra_km_fee: { type: integer }
+        fuel_policy: { type: [string, "null"], enum: [same_to_same, full_to_full, prepaid, null] }
+        min_driver_age: { type: integer }
+        min_licence_years: { type: integer }
+        cancellation_policy: { type: [string, "null"], enum: [flexible, moderate, strict, null] }
+        allowed: { $ref: "#/components/schemas/RentalAllowed" }
+        rules: { type: array, items: { type: string }, description: "The owner's own rules" }
+    RentalBusyRange:
+      type: object
+      required: [start, end, kind]
+      properties:
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        kind: { type: string, enum: [booked, blocked] }
+    RentalBlock:
+      type: object
+      required: [id, start_date, end_date, reason]
+      properties:
+        id: { type: integer }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        reason: { type: [string, "null"] }
+    RentalCar:
+      type: object
+      description: A car as customers see it (no plate, papers or owner contact)
+      required: [id, name, make, model, year, color, type, seats, doors, luggage, transmission, fuel_type, photos, rating, trips_count,
+        price_per_day, deposit, city, pickup_address, delivery_available, delivery_fee, weekly_discount_pct, monthly_discount_pct,
+        amenities, owner, quote]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        make: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        color: { type: [string, "null"] }
+        type: { $ref: "#/components/schemas/RentalCarType" }
+        seats: { type: integer }
+        doors: { type: [integer, "null"] }
+        luggage: { type: [integer, "null"] }
+        transmission: { type: [string, "null"], enum: [automatic, manual, null] }
+        fuel_type: { type: [string, "null"], enum: [petrol, diesel, hybrid, electric, null] }
+        photos: { type: array, items: { type: string }, description: "Relative URLs (/storage/…); the first is the cover" }
+        rating: { type: number }
+        trips_count: { type: integer }
+        price_per_day: { type: integer }
+        deposit: { type: integer }
+        city: { type: [string, "null"] }
+        pickup_address: { type: [string, "null"] }
+        delivery_available: { type: boolean }
+        delivery_fee: { type: integer }
+        weekly_discount_pct: { type: integer }
+        monthly_discount_pct: { type: integer }
+        amenities: { type: array, items: { type: string } }
+        owner:
+          type: [object, "null"]
+          required: [first_name, member_since]
+          properties:
+            first_name: { type: string }
+            member_since: { type: [string, "null"], format: date }
+        quote:
+          oneOf:
+            - $ref: "#/components/schemas/RentalQuote"
+            - type: "null"
+    RentalCarDetail:
+      allOf:
+        - $ref: "#/components/schemas/RentalCar"
+        - type: object
+          required: [description, pickup_lat, pickup_lng, min_days, max_days, notice_hours, terms, busy, available]
+          properties:
+            description: { type: [string, "null"] }
+            pickup_lat: { type: [number, "null"] }
+            pickup_lng: { type: [number, "null"] }
+            min_days: { type: integer }
+            max_days: { type: [integer, "null"] }
+            notice_hours: { type: integer, description: Hours of notice the owner needs before pickup }
+            terms: { $ref: "#/components/schemas/RentalTerms" }
+            busy: { type: array, items: { $ref: "#/components/schemas/RentalBusyRange" } }
+            available: { type: [boolean, "null"], description: Free for the requested dates (null without dates) }
+    RentalCarInput:
+      type: object
+      description: "Owner listing. To create, give name (or make and model), type, plate, seats and priceDay."
+      properties:
+        name: { type: string, maxLength: 120 }
+        make: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        color: { type: [string, "null"] }
+        type: { $ref: "#/components/schemas/RentalCarType" }
+        plate: { type: string }
+        seats: { type: integer, minimum: 1 }
+        priceDay: { type: integer, minimum: 0 }
+        caution: { type: [integer, "null"], description: Refundable deposit }
+        transmission: { type: [string, "null"], enum: [automatic, manual, null] }
+        fuel_type: { type: [string, "null"], enum: [petrol, diesel, hybrid, electric, null] }
+        doors: { type: [integer, "null"] }
+        luggage: { type: [integer, "null"] }
+        description: { type: [string, "null"], maxLength: 2000 }
+        city: { type: [string, "null"] }
+        pickup_address: { type: [string, "null"] }
+        pickup_lat: { type: [number, "null"] }
+        pickup_lng: { type: [number, "null"] }
+        delivery_available: { type: boolean }
+        delivery_fee: { type: [integer, "null"] }
+        mileage_limit_km: { type: [integer, "null"], description: Per day; null = unlimited }
+        extra_km_fee: { type: [integer, "null"] }
+        fuel_policy: { type: [string, "null"], enum: [same_to_same, full_to_full, prepaid, null] }
+        min_driver_age: { type: [integer, "null"] }
+        min_licence_years: { type: [integer, "null"] }
+        min_days: { type: [integer, "null"] }
+        max_days: { type: [integer, "null"] }
+        notice_hours: { type: [integer, "null"] }
+        weekly_discount_pct: { type: [integer, "null"] }
+        monthly_discount_pct: { type: [integer, "null"] }
+        cancellation_policy: { type: [string, "null"], enum: [flexible, moderate, strict, null] }
+        allowed:
+          type: [object, "null"]
+          properties:
+            smoking: { type: boolean }
+            pets: { type: boolean }
+            outside_kigali: { type: boolean }
+            cross_border: { type: boolean }
+        rules: { type: [array, "null"], maxItems: 15, items: { type: string, maxLength: 200 } }
+        insurance_expiry: { type: [string, "null"], format: date }
+        amenities: { type: [array, "null"], items: { type: string } }
+        status: { type: string, enum: [available, rented, maintenance] }
+        notes: { type: [string, "null"] }
+    OwnerRentalCar:
+      type: object
+      description: The owner's own car with review state
+      required: [id, user_id, name, type, plate, seats, price, priceDay, caution, photos, allowed, rules, status,
+        verification_status, verification_note, documents, listing_complete, missing, open_rentals]
+      properties:
+        id: { type: integer }
+        user_id: { type: [integer, "null"] }
+        name: { type: string }
+        type: { type: string }
+        plate: { type: string }
+        seats: { type: integer }
+        price: { type: integer }
+        priceDay: { type: integer }
+        caution: { type: integer }
+        make: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        transmission: { type: [string, "null"] }
+        fuel_type: { type: [string, "null"] }
+        description: { type: [string, "null"] }
+        pickup_address: { type: [string, "null"] }
+        photos: { type: array, items: { type: string } }
+        amenities: { type: [array, "null"], items: { type: string } }
+        allowed: { $ref: "#/components/schemas/RentalAllowed" }
+        rules: { type: array, items: { type: string } }
+        status: { type: string, enum: [available, rented, maintenance] }
+        verification_status: { type: string, enum: [pending, verified, rejected] }
+        verification_note: { type: [string, "null"] }
+        documents:
+          type: object
+          required: [registration, insurance]
+          properties:
+            registration: { type: boolean }
+            insurance: { type: boolean }
+        listing_complete: { type: boolean }
+        missing:
+          type: array
+          items: { type: string, enum: [photos, registration, insurance, pickup_address, transmission, description] }
+        open_rentals: { type: integer }
+    AdminRentalCar:
+      allOf:
+        - $ref: "#/components/schemas/OwnerRentalCar"
+        - type: object
+          required: [owner]
+          properties:
+            owner:
+              type: [object, "null"]
+              required: [id, name, phone]
+              properties:
+                id: { type: integer }
+                name: { type: string }
+                phone: { type: [string, "null"] }
+    RentalRecord:
+      type: object
+      required: [odometer_km, fuel_level, notes, photos, at]
+      properties:
+        odometer_km: { type: integer }
+        fuel_level: { type: integer, minimum: 0, maximum: 8, description: Eighths of a tank }
+        notes: { type: [string, "null"] }
+        photos: { type: array, items: { type: string } }
+        at: { type: string, format: date-time }
+    RentalRecordInput:
+      type: object
+      required: [odometer_km, fuel_level]
+      properties:
+        odometer_km: { type: integer, minimum: 0 }
+        fuel_level: { type: integer, minimum: 0, maximum: 8, description: Eighths of a tank }
+        notes: { type: [string, "null"], maxLength: 1000 }
+        "photos[]": { type: array, maxItems: 8, items: { type: string, format: binary } }
+    RentalRatingInput:
+      type: object
+      required: [stars]
+      properties:
+        stars: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: [string, "null"], maxLength: 500 }
+    RentalBooking:
+      type: object
+      description: "A rental as its customer, owner or an admin sees it. Phone numbers, the plate and exact pickup point only after acceptance."
+      required: [id, status, start_at, end_at, days, pickup_method, delivery_address, note, payment_method, quote, terms, total, deposit,
+        final_total, extra_charges, cancel_fee, cancelled_by, cancel_reason, decline_reason, handover, return_record,
+        requested_at, expires_at, accepted_at, handed_over_at, returned_at, cancelled_at, car, my_rating]
+      properties:
+        id: { type: integer }
+        status: { $ref: "#/components/schemas/RentalStatus" }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        days: { type: integer }
+        pickup_method: { type: string, enum: [pickup, delivery] }
+        delivery_address: { type: [string, "null"] }
+        note: { type: [string, "null"] }
+        payment_method: { type: string, enum: [cash, momo] }
+        quote: { $ref: "#/components/schemas/RentalQuote" }
+        terms: { $ref: "#/components/schemas/RentalTerms" }
+        total: { type: integer }
+        deposit: { type: integer }
+        final_total: { type: [integer, "null"] }
+        extra_charges:
+          type: array
+          items:
+            type: object
+            required: [type, label, amount]
+            properties:
+              type: { type: string, enum: [late_return, extra_km, other] }
+              label: { type: string }
+              amount: { type: integer }
+        cancel_fee: { type: integer, description: Owed to the owner }
+        cancelled_by: { type: [string, "null"], enum: [customer, owner, null] }
+        cancel_reason: { type: [string, "null"] }
+        decline_reason: { type: [string, "null"] }
+        handover: { oneOf: [{ $ref: "#/components/schemas/RentalRecord" }, { type: "null" }] }
+        return_record: { oneOf: [{ $ref: "#/components/schemas/RentalRecord" }, { type: "null" }] }
+        requested_at: { type: [string, "null"], format: date-time }
+        expires_at: { type: [string, "null"], format: date-time }
+        accepted_at: { type: [string, "null"], format: date-time }
+        handed_over_at: { type: [string, "null"], format: date-time }
+        returned_at: { type: [string, "null"], format: date-time }
+        cancelled_at: { type: [string, "null"], format: date-time }
+        car:
+          type: [object, "null"]
+          required: [id, name, type, plate, photo, transmission, pickup_address, pickup_lat, pickup_lng]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            type: { type: string }
+            plate: { type: [string, "null"] }
+            photo: { type: [string, "null"] }
+            transmission: { type: [string, "null"] }
+            pickup_address: { type: [string, "null"] }
+            pickup_lat: { type: [number, "null"] }
+            pickup_lng: { type: [number, "null"] }
+        my_rating: { type: [integer, "null"] }
+        owner:
+          type: [object, "null"]
+          description: Customer and admin views
+          required: [name, phone]
+          properties:
+            name: { type: string }
+            phone: { type: [string, "null"] }
+        cancel_fee_now: { type: integer, description: "Customer view: fee if cancelled now" }
+        can_cancel: { type: boolean }
+        customer:
+          type: [object, "null"]
+          description: Owner and admin views
+          required: [id, name, phone, completed_rentals, rating]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            phone: { type: [string, "null"] }
+            completed_rentals: { type: integer }
+            rating: { type: [number, "null"] }
+        can_accept: { type: boolean }
+        can_handover: { type: boolean }
+        can_return: { type: boolean }
+        ratings:
+          type: array
+          description: Admin view
+          items:
+            type: object
+            required: [from, stars, comment]
+            properties:
+              from: { type: string, enum: [customer, owner] }
+              stars: { type: integer }
+              comment: { type: [string, "null"] }
+    OwnerRentalSummary:
+      type: object
+      required: [requests, upcoming, active, income_this_month, income_total, completed_rentals, cars, cars_pending, next_handover, per_car]
+      properties:
+        requests: { type: integer }
+        upcoming: { type: integer }
+        active: { type: integer }
+        income_this_month: { type: integer }
+        income_total: { type: integer }
+        completed_rentals: { type: integer }
+        cars: { type: integer }
+        cars_pending: { type: integer }
+        next_handover:
+          type: [object, "null"]
+          required: [id, start_at, car]
+          properties:
+            id: { type: integer }
+            start_at: { type: string, format: date-time }
+            car: { type: [string, "null"] }
+        per_car:
+          type: array
+          items:
+            type: object
+            required: [car_id, name, income, trips]
+            properties:
+              car_id: { type: integer }
+              name: { type: string }
+              income: { type: integer }
+              trips: { type: integer }
     Me:
       type: object
       required: [id, name, roles, permissions]
