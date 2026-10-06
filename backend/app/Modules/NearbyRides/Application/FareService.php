@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\NearbyRides\Application;
 
-use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -65,7 +65,7 @@ class FareService
 
     public static function serviceFee(int $driverFare): int
     {
-        $fee = RideSettings::get()['service_fee'];
+        $fee = app(PricingPolicy::class)->settings()['service_fee'];
 
         return $fee['type'] === 'percent'
             ? (int) round($driverFare * (float) $fee['amount'] / 100)

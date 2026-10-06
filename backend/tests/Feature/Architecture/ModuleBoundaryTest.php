@@ -22,13 +22,17 @@ class ModuleBoundaryTest extends TestCase
     }
 
     /**
-     * Ride internals still live in app/Services/Rides until M03-Rides. Modules
-     * (hire, safety, ...) must use shared contracts instead (M03-Hire).
+     * App\Services\Rides was split up and deleted in M03-Rides (ride logic is in
+     * NearbyRides, shared pieces in Pricing/Providers/Locations). Nothing may
+     * bring the old namespace back.
      */
-    public function test_modules_do_not_use_ride_internals_left_in_app_services(): void
+    public function test_nothing_references_the_removed_app_services_rides_namespace(): void
     {
+        $this->assertDirectoryDoesNotExist(app_path('Services/Rides'));
+
+        $dirs = array_filter([app_path(), base_path('routes'), base_path('config'), base_path('database'), base_path('bootstrap')], 'is_dir');
         $found = [];
-        foreach ((new Finder())->files()->in(app_path('Modules'))->name('*.php') as $file) {
+        foreach ((new Finder())->files()->in($dirs)->exclude('cache')->name('*.php') as $file) {
             $code = str_replace('\\\\', '\\', $file->getContents());
             if (preg_match_all('/App\\\\Services\\\\Rides\\\\\w+/', $code, $refs)) {
                 foreach ($refs[0] as $fqcn) {

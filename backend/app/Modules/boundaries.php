@@ -14,6 +14,7 @@ return [
     'Identity'       => ['Notifications'],   // OTP codes are sent through Notifications\Contracts\SmsSender
     'LegacyBookings' => [],
     'Locations'      => ['Pricing'],         // road factor from Pricing\Contracts\PricingPolicy
+    'NearbyRides'    => ['Locations', 'Payments', 'Pricing', 'Providers'],   // Geography; MoneyRecorder, ReceiptMailer; PricingPolicy + implements ProviderRateRevalidator; ProviderDisplay, ProviderEligibility, ProviderReputation
     'Notifications'  => [],
     'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
     'Pricing'        => [],

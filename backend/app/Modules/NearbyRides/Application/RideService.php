@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\NearbyRides\Application;
 
 use App\Models\DriverPresence;
 use App\Models\DriverProfile;
@@ -10,9 +10,11 @@ use App\Models\RideDispatch;
 use App\Models\RideEvent;
 use App\Models\RideRating;
 use App\Models\User;
-use App\Modules\Locations\Application\GeoService;
+use App\Models\Vehicle;
+use App\Modules\Locations\Contracts\Geography;
 use App\Modules\Payments\Contracts\MoneyRecorder;
-use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Payments\Contracts\ReceiptMailer;
+use App\Modules\Pricing\Contracts\PricingPolicy;
 use App\Modules\Providers\Contracts\ProviderReputation;
 use App\Services\PushService;
 use Illuminate\Support\Facades\DB;
@@ -36,8 +38,15 @@ class RideService
     public const CANCEL_REASONS_RIDER = ['changed_plans', 'driver_too_far', 'driver_asked_to_cancel', 'found_other_transport', 'wrong_pickup', 'other'];
     public const CANCEL_REASONS_DRIVER = ['rider_not_at_pickup', 'rider_asked_to_cancel', 'vehicle_problem', 'unsafe', 'traffic', 'other'];
 
-    public function __construct(private FareService $fares, private PushService $push)
-    {
+    public function __construct(
+        private FareService $fares,
+        private PushService $push,
+        private PricingPolicy $pricing,
+        private Geography $geo,
+        private MoneyRecorder $money,
+        private ReceiptMailer $receipts,
+        private ProviderReputation $reputation,
+    ) {
     }
 
     // ── Rider ────────────────────────────────────────────────────────────
@@ -88,7 +97,7 @@ class RideService
                                      ?string $class = null, ?int $maxFare = null): Ride
     {
         $this->assertCanRequest($rider);
-        $settings = RideSettings::get();
+        $settings = $this->pricing->settings();
         $nearby = app(NearbyDrivers::class)->search($pickup['lat'], $pickup['lng'], $dropoff['lat'], $dropoff['lng'], $class, $rider->id);
 
         $offers = [];
@@ -145,7 +154,7 @@ class RideService
 
         return [
             'trip'    => $nearby['trip'],
-            'classes' => collect(\App\Models\Vehicle::CLASSES)->map(function (string $class) use ($byClass) {
+            'classes' => collect(Vehicle::CLASSES)->map(function (string $class) use ($byClass) {
                 $drivers = $byClass->get($class, collect());
 
                 return [
@@ -180,8 +189,8 @@ class RideService
             return null;
         }
 
-        $tripKm = GeoService::roadKm($pickup['lat'], $pickup['lng'], $dropoff['lat'], $dropoff['lng']);
-        $pickupKm = GeoService::roadKm($presence->lat, $presence->lng, $pickup['lat'], $pickup['lng']);
+        $tripKm = $this->geo->roadDistanceKm($pickup['lat'], $pickup['lng'], $dropoff['lat'], $dropoff['lng']);
+        $pickupKm = $this->geo->roadDistanceKm($presence->lat, $presence->lng, $pickup['lat'], $pickup['lng']);
         $quote = $this->fares->quote($rate->fareSnapshot(), $tripKm, $pickupKm);
 
         return [
@@ -202,7 +211,7 @@ class RideService
 
     private function createRide(User $rider, string $mode, array $offer, array $pickup, array $dropoff, string $paymentMethod, array $extra): Ride
     {
-        $settings = RideSettings::get();
+        $settings = $this->pricing->settings();
         $fare = $offer['fare'];
 
         return Ride::create($extra + [
@@ -264,7 +273,7 @@ class RideService
     /** Fee when the rider cancels after the driver has waited longer than the free time. */
     public static function cancelFee(Ride $ride): int
     {
-        $settings = RideSettings::get();
+        $settings = app(PricingPolicy::class)->settings();
         if ($ride->status !== Ride::ARRIVED || !$ride->arrived_at) {
             return 0;
         }
@@ -289,7 +298,7 @@ class RideService
             ]);
             // Rider rating a driver updates the driver's public rating
             if ($toUserId === $ride->driver_id) {
-                app(ProviderReputation::class)->refreshProviderRating($toUserId);   // rides and hires together
+                $this->reputation->refreshProviderRating($toUserId);   // rides and hires together
             }
             $this->event($ride, $user, 'rated', ['stars' => $stars]);
 
@@ -395,8 +404,8 @@ class RideService
         ], 'completed', ['final_fare' => $ride->quoted_fare, 'payment_method' => $paymentMethod, 'commission' => $commission]);
 
         DriverProfile::where('user_id', $driver->id)->increment('trips_count');
-        app(MoneyRecorder::class)->recordRide($ride);   // S7.2
-        \App\Modules\Payments\Application\Receipts::email('ride', $ride);   // S9.6
+        $this->money->recordRide($ride);   // S7.2
+        $this->receipts->emailReceipt('ride', $ride);   // S9.6
         $this->push->send($ride->rider, 'You have arrived',
             sprintf('Trip total %s RWF (%s). Tap to rate your driver.', number_format($ride->final_fare), $paymentMethod === 'momo' ? 'MoMo' : 'cash'),
             ['screen' => 'ride', 'id' => $ride->id]);
@@ -417,6 +426,23 @@ class RideService
         }
 
         return (bool) $done;
+    }
+
+    /** rides:expire-requests — every overdue request; returns how many were expired */
+    public function expireOverdue(): int
+    {
+        $count = 0;
+        Ride::where('status', Ride::REQUESTED)->where('expires_at', '<', now())->each(function (Ride $ride) use (&$count) {
+            $count += (int) $this->expire($ride);
+        });
+
+        return $count;
+    }
+
+    /** Lazy expiry before a read, so nobody sees a stale "requested" ride */
+    public function expireIfLate(Ride $ride): bool
+    {
+        return $ride->status === Ride::REQUESTED && $ride->expires_at?->isPast() && $this->expire($ride);
     }
 
     /** First accepting driver wins and the ride takes their own locked price */

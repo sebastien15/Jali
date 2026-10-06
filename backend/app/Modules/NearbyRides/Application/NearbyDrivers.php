@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\NearbyRides\Application;
 
 use App\Models\DriverPresence;
 use App\Models\DriverProfile;
 use App\Models\DriverRate;
 use App\Models\Ride;
-use App\Modules\Locations\Application\GeoService;
-use App\Modules\Pricing\Application\RideSettings;
-use App\Modules\Providers\Application\DisplayName;
+use App\Modules\Locations\Contracts\Geography;
+use App\Modules\Pricing\Contracts\PricingPolicy;
+use App\Modules\Providers\Contracts\ProviderDisplay;
 use Carbon\CarbonInterface;
 
 /**
@@ -24,8 +24,11 @@ class NearbyDrivers
     public const CITY_KMH = 25;
     public const MAX_RESULTS = 50;
 
-    public function __construct(private FareService $fares)
-    {
+    public function __construct(
+        private FareService $fares,
+        private PricingPolicy $pricing,
+        private Geography $geo,
+    ) {
     }
 
     /**
@@ -34,12 +37,12 @@ class NearbyDrivers
     public function search(float $lat, float $lng, float $destLat, float $destLng, ?string $class = null,
                            ?int $excludeUserId = null, ?CarbonInterface $at = null): array
     {
-        $settings = RideSettings::get();
+        $settings = $this->pricing->settings();
         $radiusKm = (float) $settings['nearby_radius_km'];
         $dLat = $radiusKm / 111.0;
         $dLng = $radiusKm / (111.0 * max(0.01, cos(deg2rad($lat))));
 
-        $tripKm = GeoService::roadKm($lat, $lng, $destLat, $destLng);
+        $tripKm = $this->geo->roadDistanceKm($lat, $lng, $destLat, $destLng);
         $tripMinutes = $tripKm / self::CITY_KMH * 60;
 
         $candidates = DriverPresence::live()
@@ -66,11 +69,11 @@ class NearbyDrivers
             if (!$rate) {
                 continue;
             }
-            $distance = GeoService::haversineKm($lat, $lng, $p->lat, $p->lng);
+            $distance = $this->geo->straightKm($lat, $lng, $p->lat, $p->lng);
             if ($distance > $radiusKm) {
                 continue;
             }
-            $pickupKm = GeoService::roadKm($p->lat, $p->lng, $lat, $lng);
+            $pickupKm = $this->geo->roadDistanceKm($p->lat, $p->lng, $lat, $lng);
             $quote = $this->fares->quote($rate->fareSnapshot(), $tripKm, $pickupKm, 0, $at);
             $vehicle = $p->vehicle;
             $profile = $p->driver->driverProfile;
@@ -107,10 +110,10 @@ class NearbyDrivers
         ];
     }
 
-    /** "Jean Paul Habimana" → "Jean H." — owned by Providers (ProviderDisplay); kept for ride callers. */
+    /** "Jean Paul Habimana" → "Jean H." — owned by Providers (ProviderDisplay). */
     public static function displayName(?string $name): string
     {
-        return DisplayName::format($name);
+        return app(ProviderDisplay::class)->displayName($name);
     }
 
     /** Only plain URLs — some profile images are stored as large data: URIs. */

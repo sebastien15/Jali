@@ -7,12 +7,13 @@ use App\Models\DriverRate;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Modules\Payments\Contracts\ProviderDebtLimit;
+use App\Modules\Providers\Contracts\ProviderEligibility;
 
 /**
  * Can this driver go online for on-demand rides right now? (story S5.1)
  * Returns machine-readable reasons the app turns into "what's missing".
  */
-class DriverEligibility
+class DriverEligibility implements ProviderEligibility
 {
     public const NOT_VERIFIED = 'not_verified';
     public const SUSPENDED = 'suspended';
@@ -22,6 +23,11 @@ class DriverEligibility
     public const NO_RATES = 'no_rates';
     public const RATES_OUT_OF_BAND = 'rates_outside_limits';
     public const COMMISSION_OWED = 'commission_owed';
+
+    public function goOnlineBlockers(User $user): array
+    {
+        return self::blockers($user);
+    }
 
     /** @return string[] empty when the driver may go online */
     public static function blockers(User $user): array

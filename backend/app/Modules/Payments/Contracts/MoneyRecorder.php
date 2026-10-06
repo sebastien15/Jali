@@ -19,4 +19,10 @@ interface MoneyRecorder
     public function recordRide(Ride $ride): void;
 
     public function recordHire(DriverHire $hire): void;
+
+    /**
+     * Manual correction of a provider's balance (e.g. an admin lowers a ride's commission).
+     * $effect > 0 credits the provider; 0 writes nothing. Not de-duplicated: each call is a new entry.
+     */
+    public function adjust(int $userId, string $sourceType, ?int $sourceId, int $effect, string $note): void;
 }

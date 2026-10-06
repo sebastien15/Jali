@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\NearbyRides\Application;
 
 use App\Models\DriverPresence;
 use App\Models\Ride;

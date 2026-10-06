@@ -1,20 +1,32 @@
 <?php
 
-namespace App\Services\Rides;
+namespace App\Modules\NearbyRides\Application;
 
 use App\Models\DriverRate;
-use App\Modules\Pricing\Application\RideSettings;
+use App\Modules\Pricing\Contracts\PricingPolicy;
+use App\Modules\Pricing\Contracts\ProviderRateRevalidator;
 use App\Services\PushService;
 
 /**
- * Keeps driver-set rates inside the superadmin guardrails (RIDE_HAILING_PLAN.md §3.3).
+ * Keeps driver-set ride rates inside the superadmin guardrails (RIDE_HAILING_PLAN.md §3.3).
+ * Ride-only: hire prices have their own limits (DriverHire HireQuote::rateRules). Pricing
+ * calls revalidateProviderRates() right after the guardrails are saved.
  */
-class RateGuardrails
+class RateGuardrails implements ProviderRateRevalidator
 {
+    public function __construct(private PushService $push)
+    {
+    }
+
+    public function revalidateProviderRates(): int
+    {
+        return self::flagOutOfBand($this->push);
+    }
+
     /** Laravel validation rules for ride rates on a vehicle of this class. */
     public static function rules(string $vehicleClass): array
     {
-        $g = RideSettings::forClass($vehicleClass);
+        $g = app(PricingPolicy::class)->vehicleClassLimits($vehicleClass);
 
         return [
             'base_fare'        => 'required|integer|min:0|max:100000',
@@ -29,7 +41,7 @@ class RateGuardrails
 
     public static function messages(string $vehicleClass): array
     {
-        $g = RideSettings::forClass($vehicleClass);
+        $g = app(PricingPolicy::class)->vehicleClassLimits($vehicleClass);
 
         return [
             'per_km.min' => "Price per km for this vehicle must be between {$g['per_km_min']} and {$g['per_km_max']} RWF.",
@@ -40,7 +52,7 @@ class RateGuardrails
 
     public static function isWithin(DriverRate $rate, string $vehicleClass): bool
     {
-        $g = RideSettings::forClass($vehicleClass);
+        $g = app(PricingPolicy::class)->vehicleClassLimits($vehicleClass);
 
         return $rate->per_km >= $g['per_km_min']
             && $rate->per_km <= $g['per_km_max']
