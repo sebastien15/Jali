@@ -35,7 +35,7 @@ type Role = {
   is_system: boolean;
 };
 
-const CATEGORIES = ["All", "Bookings", "Agencies", "Locations", "Analytics", "Buses", "Users", "Admins", "Driver"];
+const CATEGORIES = ["All", "Bookings", "Agencies", "Locations", "Analytics", "Buses", "Users", "Admins", "Driver", "Rides"];
 
 export default function RoleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -33,27 +33,25 @@ class ApiIntegrationTest extends TestCase
             'firebase_uid' => 'passenger_uid',
             'name' => 'Test Passenger',
         ]);
-        $this->passenger->roles()->attach(Role::where('name', 'user')->first());
+        $this->passenger->update(['role_id' => Role::where('name', 'user')->value('id')]);
 
         $this->driver = User::create([
             'firebase_uid' => 'driver_uid',
             'name' => 'Test Driver',
         ]);
-        $driverRole = Role::where('name', 'driver')->first();
-        $userRole = Role::where('name', 'user')->first();
-        $this->driver->roles()->attach([$driverRole->id, $userRole->id]);
+        $this->driver->update(['role_id' => Role::where('name', 'driver')->value('id')]);
 
         $this->admin = User::create([
             'firebase_uid' => 'admin_uid',
             'name' => 'Test Admin',
         ]);
-        $this->admin->roles()->attach(Role::where('name', 'admin')->first());
+        $this->admin->update(['role_id' => Role::where('name', 'admin')->value('id')]);
 
         $this->superadmin = User::create([
             'firebase_uid' => 'superadmin_uid',
             'name' => 'Test Superadmin',
         ]);
-        $this->superadmin->roles()->attach(Role::where('name', 'superadmin')->first());
+        $this->superadmin->update(['role_id' => Role::where('name', 'superadmin')->value('id')]);
     }
 
     // ==================== BUS TESTS ====================
@@ -164,7 +162,7 @@ class ApiIntegrationTest extends TestCase
     /** @test */
     public function it_requires_permission_for_booking_confirmation()
     {
-        $response = $this->patchJson('/api/bookings/1/confirm');
+        $response = $this->postJson('/api/bookings/1/claim');
         $response->assertStatus(401);
     }
 
@@ -249,11 +247,12 @@ class ApiIntegrationTest extends TestCase
     }
 
     /** @test */
-    public function user_can_have_multiple_roles()
+    public function user_has_a_single_role()
     {
         $this->assertTrue($this->driver->hasRole('driver'));
-        $this->assertTrue($this->driver->hasRole('user'));
+        $this->assertFalse($this->driver->hasRole('user'));
         $this->assertFalse($this->driver->hasRole('admin'));
+        $this->assertTrue($this->driver->isDriver());
     }
 
     /** @test */
@@ -275,7 +274,8 @@ class ApiIntegrationTest extends TestCase
         $this->assertFalse($this->passenger->hasPermission('upload-tickets'));
 
         $this->assertTrue($this->admin->hasPermission('upload-tickets'));
-        $this->assertFalse($this->admin->hasPermission('view-analytics'));
+        $this->assertTrue($this->admin->hasPermission('view-analytics'));
+        $this->assertFalse($this->admin->hasPermission('manage-users'));
 
         $this->assertTrue($this->superadmin->hasPermission('view-analytics'));
         $this->assertTrue($this->superadmin->hasPermission('upload-tickets'));
@@ -348,12 +348,16 @@ class ApiIntegrationTest extends TestCase
     public function roles_and_permissions_are_seeded_correctly()
     {
         $this->assertDatabaseCount('roles', 4);
-        $this->assertDatabaseCount('permissions', 10);
+
+        // Migrations add permissions beyond the seeder's list, so check the seeded ones exist
+        foreach (['create-bookings', 'view-own-bookings', 'confirm-bookings', 'manage-users', 'manage-admins'] as $name) {
+            $this->assertDatabaseHas('permissions', ['name' => $name]);
+        }
 
         $superadmin = Role::where('name', 'superadmin')->first();
-        $this->assertEquals(10, $superadmin->permissions()->count());
+        $this->assertEquals(Permission::count(), $superadmin->permissions()->count());
 
         $user = Role::where('name', 'user')->first();
-        $this->assertEquals(2, $user->permissions()->count());
+        $this->assertEquals(3, $user->permissions()->count());
     }
 }

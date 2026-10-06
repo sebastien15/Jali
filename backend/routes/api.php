@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PushTokenController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\CarRentalController;
@@ -47,6 +48,8 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Current user
     Route::get("/me", [AuthController::class, "me"]);
+    Route::post("/me/push-token", [PushTokenController::class, "store"]);
+    Route::delete("/me/push-token", [PushTokenController::class, "destroy"]);
     Route::post("/auth/logout", [AuthController::class, "logout"]);
     Route::delete("/auth/me", [AuthController::class, "deleteAccount"]);
 

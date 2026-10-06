@@ -86,7 +86,7 @@ class AuthController extends Controller
         }
 
         try {
-            $factory = new Factory()->withServiceAccount(
+            $factory = (new Factory())->withServiceAccount(
                 config("firebase.projects.app.credentials"),
             );
             $auth = $factory->createAuth();
@@ -212,7 +212,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        // Stop pushes to a device that is no longer signed in
+        $user->update(["fcm_token" => null]);
         return response()->json(["message" => "Logged out"]);
     }
 

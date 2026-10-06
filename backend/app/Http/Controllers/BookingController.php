@@ -10,6 +10,7 @@ use App\Models\Location;
 use App\Models\PrivateSeat;
 use App\Models\Trip;
 use App\Models\TripDeparture;
+use App\Services\PushService;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -293,6 +294,15 @@ class BookingController extends Controller
             "entity_id" => $booking->id,
             "details" => ["title" => $booking->title],
         ]);
+
+        if ($booking->user) {
+            app(PushService::class)->send(
+                $booking->user,
+                'Your ticket is ready',
+                'Tap to view your ticket for your trip',
+                ['screen' => 'booking', 'id' => $booking->id],
+            );
+        }
 
         return response()->json([
             "status" => "ticket_ready",

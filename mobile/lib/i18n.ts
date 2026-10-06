@@ -20,7 +20,7 @@ const resources = {
 async function detectLanguage(): Promise<string> {
   // Check user preference first
   const saved = await AsyncStorage.getItem(LANGUAGE_DETECTION_KEY);
-  if (saved && resources[saved]) return saved;
+  if (saved && saved in resources) return saved;
 
   // Fall back to device locale
   const locales = Localization.getLocales();
