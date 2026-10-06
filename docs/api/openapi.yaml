@@ -2036,6 +2036,56 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /analytics/rides:
+    get:
+      tags: [Admin rides]
+      operationId: getRideAnalytics
+      x-jali-story: S10.3
+      x-jali-permission: view-analytics
+      summary: Ride metrics by Kigali day or week, fare per km by class and top drivers
+      parameters:
+        - { name: period, in: query, schema: { type: string, enum: [day, week], default: day } }
+        - { name: from, in: query, description: "Kigali date, inclusive (default 29 days before to)", schema: { type: string, format: date } }
+        - { name: to, in: query, description: "Kigali date, inclusive (default today); range is at most 92 days", schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [period, from, to, totals, series, fare_per_km_by_class, top_drivers]
+                properties:
+                  period: { type: string, enum: [day, week] }
+                  from: { type: string, format: date }
+                  to: { type: string, format: date }
+                  totals: { $ref: "#/components/schemas/RideMetrics" }
+                  series:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/RideMetrics"
+                        - type: object
+                          required: [bucket]
+                          properties:
+                            bucket: { type: string, format: date, description: "The day, or the Monday that starts the week" }
+                  fare_per_km_by_class:
+                    type: object
+                    description: Average RWF per estimated km across completed rides
+                    additionalProperties: { type: integer }
+                  top_drivers:
+                    type: object
+                    required: [by_trips, by_rating]
+                    properties:
+                      by_trips: { type: array, items: { $ref: "#/components/schemas/TopDriver" } }
+                      by_rating:
+                        type: array
+                        description: Drivers with at least 3 completed trips in the window
+                        items: { $ref: "#/components/schemas/TopDriver" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/settings/rides:
     get:
       tags: [Admin rides]
@@ -2474,6 +2524,30 @@ components:
         name: { type: [string, "null"] }
         phone: { type: [string, "null"] }
 
+    RideMetrics:
+      type: object
+      required: [requested, completed, cancelled_by_rider, cancelled_by_driver, expired, rider_cancel_rate, driver_cancel_rate, expired_rate, gmv, commission, avg_pickup_minutes]
+      properties:
+        requested: { type: integer }
+        completed: { type: integer }
+        cancelled_by_rider: { type: integer }
+        cancelled_by_driver: { type: integer }
+        expired: { type: integer }
+        rider_cancel_rate: { type: number, description: "0-1 share of requested rides" }
+        driver_cancel_rate: { type: number, description: "0-1 share of requested rides" }
+        expired_rate: { type: number, description: "0-1 share of requested rides" }
+        gmv: { type: integer, description: Sum of final fares of completed rides (RWF) }
+        commission: { type: integer, description: Jali commission on completed rides (RWF) }
+        avg_pickup_minutes: { type: [number, "null"], description: Average minutes from accept to arrive }
+    TopDriver:
+      type: object
+      required: [id, name, trips, rating, rating_count]
+      properties:
+        id: { type: integer }
+        name: { type: [string, "null"] }
+        trips: { type: integer, description: Completed trips in the window }
+        rating: { type: [number, "null"] }
+        rating_count: { type: integer }
     AdminRideSummary:
       type: object
       required: [id, status, vehicle_class, rider, driver, pickup, dropoff, quoted_fare, final_fare, flagged, requested_at]

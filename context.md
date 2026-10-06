@@ -81,7 +81,7 @@ app/
 │   │                          Also handles Firebase onAuthStateChanged auto-redirect
 │   │                          Route: /admin-login (renamed from login.tsx to avoid /login conflict)
 │   ├── dashboard.tsx          Earnings summary, booking status cards, role-based nav tiles
-│   ├── analytics/index.tsx    Revenue + booking analytics charts
+│   ├── analytics/index.tsx    Revenue + booking analytics charts + ride metrics (RideAnalyticsSection)
 │   ├── bookings/index.tsx     All bookings list
 │   ├── bookings/[id].tsx      Booking detail + status update
 │   ├── stations/index.tsx     Station list + edit (superadmin only in tab bar)
@@ -321,6 +321,7 @@ GET  /analytics/revenue
 GET  /analytics/bookings
 GET  /analytics/earnings
 GET  /analytics/stations
+GET  /analytics/rides?period=day|week&from&to   ride metrics (S10.3): requested/completed, cancel rates by side, expired rate, GMV, commission, pickup ETA, fare/km by class, top drivers — Kigali buckets, ≤92 days
 
 # Admin profile (any auth user)
 GET   /admin/profile

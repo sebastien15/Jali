@@ -1261,6 +1261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ride metrics by Kigali day or week, fare per km by class and top drivers */
+        get: operations["getRideAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings/rides": {
         parameters: {
             query?: never;
@@ -1503,6 +1520,33 @@ export interface components {
             name: string | null;
             phone: string | null;
         } | null;
+        RideMetrics: {
+            requested: number;
+            completed: number;
+            cancelled_by_rider: number;
+            cancelled_by_driver: number;
+            expired: number;
+            /** @description 0-1 share of requested rides */
+            rider_cancel_rate: number;
+            /** @description 0-1 share of requested rides */
+            driver_cancel_rate: number;
+            /** @description 0-1 share of requested rides */
+            expired_rate: number;
+            /** @description Sum of final fares of completed rides (RWF) */
+            gmv: number;
+            /** @description Jali commission on completed rides (RWF) */
+            commission: number;
+            /** @description Average minutes from accept to arrive */
+            avg_pickup_minutes: number | null;
+        };
+        TopDriver: {
+            id: number;
+            name: string | null;
+            /** @description Completed trips in the window */
+            trips: number;
+            rating: number | null;
+            rating_count: number;
+        };
         AdminRideSummary: {
             id: number;
             status: components["schemas"]["RideStatus"];
@@ -4480,6 +4524,59 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRideAnalytics: {
+        parameters: {
+            query?: {
+                period?: "day" | "week";
+                /** @description Kigali date, inclusive (default 29 days before to) */
+                from?: string;
+                /** @description Kigali date, inclusive (default today); range is at most 92 days */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "day" | "week";
+                        /** Format: date */
+                        from: string;
+                        /** Format: date */
+                        to: string;
+                        totals: components["schemas"]["RideMetrics"];
+                        series: (components["schemas"]["RideMetrics"] & {
+                            /**
+                             * Format: date
+                             * @description The day, or the Monday that starts the week
+                             */
+                            bucket: string;
+                        })[];
+                        /** @description Average RWF per estimated km across completed rides */
+                        fare_per_km_by_class: {
+                            [key: string]: number;
+                        };
+                        top_drivers: {
+                            by_trips: components["schemas"]["TopDriver"][];
+                            /** @description Drivers with at least 3 completed trips in the window */
+                            by_rating: components["schemas"]["TopDriver"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
         };
     };

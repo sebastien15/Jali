@@ -13,6 +13,7 @@ import api from "@/lib/api";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
+import RideAnalyticsSection from "@/components/admin/RideAnalyticsSection";
 
 export default function AdminAnalyticsScreen() {
   const queryClient = useQueryClient();
@@ -45,6 +46,7 @@ export default function AdminAnalyticsScreen() {
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.revenue() });
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.bookings() });
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.analytics.earnings() });
+    queryClient.invalidateQueries({ queryKey: ["admin", "analytics", "rides"] });
   }
 
   return (
@@ -155,6 +157,9 @@ export default function AdminAnalyticsScreen() {
                 icon="✅"
               />
             </View>
+
+            {/* ── Rides (S10.3) ── */}
+            <RideAnalyticsSection />
 
             {/* ── By Type — superadmin only ── */}
             {isSuperAdmin && (
