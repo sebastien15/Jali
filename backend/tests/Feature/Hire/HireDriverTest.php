@@ -249,7 +249,7 @@ class HireDriverTest extends TestCase
             ->assertJsonPath('driver_earnings', 14700 - 1470);
         OpenApiContract::assertResponse($done, 'post', '/driver-hire/{id}/check-out');
         // S7.2: the driver now owes Jali the commission (10% of 14700) + the 500 fee
-        $this->assertSame(1470 + 500, \App\Services\Payments\DriverLedger::owed($this->driver->id));
+        $this->assertSame(1470 + 500, \App\Modules\Payments\Application\DriverLedger::owed($this->driver->id));
 
         // Ratings both ways; driver rating combines rides and hires
         $this->postJson("/api/driver-hire/{$hire['id']}/rate", ['stars' => 5])->assertCreated();

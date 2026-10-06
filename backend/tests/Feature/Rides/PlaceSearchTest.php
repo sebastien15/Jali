@@ -4,7 +4,7 @@ namespace Tests\Feature\Rides;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Rides\PlaceSearch;
+use App\Modules\Locations\Application\PlaceSearch;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;

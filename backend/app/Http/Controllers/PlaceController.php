@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Rides\PlaceSearch;
+use App\Modules\Locations\Application\PlaceSearch;
 use Illuminate\Http\Request;
 
 /** "Where to?" place search (story S3.1) */

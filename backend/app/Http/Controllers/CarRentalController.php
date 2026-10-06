@@ -2,25 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CarRental;
+use App\Modules\Rentals\Application\OwnerFleet;
+use App\Modules\Rentals\Application\RentalCarPresenter;
+use App\Modules\Rentals\Application\RentalCatalogue;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Rentals (runbook M03-Rental): validation + HTTP shape only. */
 class CarRentalController extends Controller
 {
+    public function __construct(
+        private readonly RentalCatalogue $catalogue,
+        private readonly OwnerFleet $fleet,
+    ) {
+    }
+
     /**
      * GET /car-rentals
      * Public catalog — admin-seeded and driver-listed active cars.
      */
     public function index(Request $request)
     {
-        // Cars marked rented / in maintenance by their owner are not offered.
-        $query = CarRental::query()->where('active', true)->where('status', 'available');
-
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        return response()->json($query->orderBy('price')->get());
+        return response()->json($this->catalogue->available($request->filled('type') ? $request->type : null));
     }
 
     /**
@@ -29,9 +31,9 @@ class CarRentalController extends Controller
      */
     public function driverCars(Request $request)
     {
-        $cars = CarRental::where('user_id', $request->user()->id)->get();
+        $cars = $this->fleet->carsOf($request->user());
 
-        return response()->json($cars->map(fn($c) => $this->toFrontend($c)));
+        return response()->json($cars->map(fn($c) => RentalCarPresenter::toFrontend($c)));
     }
 
     /**
@@ -50,21 +52,9 @@ class CarRentalController extends Controller
             'photos'    => 'nullable|array',
         ]);
 
-        $car = CarRental::create([
-            'user_id'  => $request->user()->id,
-            'name'     => $validated['name'],
-            'type'     => $validated['type'],
-            'plate'    => $validated['plate'],
-            'seats'    => $validated['seats'],
-            'price'    => $validated['priceDay'],   // frontend sends priceDay → stored as price
-            'caution'  => $validated['caution'] ?? 0,
-            'amenities'=> $validated['amenities'] ?? [],
-            'photos'   => $validated['photos'] ?? [],
-            'rating'   => 0,
-            'active'   => true,
-        ]);
+        $car = $this->fleet->create($request->user(), $validated);
 
-        return response()->json($this->toFrontend($car), 201);
+        return response()->json(RentalCarPresenter::toFrontend($car), 201);
     }
 
     /**
@@ -72,9 +62,8 @@ class CarRentalController extends Controller
      */
     public function updateCar(Request $request, $id)
     {
-        $car = CarRental::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        // Ownership is checked before validation (404 wins over 422), as before.
+        $car = $this->fleet->findOwned($request->user(), $id);
 
         $validated = $request->validate([
             'name'      => 'sometimes|string',
@@ -89,14 +78,7 @@ class CarRentalController extends Controller
             'notes'     => 'nullable|string',
         ]);
 
-        if (isset($validated['priceDay'])) {
-            $validated['price'] = $validated['priceDay'];
-            unset($validated['priceDay']);
-        }
-
-        $car->update($validated);
-
-        return response()->json($this->toFrontend($car->fresh()));
+        return response()->json(RentalCarPresenter::toFrontend($this->fleet->update($car, $validated)));
     }
 
     /**
@@ -104,22 +86,8 @@ class CarRentalController extends Controller
      */
     public function destroyCar(Request $request, $id)
     {
-        $car = CarRental::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-
-        $car->delete();
+        $this->fleet->delete($this->fleet->findOwned($request->user(), $id));
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * Map DB column `price` → frontend field `priceDay`.
-     */
-    private function toFrontend(CarRental $car): array
-    {
-        $data             = $car->toArray();
-        $data['priceDay'] = $car->price;
-        return $data;
     }
 }

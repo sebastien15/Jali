@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, Query, defaultShouldDehydrateQuery } from "@tanstack/react-query";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -23,18 +23,55 @@ export const queryClient = new QueryClient({
   },
 });
 
-/** Persists the query cache to AsyncStorage (wired up in app/_layout.tsx). */
+/**
+ * Persists the query cache to AsyncStorage (wired up in app/_layout.tsx).
+ *
+ * The persisted cache is one global entry, so it is purged on every session
+ * start and end (core/session/teardown.ts) — account B never restores
+ * account A's cache. Bump PERSIST_SCHEMA_VERSION when cached shapes change.
+ */
 export const persister = createAsyncStoragePersister({
   storage: AsyncStorage,
   throttleTime: 1000,
 });
 
+export const PERSIST_SCHEMA_VERSION = "jali-query-v1";
+
 /**
- * Drop every cached query, in memory and on disk. Must run whenever the
- * signed-in user changes, otherwise the next account sees the previous
- * user's bookings and profile (`me` is cached with staleTime: Infinity).
+ * Never written to disk (runbook §5.6): ride detail/active/history and chat
+ * (start PINs, live positions, messages), hire job detail, the driver's own
+ * onboarding/profile (licence, national ID, documents) and admin driver
+ * applications (documents). They are refetched when opened.
+ */
+export function isSensitiveQueryKey(key: readonly unknown[]): boolean {
+  const [root, second] = key;
+  if (root === "rides") return true;
+  if (root === "hire") return typeof second === "number";
+  if (root === "driver") return second === "onboarding" || second === "profile";
+  if (root === "admin") return second === "drivers";
+  return false;
+}
+
+export const persistOptions = {
+  persister,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  buster: PERSIST_SCHEMA_VERSION,
+  dehydrateOptions: {
+    shouldDehydrateQuery: (query: Query) =>
+      defaultShouldDehydrateQuery(query) && !isSensitiveQueryKey(query.queryKey),
+  },
+};
+
+/**
+ * Drop every cached query and mutation, in memory and on disk, after
+ * cancelling in-flight fetches. Runs on every session start and end
+ * (core/session/teardown.ts): `me` is cached, so a stale cache would show
+ * the next account the previous user's bookings and profile.
  */
 export async function clearQueryCache(): Promise<void> {
+  try {
+    await queryClient.cancelQueries();
+  } catch {}
   queryClient.clear();
   try {
     await persister.removeClient();

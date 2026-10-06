@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Services\Rides\RideSettings;
+use App\Modules\Pricing\Application\RideSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

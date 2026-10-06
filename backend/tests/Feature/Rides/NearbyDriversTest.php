@@ -6,7 +6,7 @@ use App\Models\DriverPresence;
 use App\Models\DriverRate;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Rides\NearbyDrivers;
+use App\Modules\NearbyRides\Application\NearbyDrivers;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;

@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "api:types": "openapi-typescript ../docs/api/openapi.yaml -o lib/apiSchema.ts",
     "api:mock": "npx -y @stoplight/prism-cli@5 mock -p 4010 ../docs/api/openapi.yaml",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:boundaries": "node scripts/check-module-boundaries.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

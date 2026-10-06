@@ -3,55 +3,52 @@
 namespace App\Http\Controllers;
 
 use App\Models\DriverHire;
-use App\Services\Hire\HirePresenter;
-use App\Services\Hire\HireService;
+use App\Modules\DriverHire\Application\HirePresenter;
+use App\Modules\DriverHire\Application\HireQueries;
+use App\Modules\DriverHire\Application\HireService;
 use Illuminate\Http\Request;
 
 /**
  * Driver side of a hire (story S6.4). Requires offer-driver-hire; every action
  * also checks the hire belongs to this driver (404 otherwise).
+ * Transport adapter for DriverHire (runbook M03-Hire).
  */
 class DriverHireController extends Controller
 {
+    public function __construct(
+        private readonly HireService $hires,
+        private readonly HireQueries $queries,
+    ) {
+    }
+
     /** GET /driver/hires?scope=requests|upcoming|past */
-    public function index(Request $request, HireService $hires)
+    public function index(Request $request)
     {
-        $user = $request->user();
         $scope = $request->validate(['scope' => 'sometimes|in:requests,upcoming,past'])['scope'] ?? 'requests';
 
-        DriverHire::where('driver_id', $user->id)->where('status', DriverHire::REQUESTED)->where('expires_at', '<', now())
-            ->each(fn (DriverHire $h) => $hires->expire($h));
-
-        $query = DriverHire::where('driver_id', $user->id);
-        match ($scope) {
-            'requests' => $query->where('status', DriverHire::REQUESTED)->orderBy('start_at'),
-            'upcoming' => $query->whereIn('status', DriverHire::BOOKED)->orderBy('start_at'),
-            'past'     => $query->whereNotIn('status', DriverHire::ACTIVE)->orderByDesc('start_at'),
-        };
-
-        return response()->json($query->limit(100)->get()->map(fn (DriverHire $h) => HirePresenter::present($h, $user))->values());
+        return response()->json($this->queries->driverHires($request->user(), $scope));
     }
 
-    public function accept(Request $request, HireService $hires, int $id)
+    public function accept(Request $request, int $id)
     {
-        return $this->respond($request, $hires->accept($this->hire($id), $request->user()));
+        return $this->respond($request, $this->hires->accept($this->hire($id), $request->user()));
     }
 
-    public function decline(Request $request, HireService $hires, int $id)
+    public function decline(Request $request, int $id)
     {
-        return $this->respond($request, $hires->decline($this->hire($id), $request->user()));
+        return $this->respond($request, $this->hires->decline($this->hire($id), $request->user()));
     }
 
-    public function checkIn(Request $request, HireService $hires, int $id)
+    public function checkIn(Request $request, int $id)
     {
-        return $this->respond($request, $hires->checkIn($this->hire($id), $request->user()));
+        return $this->respond($request, $this->hires->checkIn($this->hire($id), $request->user()));
     }
 
-    public function checkOut(Request $request, HireService $hires, int $id)
+    public function checkOut(Request $request, int $id)
     {
         $validated = $request->validate(['payment_method' => 'required|in:cash,momo']);
 
-        return $this->respond($request, $hires->checkOut($this->hire($id), $request->user(), $validated['payment_method']));
+        return $this->respond($request, $this->hires->checkOut($this->hire($id), $request->user(), $validated['payment_method']));
     }
 
     private function hire(int $id): DriverHire

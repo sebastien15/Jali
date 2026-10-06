@@ -17,7 +17,54 @@ class AppServiceProvider extends ServiceProvider
         // Build the Firebase messaging client lazily inside PushService (never at resolve time),
         // so a missing credentials file can't turn a push into a failed request.
         $this->app->bind(\App\Services\PushService::class, fn () => new \App\Services\PushService());
-        //
+
+        // Module contracts (architecture migration M02) -> their single implementation
+        $this->app->bind(\App\Modules\Pricing\Contracts\PricingPolicy::class, \App\Modules\Pricing\Application\RideSettings::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\MoneyRecorder::class, \App\Modules\Payments\Application\DriverLedger::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\ProviderDebtLimit::class, \App\Modules\Payments\Application\DriverLedger::class);
+        $this->app->bind(\App\Modules\Providers\Contracts\ProviderReputation::class, \App\Modules\Providers\Application\DriverRating::class);
+        $this->app->bind(\App\Modules\Providers\Contracts\ProviderDisplay::class, \App\Modules\Providers\Application\DisplayName::class);
+        $this->app->bind(\App\Modules\Payments\Contracts\ReceiptMailer::class, \App\Modules\Payments\Application\Receipts::class);
+        $this->app->bind(\App\Modules\Notifications\Contracts\SmsSender::class, \App\Modules\Notifications\Infrastructure\SmsService::class);
+        // Push goes through Notifications; the adapter resolves the lazily bound PushService above on every send
+        $this->app->bind(\App\Modules\Notifications\Contracts\PushSender::class, \App\Modules\Notifications\Infrastructure\PushServiceSender::class);
+        $this->app->bind(\App\Modules\Notifications\Contracts\PushTokens::class, \App\Modules\Notifications\Application\PushTokenRegistry::class);
+        $this->app->bind(\App\Modules\Locations\Contracts\Geography::class, \App\Modules\Locations\Application\Geography::class);
+        $this->app->bind(\App\Modules\Providers\Contracts\ProviderEligibility::class, \App\Modules\Providers\Application\DriverEligibility::class);
+        // Ride rates are owned by NearbyRides; Pricing asks it to re-check them after a guardrail change
+        $this->app->bind(\App\Modules\Pricing\Contracts\ProviderRateRevalidator::class, \App\Modules\NearbyRides\Application\RateGuardrails::class);
+        // The bus network (Bus) enriches Locations' admin pickup-location list
+        $this->app->bind(\App\Modules\Locations\Contracts\TerminalNetwork::class, \App\Modules\Bus\Infrastructure\TerminalNetworkDirectory::class);
+
+        // Generic /bookings: one dispatcher, one handler per booking type. Owning services
+        // register their own handler here as they move into their module (runbook M03).
+        $this->app->tag([
+            \App\Modules\Bus\Infrastructure\BusBookingHandler::class,
+            \App\Modules\SharedJourneys\Infrastructure\PrivateSeatBookingHandler::class,
+            \App\Modules\Rentals\Infrastructure\RentalBookingHandler::class,
+            \App\Modules\Bus\Infrastructure\TripDepartureBookingHandler::class,
+        ], \App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
+        $this->app->when(\App\Modules\LegacyBookings\Application\BookingDispatcher::class)
+            ->needs('$handlers')
+            ->giveTagged(\App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
+
+        // Verifying a driver promotes riders to the driver role; Identity owns roles
+        $this->app->bind(\App\Modules\Identity\Contracts\ProviderRoles::class, \App\Modules\Identity\Application\RoleAssignments::class);
+
+        // Staff (station agent) earnings shown on the admin profile come from Payments
+        $this->app->bind(\App\Modules\Payments\Contracts\StaffEarnings::class, \App\Modules\Payments\Application\StaffCashouts::class);
+
+        // Account deletion (Identity): each owning service closes its part, in this order,
+        // inside Identity's transaction (station unassigned, listings and cars off, driver profile removed).
+        $this->app->tag([
+            \App\Modules\Bus\Infrastructure\StationAgentAccountClosure::class,
+            \App\Modules\SharedJourneys\Infrastructure\ListingAccountClosure::class,
+            \App\Modules\Rentals\Infrastructure\RentalCarAccountClosure::class,
+            \App\Modules\Providers\Infrastructure\DriverProfileAccountClosure::class,
+        ], \App\Modules\Identity\Contracts\AccountClosure::class);
+        $this->app->when(\App\Modules\Identity\Application\AccountDeletion::class)
+            ->needs('$closures')
+            ->giveTagged(\App\Modules\Identity\Contracts\AccountClosure::class);
     }
 
     /**

@@ -2,20 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ride;
-use App\Models\User;
 use App\Models\Vehicle;
-use App\Services\Rides\NearbyDrivers;
-use App\Services\Rides\RidePresenter;
-use App\Services\Rides\RideService;
+use App\Modules\NearbyRides\Application\NearbyDrivers;
+use App\Modules\NearbyRides\Application\RidePresenter;
+use App\Modules\NearbyRides\Application\RideQueries;
+use App\Modules\NearbyRides\Application\RideService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
  * Rider side of on-demand rides.
+ * Transport adapter for NearbyRides (runbook M03-Rides): validation + HTTP shape only.
  */
 class RideController extends Controller
 {
+    public function __construct(
+        private readonly RideService $rides,
+        private readonly RideQueries $queries,
+    ) {
+    }
+
     /** GET /rides/nearby — story S3.2 */
     public function nearby(Request $request, NearbyDrivers $nearby)
     {
@@ -36,7 +43,7 @@ class RideController extends Controller
     }
 
     /** POST /rides — request a specific driver (pick, S3.4) or all nearby under a max price (broadcast, S3.5) */
-    public function store(Request $request, RideService $rides)
+    public function store(Request $request)
     {
         $validated = $request->validate($this->pointRules() + [
             'mode'           => 'required|in:pick,broadcast',
@@ -49,20 +56,20 @@ class RideController extends Controller
         $payment = $validated['payment_method'] ?? 'cash';
 
         $ride = $validated['mode'] === 'broadcast'
-            ? $rides->requestBroadcast($request->user(), $pickup, $dropoff, $payment,
+            ? $this->rides->requestBroadcast($request->user(), $pickup, $dropoff, $payment,
                 $validated['vehicle_class'] ?? null, isset($validated['max_fare']) ? (int) $validated['max_fare'] : null)
-            : $rides->request($request->user(), (int) $validated['driver_id'], $pickup, $dropoff, $payment);
+            : $this->rides->request($request->user(), (int) $validated['driver_id'], $pickup, $dropoff, $payment);
 
         return response()->json(RidePresenter::present($ride, $request->user()), 201);
     }
 
     /** POST /rides/estimate — price range and nearest ETA per vehicle class (story S3.6) */
-    public function estimate(Request $request, RideService $rides)
+    public function estimate(Request $request)
     {
         $validated = $request->validate($this->pointRules());
         [$pickup, $dropoff] = $this->points($validated);
 
-        return response()->json($rides->estimate($request->user(), $pickup, $dropoff));
+        return response()->json($this->rides->estimate($request->user(), $pickup, $dropoff));
     }
 
     private function pointRules(): array
@@ -90,55 +97,38 @@ class RideController extends Controller
     /** GET /rides — my rides as a rider, newest first (story S4.6) */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $page = Ride::where('rider_id', $user->id)->orderByDesc('id')->paginate(20);
-
-        return response()->json([
-            'data'      => collect($page->items())->map(fn (Ride $r) => RidePresenter::present($r, $user))->values(),
-            'next_page' => $page->hasMorePages() ? $page->currentPage() + 1 : null,
-        ]);
+        return response()->json($this->queries->riderPage($request->user()));
     }
 
     /** GET /rides/active — my current ride as rider or driver, or null (polled during a trip) */
-    public function active(Request $request, RideService $rides)
+    public function active(Request $request)
     {
         $user = $request->user();
-        $ride = Ride::whereIn('status', Ride::ACTIVE)
-            ->where(fn ($q) => $q->where('rider_id', $user->id)->orWhere(fn ($q) => $q->where('driver_id', $user->id)->whereIn('status', Ride::ONGOING)))
-            ->orderByDesc('id')->first();
-
-        if ($ride && $this->expireIfLate($ride, $rides)) {
-            $ride = $ride->fresh();
-        }
+        $ride = $this->queries->activeRide($user);
 
         // Literal JSON null (response()->json(null) would send "{}")
         return $ride
             ? response()->json(RidePresenter::present($ride, $user))
-            : \Illuminate\Http\JsonResponse::fromJsonString('null');
+            : JsonResponse::fromJsonString('null');
     }
 
     /** GET /rides/{id} — rider or assigned driver only */
-    public function show(Request $request, RideService $rides, int $id)
+    public function show(Request $request, int $id)
     {
-        $ride = $this->mine($request->user(), $id);
-        if ($this->expireIfLate($ride, $rides)) {
-            $ride = $ride->fresh();
-        }
-
-        return response()->json(RidePresenter::present($ride, $request->user()));
+        return response()->json(RidePresenter::present($this->queries->shownRide($request->user(), $id), $request->user()));
     }
 
     /** POST /rides/{id}/cancel { reason } */
-    public function cancel(Request $request, RideService $rides, int $id)
+    public function cancel(Request $request, int $id)
     {
         $validated = $request->validate(['reason' => 'required|string|max:50']);
-        $ride = $rides->cancel($this->mine($request->user(), $id), $request->user(), $validated['reason']);
+        $ride = $this->rides->cancel($this->queries->participantRide($request->user(), $id), $request->user(), $validated['reason']);
 
         return response()->json(RidePresenter::present($ride, $request->user()));
     }
 
     /** POST /rides/{id}/rate { stars, tags?, comment? } — rider rates driver or driver rates rider */
-    public function rate(Request $request, RideService $rides, int $id)
+    public function rate(Request $request, int $id)
     {
         $validated = $request->validate([
             'stars'   => 'required|integer|min:1|max:5',
@@ -146,21 +136,8 @@ class RideController extends Controller
             'tags.*'  => 'string|max:40',
             'comment' => 'sometimes|nullable|string|max:500',
         ]);
-        $rides->rate($this->mine($request->user(), $id), $request->user(), $validated['stars'], $validated['tags'] ?? [], $validated['comment'] ?? null);
+        $this->rides->rate($this->queries->participantRide($request->user(), $id), $request->user(), $validated['stars'], $validated['tags'] ?? [], $validated['comment'] ?? null);
 
         return response()->json(['message' => 'Thanks for rating'], 201);
-    }
-
-    private function mine(User $user, int $id): Ride
-    {
-        $ride = Ride::findOrFail($id);
-        abort_unless($ride->involves($user), 404);
-
-        return $ride;
-    }
-
-    private function expireIfLate(Ride $ride, RideService $rides): bool
-    {
-        return $ride->status === Ride::REQUESTED && $ride->expires_at?->isPast() && $rides->expire($ride);
     }
 }

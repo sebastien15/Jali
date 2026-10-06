@@ -9,7 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
-import { useDriverMode } from "@/lib/DriverModeContext";
+import { useDriverMode } from "@/core/session/DriverModeContext";
 import { CAR_AMENITIES, CarAmenity } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";

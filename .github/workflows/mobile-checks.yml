@@ -39,3 +39,6 @@ jobs:
 
       - name: TypeScript
         run: npx tsc --noEmit
+
+      - name: Module boundaries
+        run: npm run check:boundaries

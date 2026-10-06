@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ride;
-use App\Services\Safety\SafetyService;
+use App\Modules\Safety\Application\EmergencyContacts;
+use App\Modules\Safety\Application\SafetyService;
+use App\Modules\Safety\Application\TripShareEnded;
 use Illuminate\Http\Request;
 
-/** Share my trip (S8.1), SOS (S8.2) and my emergency contact */
+/**
+ * Share my trip (S8.1), SOS (S8.2) and my emergency contact.
+ * Transport adapter for Safety (M03-Remaining): validation + HTTP shape only.
+ */
 class SafetyController extends Controller
 {
     /** POST /rides/{id}/share → {url} — rider or driver of an active ride */
     public function share(Request $request, SafetyService $safety, int $id)
     {
-        return response()->json(['url' => $safety->share(Ride::findOrFail($id), $request->user())]);
+        return response()->json(['url' => $safety->share($safety->ride($id), $request->user())]);
     }
 
     /** POST /rides/{id}/sos {lat?, lng?} */
@@ -23,39 +27,35 @@ class SafetyController extends Controller
             'lng' => 'sometimes|nullable|numeric|between:-180,180',
         ]);
 
-        return response()->json($safety->sos(Ride::findOrFail($id), $request->user(),
+        return response()->json($safety->sos($safety->ride($id), $request->user(),
             isset($data['lat']) ? (float) $data['lat'] : null, isset($data['lng']) ? (float) $data['lng'] : null));
     }
 
     /** GET /me/emergency-contact */
-    public function contact(Request $request)
+    public function contact(Request $request, EmergencyContacts $contacts)
     {
-        $user = $request->user();
-
-        return response()->json(['name' => $user->emergency_contact_name, 'phone' => $user->emergency_contact_phone]);
+        return response()->json($contacts->of($request->user()));
     }
 
     /** PUT /me/emergency-contact {name, phone} */
-    public function saveContact(Request $request)
+    public function saveContact(Request $request, EmergencyContacts $contacts)
     {
         $data = $request->validate([
             'name'  => 'required|string|max:100',
             'phone' => ['required', 'string', 'regex:/^\+?[0-9 ]{9,16}$/'],
         ]);
-        $request->user()->update(['emergency_contact_name' => $data['name'], 'emergency_contact_phone' => $data['phone']]);
+        $contacts->save($request->user(), $data);
 
         return response()->json($data);
     }
 
     /** GET /share/{token} — PUBLIC (token is the secret); 410 once the ride is over */
-    public function publicShare(string $token)
+    public function publicShare(SafetyService $safety, string $token)
     {
-        $ride = Ride::where('share_token', $token)->first();
-        abort_unless($ride, 404, 'This link is not valid.');
-        if (!$ride->isActive()) {
-            return response()->json(['message' => 'This trip has ended.', 'status' => $ride->status], 410);
+        try {
+            return response()->json($safety->sharedTrip($token));
+        } catch (TripShareEnded $e) {
+            return response()->json(['message' => 'This trip has ended.', 'status' => $e->status], 410);
         }
-
-        return response()->json(SafetyService::publicView($ride));
     }
 }
