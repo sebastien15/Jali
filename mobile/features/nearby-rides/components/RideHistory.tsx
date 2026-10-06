@@ -7,7 +7,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
-import { Ride, isActive } from "@/lib/rides";
+import { Ride, isActive } from "../rides";
 
 type Page = { data: Ride[]; next_page: number | null };
 

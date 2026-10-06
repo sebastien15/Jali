@@ -11,7 +11,7 @@ import { Trip, TripStatus, TripType } from "@/constants/data";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatYmd } from "@/lib/date";
-import { RideHistory } from "@/components/rides/RideHistory";
+import { RideHistory } from "@/features/nearby-rides";
 import { HireHistory } from "@/features/driver-hire";
 
 const TYPE_COLOR: Record<TripType, string> = {

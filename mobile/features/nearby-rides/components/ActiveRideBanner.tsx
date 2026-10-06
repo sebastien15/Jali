@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
-import { Ride, isActive } from "@/lib/rides";
+import { Ride, isActive } from "../rides";
 import { useDriverMode } from "@/lib/DriverModeContext";
 
 /** Shared /rides/active query — the rider's or driver's current ride, or null. */

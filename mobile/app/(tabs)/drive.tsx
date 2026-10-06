@@ -26,12 +26,10 @@ import { useMe, isDriverRole } from "@/lib/useMe";
 import { DriverHeader } from "@/components/driver/DriverHeader";
 import { DriverTypeBanner } from "@/components/driver/DriverTypeBanner";
 import { WeekSummaryCard } from "@/components/driver/WeekSummaryCard";
-import { RidePricesCard } from "@/components/driver/DriverActionCard";
+import { RidePricesCard, OnlineToggleCard, ActiveRideBanner } from "@/features/nearby-rides";
 import { FleetActionCard } from "@/features/rentals";
 import { PrivateListingsCard } from "@/features/shared-journeys";
 import { PickupZones } from "@/components/driver/PickupZones";
-import { OnlineToggleCard } from "@/components/driver/OnlineToggleCard";
-import { ActiveRideBanner } from "@/components/rides/ActiveRideBanner";
 import { HireRequestsCard } from "@/features/driver-hire";
 import { EarningsCard } from "@/components/driver/EarningsCard";
 import {

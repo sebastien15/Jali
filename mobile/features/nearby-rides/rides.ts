@@ -30,7 +30,3 @@ export function secondsLeft(iso: string | null | undefined): number {
   if (!iso) return 0;
   return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000));
 }
-
-// Generic platform actions, used by more than rides (e.g. driver hire). Kept here as
-// compatibility re-exports; new code imports them from "@/lib/platformActions".
-export { openNavigation, callPhone } from "@/lib/platformActions";

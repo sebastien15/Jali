@@ -3,8 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { C } from "@/constants/theme";
-import { useDriverPresence } from "@/lib/useDriverPresence";
-import { IncomingRequests } from "@/components/driver/IncomingRequests";
+import { useDriverPresence } from "../hooks/useDriverPresence";
+import { IncomingRequests } from "./IncomingRequests";
 
 /** Where each blocker can be fixed */
 const FIX_ROUTE: Record<string, string> = {

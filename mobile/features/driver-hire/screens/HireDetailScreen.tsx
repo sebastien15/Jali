@@ -11,8 +11,8 @@ import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
 import { callPhone } from "@/lib/platformActions";
 import { DriverHire, isActiveHire, formatWhen, CUSTOMER_CANCEL_REASONS, RATING_TAGS_FOR_HIRE_DRIVER } from "../hire";
-import { Stars } from "@/components/rides/Stars";
-import { ReasonSheet } from "@/components/rides/ReasonSheet";
+import { Stars } from "@/components/shared/Stars";
+import { ReasonSheet } from "@/components/shared/ReasonSheet";
 import { useFormatPrice } from "@/lib/fx";
 import { Linking } from "react-native";
 

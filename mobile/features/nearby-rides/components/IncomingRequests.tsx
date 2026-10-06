@@ -8,7 +8,7 @@ import { C } from "@/constants/theme";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
-import { secondsLeft } from "@/lib/rides";
+import { secondsLeft } from "../rides";
 import type { components } from "@/lib/apiSchema";
 
 type Card = components["schemas"]["RideRequestCard"];

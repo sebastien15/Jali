@@ -11,8 +11,8 @@ import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
 import { callPhone, openNavigation } from "@/lib/platformActions";
 import { DriverHire, isActiveHire, formatWhen, DRIVER_CANCEL_REASONS, RATING_TAGS_FOR_HIRE_CUSTOMER } from "../hire";
-import { Stars } from "@/components/rides/Stars";
-import { ReasonSheet } from "@/components/rides/ReasonSheet";
+import { Stars } from "@/components/shared/Stars";
+import { ReasonSheet } from "@/components/shared/ReasonSheet";
 
 /** Driver's hire screen: accept → navigate → check in → check out (cash/MoMo, overtime) → rate (S6.4) */
 export default function DriverHireScreen() {
