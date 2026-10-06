@@ -324,7 +324,7 @@ tmp=$(mktemp); { cat "$DIR/S16.2-help-centre-with-trip-specific-help.md"; echo; 
 n=$(create "S16.2 Help centre with trip-specific help" "user-story,track-foundation,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S16.2 Help centre with trip-specific help"
 gh issue comment "${EPIC_NUM[E16]}" --repo "$REPO" --body "- [ ] #$n S16.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S16.3-support-tickets-and-live-chat-with-an-agent.md"; echo; echo "Part of #${EPIC_NUM[E16]}"; } > "$tmp"
-n=$(create "S16.3 Support tickets and live chat with an agent" "user-story,track-foundation,wave-2,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S16.3 Support tickets and live chat with an agent"
+n=$(create "S16.3 Support tickets and live chat with an agent" "user-story,track-foundation,wave-1,mobile,backend,admin" "$tmp"); rm -f "$tmp"; echo "#$n S16.3 Support tickets and live chat with an agent"
 gh issue comment "${EPIC_NUM[E16]}" --repo "$REPO" --body "- [ ] #$n S16.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S16.4-fare-review-and-refunds.md"; echo; echo "Part of #${EPIC_NUM[E16]}"; } > "$tmp"
 n=$(create "S16.4 Fare review and refunds" "user-story,track-foundation,wave-3,backend,admin,payments" "$tmp"); rm -f "$tmp"; echo "#$n S16.4 Fare review and refunds"
@@ -513,7 +513,7 @@ tmp=$(mktemp); { cat "$DIR/S24.8-rental-owner-and-car-verification.md"; echo; ec
 n=$(create "S24.8 Rental owner and car verification" "user-story,batch-1-rental,wave-1,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.8 Rental owner and car verification"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.8" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.9-admin-rental-operations-and-support.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-2,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
+n=$(create "S24.9 Admin rental operations and support" "user-story,batch-1-rental,wave-1,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S24.9 Admin rental operations and support"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.9" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.1-publish-a-journey-with-stops-and-segment-fares.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
 n=$(create "S25.1 Publish a journey with stops and segment fares" "user-story,batch-3-shared-journeys,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.1 Publish a journey with stops and segment fares"

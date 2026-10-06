@@ -12,6 +12,7 @@ import { formatRwf } from "@/lib/fare";
 import { CUSTOMER_CANCEL_REASONS, LABELS, RentalBooking, STATUS_META, apiError, formatWhen } from "../rentals";
 import { Badge, Field, Header, PrimaryButton, Row, Section, SecondaryButton } from "../components/ui";
 import { RentalRecordView } from "../components/RentalRecordView";
+import { HelpTopicsCard } from "@/features/support";
 
 /** One of my rentals: status, owner contact, price, records, cancel and rate (S24.4–S24.6) */
 export default function RentalBookingScreen() {
@@ -157,6 +158,7 @@ export default function RentalBookingScreen() {
           <SecondaryButton icon="close-circle-outline" color={C.orange} onPress={() => setCancelOpen(true)}
             label={b.cancel_fee_now ? t("rental.cancelWithFee", { fee: formatRwf(b.cancel_fee_now), defaultValue: `Cancel (fee ${formatRwf(b.cancel_fee_now)})` }) : t("rental.cancelFree", "Cancel for free")} />
         )}
+        <HelpTopicsCard service="rental" />
       </ScrollView>
 
       <Modal visible={cancelOpen} transparent animationType="fade" onRequestClose={() => setCancelOpen(false)}>

@@ -56,6 +56,8 @@ tags:
     description: Rental car verification and rental operations
   - name: Service areas
     description: Cities and zones where services are offered (S10.4)
+  - name: Help
+    description: Help centre topics in en/fr/rw/sw (S16.2)
   - name: Service access
     description: Which services an account can see, use and offer — one server answer for navigation and intake (S23.1)
 
@@ -2132,6 +2134,130 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Help centre (S16.2) ─────────────────────────────────────────────────
+  /help/topics:
+    get:
+      tags: [Help]
+      operationId: listHelpTopics
+      x-jali-story: S16.2
+      x-jali-permission: use-support
+      summary: Published topics in the reader's language (falls back to English), filtered by service / context / text
+      parameters:
+        - { name: service, in: query, schema: { $ref: "#/components/schemas/ServiceKey" } }
+        - { name: context, in: query, schema: { $ref: "#/components/schemas/HelpContext" } }
+        - { name: q, in: query, schema: { type: string, maxLength: 80 } }
+        - { name: locale, in: query, schema: { $ref: "#/components/schemas/Locale" }, description: "Defaults to Accept-Language, then en" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/HelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /help/topics/{slug}:
+    get:
+      tags: [Help]
+      operationId: getHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: use-support
+      summary: One published topic
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+        - { name: locale, in: query, schema: { $ref: "#/components/schemas/Locale" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/help-topics:
+    get:
+      tags: [Help]
+      operationId: adminListHelpTopics
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Every topic with all 4 languages, drafts included
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Help]
+      operationId: createHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Add a topic (title and body required in en, fr, rw and sw; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HelpTopicInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/help-topics/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    put:
+      tags: [Help]
+      operationId: updateHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Change a topic (partial; logged)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HelpTopicInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHelpTopic" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [Help]
+      operationId: deleteHelpTopic
+      x-jali-story: S16.2
+      x-jali-permission: manage-support
+      summary: Delete a topic (logged)
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   # ── Service access (S23.1) ──────────────────────────────────────────────
   /me/service-access:
     get:
@@ -3279,6 +3405,66 @@ components:
                   items: { type: string }
 
   schemas:
+    Locale:
+      type: string
+      enum: [en, fr, rw, sw]
+    HelpContext:
+      type: string
+      enum: [charged_wrong, driver_behaviour, lost_item, safety, cancel, damage, payment, account, other]
+    Translations:
+      type: object
+      required: [en, fr, rw, sw]
+      properties:
+        en: { type: string }
+        fr: { type: string }
+        rw: { type: string }
+        sw: { type: string }
+    HelpTopic:
+      type: object
+      required: [id, slug, title, body, services, contexts]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { type: string }
+        body: { type: string, description: Plain text; blank lines separate paragraphs }
+        services:
+          type: array
+          description: Empty = every service
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+    AdminHelpTopic:
+      type: object
+      required: [id, slug, title, body, services, contexts, sort, published, updated_at]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { $ref: "#/components/schemas/Translations" }
+        body: { $ref: "#/components/schemas/Translations" }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+        sort: { type: integer }
+        published: { type: boolean }
+        updated_at: { type: [string, "null"], format: date-time }
+    HelpTopicInput:
+      type: object
+      properties:
+        slug: { type: string, pattern: "^[a-z0-9-]+$", maxLength: 80 }
+        title: { $ref: "#/components/schemas/Translations" }
+        body: { $ref: "#/components/schemas/Translations" }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceKey" }
+        contexts:
+          type: array
+          items: { $ref: "#/components/schemas/HelpContext" }
+        sort: { type: integer }
+        published: { type: boolean }
     ServiceFlags:
       type: object
       required: [discoverable, accepting_new_requests, minimum_app_version]

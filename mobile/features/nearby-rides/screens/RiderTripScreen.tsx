@@ -19,6 +19,7 @@ import { SafetyBar } from "../components/SafetyBar";
 import { ChatButton } from "../components/ChatSheet";
 import { useFormatPrice } from "@/lib/fx";
 import { Linking } from "react-native";
+import { HelpTopicsCard } from "@/features/support";
 
 /** Rider's live trip screen: waiting → driver on the way → arrived (PIN) → in trip → receipt & rating (S4.1–S4.6) */
 export default function RiderTripScreen() {
@@ -230,6 +231,7 @@ export default function RiderTripScreen() {
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("ride.trip.cancel")}</Text>
           </TouchableOpacity>
         ) : null}
+        <View style={{ marginTop: 16 }}><HelpTopicsCard service="rides" /></View>
       </ScrollView>
 
       <ReasonSheet

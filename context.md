@@ -451,6 +451,13 @@ POST  /driver/payouts             {amount} ≤ balance → cashout_requests (req
       S7.4: rides/hire commission_pct and service_fee default to 0 (migration zero_jali_fees resets saved values);
       legacy bus/private/rental bookings store service_fee 0. A superadmin can still set fees (logged).
 
+# Help centre (S16.2) — Modules/Support
+GET   /help/topics                ?service&context&q&locale → {data:[{id, slug, title, body, services, contexts}]}  perm: use-support
+GET   /help/topics/{slug}         ?locale (else Accept-Language, else en)                                           perm: use-support
+GET|POST /admin/help-topics, PUT|DELETE /admin/help-topics/{id}   title/body required in en/fr/rw/sw; logged  perm: manage-support
+      6 starter topics seeded (charged wrong, driver behaviour, lost item, cancel/refunds, rental damage, account).
+      App: features/support (HelpTopicsCard on ride/hire/rental details, /help, /help/[slug]); admin app/(admin)/help-topics.
+
 # Service access (S23.1) — Modules/ServiceAccess (runbook M06)
 GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
                                   can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user

@@ -327,3 +327,8 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - Release flags in `platform_settings['services']` (`ServiceCatalogue`), default = every built service on, cargo off and not enable-able. `PUT /admin/services` (permission `manage-services`, superadmin) is logged.
 - Old-client defaults: `/me` unchanged; clients not sending `X-App-Version` are not version-gated. The app now sends `X-App-Version`. No production activation: defaults change nothing.
 - Boundaries: NearbyRides, DriverHire, Rentals → ServiceAccess.
+
+## Support module (S16.2, 2026-10-08)
+
+- New backend module `Support` (no dependencies yet): `Contracts\HelpTopics` implemented by `Application\HelpCentre`. Table `help_topics`; permissions `use-support` (every role) and `manage-support` (superadmin, admin).
+- New mobile feature `features/support` (public entry exports `HelpTopicsCard`); `nearby-rides`, `driver-hire` and `rentals` may import it (features/boundaries.json).

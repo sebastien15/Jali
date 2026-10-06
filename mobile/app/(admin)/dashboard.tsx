@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   const canVerifyDrivers = user?.permissions?.includes("verify-drivers") ?? false;
   const canManageRides = user?.permissions?.includes("manage-rides") ?? false;
   const canManageRentals = user?.permissions?.includes("manage-rentals") ?? false;
+  const canManageSupport = user?.permissions?.includes("manage-support") ?? false;
 
   const earningsQuery = useQuery({
     queryKey: queryKeys.admin.analytics.earnings(),
@@ -84,6 +85,10 @@ export default function AdminDashboard() {
     ...(canManageRides ? [
       { label: "Rides", icon: "car-sport-outline" as const, route: "/(admin)/rides", color: C.blue },
       { label: "Settlements", icon: "cash-outline" as const, route: "/(admin)/settlements", color: C.green },
+    ] : []),
+    // Help centre — manage-support (S16.2)
+    ...(canManageSupport ? [
+      { label: "Help topics", icon: "help-buoy-outline" as const, route: "/(admin)/help-topics", color: C.teal },
     ] : []),
     // Car rental — manage-rentals (S24.8, S24.9)
     ...(canManageRentals ? [

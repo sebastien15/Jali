@@ -6,6 +6,10 @@
 export const queryKeys = {
   // ── Identity ──────────────────────────────────────────────────────────────
   me: () => ["me"] as const,
+  help: {
+    topics: (locale: string, service?: string, context?: string, q?: string) => ["help", "topics", locale, service ?? null, context ?? null, q ?? null] as const,
+    topic: (slug: string, locale: string) => ["help", "topic", slug, locale] as const,
+  },
   /** S23.1 services contract; coords rounded so small moves reuse the cache */
   serviceAccess: (lat?: number | null, lng?: number | null) => ["serviceAccess", lat ?? null, lng ?? null] as const,
   adminProfile: () => ["adminProfile"] as const,
@@ -105,6 +109,7 @@ export const queryKeys = {
     rideSettings: () => ["admin", "settings", "rides"] as const,
     serviceAreas: () => ["admin", "serviceAreas"] as const,
     services: () => ["admin", "services"] as const,
+    helpTopics: () => ["admin", "helpTopics"] as const,
     serviceArea: (id: number) => ["admin", "serviceAreas", id] as const,
     drivers: (status?: string) => ["admin", "drivers", { status }] as const,
     driver: (id: number) => ["admin", "drivers", id] as const,

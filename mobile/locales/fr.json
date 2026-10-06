@@ -1198,5 +1198,15 @@
   "services": {
     "notAvailableTitle": "Pas encore disponible",
     "back": "Retour"
+  },
+  "help": {
+    "title": "Centre d'aide",
+    "search": "Rechercher de l'aide",
+    "noResults": "Aucun sujet trouvé. Contactez-nous ci-dessous.",
+    "stillNeedHelp": "Besoin d'aide ?",
+    "whatsapp": "Écrire à Jali sur WhatsApp",
+    "missing": "Ce sujet d'aide n'est pas disponible.",
+    "forThisTrip": "Besoin d'aide pour ce trajet ?",
+    "allTopics": "Tous les sujets d'aide"
   }
 }
