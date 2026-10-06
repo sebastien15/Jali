@@ -1195,6 +1195,10 @@
     "sub": "Un montant approximatif à côté du RWF. Vous payez toujours en RWF.",
     "none": "RWF uniquement"
   },
+  "services": {
+    "notAvailableTitle": "Pas encore disponible",
+    "back": "Retour"
+  },
   "help": {
     "title": "Centre d'aide",
     "search": "Rechercher de l'aide",

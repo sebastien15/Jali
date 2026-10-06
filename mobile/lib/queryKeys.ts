@@ -10,6 +10,8 @@ export const queryKeys = {
     topics: (locale: string, service?: string, context?: string, q?: string) => ["help", "topics", locale, service ?? null, context ?? null, q ?? null] as const,
     topic: (slug: string, locale: string) => ["help", "topic", slug, locale] as const,
   },
+  /** S23.1 services contract; coords rounded so small moves reuse the cache */
+  serviceAccess: (lat?: number | null, lng?: number | null) => ["serviceAccess", lat ?? null, lng ?? null] as const,
   adminProfile: () => ["adminProfile"] as const,
 
   // ── User-facing browsing ───────────────────────────────────────────────────

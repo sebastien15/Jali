@@ -466,6 +466,9 @@ GET|PUT /admin/services           release flags {rides|hire|rental|shared|bus|ca
       New intake refused with 403 {message, reason_code: not_released|paused|app_update_required} — rides, hire, rental
       requests and legacy /bookings. Region reasons (not_in_area/off_in_area) come from S10.4. App sends X-App-Version;
       clients without it aren't version-gated. Admin UI: app/(admin)/settings/services.
+      App (S23.2): core/navigation/serviceRegistry.ts (HOME_TABS, HOME_BARS) + serviceAccess.ts (useServiceAccess,
+      fallback = every built service on). Home shows and queries only available services; new-request entry routes
+      (/ride, /ride/nearby, /hire, /rental/car/[id]) are wrapped in <ServiceGate>; detail/history routes never are.
 
 # Service areas (S10.4) — Modules/Locations
 GET   /service-areas/check        ?lat&lng&service=rides|hire|rental|shared|bus|cargo → {served, area, message}  perm: request-rides

@@ -1195,6 +1195,10 @@
     "sub": "Kiasi cha takriban kando ya RWF. Unalipa kila wakati kwa RWF.",
     "none": "RWF pekee"
   },
+  "services": {
+    "notAvailableTitle": "Bado haipatikani",
+    "back": "Rudi"
+  },
   "help": {
     "title": "Kituo cha msaada",
     "search": "Tafuta msaada",

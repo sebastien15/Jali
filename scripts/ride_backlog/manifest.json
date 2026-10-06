@@ -2749,7 +2749,7 @@
   "epic": "E23",
   "issue": 182,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2758,7 +2758,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "ux"
   ],
@@ -2775,7 +2775,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -2842,7 +2842,7 @@
   "labels": [
    "user-story",
    "track-foundation",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend"
   ],
