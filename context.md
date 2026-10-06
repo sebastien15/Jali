@@ -465,6 +465,10 @@ GET   /admin/notifications/stats      ?days → per type {total, delivered, no_t
       pushes use Android channel `ride_requests` + `ride_request.wav` (mobile/assets/sounds, expo-notifications plugin).
       send(..., ['sms_fallback' => text]) texts the user if not opened within services.push.sms_fallback_seconds
       (PUSH_SMS_FALLBACK_SECONDS, default 60) — used for "driver arrived". Command notifications:sms-fallback (every minute).
+      Taps (S23.5): core/notifications/notificationIntent.ts is the root resolver (allowlisted screen → route + ownership
+      check API); NotificationTaps (root layout) handles foreground + cold-start taps, de-duplicated; a tap while signed
+      out is kept 24 h and opened after login (PushCoordinator), dropped on logout; 403/404 → /notification-unavailable.
+      Admin accounts now register push tokens too (urgent support alerts).
 
 # Support tickets (S16.3) — Modules/Support (SupportDesk)
 GET|POST /support/tickets         mine / open {category, subject_type ride|hire|rental, subject_id (must be mine), message}

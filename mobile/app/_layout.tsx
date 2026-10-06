@@ -13,6 +13,7 @@ import api from "@/lib/api";
 import * as Location from "expo-location";
 import { DriverModeProvider } from "@/core/session/DriverModeContext";
 import PushCoordinator from "@/core/notifications/PushCoordinator";
+import NotificationTaps from "@/core/notifications/NotificationTaps";
 // Registers the 401 handler: every teardown goes through endSession().
 import "@/core/session/teardown";
 
@@ -69,6 +70,7 @@ export default function RootLayout() {
           <AccessTracker />
           <DriverModeProvider>
           <PushCoordinator />
+          <NotificationTaps />
           <View style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />

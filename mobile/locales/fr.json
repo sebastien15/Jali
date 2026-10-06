@@ -1246,5 +1246,10 @@
       "account": "Mon compte",
       "other": "Autre chose"
     }
+  },
+  "notifications": {
+    "unavailableTitle": "Ce n'est plus disponible",
+    "unavailableText": "Cela a peut-être été supprimé, ou appartient à un autre compte.",
+    "goHome": "Aller à l'accueil"
   }
 }
