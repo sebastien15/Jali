@@ -283,3 +283,18 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
   - Recent places (`lib/places.ts`) are a global device list and survive logout (account A's recent destinations are visible to B). Treated as a device preference for now; needs a product decision.
   - Capability revalidation (§5.7) and canonical identity/service access (M06) are unchanged; `permissions` still come from `/me` once per session.
   - A view change made before the account id is known (offline first launch after upgrade) stays in memory only for that run.
+
+### M05 review (`849de22`)
+
+- Result: no blocking bug found; no code change. `npm run typecheck` and `npm run check:boundaries` clean.
+- Checked by reading the code paths:
+  - Login (email, OTP, Google, Apple, admin email/Google): the login response is received under the old generation before `startSession` bumps, so it is never rejected; the token is set before `emitSessionChange()`, so `/me` from `DriverModeProvider`/`PushCoordinator` and the first tab requests carry the new token.
+  - Logout/401/deletion: `/auth/logout` is sent after the bump (new signal, explicit header kept because the in-memory token is `null`), so the teardown does not abort it; `/auth/login*` and `/auth/logout` 401s never trigger teardown; a 401 burst shares one `ending` promise and later 401s of the old generation are dropped as stale, so there is no 401 → teardown → navigation loop. Firebase/Google sign-out failures are caught and do not block local cleanup.
+  - Logout → login in the same run: `PushCoordinator`, `DriverModeProvider` and `AdminNavProvider` (`refetch()` re-enables `/me`) all re-enable their queries; view-state keys are only built from a known user id (`userIdRef`/`cachedUserId`), never `undefined`.
+  - Persisted-cache denylist vs `lib/queryKeys.ts` and inline keys (`["rides", id, "messages"]`, `["rides","estimate",…]`, `["admin","drivers","review"]`, `["hire", Number(id)]`): matches the intent. Throttled persister save after `clear()` writes the emptied cache.
+  - Hooks: no conditional hooks (`PushCoordinator` returns after all hooks); `DriverModeProvider` effect keyed on `sessionGen` only, no re-hydration loop. Web/native: AsyncStorage on web is `localStorage` without a prefix, so admin web logout restores `jali_language` correctly; `localStorage` access on native is inside `try`.
+- Not changed, noted for follow-up:
+  - Admin Firebase path (`googleMutation` / password fallback) also fires `onAuthStateChanged`, so two `/auth/login/google` + `startSession` can run; the second bump may abort the other path's request (transient error text, user still reaches the dashboard). The double login predates M05.
+  - The teardown emits before the caller navigates; if context consumers re-render with the cleared cache before the tabs unmount, an unauthenticated `/me` can 401 and run a second (harmless) `endSession("unauthorized")` + redirect. A later login is protected by the generation check.
+  - `endSession()` starts with an unguarded `await getApiToken()`; a failing AsyncStorage read on cold start would skip local cleanup (pre-existing, theoretical).
+  - Admin web logout still wipes FX currency and recent places via `localStorage.clear()` (only the language is restored).
