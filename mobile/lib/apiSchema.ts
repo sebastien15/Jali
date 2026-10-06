@@ -1119,6 +1119,18 @@ export interface components {
                 };
             };
         };
+        /** @description Rate limit hit — retry after `Retry-After` seconds */
+        TooManyRequests: {
+            headers: {
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    message: string;
+                };
+            };
+        };
         /** @description Invalid state transition or resource already taken */
         Conflict: {
             headers: {
@@ -1876,6 +1888,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     getActiveRide: {

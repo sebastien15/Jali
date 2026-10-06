@@ -365,6 +365,8 @@ POST   /driver/vehicles/{id}/photos     multipart slot=front|side|interior|lugga
 GET   /driver/rates               rates + guardrails + service fee + price preview
 PUT   /driver/rates
 
+# Rate limits (S21.7, AppServiceProvider::configureRateLimits): all API 120/min per user|IP;
+#   sign-in 10/min/IP + 20/h/email · OTP request 5/h/phone · OTP verify 10/h/phone · POST /rides 6/min → 429 {message} + Retry-After
 # perm: request-rides — rider side of on-demand rides
 GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
       verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
