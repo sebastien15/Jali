@@ -327,10 +327,26 @@ GET    /driver/listings
 POST   /driver/listings
 PATCH  /driver/listings/{id}
 DELETE /driver/listings/{id}
-GET    /driver/cars
-POST   /driver/cars
-PATCH  /driver/cars/{id}
-DELETE /driver/cars/{id}
+
+# Car rental (epic E24, Modules/Rentals). Prices are the owner's — Jali adds no fee.
+# perm: offer-rentals (owners: driver role)
+GET|POST /driver/cars              list / create (new listings are verification_status=pending)
+GET|PATCH|DELETE /driver/cars/{id} detail (+ blocks, busy calendar) / edit (new plate or rejected → pending) / delete (409 with open rentals)
+POST   /driver/cars/{id}/photos    multipart photo (≤12, public disk); DELETE …/photos/{i}; POST …/photos/{i}/cover
+POST   /driver/cars/{id}/documents multipart type=registration|insurance (private disk; back to pending); GET …/documents/{type}
+POST   /driver/cars/{id}/blocks    blocked Kigali dates (409 if a rental holds them); DELETE …/blocks/{blockId}
+GET    /driver/rentals?status=requested|upcoming|active|past, /driver/rentals/summary, /driver/rentals/{id}
+POST   /driver/rentals/{id}/accept|decline|cancel|handover|return|rate   handover/return: multipart odometer_km, fuel_level 0–8, photos[]
+# perm: rent-cars (customers)
+GET    /rentals/cars?start_at&end_at&type&transmission&seats&max_price&city&q&sort   verified + free cars with quote
+GET    /rentals/cars/{id}?start_at&end_at&pickup_method   detail, terms (owner rules), busy calendar, quote
+GET|POST /rentals/bookings, GET /rentals/bookings/{id}, POST /rentals/bookings/{id}/cancel|rate
+# perm: manage-rentals (admin, superadmin)
+GET /admin/rental-cars?status, GET /admin/rental-cars/{id}, POST /admin/rental-cars/{id}/review {approve|reject, note}, GET …/documents/{type}
+GET /admin/rentals?status, GET /admin/rentals/{id}
+# Lifecycle: requested → accepted → active (handed over) → completed (returned); requested → declined|expired (12 h, rentals:expire-requests)|cancelled
+# Cancellation fee (owed to owner) by policy: flexible 24 h → 1 day; moderate 3 days → 50 %; strict 7 days → 50 %, <24 h 100 %
+# Return: late per started day after 60 min grace, extra km × fee over limit × days, owner-listed charges
 
 # perm: view-analytics
 GET  /analytics/revenue

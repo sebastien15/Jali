@@ -20,7 +20,7 @@ return [
     'Payments'       => ['Notifications', 'Pricing'],   // settlement review pushes via PushSender; commission debt limit and earnings settings from PricingPolicy
     'Pricing'        => [],
     'Providers'      => ['Identity', 'Notifications', 'Payments', 'Pricing'],   // implements Identity\Contracts\AccountClosure (driver profile removed), promotes verified riders via ProviderRoles; verification pushes via PushSender and setup saves the push token via PushTokens; go-online blocker via Payments\Contracts\ProviderDebtLimit; review thresholds from PricingPolicy
-    'Rentals'        => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental)
+    'Rentals'        => ['Identity', 'LegacyBookings', 'Notifications'],  // implements Identity\Contracts\AccountClosure (cars deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=rental); rental request/answer pushes via PushSender
     'Safety'         => ['Notifications', 'Providers'],   // SOS pushes via PushSender and texts via SmsSender; driver short name via ProviderDisplay
     'SharedJourneys' => ['Identity', 'LegacyBookings'],  // implements Identity\Contracts\AccountClosure (listings deactivated) and LegacyBookings\Contracts\BookingTypeHandler (type=private)
 ];

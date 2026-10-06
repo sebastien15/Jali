@@ -306,3 +306,10 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - Verification: backend 302 passed (local 8 GD-only failures; CI green), mobile typecheck + boundary check clean.
 - **Not started (need product decisions or are out of Scope A):** M06 service-access resolver, M07 shared activity/notifications/inbox, M08 presence/performance, M09 staging/rollout; BookingSheet split; zero-platform-fee change (RideSettings defaults still 8%/200 and 10%/500); rental reservation lifecycle, segment seats, cargo (Scope C); WhatsApp delivery for OTP (owner decision, deferred); MySQL concurrency tests; mobile Jest harness.
 - Status labels: implemented ≠ staging-validated ≠ publicly activated. Nothing here was deployed.
+
+## Car rental launch (E24) — boundary change (2026-10-07)
+
+- `Rentals` may now use `Notifications` (`PushSender`) for request/answer/handover/return pushes. Recorded in `backend/app/Modules/boundaries.php`.
+- New Rentals-owned tables: `rental_blocks`, `rental_bookings`, `rental_ratings`; `car_rentals` gains listing, policy, rules, documents and verification columns. Legacy `/bookings type=rental` keeps working unchanged; the app moves to `/rentals/**`.
+- `/driver/cars/**` now requires `offer-rentals` instead of `create-private-seats` (driver role has both). Route baseline regenerated for the new routes.
+

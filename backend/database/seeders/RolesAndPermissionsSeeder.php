@@ -44,6 +44,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-ride-pricing' => 'Configure ride pricing guardrails',
             'apply-as-driver' => 'Apply to drive: profile, vehicles and documents',
         ];
+        // Car rental (epic E24)
+        $rentalPermissions = [
+            'offer-rentals' => 'List cars for rent and manage rental requests',
+            'rent-cars' => 'Rent cars from owners',
+            'manage-rentals' => 'Verify rental cars and handle rental problems',
+        ];
+        foreach ($rentalPermissions as $name => $desc) {
+            Permission::firstOrCreate(['name' => $name], ['description' => $desc, 'category' => 'Rentals']);
+        }
 
         foreach ($ridePermissions as $name => $desc) {
             Permission::firstOrCreate(
@@ -78,17 +87,19 @@ class RolesAndPermissionsSeeder extends Seeder
                 'upload-tickets', 'confirm-bookings', 'manage-buses',
                 'view-analytics', 'view-station-analytics', 'manage-agencies',
                 'manage-locations', 'request-rides', 'verify-drivers', 'manage-rides', 'apply-as-driver',
+                'rent-cars', 'manage-rentals',
             ])->get()
         );
 
         $user->permissions()->sync(
-            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides', 'apply-as-driver'])->get()
+            Permission::whereIn('name', ['create-bookings', 'view-own-bookings', 'request-rides', 'apply-as-driver', 'rent-cars'])->get()
         );
 
         $driver->permissions()->sync(
             Permission::whereIn('name', [
                 'create-private-seats', 'view-own-earnings',
                 'request-rides', 'offer-rides', 'offer-driver-hire', 'apply-as-driver',
+                'offer-rentals', 'rent-cars',
             ])->get()
         );
     }
