@@ -1246,5 +1246,10 @@
       "account": "Konti yanjye",
       "other": "Ikindi"
     }
+  },
+  "notifications": {
+    "unavailableTitle": "Ntibikiboneka",
+    "unavailableText": "Bishobora kuba byarasibwe, cyangwa ari ibya konti indi.",
+    "goHome": "Jya ahabanza"
   }
 }
