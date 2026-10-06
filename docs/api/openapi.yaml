@@ -2569,6 +2569,87 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Hire operations (S6.6) ──────────────────────────────────────────────
+  /admin/hires:
+    get:
+      tags: [Admin rides]
+      operationId: adminListHires
+      x-jali-story: S6.6
+      x-jali-permission: manage-rides
+      summary: Search hires by status, start date, customer or driver (name or phone)
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [requested, accepted, started, completed, declined, expired, cancelled_by_customer, cancelled_by_driver] } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: customer, in: query, schema: { type: string } }
+        - { name: driver, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, next_page]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminHireSummary" }
+                  next_page: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/hires/{id}:
+    get:
+      tags: [Admin rides]
+      operationId: adminGetHire
+      x-jali-story: S6.6
+      x-jali-permission: manage-rides
+      summary: Hire with timeline, quote snapshot and ratings
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHireDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/hires/{id}/times:
+    post:
+      tags: [Admin rides]
+      operationId: adminCorrectHireTimes
+      x-jali-story: S6.6
+      x-jali-permission: manage-rides
+      summary: Correct check-in/check-out with a note; a completed hire's overtime, total and commission are recomputed (logged)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                checked_in_at: { type: string, format: date-time }
+                checked_out_at: { type: string, format: date-time }
+                note: { type: string, minLength: 5, maxLength: 500 }
+      responses:
+        "200":
+          description: Corrected
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminHireDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   # ── Service access (S23.1) ──────────────────────────────────────────────
   /me/service-access:
     get:
@@ -3716,6 +3797,85 @@ components:
                   items: { type: string }
 
   schemas:
+    AdminHirePerson:
+      type: [object, "null"]
+      required: [id, name, phone]
+      properties:
+        id: { type: integer }
+        name: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+    AdminHireSummary:
+      type: object
+      required: [id, status, customer, driver, start_at, end_at, quoted_total, final_total, requested_at]
+      properties:
+        id: { type: integer }
+        status: { type: string }
+        customer: { $ref: "#/components/schemas/AdminHirePerson" }
+        driver: { $ref: "#/components/schemas/AdminHirePerson" }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        quoted_total: { type: integer }
+        final_total: { type: [integer, "null"] }
+        requested_at: { type: [string, "null"], format: date-time }
+    AdminHireDetail:
+      allOf:
+        - { $ref: "#/components/schemas/AdminHireSummary" }
+        - type: object
+          required: [duration, trip_type, transmission, pickup, quote, timeline, ratings, checked_in_at, checked_out_at]
+          properties:
+            duration:
+              type: object
+              properties:
+                type: { type: string, enum: [hours, days] }
+                value: { type: integer }
+            trip_type: { type: string }
+            transmission: { type: string }
+            pickup:
+              type: object
+              properties:
+                lat: { type: number }
+                lng: { type: number }
+                address: { type: [string, "null"] }
+            car_description: { type: [string, "null"] }
+            notes: { type: [string, "null"] }
+            payment_method: { type: [string, "null"] }
+            cancel_reason: { type: [string, "null"] }
+            cancelled_by: { type: [string, "null"] }
+            checked_in_at: { type: [string, "null"], format: date-time }
+            checked_out_at: { type: [string, "null"], format: date-time }
+            quote:
+              type: object
+              required: [rate, driver_total, service_fee, quoted_total, overtime_minutes, overtime_amount, final_total, commission_pct, commission, cancel_fee]
+              properties:
+                rate: { type: object }
+                driver_total: { type: integer }
+                service_fee: { type: integer }
+                quoted_total: { type: integer }
+                overtime_minutes: { type: integer }
+                overtime_amount: { type: integer }
+                final_total: { type: [integer, "null"] }
+                commission_pct: { type: number }
+                commission: { type: [integer, "null"] }
+                cancel_fee: { type: integer }
+            timeline:
+              type: array
+              items:
+                type: object
+                required: [type, actor, note, at]
+                properties:
+                  type: { type: string }
+                  actor: { type: [string, "null"] }
+                  note: { type: [string, "null"] }
+                  at: { type: [string, "null"], format: date-time }
+            ratings:
+              type: array
+              items:
+                type: object
+                properties:
+                  from: { type: string, enum: [customer, driver] }
+                  stars: { type: integer }
+                  tags: { type: array, items: { type: string } }
+                  comment: { type: [string, "null"] }
     SupportTicketInput:
       type: object
       required: [category, message]

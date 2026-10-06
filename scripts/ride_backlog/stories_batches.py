@@ -99,7 +99,7 @@ EPIC_ARCH = {e: f"`{RUNBOOK}`" for e in ("E23", "E24", "E25", "E26", "E27", "E28
 # built   = code merged to develop/main, not yet tested by the owner
 # partial = some of the acceptance criteria exist in code
 # todo    = not started
-BUILT = """S0.1 S0.2 S0.3 S0.4 S1.1 S1.2 S1.3 S1.4 S2.1 S2.2 S2.3 S3.1 S3.2 S3.3 S3.4 S3.5 S3.6
+BUILT = """S6.6 S0.1 S0.2 S0.3 S0.4 S1.1 S1.2 S1.3 S1.4 S2.1 S2.2 S2.3 S3.1 S3.2 S3.3 S3.4 S3.5 S3.6
 S4.2 S4.3 S4.4 S4.5 S4.6 S5.1 S5.2 S5.3 S5.4 S6.1 S6.2 S6.3 S6.4 S7.1 S7.2 S8.1 S8.2 S8.3 S8.4
 S9.1 S9.2 S9.3 S9.4 S9.5 S9.6 S10.1 S10.2 S10.3 S21.3 S21.7 S21.9
 S7.4 S10.4 S12.3 S16.2 S16.3 S21.13 S23.1 S23.2 S23.5 S24.1 S24.2 S24.3 S24.4 S24.5 S24.6 S24.7 S24.8 S24.9""".split()
