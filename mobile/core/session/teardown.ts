@@ -43,7 +43,9 @@ export async function startSession(token: string): Promise<void> {
 export function endSession(reason: EndSessionReason = "logout"): Promise<void> {
   if (ending) return ending;
   ending = (async () => {
-    const token = await getApiToken();
+    // A failed storage read must not skip local cleanup; we only lose the
+    // best-effort server logout.
+    const token = await getApiToken().catch(() => null);
     bumpSessionGeneration();
     await clearApiToken();
     await clearQueryCache();
