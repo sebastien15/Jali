@@ -1,14 +1,21 @@
-# Working on Jali Ride with Multiple AI Agents
+# Working on Jali with Multiple AI Agents
 
-Jali Ride is built by several AI agents working in parallel. These rules keep their work
+Jali is built by several AI agents working in parallel. These rules keep their work
 consistent so the result feels like **one** app, not many.
 
 > **Release / architecture direction:** read [the shared plan](../RELEASE_PLAN.md) before selecting service-scope, release-order, pricing, module-boundary or shared-UX work. It records passenger transport plus cargo (batch TBD), modular architecture and one-account customer/provider UX; detailed navigation examples remain proposals. Dependency waves below govern implementation dependencies, not public launch order. Select only user-authorized work; flag material deviations and honor explicit owner-approved changes. The plan does not authorize taking issues or implementing future batches.
 
 ## 1. Pick a story
-1. Open `USER_STORIES.md` → *Build order — dependency waves*.
-2. Take a story whose **Depends on** stories are all merged. Stories in the same wave can run in parallel.
-3. Comment on the GitHub issue that you're taking it (one agent per story).
+1. Open `USER_STORIES.md`. Stories are grouped by **release track** (Batch 1 car rental → Batch 2 private drivers → Batch 3 shared journeys → Batch 4 nearby rides → Batch 5+ bus; cargo TBD; shared foundations). Work only on the track/batch the owner selected, starting from *Next up*.
+2. Take a story with status ⬜ todo or 🟡 partial whose **Depends on** stories are all merged. Stories in the same wave can run in parallel.
+3. One agent per **owner module** at a time (the story's *Owner module* line, e.g. `Modules/Rentals` · `features/rentals`). Two agents may run in parallel only on different modules; shared contracts (§3) need the owner's go-ahead.
+4. Never pick *Deferred — needs an owner decision* or *Out of scope* stories.
+5. Comment on the GitHub issue that you're taking it (one agent per story).
+6. Edit stories in `scripts/ride_backlog/` and run `python3 scripts/ride_backlog/generate.py`; never edit the generated files by hand.
+
+## Module boundaries
+- Backend: domain code lives in `backend/app/Modules/<Domain>`; cross-module calls go through the contracts listed in `backend/app/Modules/boundaries.php` (checked by tests).
+- Mobile: service code lives in `mobile/features/<feature>`; shared shell in `mobile/core/*`. Features never import each other (`npm run check:boundaries`, manifest `mobile/features/boundaries.json`). Route files in `mobile/app` stay thin wrappers.
 
 ## 2. Read before coding
 - [Batch release, architecture & rollout migration plan](../RELEASE_PLAN.md) (scope, zero Jali fees, sequence, modular boundaries, shared UX and deviation rules)
@@ -30,7 +37,7 @@ These files are shared by many stories. Change them only as described, and menti
 | `lib/queryKeys.ts` | Add keys; don't reorder or rename existing ones. |
 
 ## 4. Branch & PR
-- Branch: `feat/<story-id>-<short-name>` (e.g. `feat/S3.2-nearby-drivers`).
+- Branch: `feat/<story-id>-<short-name>` (e.g. `feat/S24.2-rental-calendar`).
 - One story per PR; PR title starts with the story ID.
 - PR description: copy the acceptance criteria and tick each one with evidence (test name, screenshot).
 - CI (S21.3) must be green. Use staging + driver simulator (S21.4) for end-to-end checks.

@@ -205,7 +205,7 @@ The dependency waves in the ride backlog describe implementation dependencies, n
 - [Project context](../context.md) — technical reference and guards.
 - [CLAUDE.md](../CLAUDE.md) and [AGENTS.md](../AGENTS.md) — AI entry points.
 - [Ride-hailing architecture](../RIDE_HAILING_PLAN.md) — existing technical plan; verify against current code.
-- [Ride user stories](ride-hailing/USER_STORIES.md) — existing backlog; not a launch authorization.
+- [Product backlog](ride-hailing/USER_STORIES.md) — epics and stories grouped by the release tracks below; not a launch authorization.
 - [Multi-agent guide](ride-hailing/AI_AGENTS_GUIDE.md) — coordination and implementation conventions.
 - [API contract](api/README.md) — shared API source of truth.
 
@@ -217,3 +217,4 @@ The dependency waves in the ride backlog describe implementation dependencies, n
 | 2026-10-06 | Owner subsequently added cargo/freight as its own transport service, with goods-vehicle booking and empty-return/return-load opportunities. This expands the original passenger-only scope; cargo's launch batch is TBD, and courier/parcel and food delivery remain excluded. |
 | 2026-10-06 | Owner approved extending this same plan with the discussed architecture direction: modular Laravel backend and modular Expo frontend initially, shared foundations, cloud-ready incremental scaling and selective future extraction when justified. No mandatory microservice per service or separate app per batch. |
 | 2026-10-06 | Owner approved documenting a connected customer/provider experience: one account, shared pages/routes, distinct permissions/view mode/service configuration/availability, and stable additive releases. Navigation labels and detailed UX examples remain proposals to finalize before implementation. |
+| 2026-10-06 | Owner asked to align the backlog with this plan and the completed architecture migration. Stories are now grouped by release track (shared foundations, Batches 1–5+, cargo TBD, later, deferred, out of scope) with build status and owner module. Added epics E23 connected app & modular architecture (M06–M09), E24 car rental, E25 shared journeys, E26 bus ticketing, E27 cargo, E28 release readiness, plus S6.5–S6.6, S7.4 zero Jali fees and S21.13 deploy fix. Fee stories note the zero-fee policy; wallet, promo, referral, tipping, split fare, subscription, loyalty and family-wallet stories are deferred pending an owner decision; package delivery (E20) is out of scope. Existing story IDs and issue numbers are kept; GitHub issues are not changed by this entry. |

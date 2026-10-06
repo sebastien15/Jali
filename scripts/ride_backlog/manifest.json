@@ -1,0 +1,3499 @@
+[
+ {
+  "kind": "epic",
+  "id": "E0",
+  "title": "[Epic] E0 — Foundations for on-demand rides",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E0-epic.md",
+  "epic": null,
+  "issue": 4,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E1",
+  "title": "[Epic] E1 — Driver onboarding & verification",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E1-epic.md",
+  "epic": null,
+  "issue": 5,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E2",
+  "title": "[Epic] E2 — Driver-set pricing",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E2-epic.md",
+  "epic": null,
+  "issue": 6,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E3",
+  "title": "[Epic] E3 — Rider: discover nearby drivers & request a ride",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E3-epic.md",
+  "epic": null,
+  "issue": 7,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E4",
+  "title": "[Epic] E4 — Live trip experience",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E4-epic.md",
+  "epic": null,
+  "issue": 8,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E5",
+  "title": "[Epic] E5 — Driver app: online mode & earnings",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E5-epic.md",
+  "epic": null,
+  "issue": 9,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E6",
+  "title": "[Epic] E6 — Hire a Driver",
+  "labels": [
+   "epic",
+   "batch-2-driver-hire"
+  ],
+  "file": "docs/ride-hailing/stories/E6-epic.md",
+  "epic": null,
+  "issue": 10,
+  "track": "B2",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E7",
+  "title": "[Epic] E7 — Payments, receipts & commission",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E7-epic.md",
+  "epic": null,
+  "issue": 11,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E8",
+  "title": "[Epic] E8 — Safety & trust",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E8-epic.md",
+  "epic": null,
+  "issue": 12,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E9",
+  "title": "[Epic] E9 — International experience — feels like Uber/DiDi",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E9-epic.md",
+  "epic": null,
+  "issue": 13,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E10",
+  "title": "[Epic] E10 — Admin operations for rides",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E10-epic.md",
+  "epic": null,
+  "issue": 14,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E11",
+  "title": "[Epic] E11 — Maps, places & routing",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E11-epic.md",
+  "epic": null,
+  "issue": 15,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E12",
+  "title": "[Epic] E12 — Realtime infrastructure",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E12-epic.md",
+  "epic": null,
+  "issue": 16,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E13",
+  "title": "[Epic] E13 — More ways to ride",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E13-epic.md",
+  "epic": null,
+  "issue": 17,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E14",
+  "title": "[Epic] E14 — Pricing, offers, wallet & rewards",
+  "labels": [
+   "epic",
+   "deferred-owner-decision"
+  ],
+  "file": "docs/ride-hailing/stories/E14-epic.md",
+  "epic": null,
+  "issue": 18,
+  "track": "D",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E15",
+  "title": "[Epic] E15 — Rider account & convenience",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E15-epic.md",
+  "epic": null,
+  "issue": 19,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E16",
+  "title": "[Epic] E16 — Communication & customer support",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E16-epic.md",
+  "epic": null,
+  "issue": 20,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E17",
+  "title": "[Epic] E17 — Driver tools & growth",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E17-epic.md",
+  "epic": null,
+  "issue": 21,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E18",
+  "title": "[Epic] E18 — Advanced safety",
+  "labels": [
+   "epic",
+   "batch-4-nearby-rides"
+  ],
+  "file": "docs/ride-hailing/stories/E18-epic.md",
+  "epic": null,
+  "issue": 22,
+  "track": "B4",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E19",
+  "title": "[Epic] E19 — Fleets & business partners",
+  "labels": [
+   "epic",
+   "later"
+  ],
+  "file": "docs/ride-hailing/stories/E19-epic.md",
+  "epic": null,
+  "issue": 23,
+  "track": "L",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E20",
+  "title": "[Epic] E20 — Jali Send — package delivery",
+  "labels": [
+   "epic",
+   "out-of-scope"
+  ],
+  "file": "docs/ride-hailing/stories/E20-epic.md",
+  "epic": null,
+  "issue": 24,
+  "track": "X",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E21",
+  "title": "[Epic] E21 — Platform quality, security & compliance",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E21-epic.md",
+  "epic": null,
+  "issue": 25,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E22",
+  "title": "[Epic] E22 — Growth & marketing",
+  "labels": [
+   "epic",
+   "later"
+  ],
+  "file": "docs/ride-hailing/stories/E22-epic.md",
+  "epic": null,
+  "issue": 26,
+  "track": "L",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E23",
+  "title": "[Epic] E23 — Connected app & modular architecture",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E23-epic.md",
+  "epic": null,
+  "issue": 173,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E24",
+  "title": "[Epic] E24 — Car rental — launch-ready",
+  "labels": [
+   "epic",
+   "batch-1-rental"
+  ],
+  "file": "docs/ride-hailing/stories/E24-epic.md",
+  "epic": null,
+  "issue": 174,
+  "track": "B1",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E25",
+  "title": "[Epic] E25 — Private shared journeys",
+  "labels": [
+   "epic",
+   "batch-3-shared-journeys"
+  ],
+  "file": "docs/ride-hailing/stories/E25-epic.md",
+  "epic": null,
+  "issue": 175,
+  "track": "B3",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E26",
+  "title": "[Epic] E26 — Bus ticketing",
+  "labels": [
+   "epic",
+   "batch-5-bus"
+  ],
+  "file": "docs/ride-hailing/stories/E26-epic.md",
+  "epic": null,
+  "issue": 176,
+  "track": "B5",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E27",
+  "title": "[Epic] E27 — Cargo & freight",
+  "labels": [
+   "epic",
+   "batch-tbd-cargo"
+  ],
+  "file": "docs/ride-hailing/stories/E27-epic.md",
+  "epic": null,
+  "issue": 177,
+  "track": "C",
+  "status": null
+ },
+ {
+  "kind": "epic",
+  "id": "E28",
+  "title": "[Epic] E28 — Release readiness & store submission",
+  "labels": [
+   "epic",
+   "track-foundation"
+  ],
+  "file": "docs/ride-hailing/stories/E28-epic.md",
+  "epic": null,
+  "issue": 178,
+  "track": "F",
+  "status": null
+ },
+ {
+  "kind": "story",
+  "id": "S0.1",
+  "title": "S0.1 Fix: driver setup data is silently discarded",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "bug",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S0.1-fix-driver-setup-data-is-silently-discarded.md",
+  "epic": "E0",
+  "issue": 27,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S0.2",
+  "title": "S0.2 Driver mode survives app restarts",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S0.2-driver-mode-survives-app-restarts.md",
+  "epic": "E0",
+  "issue": 28,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S0.3",
+  "title": "S0.3 Seed ride-hailing permissions",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S0.3-seed-ride-hailing-permissions.md",
+  "epic": "E0",
+  "issue": 29,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S0.4",
+  "title": "S0.4 Reusable push notification service",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "tech-debt"
+  ],
+  "file": "docs/ride-hailing/stories/S0.4-reusable-push-notification-service.md",
+  "epic": "E0",
+  "issue": 30,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S1.1",
+  "title": "S1.1 Become a driver and choose services",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S1.1-become-a-driver-and-choose-services.md",
+  "epic": "E1",
+  "issue": 32,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S1.2",
+  "title": "S1.2 Upload driver documents",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S1.2-upload-driver-documents.md",
+  "epic": "E1",
+  "issue": 31,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S1.3",
+  "title": "S1.3 Register my vehicles",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S1.3-register-my-vehicles.md",
+  "epic": "E1",
+  "issue": 33,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S1.4",
+  "title": "S1.4 Admin verification queue for drivers",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "admin",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S1.4-admin-verification-queue-for-drivers.md",
+  "epic": "E1",
+  "issue": 34,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S2.1",
+  "title": "S2.1 Driver sets own per-km rates with live preview",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S2.1-driver-sets-own-per-km-rates-with-live-preview.md",
+  "epic": "E2",
+  "issue": 35,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S2.2",
+  "title": "S2.2 Superadmin configures pricing guardrails & commission",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "admin",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S2.2-superadmin-configures-pricing-guardrails-commissio.md",
+  "epic": "E2",
+  "issue": 36,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S2.3",
+  "title": "S2.3 Server-side fare quote and price lock",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S2.3-server-side-fare-quote-and-price-lock.md",
+  "epic": "E2",
+  "issue": 37,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.1",
+  "title": "S3.1 \"Where to?\" — start a ride from Home",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S3.1-where-to-start-a-ride-from-home.md",
+  "epic": "E3",
+  "issue": 38,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.2",
+  "title": "S3.2 See nearby drivers with their own price",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S3.2-see-nearby-drivers-with-their-own-price.md",
+  "epic": "E3",
+  "issue": 39,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.3",
+  "title": "S3.3 Map of nearby drivers",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S3.3-map-of-nearby-drivers.md",
+  "epic": "E3",
+  "issue": 40,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.4",
+  "title": "S3.4 Request a specific driver",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S3.4-request-a-specific-driver.md",
+  "epic": "E3",
+  "issue": 41,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.5",
+  "title": "S3.5 Send request to all nearby drivers",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S3.5-send-request-to-all-nearby-drivers.md",
+  "epic": "E3",
+  "issue": 42,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S3.6",
+  "title": "S3.6 Fare estimate before choosing",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S3.6-fare-estimate-before-choosing.md",
+  "epic": "E3",
+  "issue": 43,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S4.1",
+  "title": "S4.1 Track my driver until pickup",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S4.1-track-my-driver-until-pickup.md",
+  "epic": "E4",
+  "issue": 44,
+  "track": "B4",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S4.2",
+  "title": "S4.2 Start the trip with a PIN",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S4.2-start-the-trip-with-a-pin.md",
+  "epic": "E4",
+  "issue": 45,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S4.3",
+  "title": "S4.3 Cancellation rules and fees",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S4.3-cancellation-rules-and-fees.md",
+  "epic": "E4",
+  "issue": 46,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S4.4",
+  "title": "S4.4 Complete trip and confirm payment",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S4.4-complete-trip-and-confirm-payment.md",
+  "epic": "E4",
+  "issue": 47,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S4.5",
+  "title": "S4.5 Two-way rating",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S4.5-two-way-rating.md",
+  "epic": "E4",
+  "issue": 48,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S4.6",
+  "title": "S4.6 Ride history in Trips tab",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S4.6-ride-history-in-trips-tab.md",
+  "epic": "E4",
+  "issue": 49,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S5.1",
+  "title": "S5.1 Go online / offline",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S5.1-go-online-offline.md",
+  "epic": "E5",
+  "issue": 50,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S5.2",
+  "title": "S5.2 Receive and accept ride requests",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S5.2-receive-and-accept-ride-requests.md",
+  "epic": "E5",
+  "issue": 51,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S5.3",
+  "title": "S5.3 Navigate to pickup and destination",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S5.3-navigate-to-pickup-and-destination.md",
+  "epic": "E5",
+  "issue": 52,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S5.4",
+  "title": "S5.4 Earnings and commission dashboard",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S5.4-earnings-and-commission-dashboard.md",
+  "epic": "E5",
+  "issue": 53,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S6.1",
+  "title": "S6.1 Driver sets hire-a-driver rates and skills",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S6.1-driver-sets-hire-a-driver-rates-and-skills.md",
+  "epic": "E6",
+  "issue": 54,
+  "track": "B2",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S6.2",
+  "title": "S6.2 Driver availability calendar",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S6.2-driver-availability-calendar.md",
+  "epic": "E6",
+  "issue": 55,
+  "track": "B2",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S6.3",
+  "title": "S6.3 Find and book a driver for my car",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S6.3-find-and-book-a-driver-for-my-car.md",
+  "epic": "E6",
+  "issue": 56,
+  "track": "B2",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S6.4",
+  "title": "S6.4 Hire lifecycle: accept, check-in, check-out, overtime",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S6.4-hire-lifecycle-accept-check-in-check-out-overtime.md",
+  "epic": "E6",
+  "issue": 57,
+  "track": "B2",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S6.5",
+  "title": "S6.5 Hire cancellations, no-shows and disputes",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S6.5-hire-cancellations-no-shows-and-disputes.md",
+  "epic": "E6",
+  "issue": 185,
+  "track": "B2",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S6.6",
+  "title": "S6.6 Admin hire operations",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "admin",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S6.6-admin-hire-operations.md",
+  "epic": "E6",
+  "issue": 186,
+  "track": "B2",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S7.1",
+  "title": "S7.1 Cash and MoMo payment to driver (launch)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "payments",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S7.1-cash-and-momo-payment-to-driver-launch.md",
+  "epic": "E7",
+  "issue": 58,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S7.2",
+  "title": "S7.2 Commission ledger, settlement and driver payouts",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "payments",
+   "backend",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S7.2-commission-ledger-settlement-and-driver-payouts.md",
+  "epic": "E7",
+  "issue": 59,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S7.3",
+  "title": "S7.3 In-app MoMo and international card payments",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "payments",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S7.3-in-app-momo-and-international-card-payments.md",
+  "epic": "E7",
+  "issue": 60,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S7.4",
+  "title": "S7.4 Zero Jali fees across every service",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile",
+   "payments",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S7.4-zero-jali-fees-across-every-service.md",
+  "epic": "E7",
+  "issue": 179,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S8.1",
+  "title": "S8.1 Share my trip",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S8.1-share-my-trip.md",
+  "epic": "E8",
+  "issue": 61,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S8.2",
+  "title": "S8.2 SOS emergency button",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S8.2-sos-emergency-button.md",
+  "epic": "E8",
+  "issue": 62,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S8.3",
+  "title": "S8.3 Ride audit trail",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "admin",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S8.3-ride-audit-trail.md",
+  "epic": "E8",
+  "issue": 63,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S8.4",
+  "title": "S8.4 Flag low-rated or high-cancel drivers",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "admin",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S8.4-flag-low-rated-or-high-cancel-drivers.md",
+  "epic": "E8",
+  "issue": 64,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.1",
+  "title": "S9.1 Familiar Uber/DiDi-style ride flow (UX benchmark)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "ux",
+   "mobile",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.1-familiar-uber-didi-style-ride-flow-ux-benchmark.md",
+  "epic": "E9",
+  "issue": 65,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.2",
+  "title": "S9.2 Language, international phone numbers and email login",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.2-language-international-phone-numbers-and-email-log.md",
+  "epic": "E9",
+  "issue": 66,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.3",
+  "title": "S9.3 Sign in with Apple",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.3-sign-in-with-apple.md",
+  "epic": "E9",
+  "issue": 67,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.4",
+  "title": "S9.4 Show prices in my home currency too",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.4-show-prices-in-my-home-currency-too.md",
+  "epic": "E9",
+  "issue": 68,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.5",
+  "title": "S9.5 In-app chat with quick, translated phrases",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "mobile",
+   "backend",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.5-in-app-chat-with-quick-translated-phrases.md",
+  "epic": "E9",
+  "issue": 69,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.6",
+  "title": "S9.6 Email receipts for every trip",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "international",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S9.6-email-receipts-for-every-trip.md",
+  "epic": "E9",
+  "issue": 70,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S9.7",
+  "title": "S9.7 Airport pickup at Kigali International Airport",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-3",
+   "mobile",
+   "backend",
+   "international"
+  ],
+  "file": "docs/ride-hailing/stories/S9.7-airport-pickup-at-kigali-international-airport.md",
+  "epic": "E9",
+  "issue": 71,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S10.1",
+  "title": "S10.1 Live operations view",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "admin",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S10.1-live-operations-view.md",
+  "epic": "E10",
+  "issue": 72,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S10.2",
+  "title": "S10.2 Rides list, detail and dispute handling",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "admin",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S10.2-rides-list-detail-and-dispute-handling.md",
+  "epic": "E10",
+  "issue": 73,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S10.3",
+  "title": "S10.3 Ride analytics",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "admin",
+   "backend",
+   "analytics"
+  ],
+  "file": "docs/ride-hailing/stories/S10.3-ride-analytics.md",
+  "epic": "E10",
+  "issue": 74,
+  "track": "B4",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S10.4",
+  "title": "S10.4 Service areas, cities & geofences",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "admin",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S10.4-service-areas-cities-geofences.md",
+  "epic": "E10",
+  "issue": 75,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.1",
+  "title": "S11.1 Road-based distance and ETA",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S11.1-road-based-distance-and-eta.md",
+  "epic": "E11",
+  "issue": 76,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.2",
+  "title": "S11.2 Route line on the map",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S11.2-route-line-on-the-map.md",
+  "epic": "E11",
+  "issue": 77,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.3",
+  "title": "S11.3 Smooth moving car on the map",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-3",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S11.3-smooth-moving-car-on-the-map.md",
+  "epic": "E11",
+  "issue": 78,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.4",
+  "title": "S11.4 Suggested pickup points and landmarks",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "mobile",
+   "backend",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S11.4-suggested-pickup-points-and-landmarks.md",
+  "epic": "E11",
+  "issue": 79,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.5",
+  "title": "S11.5 Saved places with labels and driver notes",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S11.5-saved-places-with-labels-and-driver-notes.md",
+  "epic": "E11",
+  "issue": 80,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.6",
+  "title": "S11.6 Describe or photograph my pickup spot",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S11.6-describe-or-photograph-my-pickup-spot.md",
+  "epic": "E11",
+  "issue": 81,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S11.7",
+  "title": "S11.7 Live ETA countdown",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S11.7-live-eta-countdown.md",
+  "epic": "E11",
+  "issue": 82,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S12.1",
+  "title": "S12.1 WebSockets with Laravel Reverb",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S12.1-websockets-with-laravel-reverb.md",
+  "epic": "E12",
+  "issue": 83,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S12.2",
+  "title": "S12.2 Recover trip state after network loss or app kill",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S12.2-recover-trip-state-after-network-loss-or-app-kill.md",
+  "epic": "E12",
+  "issue": 84,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S12.3",
+  "title": "S12.3 Reliable notifications",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S12.3-reliable-notifications.md",
+  "epic": "E12",
+  "issue": 85,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.1",
+  "title": "S13.1 Schedule a ride in advance",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S13.1-schedule-a-ride-in-advance.md",
+  "epic": "E13",
+  "issue": 86,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.2",
+  "title": "S13.2 Book a ride for someone else",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S13.2-book-a-ride-for-someone-else.md",
+  "epic": "E13",
+  "issue": 87,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.3",
+  "title": "S13.3 Multiple stops",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S13.3-multiple-stops.md",
+  "epic": "E13",
+  "issue": 88,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.4",
+  "title": "S13.4 Change destination during the trip",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S13.4-change-destination-during-the-trip.md",
+  "epic": "E13",
+  "issue": 89,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.5",
+  "title": "S13.5 Ride preferences",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S13.5-ride-preferences.md",
+  "epic": "E13",
+  "issue": 90,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.6",
+  "title": "S13.6 Women-only option",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S13.6-women-only-option.md",
+  "epic": "E13",
+  "issue": 91,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.7",
+  "title": "S13.7 Hourly ride with driver's car",
+  "labels": [
+   "user-story",
+   "batch-2-driver-hire",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S13.7-hourly-ride-with-driver-s-car.md",
+  "epic": "E13",
+  "issue": 92,
+  "track": "B2",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.8",
+  "title": "S13.8 On-demand intercity rides",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S13.8-on-demand-intercity-rides.md",
+  "epic": "E13",
+  "issue": 93,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.9",
+  "title": "S13.9 Child seat, wheelchair-friendly and pet-friendly vehicles",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S13.9-child-seat-wheelchair-friendly-and-pet-friendly-ve.md",
+  "epic": "E13",
+  "issue": 94,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S13.10",
+  "title": "S13.10 Wait & save / priority pickup",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S13.10-wait-save-priority-pickup.md",
+  "epic": "E13",
+  "issue": 95,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.1",
+  "title": "S14.1 Rider offers a price, drivers accept or counter",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S14.1-rider-offers-a-price-drivers-accept-or-counter.md",
+  "epic": "E14",
+  "issue": 96,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.2",
+  "title": "S14.2 Promo codes",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-1",
+   "backend",
+   "admin",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S14.2-promo-codes.md",
+  "epic": "E14",
+  "issue": 97,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.3",
+  "title": "S14.3 Referral program",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-2",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S14.3-referral-program.md",
+  "epic": "E14",
+  "issue": 98,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.4",
+  "title": "S14.4 Tipping",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-3",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S14.4-tipping.md",
+  "epic": "E14",
+  "issue": 99,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.5",
+  "title": "S14.5 Split fare",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-3",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S14.5-split-fare.md",
+  "epic": "E14",
+  "issue": 100,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.6",
+  "title": "S14.6 Jali Wallet",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-2",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S14.6-jali-wallet.md",
+  "epic": "E14",
+  "issue": 101,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.7",
+  "title": "S14.7 Jali Pass subscription",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-3",
+   "mobile",
+   "backend",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S14.7-jali-pass-subscription.md",
+  "epic": "E14",
+  "issue": 102,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S14.8",
+  "title": "S14.8 Loyalty points and member levels",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S14.8-loyalty-points-and-member-levels.md",
+  "epic": "E14",
+  "issue": 103,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.1",
+  "title": "S15.1 Favourite drivers",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S15.1-favourite-drivers.md",
+  "epic": "E15",
+  "issue": 104,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.2",
+  "title": "S15.2 Business profile and expense reports",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S15.2-business-profile-and-expense-reports.md",
+  "epic": "E15",
+  "issue": 105,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.3",
+  "title": "S15.3 Family profile",
+  "labels": [
+   "user-story",
+   "deferred-owner-decision",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S15.3-family-profile.md",
+  "epic": "E15",
+  "issue": 106,
+  "track": "D",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.4",
+  "title": "S15.4 Notification preferences",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S15.4-notification-preferences.md",
+  "epic": "E15",
+  "issue": 107,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.5",
+  "title": "S15.5 Report a lost item",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S15.5-report-a-lost-item.md",
+  "epic": "E15",
+  "issue": 108,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.6",
+  "title": "S15.6 Delete my account and export my data",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S15.6-delete-my-account-and-export-my-data.md",
+  "epic": "E15",
+  "issue": 109,
+  "track": "F",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S15.7",
+  "title": "S15.7 Dark mode and accessibility",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S15.7-dark-mode-and-accessibility.md",
+  "epic": "E15",
+  "issue": 110,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S15.8",
+  "title": "S15.8 First-time onboarding",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S15.8-first-time-onboarding.md",
+  "epic": "E15",
+  "issue": 111,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S16.1",
+  "title": "S16.1 Masked phone calls",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "backend",
+   "mobile",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S16.1-masked-phone-calls.md",
+  "epic": "E16",
+  "issue": 112,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S16.2",
+  "title": "S16.2 Help centre with trip-specific help",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S16.2-help-centre-with-trip-specific-help.md",
+  "epic": "E16",
+  "issue": 113,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S16.3",
+  "title": "S16.3 Support tickets and live chat with an agent",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "mobile",
+   "backend",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S16.3-support-tickets-and-live-chat-with-an-agent.md",
+  "epic": "E16",
+  "issue": 114,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S16.4",
+  "title": "S16.4 Fare review and refunds",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "backend",
+   "admin",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S16.4-fare-review-and-refunds.md",
+  "epic": "E16",
+  "issue": 115,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.1",
+  "title": "S17.1 Demand heatmap for drivers",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S17.1-demand-heatmap-for-drivers.md",
+  "epic": "E17",
+  "issue": 116,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.2",
+  "title": "S17.2 Destination filter — going home",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S17.2-destination-filter-going-home.md",
+  "epic": "E17",
+  "issue": 117,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.3",
+  "title": "S17.3 Driver incentives and quests",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "admin",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S17.3-driver-incentives-and-quests.md",
+  "epic": "E17",
+  "issue": 118,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.4",
+  "title": "S17.4 Driver levels and rewards",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S17.4-driver-levels-and-rewards.md",
+  "epic": "E17",
+  "issue": 119,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.5",
+  "title": "S17.5 Airport and venue queue",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S17.5-airport-and-venue-queue.md",
+  "epic": "E17",
+  "issue": 120,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.6",
+  "title": "S17.6 Fatigue limit",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "mobile",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S17.6-fatigue-limit.md",
+  "epic": "E17",
+  "issue": 121,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.7",
+  "title": "S17.7 Document expiry reminders",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S17.7-document-expiry-reminders.md",
+  "epic": "E17",
+  "issue": 122,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.8",
+  "title": "S17.8 Instant cashout to MoMo",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "backend",
+   "mobile",
+   "payments"
+  ],
+  "file": "docs/ride-hailing/stories/S17.8-instant-cashout-to-momo.md",
+  "epic": "E17",
+  "issue": 123,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.9",
+  "title": "S17.9 Next trip before finishing the current one",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S17.9-next-trip-before-finishing-the-current-one.md",
+  "epic": "E17",
+  "issue": 124,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S17.10",
+  "title": "S17.10 Driver training and quiz",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S17.10-driver-training-and-quiz.md",
+  "epic": "E17",
+  "issue": 125,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.1",
+  "title": "S18.1 Driver selfie check before going online",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "safety",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S18.1-driver-selfie-check-before-going-online.md",
+  "epic": "E18",
+  "issue": 126,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.2",
+  "title": "S18.2 Trip anomaly detection",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-2",
+   "backend",
+   "mobile",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.2-trip-anomaly-detection.md",
+  "epic": "E18",
+  "issue": 127,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.3",
+  "title": "S18.3 Audio recording during the trip",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.3-audio-recording-during-the-trip.md",
+  "epic": "E18",
+  "issue": 128,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.4",
+  "title": "S18.4 Trusted contacts auto-share",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.4-trusted-contacts-auto-share.md",
+  "epic": "E18",
+  "issue": 129,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.5",
+  "title": "S18.5 Driving behaviour alerts",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "backend",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.5-driving-behaviour-alerts.md",
+  "epic": "E18",
+  "issue": 130,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.6",
+  "title": "S18.6 Rider verification for driver safety",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "backend",
+   "mobile",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.6-rider-verification-for-driver-safety.md",
+  "epic": "E18",
+  "issue": 131,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S18.7",
+  "title": "S18.7 Safety toolkit",
+  "labels": [
+   "user-story",
+   "batch-4-nearby-rides",
+   "wave-1",
+   "mobile",
+   "ux",
+   "safety"
+  ],
+  "file": "docs/ride-hailing/stories/S18.7-safety-toolkit.md",
+  "epic": "E18",
+  "issue": 132,
+  "track": "B4",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S19.1",
+  "title": "S19.1 Fleet owner portal",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S19.1-fleet-owner-portal.md",
+  "epic": "E19",
+  "issue": 133,
+  "track": "F",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S19.2",
+  "title": "S19.2 Jali for Business",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-2",
+   "backend",
+   "admin",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S19.2-jali-for-business.md",
+  "epic": "E19",
+  "issue": 134,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S19.3",
+  "title": "S19.3 Hotel and concierge booking",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-2",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S19.3-hotel-and-concierge-booking.md",
+  "epic": "E19",
+  "issue": 135,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S19.4",
+  "title": "S19.4 Partner API",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S19.4-partner-api.md",
+  "epic": "E19",
+  "issue": 136,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S20.1",
+  "title": "S20.1 Send a package",
+  "labels": [
+   "user-story",
+   "out-of-scope",
+   "wave-1",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S20.1-send-a-package.md",
+  "epic": "E20",
+  "issue": 137,
+  "track": "X",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S20.2",
+  "title": "S20.2 Delivery PIN for recipient",
+  "labels": [
+   "user-story",
+   "out-of-scope",
+   "wave-2",
+   "mobile",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S20.2-delivery-pin-for-recipient.md",
+  "epic": "E20",
+  "issue": 138,
+  "track": "X",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S20.3",
+  "title": "S20.3 Package categories and prohibited items",
+  "labels": [
+   "user-story",
+   "out-of-scope",
+   "wave-2",
+   "mobile",
+   "backend",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S20.3-package-categories-and-prohibited-items.md",
+  "epic": "E20",
+  "issue": 139,
+  "track": "X",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.1",
+  "title": "S21.1 Crash reporting and performance monitoring",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S21.1-crash-reporting-and-performance-monitoring.md",
+  "epic": "E21",
+  "issue": 140,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.2",
+  "title": "S21.2 Backend monitoring and alerts",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S21.2-backend-monitoring-and-alerts.md",
+  "epic": "E21",
+  "issue": 141,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.3",
+  "title": "S21.3 Automated checks on every pull request",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S21.3-automated-checks-on-every-pull-request.md",
+  "epic": "E21",
+  "issue": 142,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S21.4",
+  "title": "S21.4 Staging environment with simulated drivers",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S21.4-staging-environment-with-simulated-drivers.md",
+  "epic": "E21",
+  "issue": 143,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.5",
+  "title": "S21.5 Load testing",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S21.5-load-testing.md",
+  "epic": "E21",
+  "issue": 144,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.6",
+  "title": "S21.6 Fraud prevention",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S21.6-fraud-prevention.md",
+  "epic": "E21",
+  "issue": 145,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.7",
+  "title": "S21.7 Rate limiting and abuse protection",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S21.7-rate-limiting-and-abuse-protection.md",
+  "epic": "E21",
+  "issue": 146,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S21.8",
+  "title": "S21.8 Data protection compliance",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S21.8-data-protection-compliance.md",
+  "epic": "E21",
+  "issue": 147,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.9",
+  "title": "S21.9 API contract (OpenAPI) as source of truth",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S21.9-api-contract-openapi-as-source-of-truth.md",
+  "epic": "E21",
+  "issue": 148,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S21.10",
+  "title": "S21.10 Feature flags and remote config",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S21.10-feature-flags-and-remote-config.md",
+  "epic": "E21",
+  "issue": 149,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.11",
+  "title": "S21.11 Backups and disaster recovery",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S21.11-backups-and-disaster-recovery.md",
+  "epic": "E21",
+  "issue": 150,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.12",
+  "title": "S21.12 Performance on low-end Android",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S21.12-performance-on-low-end-android.md",
+  "epic": "E21",
+  "issue": 151,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S21.13",
+  "title": "S21.13 Fix: production backend deploy fails after upload",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "backend",
+   "bug"
+  ],
+  "file": "docs/ride-hailing/stories/S21.13-fix-production-backend-deploy-fails-after-upload.md",
+  "epic": "E21",
+  "issue": 180,
+  "track": "F",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S22.1",
+  "title": "S22.1 Deep links and sharing",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S22.1-deep-links-and-sharing.md",
+  "epic": "E22",
+  "issue": 152,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S22.2",
+  "title": "S22.2 Segmented push campaigns",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-2",
+   "admin",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S22.2-segmented-push-campaigns.md",
+  "epic": "E22",
+  "issue": 153,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S22.3",
+  "title": "S22.3 In-app store rating prompt",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-1",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S22.3-in-app-store-rating-prompt.md",
+  "epic": "E22",
+  "issue": 154,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S22.4",
+  "title": "S22.4 Web booking page",
+  "labels": [
+   "user-story",
+   "later",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S22.4-web-booking-page.md",
+  "epic": "E22",
+  "issue": 155,
+  "track": "L",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.1",
+  "title": "S23.1 Server-side service availability (M06)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S23.1-server-side-service-availability-m06.md",
+  "epic": "E23",
+  "issue": 181,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.2",
+  "title": "S23.2 Service registry and gated queries in the app (M06)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S23.2-service-registry-and-gated-queries-in-the-app-m06.md",
+  "epic": "E23",
+  "issue": 182,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.3",
+  "title": "S23.3 Customer/provider mode switch",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-4",
+   "mobile",
+   "ux"
+  ],
+  "file": "docs/ride-hailing/stories/S23.3-customer-provider-mode-switch.md",
+  "epic": "E23",
+  "issue": 183,
+  "track": "F",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S23.4",
+  "title": "S23.4 One Activity for bookings and jobs (M07)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S23.4-one-activity-for-bookings-and-jobs-m07.md",
+  "epic": "E23",
+  "issue": 184,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.5",
+  "title": "S23.5 Notification taps open the right screen, always (M07)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S23.5-notification-taps-open-the-right-screen-always-m07.md",
+  "epic": "E23",
+  "issue": 187,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.6",
+  "title": "S23.6 In-app inbox (M07)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S23.6-in-app-inbox-m07.md",
+  "epic": "E23",
+  "issue": 188,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.7",
+  "title": "S23.7 Provider availability that survives navigation (M08)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S23.7-provider-availability-that-survives-navigation-m08.md",
+  "epic": "E23",
+  "issue": 189,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.8",
+  "title": "S23.8 Request and polling budget (M08)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S23.8-request-and-polling-budget-m08.md",
+  "epic": "E23",
+  "issue": 190,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.9",
+  "title": "S23.9 Split the shared BookingSheet per service",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "tech-debt"
+  ],
+  "file": "docs/ride-hailing/stories/S23.9-split-the-shared-bookingsheet-per-service.md",
+  "epic": "E23",
+  "issue": 191,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.10",
+  "title": "S23.10 Provider screens move to shared provider infrastructure",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "tech-debt"
+  ],
+  "file": "docs/ride-hailing/stories/S23.10-provider-screens-move-to-shared-provider-infrastru.md",
+  "epic": "E23",
+  "issue": 192,
+  "track": "F",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S23.11",
+  "title": "S23.11 Mobile test harness",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-1",
+   "mobile",
+   "tech-debt"
+  ],
+  "file": "docs/ride-hailing/stories/S23.11-mobile-test-harness.md",
+  "epic": "E23",
+  "issue": 193,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S23.12",
+  "title": "S23.12 Staging rehearsal and recovery (M09)",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "backend",
+   "security"
+  ],
+  "file": "docs/ride-hailing/stories/S23.12-staging-rehearsal-and-recovery-m09.md",
+  "epic": "E23",
+  "issue": 194,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S24.1",
+  "title": "S24.1 Browse available cars for my dates",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.1-browse-available-cars-for-my-dates.md",
+  "epic": "E24",
+  "issue": 195,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.2",
+  "title": "S24.2 Rental calendar and no double booking",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.2-rental-calendar-and-no-double-booking.md",
+  "epic": "E24",
+  "issue": 196,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.3",
+  "title": "S24.3 Clear price and rental terms before I request",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-2",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S24.3-clear-price-and-rental-terms-before-i-request.md",
+  "epic": "E24",
+  "issue": 197,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.4",
+  "title": "S24.4 Request a car and get the owner's confirmation",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.4-request-a-car-and-get-the-owner-s-confirmation.md",
+  "epic": "E24",
+  "issue": 198,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.5",
+  "title": "S24.5 Cancel a rental",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.5-cancel-a-rental.md",
+  "epic": "E24",
+  "issue": 199,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.6",
+  "title": "S24.6 Handover and return",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.6-handover-and-return.md",
+  "epic": "E24",
+  "issue": 200,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.7",
+  "title": "S24.7 Owner rental dashboard",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S24.7-owner-rental-dashboard.md",
+  "epic": "E24",
+  "issue": 201,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.8",
+  "title": "S24.8 Rental owner and car verification",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-1",
+   "admin",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S24.8-rental-owner-and-car-verification.md",
+  "epic": "E24",
+  "issue": 202,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S24.9",
+  "title": "S24.9 Admin rental operations and support",
+  "labels": [
+   "user-story",
+   "batch-1-rental",
+   "wave-2",
+   "admin",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S24.9-admin-rental-operations-and-support.md",
+  "epic": "E24",
+  "issue": 203,
+  "track": "B1",
+  "status": "built"
+ },
+ {
+  "kind": "story",
+  "id": "S25.1",
+  "title": "S25.1 Publish a journey with stops and segment fares",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-1",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.1-publish-a-journey-with-stops-and-segment-fares.md",
+  "epic": "E25",
+  "issue": 204,
+  "track": "B3",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S25.2",
+  "title": "S25.2 Seat capacity per route segment",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-2",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.2-seat-capacity-per-route-segment.md",
+  "epic": "E25",
+  "issue": 205,
+  "track": "B3",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S25.3",
+  "title": "S25.3 Find journeys including part of a route",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.3-find-journeys-including-part-of-a-route.md",
+  "epic": "E25",
+  "issue": 206,
+  "track": "B3",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S25.4",
+  "title": "S25.4 Request a seat and get confirmed",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.4-request-a-seat-and-get-confirmed.md",
+  "epic": "E25",
+  "issue": 207,
+  "track": "B3",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S25.5",
+  "title": "S25.5 Journey cancellation rules",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.5-journey-cancellation-rules.md",
+  "epic": "E25",
+  "issue": 208,
+  "track": "B3",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S25.6",
+  "title": "S25.6 Complete the journey and rate",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S25.6-complete-the-journey-and-rate.md",
+  "epic": "E25",
+  "issue": 209,
+  "track": "B3",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S25.7",
+  "title": "S25.7 Admin journey oversight",
+  "labels": [
+   "user-story",
+   "batch-3-shared-journeys",
+   "wave-4",
+   "admin",
+   "backend",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S25.7-admin-journey-oversight.md",
+  "epic": "E25",
+  "issue": 210,
+  "track": "B3",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S26.1",
+  "title": "S26.1 Dated departures with seat inventory",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S26.1-dated-departures-with-seat-inventory.md",
+  "epic": "E26",
+  "issue": 211,
+  "track": "B5",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S26.2",
+  "title": "S26.2 Book bus seats",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S26.2-book-bus-seats.md",
+  "epic": "E26",
+  "issue": 212,
+  "track": "B5",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S26.3",
+  "title": "S26.3 Tickets I can show at boarding",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S26.3-tickets-i-can-show-at-boarding.md",
+  "epic": "E26",
+  "issue": 213,
+  "track": "B5",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S26.4",
+  "title": "S26.4 Bus ticket cancellation",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S26.4-bus-ticket-cancellation.md",
+  "epic": "E26",
+  "issue": 214,
+  "track": "B5",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S26.5",
+  "title": "S26.5 Operator tools: departures, capacity and boarding list",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-2",
+   "admin",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S26.5-operator-tools-departures-capacity-and-boarding-li.md",
+  "epic": "E26",
+  "issue": 215,
+  "track": "B5",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S26.6",
+  "title": "S26.6 Retire legacy trip and bus tables",
+  "labels": [
+   "user-story",
+   "batch-5-bus",
+   "wave-2",
+   "backend",
+   "tech-debt"
+  ],
+  "file": "docs/ride-hailing/stories/S26.6-retire-legacy-trip-and-bus-tables.md",
+  "epic": "E26",
+  "issue": 216,
+  "track": "B5",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.1",
+  "title": "S27.1 Cargo scope, rules and operating requirements",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-1",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.1-cargo-scope-rules-and-operating-requirements.md",
+  "epic": "E27",
+  "issue": 217,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.2",
+  "title": "S27.2 Carrier and goods-vehicle onboarding",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.2-carrier-and-goods-vehicle-onboarding.md",
+  "epic": "E27",
+  "issue": 218,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.3",
+  "title": "S27.3 Request a cargo job",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-2",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.3-request-a-cargo-job.md",
+  "epic": "E27",
+  "issue": 219,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.4",
+  "title": "S27.4 Carrier quotes and confirmation",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-3",
+   "mobile",
+   "backend",
+   "pricing"
+  ],
+  "file": "docs/ride-hailing/stories/S27.4-carrier-quotes-and-confirmation.md",
+  "epic": "E27",
+  "issue": 220,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.5",
+  "title": "S27.5 Pickup and delivery evidence",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.5-pickup-and-delivery-evidence.md",
+  "epic": "E27",
+  "issue": 221,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.6",
+  "title": "S27.6 Return-load listings and matching",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-3",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.6-return-load-listings-and-matching.md",
+  "epic": "E27",
+  "issue": 222,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S27.7",
+  "title": "S27.7 Cargo cancellation, damage and support",
+  "labels": [
+   "user-story",
+   "batch-tbd-cargo",
+   "wave-4",
+   "mobile",
+   "backend"
+  ],
+  "file": "docs/ride-hailing/stories/S27.7-cargo-cancellation-damage-and-support.md",
+  "epic": "E27",
+  "issue": 223,
+  "track": "C",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S28.1",
+  "title": "S28.1 Batch readiness audit",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-2",
+   "admin"
+  ],
+  "file": "docs/ride-hailing/stories/S28.1-batch-readiness-audit.md",
+  "epic": "E28",
+  "issue": 224,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S28.2",
+  "title": "S28.2 Store listing, privacy disclosures and reviewer access",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md",
+  "epic": "E28",
+  "issue": 225,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S28.3",
+  "title": "S28.3 Google Play closed test",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S28.3-google-play-closed-test.md",
+  "epic": "E28",
+  "issue": 226,
+  "track": "F",
+  "status": "partial"
+ },
+ {
+  "kind": "story",
+  "id": "S28.4",
+  "title": "S28.4 iOS TestFlight and App Store submission",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-3",
+   "mobile"
+  ],
+  "file": "docs/ride-hailing/stories/S28.4-ios-testflight-and-app-store-submission.md",
+  "epic": "E28",
+  "issue": 227,
+  "track": "F",
+  "status": "todo"
+ },
+ {
+  "kind": "story",
+  "id": "S28.5",
+  "title": "S28.5 Post-launch review before the next batch",
+  "labels": [
+   "user-story",
+   "track-foundation",
+   "wave-4",
+   "admin",
+   "analytics"
+  ],
+  "file": "docs/ride-hailing/stories/S28.5-post-launch-review-before-the-next-batch.md",
+  "epic": "E28",
+  "issue": 228,
+  "track": "F",
+  "status": "todo"
+ }
+]

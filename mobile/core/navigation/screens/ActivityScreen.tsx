@@ -13,6 +13,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { formatYmd } from "@/lib/date";
 import { RideHistory } from "@/features/nearby-rides";
 import { HireHistory } from "@/features/driver-hire";
+import { RentalHistory } from "@/features/rentals";
 
 const TYPE_COLOR: Record<TripType, string> = {
   trip: C.blue, bus: C.blue, rental: C.green, private: C.orange,
@@ -31,11 +32,12 @@ const STATUS_LABEL_KEY: Record<TripStatus, string> = {
   cancelled: "adminBookings.statusCancelled",
 };
 
-type Filter = "all" | "rides" | "hires" | "active" | "ticket_ready" | "delivered" | "cancelled";
+type Filter = "all" | "rides" | "hires" | "rentals" | "active" | "ticket_ready" | "delivered" | "cancelled";
 const FILTERS: { id: Filter; labelKey: string }[] = [
   { id: "all", labelKey: "trips.filterAll" },
   { id: "rides", labelKey: "trips.filterRides" },
   { id: "hires", labelKey: "trips.filterHires" },
+  { id: "rentals", labelKey: "trips.filterRentals" },
   { id: "active", labelKey: "trips.filterPending" },
   { id: "ticket_ready", labelKey: "trips.filterReady" },
   { id: "delivered", labelKey: "trips.filterDelivered" },
@@ -99,7 +101,7 @@ export default function TripsScreen() {
         </ScrollView>
       </View>
 
-      {filter === "rides" ? <RideHistory /> : filter === "hires" ? <HireHistory /> : (
+      {filter === "rides" ? <RideHistory /> : filter === "hires" ? <HireHistory /> : filter === "rentals" ? <RentalHistory /> : (
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}

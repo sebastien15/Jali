@@ -164,6 +164,10 @@ function TabsNavigator() {
       <Tabs.Screen name="rides/index"     options={{ href: null }} />
       <Tabs.Screen name="rides/[id]"      options={{ href: null }} />
       <Tabs.Screen name="settlements/index" options={{ href: null }} />
+      <Tabs.Screen name="rental-cars/index" options={{ href: null }} />
+      <Tabs.Screen name="rental-cars/[id]" options={{ href: null }} />
+      <Tabs.Screen name="rentals/index"   options={{ href: null }} />
+      <Tabs.Screen name="rentals/[id]"    options={{ href: null }} />
       <Tabs.Screen name="agencies/index"  options={{ href: null }} />
       <Tabs.Screen name="trips/index"     options={{ href: null }} />
       <Tabs.Screen name="roles/index"     options={{ href: null }} />

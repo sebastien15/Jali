@@ -1296,10 +1296,909 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rentals/cars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verified cars free for the dates, with the owner's price (no Jali fee) */
+        get: operations["searchRentalCars"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rentals/cars/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        /** Car detail with rules, busy calendar and (with dates) the price */
+        get: operations["getRentalCar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rentals/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My rentals, newest pickup first */
+        get: operations["listMyRentals"];
+        put?: never;
+        /** Ask the owner for a car; the dates are held until the owner answers or the request expires */
+        post: operations["requestRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rentals/bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        /** One of my rentals (owner phone after acceptance) */
+        get: operations["getMyRental"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rentals/bookings/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a request (free) or a confirmed rental (fee by the owner's policy, owed to the owner) */
+        post: operations["cancelMyRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rentals/bookings/{id}/rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rate the car and owner after return */
+        post: operations["rateMyRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My rental cars with review state and what is missing */
+        get: operations["listMyRentalCars"];
+        put?: never;
+        /** List a car for rent (waits for admin verification) */
+        post: operations["createRentalCar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        /** One of my cars with blocked days and the busy calendar */
+        get: operations["getMyRentalCar"];
+        put?: never;
+        post?: never;
+        /** Remove a car without open rentals */
+        delete: operations["deleteRentalCar"];
+        options?: never;
+        head?: never;
+        /** Edit a listing (a new plate or a rejected listing goes back to review) */
+        patch: operations["updateRentalCar"];
+        trace?: never;
+    };
+    "/driver/cars/{id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a photo (up to 12; the first is the cover) */
+        post: operations["addRentalCarPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/photos/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                /** @description Position in the photos list, from 0 */
+                index: components["parameters"]["PhotoIndex"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a photo */
+        delete: operations["deleteRentalCarPhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/photos/{index}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                /** @description Position in the photos list, from 0 */
+                index: components["parameters"]["PhotoIndex"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a photo the cover */
+        post: operations["setRentalCarCover"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload the registration card or insurance (stored privately; sends the car back to review) */
+        post: operations["uploadRentalCarDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/documents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                type: components["parameters"]["RentalDocumentType"];
+            };
+            cookie?: never;
+        };
+        /** Download my car's document file */
+        get: operations["getRentalCarDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Keep a car off the market on some days (Kigali dates, inclusive) */
+        post: operations["blockRentalCarDays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/cars/{id}/blocks/{blockId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                blockId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove blocked days */
+        delete: operations["unblockRentalCarDays"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests and rentals of my cars */
+        get: operations["listOwnerRentals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard counters, next handover and income per car */
+        get: operations["getOwnerRentalSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        /** One rental of my car (customer phone after acceptance) */
+        get: operations["getOwnerRental"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept a request before it expires */
+        post: operations["acceptRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline a request */
+        post: operations["declineRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a confirmed rental before handover (no fee for the customer) */
+        post: operations["ownerCancelRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/handover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the handover (from 24 h before pickup) */
+        post: operations["handOverRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the return; late days, extra km and listed charges make the final total */
+        post: operations["returnRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/rentals/{id}/rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rate the customer after return */
+        post: operations["ownerRateRental"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rental-cars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner-listed cars by review state (oldest change first) */
+        get: operations["listRentalCarsForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rental-cars/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        /** A listing with owner contact and what is missing */
+        get: operations["getRentalCarForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rental-cars/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a complete listing or reject it with a note (logged, owner notified) */
+        post: operations["reviewRentalCar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rental-cars/{id}/documents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                type: components["parameters"]["RentalDocumentType"];
+            };
+            cookie?: never;
+        };
+        /** Download a listing's document file */
+        get: operations["getRentalCarDocumentForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All rentals, newest first */
+        get: operations["listAdminRentals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rentals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        /** A rental with contacts, records and ratings */
+        get: operations["getAdminRental"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        RentalCarType: "Sedan" | "SUV" | "Minivan" | "Pickup" | "Hatchback" | "Van" | "Luxury";
+        /**
+         * @description active = car handed over; completed = car returned
+         * @enum {string}
+         */
+        RentalStatus: "requested" | "accepted" | "active" | "completed" | "declined" | "expired" | "cancelled";
+        RentalAllowed: {
+            smoking: boolean;
+            pets: boolean;
+            outside_kigali: boolean;
+            cross_border: boolean;
+        };
+        /** @description The owner's price; Jali adds no fee. The deposit is paid back at return and is not in the total. */
+        RentalQuote: {
+            /** @enum {string} */
+            currency: "RWF";
+            price_per_day: number;
+            /** @description Started 24-hour periods */
+            days: number;
+            base: number;
+            /** @description Weekly (7+ days) or monthly (28+ days) discount */
+            discount_pct: number;
+            discount: number;
+            delivery_fee: number;
+            /** @enum {integer} */
+            jali_fee: 0;
+            total: number;
+            deposit: number;
+        };
+        RentalTerms: {
+            /** @description Per day; null = unlimited */
+            mileage_limit_km: number | null;
+            extra_km_fee: number;
+            /** @enum {string|null} */
+            fuel_policy: "same_to_same" | "full_to_full" | "prepaid" | null;
+            min_driver_age: number;
+            min_licence_years: number;
+            /** @enum {string|null} */
+            cancellation_policy: "flexible" | "moderate" | "strict" | null;
+            allowed: components["schemas"]["RentalAllowed"];
+            /** @description The owner's own rules */
+            rules: string[];
+        };
+        RentalBusyRange: {
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+            /** @enum {string} */
+            kind: "booked" | "blocked";
+        };
+        RentalBlock: {
+            id: number;
+            /** Format: date */
+            start_date: string;
+            /** Format: date */
+            end_date: string;
+            reason: string | null;
+        };
+        /** @description A car as customers see it (no plate, papers or owner contact) */
+        RentalCar: {
+            id: number;
+            name: string;
+            make: string | null;
+            model: string | null;
+            year: number | null;
+            color: string | null;
+            type: components["schemas"]["RentalCarType"];
+            seats: number;
+            doors: number | null;
+            luggage: number | null;
+            /** @enum {string|null} */
+            transmission: "automatic" | "manual" | null;
+            /** @enum {string|null} */
+            fuel_type: "petrol" | "diesel" | "hybrid" | "electric" | null;
+            /** @description Public photo URLs; the first is the cover */
+            photos: string[];
+            rating: number;
+            trips_count: number;
+            price_per_day: number;
+            deposit: number;
+            city: string | null;
+            pickup_address: string | null;
+            delivery_available: boolean;
+            delivery_fee: number;
+            weekly_discount_pct: number;
+            monthly_discount_pct: number;
+            amenities: string[];
+            owner: {
+                first_name: string;
+                /** Format: date */
+                member_since: string | null;
+            } | null;
+            quote: components["schemas"]["RentalQuote"] | null;
+        };
+        RentalCarDetail: components["schemas"]["RentalCar"] & {
+            description: string | null;
+            pickup_lat: number | null;
+            pickup_lng: number | null;
+            min_days: number;
+            max_days: number | null;
+            /** @description Hours of notice the owner needs before pickup */
+            notice_hours: number;
+            terms: components["schemas"]["RentalTerms"];
+            busy: components["schemas"]["RentalBusyRange"][];
+            /** @description Free for the requested dates (null without dates) */
+            available: boolean | null;
+        };
+        /** @description Owner listing. To create, give name (or make and model), type, plate, seats and priceDay. */
+        RentalCarInput: {
+            name?: string;
+            make?: string | null;
+            model?: string | null;
+            year?: number | null;
+            color?: string | null;
+            type?: components["schemas"]["RentalCarType"];
+            plate?: string;
+            seats?: number;
+            priceDay?: number;
+            /** @description Refundable deposit */
+            caution?: number | null;
+            /** @enum {string|null} */
+            transmission?: "automatic" | "manual" | null;
+            /** @enum {string|null} */
+            fuel_type?: "petrol" | "diesel" | "hybrid" | "electric" | null;
+            doors?: number | null;
+            luggage?: number | null;
+            description?: string | null;
+            city?: string | null;
+            pickup_address?: string | null;
+            pickup_lat?: number | null;
+            pickup_lng?: number | null;
+            delivery_available?: boolean;
+            delivery_fee?: number | null;
+            /** @description Per day; null = unlimited */
+            mileage_limit_km?: number | null;
+            extra_km_fee?: number | null;
+            /** @enum {string|null} */
+            fuel_policy?: "same_to_same" | "full_to_full" | "prepaid" | null;
+            min_driver_age?: number | null;
+            min_licence_years?: number | null;
+            min_days?: number | null;
+            max_days?: number | null;
+            notice_hours?: number | null;
+            weekly_discount_pct?: number | null;
+            monthly_discount_pct?: number | null;
+            /** @enum {string|null} */
+            cancellation_policy?: "flexible" | "moderate" | "strict" | null;
+            allowed?: {
+                smoking?: boolean;
+                pets?: boolean;
+                outside_kigali?: boolean;
+                cross_border?: boolean;
+            } | null;
+            rules?: string[] | null;
+            /** Format: date */
+            insurance_expiry?: string | null;
+            amenities?: string[] | null;
+            /** @enum {string} */
+            status?: "available" | "rented" | "maintenance";
+            notes?: string | null;
+        };
+        /** @description The owner's own car with review state */
+        OwnerRentalCar: {
+            id: number;
+            user_id: number | null;
+            name: string;
+            type: string;
+            plate: string;
+            seats: number;
+            price: number;
+            priceDay: number;
+            caution: number;
+            make?: string | null;
+            model?: string | null;
+            year?: number | null;
+            transmission?: string | null;
+            fuel_type?: string | null;
+            description?: string | null;
+            pickup_address?: string | null;
+            photos: string[];
+            amenities?: string[] | null;
+            allowed: components["schemas"]["RentalAllowed"];
+            rules: string[];
+            /** @enum {string} */
+            status: "available" | "rented" | "maintenance";
+            /** @enum {string} */
+            verification_status: "pending" | "verified" | "rejected";
+            verification_note: string | null;
+            documents: {
+                registration: boolean;
+                insurance: boolean;
+            };
+            listing_complete: boolean;
+            missing: ("photos" | "registration" | "insurance" | "pickup_address" | "transmission" | "description")[];
+            open_rentals: number;
+        };
+        AdminRentalCar: components["schemas"]["OwnerRentalCar"] & {
+            owner: {
+                id: number;
+                name: string;
+                phone: string | null;
+            } | null;
+        };
+        RentalRecord: {
+            odometer_km: number;
+            /** @description Eighths of a tank */
+            fuel_level: number;
+            notes: string | null;
+            photos: string[];
+            /** Format: date-time */
+            at: string;
+        };
+        RentalRecordInput: {
+            odometer_km: number;
+            /** @description Eighths of a tank */
+            fuel_level: number;
+            notes?: string | null;
+            "photos[]"?: string[];
+        };
+        RentalRatingInput: {
+            stars: number;
+            comment?: string | null;
+        };
+        /** @description A rental as its customer, owner or an admin sees it. Phone numbers, the plate and exact pickup point only after acceptance. */
+        RentalBooking: {
+            id: number;
+            status: components["schemas"]["RentalStatus"];
+            /** Format: date-time */
+            start_at: string;
+            /** Format: date-time */
+            end_at: string;
+            days: number;
+            /** @enum {string} */
+            pickup_method: "pickup" | "delivery";
+            delivery_address: string | null;
+            note: string | null;
+            /** @enum {string} */
+            payment_method: "cash" | "momo";
+            quote: components["schemas"]["RentalQuote"];
+            terms: components["schemas"]["RentalTerms"];
+            total: number;
+            deposit: number;
+            final_total: number | null;
+            extra_charges: {
+                /** @enum {string} */
+                type: "late_return" | "extra_km" | "other";
+                label: string;
+                amount: number;
+            }[];
+            /** @description Owed to the owner */
+            cancel_fee: number;
+            /** @enum {string|null} */
+            cancelled_by: "customer" | "owner" | null;
+            cancel_reason: string | null;
+            decline_reason: string | null;
+            handover: components["schemas"]["RentalRecord"] | null;
+            return_record: components["schemas"]["RentalRecord"] | null;
+            /** Format: date-time */
+            requested_at: string | null;
+            /** Format: date-time */
+            expires_at: string | null;
+            /** Format: date-time */
+            accepted_at: string | null;
+            /** Format: date-time */
+            handed_over_at: string | null;
+            /** Format: date-time */
+            returned_at: string | null;
+            /** Format: date-time */
+            cancelled_at: string | null;
+            car: {
+                id: number;
+                name: string;
+                type: string;
+                plate: string | null;
+                photo: string | null;
+                transmission: string | null;
+                pickup_address: string | null;
+                pickup_lat: number | null;
+                pickup_lng: number | null;
+            } | null;
+            my_rating: number | null;
+            /** @description Customer and admin views */
+            owner?: {
+                name: string;
+                phone: string | null;
+            } | null;
+            /** @description Customer view: fee if cancelled now */
+            cancel_fee_now?: number;
+            can_cancel?: boolean;
+            /** @description Owner and admin views */
+            customer?: {
+                id: number;
+                name: string;
+                phone: string | null;
+                completed_rentals: number;
+                rating: number | null;
+            } | null;
+            can_accept?: boolean;
+            can_handover?: boolean;
+            can_return?: boolean;
+            /** @description Admin view */
+            ratings?: {
+                /** @enum {string} */
+                from: "customer" | "owner";
+                stars: number;
+                comment: string | null;
+            }[];
+        };
+        OwnerRentalSummary: {
+            requests: number;
+            upcoming: number;
+            active: number;
+            income_this_month: number;
+            income_total: number;
+            completed_rentals: number;
+            cars: number;
+            cars_pending: number;
+            next_handover: {
+                id: number;
+                /** Format: date-time */
+                start_at: string;
+                car: string | null;
+            } | null;
+            per_car: {
+                car_id: number;
+                name: string;
+                income: number;
+                trips: number;
+            }[];
+        };
         Me: {
             id: number;
             name: string | null;
@@ -2159,6 +3058,11 @@ export interface components {
         };
     };
     parameters: {
+        RentalCarId: number;
+        RentalBookingId: number;
+        /** @description Position in the photos list, from 0 */
+        PhotoIndex: number;
+        RentalDocumentType: "registration" | "insurance";
         UserId: number;
         DocumentId: number;
         VehicleId: number;
@@ -4627,6 +5531,1020 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    searchRentalCars: {
+        parameters: {
+            query?: {
+                /** @description Pickup time (ISO 8601). With end_at, only free cars are listed and each has a quote */
+                start_at?: string;
+                end_at?: string;
+                type?: components["schemas"]["RentalCarType"];
+                transmission?: "automatic" | "manual";
+                /** @description Minimum seats */
+                seats?: number;
+                /** @description Maximum price per day */
+                max_price?: number;
+                city?: string;
+                /** @description Make, model, name or pickup area contains */
+                q?: string;
+                sort?: "price" | "rating";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RentalCar"][];
+                        cities: string[];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRentalCar: {
+        parameters: {
+            query?: {
+                start_at?: string;
+                end_at?: string;
+                pickup_method?: "pickup" | "delivery";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalCarDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listMyRentals: {
+        parameters: {
+            query?: {
+                scope?: "upcoming" | "past";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RentalBooking"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    requestRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    car_id: number;
+                    /** Format: date-time */
+                    start_at: string;
+                    /** Format: date-time */
+                    end_at: string;
+                    /** @enum {string} */
+                    pickup_method: "pickup" | "delivery";
+                    /** @description Required for delivery */
+                    delivery_address?: string | null;
+                    /**
+                     * @description Paid to the owner at pickup
+                     * @enum {string}
+                     */
+                    payment_method: "cash" | "momo";
+                    note?: string | null;
+                    /** @description Must be true */
+                    accept_terms: boolean;
+                    /** @description Must be true: the driver meets the age and licence rules */
+                    driver_confirmed: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Requested */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getMyRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    cancelMyRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    reason: "changed_plans" | "found_another_car" | "owner_asked_to_cancel" | "booked_by_mistake" | "other";
+                };
+            };
+        };
+        responses: {
+            /** @description Cancelled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    rateMyRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentalRatingInput"];
+            };
+        };
+        responses: {
+            /** @description Rated */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listMyRentalCars: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createRentalCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentalCarInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getMyRentalCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"] & {
+                        blocks: components["schemas"]["RentalBlock"][];
+                        busy: components["schemas"]["RentalBusyRange"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteRentalCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    updateRentalCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentalCarInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    addRentalCarPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description image, max 8 MB
+                     */
+                    photo: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteRentalCarPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                /** @description Position in the photos list, from 0 */
+                index: components["parameters"]["PhotoIndex"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    setRentalCarCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                /** @description Position in the photos list, from 0 */
+                index: components["parameters"]["PhotoIndex"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    uploadRentalCarDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @enum {string} */
+                    type: "registration" | "insurance";
+                    /**
+                     * Format: binary
+                     * @description jpg/png/webp/pdf, max 10 MB
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRentalCarDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                type: components["parameters"]["RentalDocumentType"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    blockRentalCarDays: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: date */
+                    start_date: string;
+                    /** Format: date */
+                    end_date: string;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Blocked */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBlock"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    unblockRentalCarDays: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                blockId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listOwnerRentals: {
+        parameters: {
+            query?: {
+                status?: "requested" | "upcoming" | "active" | "past";
+                car_id?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RentalBooking"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getOwnerRentalSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerRentalSummary"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getOwnerRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    declineRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Declined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    ownerCancelRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    reason: "car_not_available" | "car_broke_down" | "customer_asked_to_cancel" | "customer_not_reachable" | "other";
+                };
+            };
+        };
+        responses: {
+            /** @description Cancelled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    handOverRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["RentalRecordInput"];
+            };
+        };
+        responses: {
+            /** @description Car handed over */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    returnRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["RentalRecordInput"] & {
+                    other_charges?: {
+                        label: string;
+                        amount: number;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Rental completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    ownerRateRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentalRatingInput"];
+            };
+        };
+        responses: {
+            /** @description Rated */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listRentalCarsForReview: {
+        parameters: {
+            query?: {
+                status?: "pending" | "verified" | "rejected";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminRentalCar"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRentalCarForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    reviewRentalCar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    decision: "approve" | "reject";
+                    /** @description Required to reject */
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Reviewed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRentalCar"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getRentalCarDocumentForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalCarId"];
+                type: components["parameters"]["RentalDocumentType"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listAdminRentals: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["RentalStatus"];
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RentalBooking"][];
+                        next_page: number | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getAdminRental: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["RentalBookingId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RentalBooking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
 }
