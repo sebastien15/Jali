@@ -8,7 +8,7 @@ import fr from "@/locales/fr.json";
 import rw from "@/locales/rw.json";
 import sw from "@/locales/sw.json";
 
-const LANGUAGE_DETECTION_KEY = "jali_language";
+export const LANGUAGE_DETECTION_KEY = "jali_language";
 
 const resources: Record<string, { translation: typeof en }> = {
   en: { translation: en },

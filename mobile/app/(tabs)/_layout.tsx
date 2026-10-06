@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/core/session/DriverModeContext";
 import { useMe, isDriverRole } from "@/lib/useMe";
-import { usePushPermission } from "@/core/notifications/usePushPermission";
 import ProtectedRoute from "@/core/session/ProtectedRoute";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
@@ -100,15 +99,9 @@ function TabsNavigator() {
   );
 }
 
-function PushRegistrar() {
-  usePushPermission();
-  return null;
-}
-
 export default function TabLayout() {
   return (
     <ProtectedRoute>
-      <PushRegistrar />
       <TabsNavigator />
     </ProtectedRoute>
   );

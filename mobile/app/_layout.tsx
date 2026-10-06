@@ -8,10 +8,13 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "i18next";
 import { Suspense, useEffect, useState } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { queryClient, persister } from "@/lib/queryClient";
+import { queryClient, persistOptions } from "@/lib/queryClient";
 import api from "@/lib/api";
 import * as Location from "expo-location";
 import { DriverModeProvider } from "@/core/session/DriverModeContext";
+import PushCoordinator from "@/core/notifications/PushCoordinator";
+// Registers the 401 handler: every teardown goes through endSession().
+import "@/core/session/teardown";
 
 function I18nWrapper({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -60,11 +63,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister, maxAge: 7 * 24 * 60 * 60 * 1000 }}
+        persistOptions={persistOptions}
       >
         <I18nWrapper>
           <AccessTracker />
           <DriverModeProvider>
+          <PushCoordinator />
           <View style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />

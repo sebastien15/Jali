@@ -19,7 +19,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { C } from "@/constants/theme";
 import api, { clearApiToken } from "@/lib/api";
-import { startSession } from "@/lib/session";
+import { startSession } from "@/core/session/teardown";
 import { isAdminRole } from "@/constants/roles";
 import { useAdminNav } from "@/components/admin/AdminNavContext";
 import { useTranslation } from "react-i18next";

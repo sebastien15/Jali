@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ROLES } from "@/constants/roles";
 import { router } from "expo-router";
 import api, { getApiToken } from "@/lib/api";
-import { endSession } from "@/lib/session";
+import { endSession } from "@/core/session/teardown";
+import { LANGUAGE_DETECTION_KEY } from "@/lib/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 
 type AdminUser = {
@@ -63,9 +64,13 @@ export function AdminNavProvider({ children }: { children: React.ReactNode }) {
     // Local state is cleared first (token, query cache, Firebase); the
     // /auth/logout call is best-effort so a failing request can't keep
     // the admin signed in on this device.
-    await endSession();
+    await endSession("admin_logout");
     try {
+      // Web: wipe leftover browser storage, but keep the device language
+      // (not session state — runbook §5.5).
+      const language = localStorage.getItem(LANGUAGE_DETECTION_KEY);
       localStorage.clear();
+      if (language) localStorage.setItem(LANGUAGE_DETECTION_KEY, language);
       sessionStorage.clear();
       ["firebaseLocalStorageDb", "firebaseInstallationsDb", "firebase-messaging-store"]
         .forEach((db) => indexedDB.deleteDatabase(db));

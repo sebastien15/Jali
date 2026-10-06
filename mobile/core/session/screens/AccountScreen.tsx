@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
 import api from "@/lib/api";
-import { endSession, clearLocalSession } from "@/lib/session";
+import { endSession } from "@/core/session/teardown";
 import { C } from "@/constants/theme";
 import { useDriverMode } from "@/core/session/DriverModeContext";
 import { useMe, isDriverRole } from "@/lib/useMe";
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
   }
 
   async function doLogout() {
-    await endSession();
+    await endSession("logout");
     router.replace("/(auth)/login");
   }
 
@@ -144,7 +144,7 @@ export default function ProfileScreen() {
     setDeleting(true);
     try {
       await api.delete("/auth/me");
-      await clearLocalSession();
+      await endSession("account_deleted");
       router.replace("/(auth)/login");
     } catch (e: any) {
       const status = e?.response?.status;
