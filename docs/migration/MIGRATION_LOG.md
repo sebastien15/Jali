@@ -85,3 +85,22 @@ Runbook: [ARCHITECTURE_MIGRATION_RUNBOOK.md](../ARCHITECTURE_MIGRATION_RUNBOOK.m
 - Known gaps / launch gates: no stop/segment capacity exists (`seats` is per listing and per travel date) — nothing here implies intermediate stops. `/driver/stats` `rating` is the average of listing ratings, not the provider reputation contract; unchanged.
 - Remaining in `LegacyBookings\Infrastructure`: `BusBookingHandler`, `TripDepartureBookingHandler` (M03-Bus).
 - Next authorised task: M03-Hire.
+
+## M03-Hire — Hire logic → `Modules/DriverHire` (backend)
+
+- Status: implemented (local only, not pushed). Scope A. Base `ee9951d`; parity tests `7a77b60`; implementation `ae0425d`.
+- Old → new (old files deleted, `App\Services\Hire` no longer exists):
+  - `App\Services\Hire\{HireService,HireQuote,HireAvailability,HirePresenter}` → `App\Modules\DriverHire\Application\*`
+  - `HireController::available` query + `store` bookable-driver check → `DriverHire\Application\HireDriverSearch`; `startAt` + `max_days` → `HireBookingWindow`
+  - `HireController::{index,mine}`, `DriverHireController::index` (incl. lazy expiry) → `HireQueries::{customerPage,participantHire,driverHires}`; cancel-reason choice → `HireService::cancelReasons`
+  - `DriverHireSettingsController` (`/driver/hire-settings`, `/driver/availability`): provider 403 checks + settings write/payload → `HireProviderSettings` (`LANGUAGES` moved here); calendar write/payload → `HireCalendar`
+  - `ExpireHireRequests` loop → `HireService::expireOverdue()`; command name, output and every-minute schedule unchanged.
+  - Controllers keep validation rules/messages and HTTP shape only; ordering kept (403 before 422, validation before 404 where it was).
+- New contracts (bound in `AppServiceProvider`): `Providers\Contracts\ProviderDisplay` → `Providers\Application\DisplayName` (the pure "Jean H." helper moved out of `NearbyDrivers`; `NearbyDrivers::displayName` now delegates for ride callers); `Payments\Contracts\ReceiptMailer` → `Receipts` (instance `emailReceipt` delegates to the static `email`).
+- Shared ports now used by hire: `PricingPolicy::hireSettings()` (replaces `RideSettings::hire()`), `MoneyRecorder`, `ReceiptMailer`, `ProviderReputation`, `ProviderDisplay`. Safety switched from `NearbyDrivers::displayName` to `ProviderDisplay`.
+- Boundaries: `DriverHire => [Payments, Pricing, Providers]`, `Safety => [Notifications, Providers]`. `ModuleBoundaryTest` gained a check that no file under `app/Modules` references `App\Services\Rides\*`.
+- Preserved: 168 routes/middleware (RouteInventoryTest), `driver_hires`/`driver_hire_settings`/`driver_availability`/`hire_ratings` tables and models, hire states, `rate_snapshot`/fee/commission locking, Kigali calendar rules, push `screen,id` payloads, response bodies/status codes/messages, one writer per operation (HireService for lifecycle, HireProviderSettings/HireCalendar for setup, DriverLedger via MoneyRecorder for money).
+- Tests: new `tests/Feature/Hire/HireParityTest.php` (locked price/rates/fee/commission after admin + driver changes, overtime grace and late check-in shift, Kigali-time weekly hours/blocked dates for UTC and +02:00 inputs, day-booking end and dropped seconds, expiry at start-or-timeout and lazy expiry on customer/driver reads, transition guard messages, per-side privacy, 90-day/max-days/self-hire/transmission/customer-clash rules, hire completion feeding `ProviderDebtLimit`) — green against pre-move code first. `HireDriverTest` unchanged and green.
+- Commands: `composer dump-autoload -n`, `php -l` on changed files, `php artisan test` → 244 passed, 8 failed (GD-only); grep `Services\Hire` in app/routes/tests/config/database → none; grep `Services\Rides|NearbyDrivers|RideSettings` in `app/Modules/DriverHire` and `app/Modules/Safety` → none.
+- Known gaps: HireService still constructs `App\Services\PushService` directly (no Notifications push contract yet, as in M02). Hire/ride overlap (a provider online for rides while holding an accepted hire) is still unchecked — needs the shared availability/conflict port before simultaneous offering (runbook §4). Concurrency of accept/check-out remains guarded only by conditional updates on SQLite; not exercised on MySQL.
+- Next authorised task: M03-Rides.
