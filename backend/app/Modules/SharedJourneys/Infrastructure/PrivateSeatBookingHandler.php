@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\LegacyBookings\Infrastructure;
+namespace App\Modules\SharedJourneys\Infrastructure;
 
 use App\Models\PrivateSeat;
 use App\Modules\LegacyBookings\Contracts\BookableOffer;
@@ -9,7 +9,7 @@ use App\Modules\LegacyBookings\Contracts\BookingTypeHandler;
 
 /**
  * Generic booking rules for type `private` (private seat listings, reference_id = private_seats.id).
- * Temporary home until SharedJourneys owns it (runbook M03-Shared).
+ * Owned by SharedJourneys; registered with the LegacyBookings dispatcher (M03-Shared).
  */
 class PrivateSeatBookingHandler implements BookingTypeHandler
 {

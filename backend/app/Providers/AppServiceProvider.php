@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
         // register their own handler here as they move into their module (runbook M03).
         $this->app->tag([
             \App\Modules\LegacyBookings\Infrastructure\BusBookingHandler::class,
-            \App\Modules\LegacyBookings\Infrastructure\PrivateSeatBookingHandler::class,
+            \App\Modules\SharedJourneys\Infrastructure\PrivateSeatBookingHandler::class,
             \App\Modules\Rentals\Infrastructure\RentalBookingHandler::class,
             \App\Modules\LegacyBookings\Infrastructure\TripDepartureBookingHandler::class,
         ], \App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);

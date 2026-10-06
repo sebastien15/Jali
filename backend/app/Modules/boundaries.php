@@ -19,4 +19,5 @@ return [
     'Providers'      => ['Payments'],        // go-online blocker via Payments\Contracts\ProviderDebtLimit
     'Rentals'        => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=rental)
     'Safety'         => ['Notifications'],   // SOS texts via SmsSender
+    'SharedJourneys' => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=private)
 ];
