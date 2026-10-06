@@ -495,7 +495,7 @@ tmp=$(mktemp); { cat "$DIR/S24.2-rental-calendar-and-no-double-booking.md"; echo
 n=$(create "S24.2 Rental calendar and no double booking" "user-story,batch-1-rental,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.2 Rental calendar and no double booking"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.3-clear-price-and-rental-terms-before-i-request.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
-n=$(create "S24.3 Clear price and rental terms before I request" "user-story,batch-1-rental,wave-2,mobile,backend,pricing" "$tmp"); rm -f "$tmp"; echo "#$n S24.3 Clear price and rental terms before I request"
+n=$(create "S24.3 Clear price and rental terms before I request" "user-story,batch-1-rental,wave-1,mobile,backend,pricing" "$tmp"); rm -f "$tmp"; echo "#$n S24.3 Clear price and rental terms before I request"
 gh issue comment "${EPIC_NUM[E24]}" --repo "$REPO" --body "- [ ] #$n S24.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S24.4-request-a-car-and-get-the-owner-s-confirmation.md"; echo; echo "Part of #${EPIC_NUM[E24]}"; } > "$tmp"
 n=$(create "S24.4 Request a car and get the owner's confirmation" "user-story,batch-1-rental,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S24.4 Request a car and get the owner's confirmation"
@@ -576,18 +576,18 @@ tmp=$(mktemp); { cat "$DIR/S27.7-cargo-cancellation-damage-and-support.md"; echo
 n=$(create "S27.7 Cargo cancellation, damage and support" "user-story,batch-tbd-cargo,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S27.7 Cargo cancellation, damage and support"
 gh issue comment "${EPIC_NUM[E27]}" --repo "$REPO" --body "- [ ] #$n S27.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.1-batch-readiness-audit.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.1 Batch readiness audit" "user-story,track-foundation,wave-2,admin" "$tmp"); rm -f "$tmp"; echo "#$n S28.1 Batch readiness audit"
+n=$(create "S28.1 Batch readiness audit" "user-story,track-foundation,wave-1,admin" "$tmp"); rm -f "$tmp"; echo "#$n S28.1 Batch readiness audit"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.2-store-listing-privacy-disclosures-and-reviewer-acc.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.2 Store listing, privacy disclosures and reviewer access" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.2 Store listing, privacy disclosures and reviewer access"
+n=$(create "S28.2 Store listing, privacy disclosures and reviewer access" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.2 Store listing, privacy disclosures and reviewer access"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.3-google-play-closed-test.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.3 Google Play closed test" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.3 Google Play closed test"
+n=$(create "S28.3 Google Play closed test" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.3 Google Play closed test"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.4-ios-testflight-and-app-store-submission.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.4 iOS TestFlight and App Store submission" "user-story,track-foundation,wave-3,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.4 iOS TestFlight and App Store submission"
+n=$(create "S28.4 iOS TestFlight and App Store submission" "user-story,track-foundation,wave-2,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S28.4 iOS TestFlight and App Store submission"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S28.5-post-launch-review-before-the-next-batch.md"; echo; echo "Part of #${EPIC_NUM[E28]}"; } > "$tmp"
-n=$(create "S28.5 Post-launch review before the next batch" "user-story,track-foundation,wave-4,admin,analytics" "$tmp"); rm -f "$tmp"; echo "#$n S28.5 Post-launch review before the next batch"
+n=$(create "S28.5 Post-launch review before the next batch" "user-story,track-foundation,wave-3,admin,analytics" "$tmp"); rm -f "$tmp"; echo "#$n S28.5 Post-launch review before the next batch"
 gh issue comment "${EPIC_NUM[E28]}" --repo "$REPO" --body "- [ ] #$n S28.5" >/dev/null
 echo "Done."

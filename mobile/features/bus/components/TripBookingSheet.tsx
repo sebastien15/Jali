@@ -15,7 +15,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { C } from "@/constants/theme";
 import { PAY_METHODS, PayMethod } from "@/constants/data";
-import { tripServiceFee } from "@/lib/serviceFee";
 import api from "@/lib/api";
 import { getApiToken } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -79,9 +78,8 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
   const [comment, setComment] = useState("");
 
   const price = Number(trip.price); // API may return string — force numeric
-  const fee = tripServiceFee(price);
   const totalPrice = price * ticketCount;
-  const total = totalPrice + fee;
+  const total = totalPrice;   // S7.4: no Jali fees
 
   // Travel-day options: today, tomorrow, plus the day picked on Home if it is
   // neither. Values are local `Y-m-d` (what the API stores); labels are display only.
@@ -361,8 +359,9 @@ export function TripBookingSheet({ trip, onClose, onConfirm, travelDate }: Props
             </Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
-            <Text style={{ color: C.mid, fontSize: 14, fontWeight: "600" }}>{t("booking.serviceFee")}</Text>
-            <Text style={{ color: C.dark, fontSize: 14, fontWeight: "700" }}>{fee.toLocaleString()} RWF</Text>
+            <Text style={{ color: C.green, fontSize: 12, fontWeight: "600" }}>
+              {t("booking.noJaliFees", "No Jali fees; transport prices are set by providers.")}
+            </Text>
           </View>
           <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginVertical: 8 }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>

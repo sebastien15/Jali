@@ -13,8 +13,8 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
         body: "Open the Home tab, select your departure city, destination, and travel date. Choose a bus from the list and tap Book. An admin will confirm your booking and upload your ticket photo within a few hours.",
       },
       {
-        heading: "How does the service fee work?",
-        body: "Jali charges a service fee per booking, shown clearly before you confirm. Bus company tickets: 5% of the ticket price (minimum 500 RWF, maximum 3,000 RWF). Private seats: 300–500 RWF depending on your distance to the departure station. Car rentals: 300 RWF. The fee covers our operational costs.",
+        heading: "Does Jali charge a fee?",
+        body: "No. Jali charges no booking or service fees. Transport prices are set by the bus companies, drivers and car owners, and you pay exactly the price shown before you confirm.",
       },
       {
         heading: "When will I receive my ticket?",
@@ -97,12 +97,12 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
         body: "Jali acts as a booking intermediary. We manually arrange transport on your behalf through partner agencies and independent drivers. Confirmation is subject to availability.",
       },
       {
-        heading: "4. Service Fee",
-        body: "A non-refundable service fee is charged per booking and disclosed before payment: 5% of the ticket price for bus company tickets (minimum 500 RWF, maximum 3,000 RWF), 300–500 RWF for private seats depending on distance to the departure station, and 300 RWF for car rentals. This fee covers platform costs.",
+        heading: "4. Fees",
+        body: "Jali charges no booking or service fees. Prices are set by the transport providers and shown in full before you confirm.",
       },
       {
         heading: "5. Cancellations & Refunds",
-        body: "Bus bookings cancelled more than 24 hours before departure are eligible for a refund of the ticket price (service fee excluded). Private seat bookings are non-refundable once confirmed. Car rentals are non-refundable within 12 hours of the rental start.",
+        body: "Bus bookings cancelled more than 24 hours before departure are eligible for a refund of the ticket price. Private seat bookings are non-refundable once confirmed. Car rentals are non-refundable within 12 hours of the rental start.",
       },
       {
         heading: "6. Driver Responsibilities",
@@ -132,15 +132,15 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
     sections: [
       {
         heading: "What we collect",
-        body: "We collect your phone number or Google account email (for sign-in), your name, your approximate location (to calculate the service fee), your booking history, and your device's push notification token (to send you booking updates).",
+        body: "We collect your phone number or Google account email (for sign-in), your name, your approximate location (to show nearby rides and stations), your booking history, and your device's push notification token (to send you booking updates).",
       },
       {
         heading: "How we use your data",
-        body: "Your data is used to: process and manage your bookings, calculate the distance-based service fee, send push notifications about your bookings, and improve the Jali service. We do not sell your data to third parties.",
+        body: "Your data is used to: process and manage your bookings, show nearby rides and stations, send push notifications about your bookings, and improve the Jali service. We do not sell your data to third parties.",
       },
       {
         heading: "Location",
-        body: "Jali requests your location only to estimate the service fee based on your distance to the nearest bus station. Location is not stored on our servers and is not shared with third parties.",
+        body: "Jali requests your location only to show nearby rides, drivers and stations. Location is not stored on our servers and is not shared with third parties.",
       },
       {
         heading: "Firebase",

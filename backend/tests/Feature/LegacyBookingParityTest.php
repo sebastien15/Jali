@@ -39,7 +39,7 @@ class LegacyBookingParityTest extends TestCase
         return Carbon::now('Africa/Kigali')->addDay()->toDateString();
     }
 
-    public function test_rental_booking_is_created_from_the_car_with_a_flat_fee(): void
+    public function test_rental_booking_is_created_from_the_car_with_no_fee(): void
     {
         $me = $this->actingAsRole('user');
         $other = $this->makeUser('user');
@@ -53,11 +53,11 @@ class LegacyBookingParityTest extends TestCase
         $booking = Booking::findOrFail($response->json('id'));
         $response->assertExactJson([
             'id' => $booking->id, 'type' => 'rental', 'title' => 'RAV4 (SUV)', 'sub' => 'RAD 123 A · 2 days',
-            'price' => 50000 * 2 + 300, 'status' => 'pending',
+            'price' => 50000 * 2, 'status' => 'pending',
         ]);
         $this->assertSame($me->id, (int) $booking->user_id);   // never someone else's booking
         $this->assertSame(1, (int) $booking->quantity);        // a rental is one car
-        $this->assertSame(300, (int) $booking->service_fee);
+        $this->assertSame(0, (int) $booking->service_fee);   // S7.4: no Jali fees
         $this->assertSame($this->tomorrow(), $booking->travel_date);
         $this->assertNull($booking->trip_departure_id);
         $this->assertDatabaseHas('activity_logs', ['action' => 'booking_created', 'entity_id' => $booking->id, 'admin_id' => $me->id]);
@@ -85,7 +85,7 @@ class LegacyBookingParityTest extends TestCase
             ->assertNotFound()->assertExactJson(['error' => 'Item not found', 'message' => 'This listing is no longer available.']);
     }
 
-    public function test_private_seat_booking_uses_listing_price_and_clamped_fee(): void
+    public function test_private_seat_booking_uses_listing_price_and_ignores_client_fee(): void
     {
         $me = $this->actingAsRole('user');
         $seat = $this->seat();
@@ -98,16 +98,16 @@ class LegacyBookingParityTest extends TestCase
         $booking = Booking::findOrFail($response->json('id'));
         $response->assertExactJson([
             'id' => $booking->id, 'type' => 'private', 'title' => 'Eric · Kigali → Musanze', 'sub' => 'Departs 08:00',
-            'price' => 3000 * 2 + 500, 'status' => 'pending',
+            'price' => 3000 * 2, 'status' => 'pending',
         ]);
         $this->assertSame($me->id, (int) $booking->user_id);
         $this->assertSame(2, (int) $booking->quantity);
         $this->assertSame(['A', 'B'], $booking->passenger_names);
 
-        // Low client fee is clamped up to the 300 floor
+        // A client-sent fee is ignored: Jali charges none
         $this->postJson('/api/bookings', [
             'type' => 'private', 'reference_id' => $seat->id, 'payment_method' => 'Card', 'service_fee' => 10, 'travel_date' => 'Tomorrow',
-        ])->assertCreated()->assertJsonPath('price', 3000 + 300);
+        ])->assertCreated()->assertJsonPath('price', 3000);
     }
 
     public function test_private_seat_cannot_be_overbooked_or_booked_when_inactive(): void

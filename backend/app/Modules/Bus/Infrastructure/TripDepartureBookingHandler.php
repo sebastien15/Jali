@@ -33,7 +33,7 @@ class TripDepartureBookingHandler implements BookingTypeHandler
             capacity: (int) $item->route->total_seats,
             quantity: $quantity,
             price: $unitPrice * $quantity,
-            serviceFee: max(500, min(3000, (int) round($unitPrice * 0.05))),
+            serviceFee: 0,   // S7.4: no Jali fees
             title: "{$item->route->agency->name} · {$item->route->fromStation->city} → {$item->route->toStation->city}",
             sub: 'Departs ' . substr($item->departure_time, 0, 5),
             originCity: $item->route->fromStation->city,

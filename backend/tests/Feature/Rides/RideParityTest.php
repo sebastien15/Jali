@@ -17,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
+use Tests\Support\WithConfiguredFees;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,7 @@ use Tests\TestCase;
  */
 class RideParityTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithConfiguredFees;
 
     private User $rider;
     private User $driver;
@@ -38,6 +39,7 @@ class RideParityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->configureFees();
         Http::fake([PushService::EXPO_ENDPOINT => Http::response(['data' => ['status' => 'ok']])]);
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->travelTo(now()->setTimezone('Africa/Kigali')->setTime(14, 0)->utc());

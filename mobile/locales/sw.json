@@ -609,7 +609,8 @@
     "bookingInProgress": "Kutemini…",
     "yourFullName": "Jina lako kamili",
     "passengerName": "Jina la abiria {{n}}",
-    "agencyNew": "Mpya"
+    "agencyNew": "Mpya",
+    "noJaliFees": "Hakuna ada za Jali; bei za usafiri huwekwa na watoa huduma."
   },
   "adminBookings": {
     "title": "Maagizo",

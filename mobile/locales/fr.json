@@ -609,7 +609,8 @@
     "bookingInProgress": "Réservation…",
     "yourFullName": "Votre nom complet",
     "passengerName": "Nom du passager {{n}}",
-    "agencyNew": "Nouveau"
+    "agencyNew": "Nouveau",
+    "noJaliFees": "Aucuns frais Jali ; les prix du transport sont fixés par les prestataires."
   },
   "adminBookings": {
     "title": "Réservations",

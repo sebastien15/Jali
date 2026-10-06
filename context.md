@@ -211,8 +211,8 @@ type AdminUser = {
 - Locale files: `locales/{en,fr,rw,sw}.json`
 - Usage: `const { t } = useTranslation()`
 
-#### `lib/serviceFee.ts` / `lib/useServiceFee.ts`
-- Service fee calculation logic + hook
+#### `lib/serviceFee.ts`
+- `haversineDistance` only. Jali charges no fees (S7.4): bookings send no fee, sheets show "No Jali fees".
 
 #### `lib/usePushPermission.ts`
 - Push permission + registers the Expo push token via `POST /me/push-token` (called in (tabs)/_layout.tsx via `<PushRegistrar/>`)
@@ -448,6 +448,8 @@ PUT   /driver/momo                {momo_number, momo_name} — shown to riders p
 POST  /driver/payouts             {amount} ≤ balance → cashout_requests (requester_type=driver)
       Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
       collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
+      S7.4: rides/hire commission_pct and service_fee default to 0 (migration zero_jali_fees resets saved values);
+      legacy bus/private/rental bookings store service_fee 0. A superadmin can still set fees (logged).
 
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
