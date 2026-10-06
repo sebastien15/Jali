@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Auth\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -140,7 +141,7 @@ class AuthController extends Controller
     /**
      * Request OTP for phone number
      */
-    public function requestOtp(Request $request)
+    public function requestOtp(Request $request, OtpService $otp)
     {
         $validator = Validator::make($request->all(), [
             "phone" => "required|string",
@@ -156,9 +157,27 @@ class AuthController extends Controller
             );
         }
 
-        // TODO: Integrate with SMS provider (Twilio/Africa's Talking)
-        // For now, we just log it (in development, OTP is always "123456")
-        Log::info("[OTP] Requested for:", ["phone" => $request->phone]);
+        $phone = OtpService::normalizePhone($request->phone);
+        if (!$phone) {
+            return response()->json(
+                ["error" => "Validation failed", "message" => ["phone" => ["Enter a valid phone number."]]],
+                422,
+            );
+        }
+        if (!$otp->available()) {
+            Log::error("[OTP] SMS is not configured — phone sign-in is unavailable");
+
+            return response()->json(
+                ["error" => "Unavailable", "message" => "Phone sign-in is not available right now. Use email or Google."],
+                503,
+            );
+        }
+        if (!$otp->send($phone)) {
+            return response()->json(
+                ["error" => "Unavailable", "message" => "We could not send the code. Try again in a minute."],
+                503,
+            );
+        }
 
         return response()->json(["message" => "OTP sent"]);
     }
@@ -166,7 +185,7 @@ class AuthController extends Controller
     /**
      * Verify OTP and login
      */
-    public function verifyOtp(Request $request)
+    public function verifyOtp(Request $request, OtpService $otp)
     {
         $validator = Validator::make($request->all(), [
             "phone" => "required|string",
@@ -183,22 +202,26 @@ class AuthController extends Controller
             );
         }
 
-        // TODO: Verify OTP with SMS provider
-        // For development: accept "123456" as valid
-        if ($request->otp !== "123456") {
+        $phone = OtpService::normalizePhone($request->phone);
+        if (!$phone || !$otp->verify($phone, (string) $request->otp)) {
             return response()->json(
-                ["error" => "Unauthorized", "message" => "Invalid OTP"],
+                ["error" => "Unauthorized", "message" => "Invalid or expired code"],
                 401,
             );
         }
 
-        $user = User::with("role")->where("phone", $request->phone)->first();
+        // Existing accounts may have stored the number in another format
+        $user = User::with("role")
+            ->whereIn("phone", array_unique(array_filter([
+                $phone, $request->phone, str_starts_with($phone, "+250") ? "0" . substr($phone, 4) : null,
+            ])))
+            ->first();
 
         if (!$user) {
             $userRole = Role::where("name", "user")->first();
             $user = User::create([
                 "name" => "User",
-                "phone" => $request->phone,
+                "phone" => $phone,
                 "role_id" => $userRole ? $userRole->id : null,
             ]);
             $user->load("role");
