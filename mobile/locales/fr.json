@@ -1194,5 +1194,9 @@
     "title": "Afficher aussi les prix en",
     "sub": "Un montant approximatif à côté du RWF. Vous payez toujours en RWF.",
     "none": "RWF uniquement"
+  },
+  "services": {
+    "notAvailableTitle": "Pas encore disponible",
+    "back": "Retour"
   }
 }

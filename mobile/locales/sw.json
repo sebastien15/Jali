@@ -1194,5 +1194,9 @@
     "title": "Onyesha bei pia kwa",
     "sub": "Kiasi cha takriban kando ya RWF. Unalipa kila wakati kwa RWF.",
     "none": "RWF pekee"
+  },
+  "services": {
+    "notAvailableTitle": "Bado haipatikani",
+    "back": "Rudi"
   }
 }

@@ -12,15 +12,14 @@ import {
 import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
-import { RideNowBar, ActiveRideBanner } from "@/features/nearby-rides";
-import { HireDriverBar } from "@/features/driver-hire";
+import { ActiveRideBanner } from "@/features/nearby-rides";
 import { PrivateResults } from "@/features/shared-journeys";
 import { RentalSearchPanel } from "@/features/rentals";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { toYmd } from "@/lib/date";
-
-type Mode = "bus" | "private" | "rental";
+import { HOME_BARS, HOME_TABS, type HomeMode } from "../serviceRegistry";
+import { useServiceAccess } from "../serviceAccess";
 
 export default function HomeScreen() {
   const queryClient = useQueryClient();
@@ -30,7 +29,7 @@ export default function HomeScreen() {
     const d = new Date(); d.setHours(0, 0, 0, 0); return d;
   });
 
-  const [mode, setMode]               = useState<Mode>("bus");
+  const [chosenMode, setMode]         = useState<HomeMode | null>(null);
   const [agencyFilter, setAgencyFilter] = useState<string | null>(null);
 
   const [sheet, setSheet]             = useState<any>(null);
@@ -47,6 +46,13 @@ export default function HomeScreen() {
         .catch(() => {});
     });
   }, []);
+
+  // S23.2: only services available to this account here are shown, and only
+  // the visible tab's queries run (hidden services make no API calls).
+  const access = useServiceAccess(userCoords);
+  const tabs = HOME_TABS.filter(tab => access.isAvailable(tab.service));
+  const bars = HOME_BARS.filter(bar => access.isAvailable(bar.service));
+  const mode: HomeMode | null = tabs.find(tab => tab.mode === chosenMode)?.mode ?? tabs[0]?.mode ?? null;
 
   // Local calendar day — toISOString() would shift local midnight to the previous UTC day
   const dateParam = toYmd(selectedDate);
@@ -72,6 +78,7 @@ export default function HomeScreen() {
     staleTime: 15 * 60_000, // agency schedules rarely change
     gcTime: 30 * 60_000,
     placeholderData: keepPreviousData,
+    enabled: mode === "bus",
   });
 
   // ── User's past bookings — for agency chip ordering ───────────────────────
@@ -79,6 +86,7 @@ export default function HomeScreen() {
     queryKey: queryKeys.bookings.mine(),
     queryFn: () => api.get("/bookings").then(r => r.data ?? []),
     staleTime: 60_000,
+    enabled: mode === "bus",
   });
 
   // Car rentals: RentalSearchPanel loads cars for the chosen dates itself (epic E24)
@@ -103,6 +111,7 @@ export default function HomeScreen() {
     staleTime: 10 * 60_000,
     gcTime: 20 * 60_000,
     placeholderData: keepPreviousData,
+    enabled: mode === "private",
   });
 
   const trips        = tripsQuery.data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
@@ -173,10 +182,9 @@ export default function HomeScreen() {
       />
 
       <ActiveRideBanner role="rider" />
-      <RideNowBar />
-      <HireDriverBar />
+      {bars.map(({ service, Component }) => <Component key={service} />)}
 
-      <ModeTabs mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />
+      {mode && <ModeTabs tabs={tabs} mode={mode} onChange={(m) => { setMode(m); setAgencyFilter(null); }} />}
 
       {mode === "bus" && (
         <AgencyFilterBar agencies={agencies} selected={agencyFilter} onChange={setAgencyFilter} />
