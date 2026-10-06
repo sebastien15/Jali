@@ -42,6 +42,7 @@ class RentalBookingTest extends TestCase
         $this->verifiedCar(['plate' => 'RAB 1', 'name' => 'Suzuki Swift', 'make' => 'Suzuki', 'model' => 'Swift', 'type' => 'Hatchback', 'price' => 25000, 'transmission' => 'manual']);
         $this->verifiedCar(['plate' => 'RAB 2', 'name' => 'Pending car', 'verification_status' => CarRental::PENDING]);
         $this->verifiedCar(['plate' => 'RAB 3', 'name' => 'In the garage', 'status' => 'maintenance']);
+        $this->verifiedCar(['plate' => 'RAB 5', 'name' => 'Seeded demo car', 'user_id' => null]);   // no owner to confirm
         $this->verifiedCar(['plate' => 'RAB 4', 'name' => 'Blocked', 'make' => 'Honda', 'model' => 'Fit', 'price' => 30000])->blocks()->create(['start_date' => '2026-10-18', 'end_date' => '2026-10-19']);
 
         Sanctum::actingAs($this->customer);

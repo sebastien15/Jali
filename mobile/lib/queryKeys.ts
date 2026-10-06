@@ -17,6 +17,13 @@ export const queryKeys = {
   carRentals: {
     all: () => ["carRentals"] as const,
   },
+  // Car rental (epic E24)
+  rentals: {
+    search: (params: object) => ["rentals", "search", params] as const,
+    car: (id: number, params?: object) => ["rentals", "car", id, params] as const,
+    bookings: (scope?: string) => ["rentals", "bookings", scope] as const,
+    booking: (id: number) => ["rentals", "booking", id] as const,
+  },
   privateSeats: {
     all: () => ["privateSeats"] as const,
     search: (from?: string, to?: string, date?: string, near?: { lat: number; lng: number } | null) =>
@@ -63,6 +70,10 @@ export const queryKeys = {
     availability: () => ["driver", "availability"] as const,
     hires: (scope: string) => ["driver", "hires", scope] as const,
     earnings: () => ["driver", "earnings"] as const,
+    car: (id: number) => ["driver", "car", id] as const,
+    rentals: (status?: string) => ["driver", "rentals", status] as const,
+    rental: (id: number) => ["driver", "rental", id] as const,
+    rentalSummary: () => ["driver", "rentalSummary"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
@@ -93,6 +104,10 @@ export const queryKeys = {
     drivers: (status?: string) => ["admin", "drivers", { status }] as const,
     driver: (id: number) => ["admin", "drivers", id] as const,
     ridesLive: () => ["admin", "rides", "live"] as const,
+    rentalCars: (status: string) => ["admin", "rentalCars", status] as const,
+    rentalCar: (id: number) => ["admin", "rentalCar", id] as const,
+    rentalsOps: (status?: string) => ["admin", "rentals", status] as const,
+    rentalOps: (id: number) => ["admin", "rental", id] as const,
     settlements: (status: string) => ["admin", "settlements", status] as const,
     rides: (filters?: object) => ["admin", "rides", "list", filters] as const,
     ride: (id: number) => ["admin", "rides", id] as const,

@@ -1943,7 +1943,7 @@ export interface components {
             transmission: "automatic" | "manual" | null;
             /** @enum {string|null} */
             fuel_type: "petrol" | "diesel" | "hybrid" | "electric" | null;
-            /** @description Relative URLs (/storage/…); the first is the cover */
+            /** @description Public photo URLs; the first is the cover */
             photos: string[];
             rating: number;
             trips_count: number;

@@ -2650,7 +2650,7 @@
   "epic": "E21",
   "issue": 180,
   "track": "F",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2935,7 +2935,7 @@
   "epic": "E24",
   "issue": 195,
   "track": "B1",
-  "status": "partial"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2944,14 +2944,14 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-2",
+   "wave-1",
    "backend"
   ],
   "file": "docs/ride-hailing/stories/S24.2-rental-calendar-and-no-double-booking.md",
   "epic": "E24",
   "issue": 196,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2969,7 +2969,7 @@
   "epic": "E24",
   "issue": 197,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2978,7 +2978,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-3",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -2986,7 +2986,7 @@
   "epic": "E24",
   "issue": 198,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -2995,7 +2995,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-4",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -3003,7 +3003,7 @@
   "epic": "E24",
   "issue": 199,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3012,7 +3012,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-4",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -3020,7 +3020,7 @@
   "epic": "E24",
   "issue": 200,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3029,7 +3029,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-4",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -3037,7 +3037,7 @@
   "epic": "E24",
   "issue": 201,
   "track": "B1",
-  "status": "partial"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3055,7 +3055,7 @@
   "epic": "E24",
   "issue": 202,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3064,7 +3064,7 @@
   "labels": [
    "user-story",
    "batch-1-rental",
-   "wave-5",
+   "wave-2",
    "admin",
    "backend",
    "mobile"
@@ -3073,7 +3073,7 @@
   "epic": "E24",
   "issue": 203,
   "track": "B1",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",

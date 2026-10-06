@@ -3145,7 +3145,7 @@ components:
         luggage: { type: [integer, "null"] }
         transmission: { type: [string, "null"], enum: [automatic, manual, null] }
         fuel_type: { type: [string, "null"], enum: [petrol, diesel, hybrid, electric, null] }
-        photos: { type: array, items: { type: string }, description: "Relative URLs (/storage/…); the first is the cover" }
+        photos: { type: array, items: { type: string }, description: "Public photo URLs; the first is the cover" }
         rating: { type: number }
         trips_count: { type: integer }
         price_per_day: { type: integer }

@@ -34,10 +34,11 @@ class RentalCatalogue
      */
     public function search(array $filters, ?CarbonInterface $start, ?CarbonInterface $end, ?int $excludeOwnerId = null): array
     {
-        $query = CarRental::query()->with('owner')
+        // Only owner-listed cars: old admin-seeded catalogue rows have no owner to confirm a request
+        $query = CarRental::query()->with('owner')->whereNotNull('user_id')
             ->where('active', true)->where('verification_status', CarRental::VERIFIED)
             ->where('status', '!=', 'maintenance')
-            ->when($excludeOwnerId, fn ($q) => $q->where(fn ($w) => $w->whereNull('user_id')->orWhere('user_id', '!=', $excludeOwnerId)))
+            ->when($excludeOwnerId, fn ($q) => $q->where('user_id', '!=', $excludeOwnerId))
             ->when($filters['type'] ?? null, fn ($q, $type) => $q->where('type', $type))
             ->when($filters['transmission'] ?? null, fn ($q, $t) => $q->where('transmission', $t))
             ->when($filters['seats'] ?? null, fn ($q, $seats) => $q->where('seats', '>=', (int) $seats))
@@ -71,7 +72,7 @@ class RentalCatalogue
     public function cities(): array
     {
         return CarRental::where('active', true)->where('verification_status', CarRental::VERIFIED)
-            ->whereNotNull('city')->select('city', DB::raw('count(*) as cars'))->groupBy('city')
+            ->whereNotNull('user_id')->whereNotNull('city')->select('city', DB::raw('count(*) as cars'))->groupBy('city')
             ->orderByDesc('cars')->pluck('city')->all();
     }
 }
