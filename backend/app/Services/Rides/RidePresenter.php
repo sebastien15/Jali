@@ -33,6 +33,11 @@ class RidePresenter
                 'photo'    => preg_match('#^https?://#', (string) $ride->driver->profile_image_url) ? $ride->driver->profile_image_url : null,
                 'rating'   => (float) ($ride->driver->driverProfile?->rating_avg ?? 0),
                 'phone'    => $ongoing && $isRider ? $ride->driver->phone : null,
+                // S7.1: rider pays the driver's MoMo directly — shown once the trip has started
+                'momo'     => $isRider && $ride->payment_method === 'momo' && in_array($ride->status, [Ride::IN_PROGRESS, Ride::COMPLETED], true)
+                    && $ride->driver->driverProfile?->momo_number
+                    ? ['number' => $ride->driver->driverProfile->momo_number, 'name' => $ride->driver->driverProfile->momo_name]
+                    : null,
                 'location' => $location,
                 'vehicle'  => $ride->vehicle ? [
                     'class' => $ride->vehicle->class,
@@ -57,6 +62,7 @@ class RidePresenter
             'est_distance_km' => $ride->est_distance_km,
             'est_minutes'     => $ride->est_minutes,
             'quoted_fare'     => $ride->quoted_fare,
+            'max_fare'        => $ride->max_fare,
             'driver_fare'     => $ride->driver_fare,
             'service_fee'     => $ride->service_fee,
             'final_fare'      => $ride->final_fare,

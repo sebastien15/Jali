@@ -880,6 +880,129 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/driver/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Earnings by period (rides + hires), what I owe Jali, ledger, settlements and payouts */
+        get: operations["getDriverEarnings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** I paid Jali by MoMo — an admin confirms (one pending at a time) */
+        post: operations["postSettlement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/momo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** My MoMo number and name — shown to riders who pay by MoMo */
+        put: operations["putDriverMomo"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cash out what Jali owes me to my MoMo (in-app payments) */
+        post: operations["postDriverPayout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drivers' MoMo commission payments to confirm */
+        get: operations["listSettlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settlements/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Payment received — credit the driver's ledger */
+        post: operations["confirmSettlement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settlements/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Payment not found — the driver is told why */
+        post: operations["rejectSettlement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/rides/live": {
         parameters: {
             query?: never;
@@ -1148,7 +1271,7 @@ export interface components {
             online: boolean;
             /** Format: date-time */
             online_since: string | null;
-            blocked_reasons: ("not_verified" | "suspended" | "no_active_vehicle" | "insurance_expired" | "no_vehicle_photo" | "no_rates" | "rates_outside_limits")[];
+            blocked_reasons: ("not_verified" | "suspended" | "no_active_vehicle" | "insurance_expired" | "no_vehicle_photo" | "no_rates" | "rates_outside_limits" | "commission_owed")[];
         };
         DriverRatesResponse: {
             vehicle: null | {
@@ -1413,6 +1536,65 @@ export interface components {
             /** Format: date-time */
             cancelled_at?: string | null;
         };
+        DriverEarningsPeriod: {
+            trips: number;
+            /** @description What riders and customers paid */
+            collected: number;
+            /** @description Driver's net (driver price − commission) */
+            earnings: number;
+            /** @description Commission + Jali fees owed for the period */
+            commission: number;
+        };
+        DriverEarnings: {
+            periods: {
+                today: components["schemas"]["DriverEarningsPeriod"];
+                week: components["schemas"]["DriverEarningsPeriod"];
+                month: components["schemas"]["DriverEarningsPeriod"];
+            };
+            /** @description > 0 Jali owes me · < 0 I owe Jali */
+            balance: number;
+            owed: number;
+            max_owed: number;
+            /** @description Owed above max: settle before going online */
+            blocked: boolean;
+            pay_to: {
+                number?: string | null;
+                name?: string | null;
+            };
+            momo: {
+                number?: string | null;
+                name?: string | null;
+            };
+            ledger: {
+                id: number;
+                /** @enum {string} */
+                type: "earning" | "commission" | "settlement" | "payout" | "adjustment";
+                source_type?: string;
+                source_id?: number | null;
+                amount: number;
+                balance_effect: number;
+                balance_after: number;
+                note?: string | null;
+                /** Format: date-time */
+                at: string | null;
+            }[];
+            settlements: {
+                id?: number;
+                amount?: number;
+                reference?: string;
+                /** @enum {string} */
+                status?: "pending" | "confirmed" | "rejected";
+                /** Format: date-time */
+                at?: string | null;
+            }[];
+            payouts: {
+                id?: number;
+                amount?: number;
+                status?: string;
+                /** Format: date-time */
+                at?: string | null;
+            }[];
+        };
         Place: {
             lat: number;
             lng: number;
@@ -1463,8 +1645,10 @@ export interface components {
             dropoff: components["schemas"]["Place"];
             est_distance_km: number;
             est_minutes: number;
-            /** @description Locked total the rider pays (driver fare + Jali fee) */
+            /** @description Locked total the rider pays (driver fare + Jali fee). Broadcast: lowest offer until a driver accepts, then the winner's price */
             quoted_fare: number;
+            /** @description Broadcast: the rider's maximum */
+            max_fare?: number | null;
             driver_fare: number;
             service_fee: number;
             final_fare: number | null;
@@ -1488,6 +1672,11 @@ export interface components {
                 rating: number;
                 /** @description Rider view, once accepted */
                 phone: string | null;
+                /** @description Rider view when paying by MoMo, once the trip started (S7.1) */
+                momo?: {
+                    number?: string;
+                    name?: string | null;
+                } | null;
                 location: null | {
                     lat: number;
                     lng: number;
@@ -1533,6 +1722,8 @@ export interface components {
             pickup_km: number;
             /** @description Driver's quote minus commission */
             earnings: number;
+            /** @description Sent to several drivers — first to accept wins (S3.5) */
+            broadcast?: boolean;
             rider_rating?: number | null;
             /** @enum {string} */
             payment_method?: "cash" | "momo";
@@ -1562,6 +1753,21 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+            /**
+             * @description S3.5: how many nearest drivers get a broadcast
+             * @default 5
+             */
+            broadcast_max_drivers: number;
+            /**
+             * @description S5.4: drivers owing more can't go online
+             * @default 20000
+             */
+            max_commission_owed: number;
+            /** @description Where drivers send commission (S7.2) */
+            settlement_momo?: {
+                number?: string | null;
+                name?: string | null;
+            };
             /** @default 500 */
             cancel_fee: number;
             /** @default 5 */
@@ -2346,21 +2552,31 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Every class, in order moto → van; classes without drivers have available=false */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        class: components["schemas"]["VehicleClass"];
-                        available: boolean;
-                        min_quote?: number | null;
-                        max_quote?: number | null;
-                        nearest_eta_min?: number | null;
-                    }[];
+                        trip: {
+                            distance_km: number;
+                            est_minutes: number;
+                        };
+                        classes: {
+                            class: components["schemas"]["VehicleClass"];
+                            available: boolean;
+                            drivers: number;
+                            min_quote: number | null;
+                            max_quote: number | null;
+                            nearest_eta_min: number | null;
+                        }[];
+                    };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listMyRides: {
@@ -2399,12 +2615,16 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["TripPoints"] & {
                     /**
-                     * @description broadcast arrives with S3.5
+                     * @description pick: one driver (driver_id required). broadcast: the nearest drivers within max_fare; first to accept wins at their own price (S3.5)
                      * @enum {string}
                      */
-                    mode: "pick";
-                    /** @description A driver from /rides/nearby */
-                    driver_id: number;
+                    mode: "pick" | "broadcast";
+                    /** @description pick only: a driver from /rides/nearby */
+                    driver_id?: number;
+                    /** @description broadcast only */
+                    vehicle_class?: components["schemas"]["VehicleClass"] | null;
+                    /** @description broadcast only: only drivers whose total is at or under this */
+                    max_fare?: number | null;
                     /**
                      * @default cash
                      * @enum {string}
@@ -3249,6 +3469,238 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getDriverEarnings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverEarnings"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postSettlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    amount: number;
+                    /** @description MoMo transaction ID */
+                    reference: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Waiting for confirmation */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: number;
+                        /** @enum {string} */
+                        status: "pending";
+                        message?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    putDriverMomo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    momo_number: string;
+                    momo_name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        momo: {
+                            number?: string;
+                            name?: string;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    postDriverPayout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    amount: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Requested */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id?: number;
+                        status?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listSettlements: {
+        parameters: {
+            query?: {
+                status?: "pending" | "confirmed" | "rejected";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: number;
+                        driver: {
+                            id?: number;
+                            name?: string | null;
+                            phone?: string | null;
+                        };
+                        amount: number;
+                        reference: string;
+                        /** @enum {string} */
+                        status: "pending" | "confirmed" | "rejected";
+                        owed: number;
+                        /** Format: date-time */
+                        at: string | null;
+                    }[];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    confirmSettlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Confirmed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: number;
+                        /** @enum {string} */
+                        status: "confirmed";
+                        owed: number;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    rejectSettlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Rejected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id?: number;
+                        /** @enum {string} */
+                        status?: "rejected";
+                    };
                 };
             };
             401: components["responses"]["Unauthorized"];

@@ -58,6 +58,7 @@ export function IncomingRequests() {
           </View>
           <Text style={{ color: C.white, fontWeight: "900", fontSize: 26, marginTop: 8 }}>
             {t("ride.driverTrip.youEarn", { amount: formatRwf(card.earnings) })}
+            {card.broadcast ? `  ·  ${t("ride.broadcast.firstWins")}` : ""}
           </Text>
           <View style={{ marginTop: 10, gap: 6 }}>
             <Row icon="radio-button-on" color={C.green} text={card.pickup_area} />

@@ -560,7 +560,6 @@ paths:
     post:
       tags: [Rides]
       operationId: estimateRide
-      x-jali-status: planned
       x-jali-story: S3.6
       x-jali-permission: request-rides
       summary: Price range and nearest ETA per vehicle class
@@ -571,20 +570,34 @@ paths:
             schema: { $ref: "#/components/schemas/TripPoints" }
       responses:
         "200":
-          description: OK
+          description: Every class, in order moto → van; classes without drivers have available=false
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  required: [class, available]
-                  properties:
-                    class: { $ref: "#/components/schemas/VehicleClass" }
-                    available: { type: boolean }
-                    min_quote: { type: [integer, "null"] }
-                    max_quote: { type: [integer, "null"] }
-                    nearest_eta_min: { type: [integer, "null"] }
+                type: object
+                required: [trip, classes]
+                properties:
+                  trip:
+                    type: object
+                    required: [distance_km, est_minutes]
+                    properties:
+                      distance_km: { type: number }
+                      est_minutes: { type: integer }
+                  classes:
+                    type: array
+                    items:
+                      type: object
+                      required: [class, available, drivers, min_quote, max_quote, nearest_eta_min]
+                      properties:
+                        class: { $ref: "#/components/schemas/VehicleClass" }
+                        available: { type: boolean }
+                        drivers: { type: integer }
+                        min_quote: { type: [integer, "null"] }
+                        max_quote: { type: [integer, "null"] }
+                        nearest_eta_min: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
   /rides:
     get:
@@ -610,7 +623,7 @@ paths:
     post:
       tags: [Rides]
       operationId: requestRide
-      x-jali-story: S3.4
+      x-jali-story: S3.4, S3.5
       x-jali-permission: request-rides
       summary: Request a ride from one driver (pick) or all nearby (broadcast)
       requestBody:
@@ -621,10 +634,12 @@ paths:
               allOf:
                 - $ref: "#/components/schemas/TripPoints"
                 - type: object
-                  required: [mode, driver_id]
+                  required: [mode]
                   properties:
-                    mode: { type: string, enum: [pick], description: "broadcast arrives with S3.5" }
-                    driver_id: { type: integer, description: A driver from /rides/nearby }
+                    mode: { type: string, enum: [pick, broadcast], description: "pick: one driver (driver_id required). broadcast: the nearest drivers within max_fare; first to accept wins at their own price (S3.5)" }
+                    driver_id: { type: integer, description: "pick only: a driver from /rides/nearby" }
+                    vehicle_class: { oneOf: [{ $ref: "#/components/schemas/VehicleClass" }, { type: "null" }], description: broadcast only }
+                    max_fare: { type: [integer, "null"], minimum: 500, description: "broadcast only: only drivers whose total is at or under this" }
                     payment_method: { type: string, enum: [cash, momo], default: cash }
       responses:
         "201":
@@ -1328,6 +1343,216 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /driver/earnings:
+    get:
+      tags: [Driver]
+      operationId: getDriverEarnings
+      x-jali-story: S5.4
+      x-jali-permission: offer-rides
+      summary: Earnings by period (rides + hires), what I owe Jali, ledger, settlements and payouts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DriverEarnings" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /driver/settlements:
+    post:
+      tags: [Driver]
+      operationId: postSettlement
+      x-jali-story: S7.2
+      x-jali-permission: offer-rides
+      summary: I paid Jali by MoMo — an admin confirms (one pending at a time)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, reference]
+              properties:
+                amount: { type: integer, minimum: 100 }
+                reference: { type: string, description: MoMo transaction ID }
+      responses:
+        "201":
+          description: Waiting for confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status]
+                properties:
+                  id: { type: integer }
+                  status: { type: string, enum: [pending] }
+                  message: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/momo:
+    put:
+      tags: [Driver]
+      operationId: putDriverMomo
+      x-jali-story: S7.1
+      x-jali-permission: offer-rides
+      summary: My MoMo number and name — shown to riders who pay by MoMo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [momo_number, momo_name]
+              properties:
+                momo_number: { type: string }
+                momo_name: { type: string }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [momo]
+                properties:
+                  momo:
+                    type: object
+                    properties:
+                      number: { type: string }
+                      name: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /driver/payouts:
+    post:
+      tags: [Driver]
+      operationId: postDriverPayout
+      x-jali-story: S7.2
+      x-jali-permission: offer-rides
+      summary: Cash out what Jali owes me to my MoMo (in-app payments)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: { type: integer, minimum: 1000 }
+      responses:
+        "201":
+          description: Requested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  status: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /admin/settlements:
+    get:
+      tags: [Admin rides]
+      operationId: listSettlements
+      x-jali-story: S7.2
+      x-jali-permission: manage-rides
+      summary: Drivers' MoMo commission payments to confirm
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, confirmed, rejected], default: pending } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, driver, amount, reference, status, owed, at]
+                  properties:
+                    id: { type: integer }
+                    driver:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        name: { type: [string, "null"] }
+                        phone: { type: [string, "null"] }
+                    amount: { type: integer }
+                    reference: { type: string }
+                    status: { type: string, enum: [pending, confirmed, rejected] }
+                    owed: { type: integer }
+                    at: { type: [string, "null"], format: date-time }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/settlements/{id}/confirm:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Admin rides]
+      operationId: confirmSettlement
+      x-jali-story: S7.2
+      x-jali-permission: manage-rides
+      summary: Payment received — credit the driver's ledger
+      responses:
+        "200":
+          description: Confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, owed]
+                properties:
+                  id: { type: integer }
+                  status: { type: string, enum: [confirmed] }
+                  owed: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /admin/settlements/{id}/reject:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Admin rides]
+      operationId: rejectSettlement
+      x-jali-story: S7.2
+      x-jali-permission: manage-rides
+      summary: Payment not found — the driver is told why
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: { type: string }
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  status: { type: string, enum: [rejected] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /admin/rides/live:
     get:
       tags: [Admin rides]
@@ -1820,7 +2045,7 @@ components:
           type: array
           items:
             type: string
-            enum: [not_verified, suspended, no_active_vehicle, insurance_expired, no_vehicle_photo, no_rates, rates_outside_limits]
+            enum: [not_verified, suspended, no_active_vehicle, insurance_expired, no_vehicle_photo, no_rates, rates_outside_limits, commission_owed]
 
     DriverRatesResponse:
       type: object
@@ -2130,6 +2355,75 @@ components:
         checked_out_at: { type: [string, "null"], format: date-time }
         cancelled_at: { type: [string, "null"], format: date-time }
 
+    DriverEarningsPeriod:
+      type: object
+      required: [trips, collected, earnings, commission]
+      properties:
+        trips: { type: integer }
+        collected: { type: integer, description: What riders and customers paid }
+        earnings: { type: integer, description: Driver's net (driver price − commission) }
+        commission: { type: integer, description: Commission + Jali fees owed for the period }
+
+    DriverEarnings:
+      type: object
+      required: [periods, balance, owed, max_owed, blocked, pay_to, momo, ledger, settlements, payouts]
+      properties:
+        periods:
+          type: object
+          required: [today, week, month]
+          properties:
+            today: { $ref: "#/components/schemas/DriverEarningsPeriod" }
+            week: { $ref: "#/components/schemas/DriverEarningsPeriod" }
+            month: { $ref: "#/components/schemas/DriverEarningsPeriod" }
+        balance: { type: integer, description: "> 0 Jali owes me · < 0 I owe Jali" }
+        owed: { type: integer }
+        max_owed: { type: integer }
+        blocked: { type: boolean, description: "Owed above max: settle before going online" }
+        pay_to:
+          type: object
+          properties:
+            number: { type: [string, "null"] }
+            name: { type: [string, "null"] }
+        momo:
+          type: object
+          properties:
+            number: { type: [string, "null"] }
+            name: { type: [string, "null"] }
+        ledger:
+          type: array
+          items:
+            type: object
+            required: [id, type, amount, balance_effect, balance_after, at]
+            properties:
+              id: { type: integer }
+              type: { type: string, enum: [earning, commission, settlement, payout, adjustment] }
+              source_type: { type: string }
+              source_id: { type: [integer, "null"] }
+              amount: { type: integer }
+              balance_effect: { type: integer }
+              balance_after: { type: integer }
+              note: { type: [string, "null"] }
+              at: { type: [string, "null"], format: date-time }
+        settlements:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              amount: { type: integer }
+              reference: { type: string }
+              status: { type: string, enum: [pending, confirmed, rejected] }
+              at: { type: [string, "null"], format: date-time }
+        payouts:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              amount: { type: integer }
+              status: { type: string }
+              at: { type: [string, "null"], format: date-time }
+
     Place:
       type: object
       required: [lat, lng]
@@ -2188,7 +2482,8 @@ components:
         dropoff: { $ref: "#/components/schemas/Place" }
         est_distance_km: { type: number }
         est_minutes: { type: integer }
-        quoted_fare: { type: integer, description: "Locked total the rider pays (driver fare + Jali fee)" }
+        quoted_fare: { type: integer, description: "Locked total the rider pays (driver fare + Jali fee). Broadcast: lowest offer until a driver accepts, then the winner's price" }
+        max_fare: { type: [integer, "null"], description: "Broadcast: the rider's maximum" }
         driver_fare: { type: integer }
         service_fee: { type: integer }
         final_fare: { type: [integer, "null"] }
@@ -2209,6 +2504,12 @@ components:
                 photo: { type: [string, "null"] }
                 rating: { type: number }
                 phone: { type: [string, "null"], description: "Rider view, once accepted" }
+                momo:
+                  description: "Rider view when paying by MoMo, once the trip started (S7.1)"
+                  type: [object, "null"]
+                  properties:
+                    number: { type: string }
+                    name: { type: [string, "null"] }
                 location:
                   oneOf:
                     - type: "null"
@@ -2259,6 +2560,7 @@ components:
         trip_km: { type: number }
         pickup_km: { type: number }
         earnings: { type: integer, description: "Driver's quote minus commission" }
+        broadcast: { type: boolean, description: "Sent to several drivers — first to accept wins (S3.5)" }
         rider_rating: { type: [number, "null"] }
         payment_method: { type: string, enum: [cash, momo] }
         expires_at: { type: string, format: date-time }
@@ -2286,6 +2588,14 @@ components:
         nearby_radius_km: { type: number, default: 5 }
         presence_ttl_sec: { type: integer, default: 60 }
         request_timeout_sec: { type: integer, default: 30 }
+        broadcast_max_drivers: { type: integer, default: 5, description: "S3.5: how many nearest drivers get a broadcast" }
+        max_commission_owed: { type: integer, default: 20000, description: "S5.4: drivers owing more can't go online" }
+        settlement_momo:
+          type: object
+          description: Where drivers send commission (S7.2)
+          properties:
+            number: { type: [string, "null"] }
+            name: { type: [string, "null"] }
         cancel_fee: { type: integer, default: 500 }
         free_wait_min: { type: integer, default: 5 }
         hire: { $ref: "#/components/schemas/HireSettingsLimits" }

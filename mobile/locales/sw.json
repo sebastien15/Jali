@@ -741,7 +741,8 @@
       "no_vehicle_photo": "Ongeza picha ya mbele ya gari",
       "no_rates": "Weka bei zako",
       "rates_outside_limits": "Rekebisha bei zako ziendane na viwango vya Jali",
-      "fix": "Rekebisha"
+      "fix": "Rekebisha",
+      "commission_owed": "Lipa unachodaiwa na Jali"
     },
     "where": {
       "bar": "Safari sasa — unaenda wapi?",
@@ -776,7 +777,10 @@
       "retry": "Angalia tena",
       "request": "Omba {{name}}",
       "seats": "viti {{count}}",
-      "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba."
+      "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba.",
+      "noneNow": "hakuna sasa",
+      "view_list": "Orodha",
+      "view_map": "Ramani"
     },
     "trip": {
       "waiting": "Tunasubiri {{name}} akubali…",
@@ -827,7 +831,8 @@
       "tag_Friendly": "Mkarimu",
       "tag_Knows the way": "Anajua njia",
       "tag_On time": "Kwa wakati",
-      "tag_Polite": "Mwenye adabu"
+      "tag_Polite": "Mwenye adabu",
+      "payMomoTo": "Mlipe dereva wako kwa MoMo"
     },
     "driverTrip": {
       "newRequest": "Ombi jipya la safari",
@@ -875,6 +880,16 @@
       "status_expired": "Hakuna jibu",
       "status_cancelled_by_rider": "Imeghairiwa",
       "status_cancelled_by_driver": "Imeghairiwa na dereva"
+    },
+    "broadcast": {
+      "button": "Tuma kwa madereva wote walio karibu",
+      "title": "Tuma kwa madereva walio karibu",
+      "sub": "Ombi lako linaenda kwa madereva walio karibu zaidi kwa bei yako ya juu au chini. Wa kwanza kukubali ni wako, kwa bei yake.",
+      "max": "Bei ya juu (RWF)",
+      "noMax": "Hakuna kikomo",
+      "send": "Tuma ombi",
+      "finding": "Tunakutafutia dereva…",
+      "firstWins": "wa kwanza kukubali anashinda"
     }
   },
   "hire": {
@@ -1034,5 +1049,39 @@
       "empty": "Bado hakuna ukodishaji",
       "error": "Imeshindwa kupakia ukodishaji wako"
     }
+  },
+  "earnings": {
+    "title": "Mapato",
+    "today": "Leo",
+    "week": "Wiki hii",
+    "month": "Mwezi huu",
+    "net": "Umepata (baada ya kamisheni)",
+    "tripsLabel": "Safari",
+    "collected": "Kilicholipwa na wateja",
+    "commission": "Kamisheni + ada za Jali",
+    "owed": "Unadaiwa na Jali",
+    "blocked": "Unadaiwa zaidi ya {{max}}. Lipa ili urudi mtandaoni.",
+    "pending": "Malipo yako ya {{amount}} yanasubiri kuthibitishwa.",
+    "payTo": "Yatume kwa MoMo {{number}} ({{name}}), kisha weka namba ya muamala.",
+    "payToSupport": "Lipa Jali kwa MoMo (uliza msaada namba), kisha weka namba ya muamala.",
+    "amount": "Kiasi (RWF)",
+    "reference": "Namba ya muamala wa MoMo",
+    "settle": "Nimelipa",
+    "settleSent": "Asante — tutathibitisha malipo yako hivi karibuni.",
+    "cashout": "Toa {{amount}} kwenda MoMo yangu",
+    "cashoutSent": "Ombi la kutoa limetumwa.",
+    "myMomo": "MoMo yangu kwa abiria",
+    "myMomoHint": "Abiria wanaochagua MoMo wanaona namba hii mwisho wa safari.",
+    "momoNumber": "Namba ya MoMo",
+    "momoName": "Jina kwenye MoMo",
+    "history": "Historia",
+    "empty": "Bado hakuna safari.",
+    "trips_one": "Safari {{count}}",
+    "trips_other": "Safari {{count}}",
+    "type_earning": "Mapato ya safari",
+    "type_commission": "Kamisheni na ada",
+    "type_settlement": "Malipo kwa Jali",
+    "type_payout": "Kutoa pesa",
+    "type_adjustment": "Marekebisho"
   }
 }

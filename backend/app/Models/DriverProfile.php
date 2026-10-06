@@ -24,6 +24,8 @@ class DriverProfile extends Model
         'transmissions',
         'languages',
         'years_experience',
+        'momo_number',
+        'momo_name',
     ];
 
     protected function casts(): array

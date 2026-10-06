@@ -33,6 +33,10 @@ class RideSettings
             'request_timeout_sec' => 30,
             'cancel_fee'          => 500,   // charged when the rider cancels after the free waiting time
             'free_wait_min'       => 5,
+            'broadcast_max_drivers' => 5,   // S3.5: how many nearest drivers get a broadcast request
+            // S7.2 / S5.4: drivers who owe more than this can't go online until they settle
+            'max_commission_owed' => 20000,
+            'settlement_momo'     => ['number' => '', 'name' => 'Jali'],   // where drivers send commission
             // Hire a Driver (epic E6) — limits on driver-set prices and booking rules
             'hire' => [
                 'hourly_min'          => 1000,
@@ -102,6 +106,11 @@ class RideSettings
             'request_timeout_sec' => 'sometimes|integer|min:10|max:300',
             'cancel_fee'          => 'sometimes|integer|min:0|max:10000',
             'free_wait_min'       => 'sometimes|integer|min:0|max:30',
+            'broadcast_max_drivers' => 'sometimes|integer|min:1|max:20',
+            'max_commission_owed'   => 'sometimes|integer|min:0|max:1000000',
+            'settlement_momo'        => 'sometimes|array',
+            'settlement_momo.number' => 'sometimes|nullable|string|max:20',
+            'settlement_momo.name'   => 'sometimes|nullable|string|max:100',
             'hire'                        => 'sometimes|array',
             'hire.hourly_min'             => 'sometimes|integer|min:0',
             'hire.hourly_max'             => 'sometimes|integer|min:0',

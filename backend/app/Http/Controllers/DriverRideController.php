@@ -30,14 +30,17 @@ class DriverRideController extends Controller
                 $rides->expire($ride);
                 continue;
             }
-            $commission = (int) round($ride->driver_fare * $ride->commission_pct / 100);
+            // Broadcast: each driver sees their own price (S3.5)
+            $driverFare = $d->fare['driver_fare'] ?? $ride->driver_fare;
+            $commission = (int) round($driverFare * $ride->commission_pct / 100);
             $cards[] = [
                 'ride_id'        => $ride->id,
                 'pickup_area'    => self::area($ride->pickup_address),
                 'dropoff_area'   => self::area($ride->dropoff_address),
                 'trip_km'        => $ride->est_distance_km,
-                'pickup_km'      => $ride->pickup_km,
-                'earnings'       => $ride->driver_fare - $commission,
+                'pickup_km'      => $d->fare['pickup_km'] ?? $ride->pickup_km,
+                'earnings'       => $driverFare - $commission,
+                'broadcast'      => $ride->mode === 'broadcast',
                 'rider_rating'   => RidePresenter::riderRating($ride->rider_id),
                 'payment_method' => $ride->payment_method ?? 'cash',
                 'expires_at'     => $ride->expires_at?->toIso8601String(),
@@ -49,12 +52,12 @@ class DriverRideController extends Controller
 
     public function accept(Request $request, RideService $rides, int $id)
     {
-        return $this->respond($request, $rides->accept($this->assigned($request, $id), $request->user()));
+        return $this->respond($request, $rides->accept($this->offered($request, $id), $request->user()));
     }
 
     public function decline(Request $request, RideService $rides, int $id)
     {
-        return $this->respond($request, $rides->decline($this->assigned($request, $id), $request->user()));
+        return $this->respond($request, $rides->decline($this->offered($request, $id), $request->user()));
     }
 
     public function arrive(Request $request, RideService $rides, int $id)
@@ -74,6 +77,17 @@ class DriverRideController extends Controller
         $validated = $request->validate(['payment_method' => 'required|in:cash,momo']);
 
         return $this->respond($request, $rides->complete($this->assigned($request, $id), $request->user(), $validated['payment_method']));
+    }
+
+    /** Assigned to me, or a broadcast I was offered (S3.5) */
+    private function offered(Request $request, int $id): Ride
+    {
+        $ride = Ride::findOrFail($id);
+        $mine = $ride->driver_id === $request->user()->id;
+        $offered = $ride->mode === 'broadcast' && RideDispatch::where(['ride_id' => $ride->id, 'driver_id' => $request->user()->id])->exists();
+        abort_unless($mine || $offered, 404);
+
+        return $ride;
     }
 
     private function assigned(Request $request, int $id): Ride

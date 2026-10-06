@@ -371,11 +371,13 @@ PUT   /driver/rates
 # Rate limits (S21.7, AppServiceProvider::configureRateLimits): all API 120/min per user|IP;
 #   sign-in 10/min/IP + 20/h/email · OTP request 5/h/phone · OTP verify 10/h/phone · POST /rides 6/min → 429 {message} + Retry-After
 # perm: request-rides — rider side of on-demand rides
+POST  /rides/estimate              {pickup, dropoff} → {trip, classes:[{class, available, drivers, min_quote, max_quote, nearest_eta_min}]} (S3.6)
 GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
       verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
       closest first, max 50, positions rounded to ~100 m, no phone numbers
 
-POST  /rides                      {mode:"pick", driver_id, pickup{lat,lng,address}, dropoff{…}, payment_method}
+POST  /rides                      {mode:"pick", driver_id, …} or {mode:"broadcast", vehicle_class?, max_fare?, …} — broadcast goes to
+                                  the N nearest drivers (rides.broadcast_max_drivers) within max_fare; first accept wins at its own price (S3.5)
                                    → price computed server-side and locked (rate_snapshot); 409 if busy/unavailable
 GET   /rides                      my rides as rider (paginated)
 GET   /rides/active               current ride as rider or driver, or JSON null — poll during a trip
@@ -405,6 +407,14 @@ GET   /admin/drivers/{userId}     application: licence, checklist, documents, ve
 POST  /admin/drivers/{userId}/verify    riders get the driver role; docs approved; push
 POST  /admin/drivers/{userId}/reject    {reason, documents?:{type:reason}}; push
 POST  /admin/drivers/{userId}/suspend   {reason}; push
+
+# Driver money (S5.4, S7.1, S7.2) — perm: offer-rides · admin: manage-rides
+GET   /driver/earnings            periods today|week|month {trips, collected, earnings, commission}, balance, owed, blocked, ledger…
+POST  /driver/settlements         {amount, reference} MoMo payment to Jali → pending → POST /admin/settlements/{id}/confirm|reject
+PUT   /driver/momo                {momo_number, momo_name} — shown to riders paying by MoMo (Ride.driver.momo)
+POST  /driver/payouts             {amount} ≤ balance → cashout_requests (requester_type=driver)
+      Ledger: driver_ledger (balance < 0 = owes Jali). Completed ride/hire → earning (no balance effect, cash already
+      collected) + commission (−commission −service_fee). Owed > rides.max_commission_owed → blocker commission_owed.
 
 # Hire a Driver (epic E6) — a verified driver drives the customer's own car
 # perm: offer-driver-hire (verified drivers; controller also checks verification)

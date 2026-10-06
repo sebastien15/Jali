@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RideDispatch extends Model
 {
-    protected $fillable = ['ride_id', 'driver_id', 'quote', 'status', 'sent_at', 'responded_at'];
+    protected $fillable = ['ride_id', 'driver_id', 'quote', 'fare', 'status', 'sent_at', 'responded_at'];
 
     protected function casts(): array
     {
-        return ['sent_at' => 'datetime', 'responded_at' => 'datetime'];
+        return ['sent_at' => 'datetime', 'responded_at' => 'datetime', 'fare' => 'array'];
     }
 
     public function ride(): BelongsTo

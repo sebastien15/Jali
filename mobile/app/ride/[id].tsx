@@ -83,7 +83,7 @@ export default function RiderTripScreen() {
   const eta = pickupEtaMin(ride);
   const canCancel = ["requested", "accepted", "arrived"].includes(ride.status);
   const headline = {
-    requested: t("ride.trip.waiting", { name }),
+    requested: ride.mode === "broadcast" && !ride.driver ? t("ride.broadcast.finding") : t("ride.trip.waiting", { name }),
     accepted: t("ride.trip.onTheWay", { name }),
     arrived: t("ride.trip.arrived"),
     in_progress: t("ride.trip.inProgress", { place: ride.dropoff.address?.split(",")[0] ?? "" }),
@@ -141,6 +141,14 @@ export default function RiderTripScreen() {
                 <Text style={{ fontWeight: "800", color: C.dark }}>{t("ride.trip.call")}</Text>
               </TouchableOpacity>
             ) : null}
+          </View>
+        ) : null}
+
+        {ride.driver?.momo ? (
+          <View style={{ backgroundColor: C.yellow, borderRadius: 18, padding: 16, marginTop: 12 }}>
+            <Text style={{ fontWeight: "800", color: C.dark }}>{t("ride.trip.payMomoTo")}</Text>
+            <Text style={{ fontWeight: "900", fontSize: 22, color: C.dark, marginTop: 2 }}>{ride.driver.momo.number}</Text>
+            {ride.driver.momo.name ? <Text style={{ color: C.dark }}>{ride.driver.momo.name}</Text> : null}
           </View>
         ) : null}
 

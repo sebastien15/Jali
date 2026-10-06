@@ -16,6 +16,8 @@ use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminDriverController;
 use App\Http\Controllers\Admin\AdminRideController;
+use App\Http\Controllers\Admin\AdminSettlementController;
+use App\Http\Controllers\DriverEarningsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\CarRentalController;
@@ -94,6 +96,7 @@ Route::middleware("auth:sanctum")->group(function () {
     // Rider: on-demand rides — RIDE_HAILING_PLAN.md §4–5
     Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
         Route::get("/nearby", [RideController::class, "nearby"]);
+        Route::post("/estimate", [RideController::class, "estimate"]);
         Route::get("/", [RideController::class, "index"]);
         Route::post("/", [RideController::class, "store"])->middleware("throttle:ride-requests");
         Route::get("/active", [RideController::class, "active"]);
@@ -150,6 +153,19 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post("/driver-hire/{id}/decline", [DriverHireController::class, "decline"])->whereNumber("id");
         Route::post("/driver-hire/{id}/check-in", [DriverHireController::class, "checkIn"])->whereNumber("id");
         Route::post("/driver-hire/{id}/check-out", [DriverHireController::class, "checkOut"])->whereNumber("id");
+    });
+
+    // Driver money — stories S5.4, S7.1, S7.2
+    Route::middleware("permission:offer-rides")->group(function () {
+        Route::get("/driver/earnings", [DriverEarningsController::class, "show"]);
+        Route::post("/driver/settlements", [DriverEarningsController::class, "settle"]);
+        Route::put("/driver/momo", [DriverEarningsController::class, "momo"]);
+        Route::post("/driver/payouts", [DriverEarningsController::class, "payout"]);
+    });
+    Route::middleware("permission:manage-rides")->prefix("admin/settlements")->group(function () {
+        Route::get("/", [AdminSettlementController::class, "index"]);
+        Route::post("/{id}/confirm", [AdminSettlementController::class, "confirm"])->whereNumber("id");
+        Route::post("/{id}/reject", [AdminSettlementController::class, "reject"])->whereNumber("id");
     });
 
     // Ride operations — stories S10.1, S10.2

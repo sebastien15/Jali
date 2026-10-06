@@ -35,32 +35,56 @@ class RideController extends Controller
         ));
     }
 
-    /** POST /rides — request a specific driver (story S3.4) */
+    /** POST /rides — request a specific driver (pick, S3.4) or all nearby under a max price (broadcast, S3.5) */
     public function store(Request $request, RideService $rides)
     {
-        $validated = $request->validate([
-            'mode'             => 'required|in:pick',
-            'driver_id'        => 'required|integer',
-            'pickup'           => 'required|array',
-            'pickup.lat'       => 'required|numeric|between:-90,90',
-            'pickup.lng'       => 'required|numeric|between:-180,180',
-            'pickup.address'   => 'sometimes|nullable|string|max:255',
-            'dropoff'          => 'required|array',
-            'dropoff.lat'      => 'required|numeric|between:-90,90',
-            'dropoff.lng'      => 'required|numeric|between:-180,180',
-            'dropoff.address'  => 'sometimes|nullable|string|max:255',
-            'payment_method'   => 'sometimes|in:cash,momo',
+        $validated = $request->validate($this->pointRules() + [
+            'mode'           => 'required|in:pick,broadcast',
+            'driver_id'      => 'required_if:mode,pick|integer',
+            'vehicle_class'  => ['sometimes', 'nullable', Rule::in(Vehicle::CLASSES)],
+            'max_fare'       => 'sometimes|nullable|integer|min:500|max:1000000',
+            'payment_method' => 'sometimes|in:cash,momo',
         ]);
+        [$pickup, $dropoff] = $this->points($validated);
+        $payment = $validated['payment_method'] ?? 'cash';
 
-        $ride = $rides->request(
-            $request->user(),
-            (int) $validated['driver_id'],
-            ['lat' => (float) $validated['pickup']['lat'], 'lng' => (float) $validated['pickup']['lng'], 'address' => $validated['pickup']['address'] ?? null],
-            ['lat' => (float) $validated['dropoff']['lat'], 'lng' => (float) $validated['dropoff']['lng'], 'address' => $validated['dropoff']['address'] ?? null],
-            $validated['payment_method'] ?? 'cash',
-        );
+        $ride = $validated['mode'] === 'broadcast'
+            ? $rides->requestBroadcast($request->user(), $pickup, $dropoff, $payment,
+                $validated['vehicle_class'] ?? null, isset($validated['max_fare']) ? (int) $validated['max_fare'] : null)
+            : $rides->request($request->user(), (int) $validated['driver_id'], $pickup, $dropoff, $payment);
 
         return response()->json(RidePresenter::present($ride, $request->user()), 201);
+    }
+
+    /** POST /rides/estimate — price range and nearest ETA per vehicle class (story S3.6) */
+    public function estimate(Request $request, RideService $rides)
+    {
+        $validated = $request->validate($this->pointRules());
+        [$pickup, $dropoff] = $this->points($validated);
+
+        return response()->json($rides->estimate($request->user(), $pickup, $dropoff));
+    }
+
+    private function pointRules(): array
+    {
+        return [
+            'pickup'          => 'required|array',
+            'pickup.lat'      => 'required|numeric|between:-90,90',
+            'pickup.lng'      => 'required|numeric|between:-180,180',
+            'pickup.address'  => 'sometimes|nullable|string|max:255',
+            'dropoff'         => 'required|array',
+            'dropoff.lat'     => 'required|numeric|between:-90,90',
+            'dropoff.lng'     => 'required|numeric|between:-180,180',
+            'dropoff.address' => 'sometimes|nullable|string|max:255',
+        ];
+    }
+
+    private function points(array $v): array
+    {
+        return [
+            ['lat' => (float) $v['pickup']['lat'], 'lng' => (float) $v['pickup']['lng'], 'address' => $v['pickup']['address'] ?? null],
+            ['lat' => (float) $v['dropoff']['lat'], 'lng' => (float) $v['dropoff']['lng'], 'address' => $v['dropoff']['address'] ?? null],
+        ];
     }
 
     /** GET /rides — my rides as a rider, newest first (story S4.6) */

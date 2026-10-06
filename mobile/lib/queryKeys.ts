@@ -63,6 +63,7 @@ export const queryKeys = {
     hireSettings: () => ["driver", "hireSettings"] as const,
     availability: () => ["driver", "availability"] as const,
     hires: (scope: string) => ["driver", "hires", scope] as const,
+    earnings: () => ["driver", "earnings"] as const,
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
@@ -88,6 +89,7 @@ export const queryKeys = {
     drivers: (status?: string) => ["admin", "drivers", { status }] as const,
     driver: (id: number) => ["admin", "drivers", id] as const,
     ridesLive: () => ["admin", "rides", "live"] as const,
+    settlements: (status: string) => ["admin", "settlements", status] as const,
     rides: (filters?: object) => ["admin", "rides", "list", filters] as const,
     ride: (id: number) => ["admin", "rides", id] as const,
     role: (id: number) => ["admin", "roles", id] as const,

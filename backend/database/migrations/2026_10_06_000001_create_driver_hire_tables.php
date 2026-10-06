@@ -12,8 +12,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Each table is skipped if it exists: a failed first deploy had already created the first two
         // S6.1 — the driver's own hire prices (skills live on driver_profiles)
-        Schema::create('driver_hire_settings', function (Blueprint $table) {
+        if (!Schema::hasTable('driver_hire_settings')) Schema::create('driver_hire_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedInteger('hourly_rate');
@@ -27,7 +28,7 @@ return new class extends Migration
         });
 
         // S6.2 — weekly hours (weekday set) and blocked dates (date set, is_blocked)
-        Schema::create('driver_availability', function (Blueprint $table) {
+        if (!Schema::hasTable('driver_availability')) Schema::create('driver_availability', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('weekday')->nullable();   // 0 = Sunday … 6 = Saturday
@@ -42,13 +43,15 @@ return new class extends Migration
         });
 
         // S6.3 / S6.4
-        Schema::create('driver_hires', function (Blueprint $table) {
+        if (!Schema::hasTable('driver_hires')) Schema::create('driver_hires', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('driver_id')->constrained('users')->cascadeOnDelete();
             $table->string('status', 30)->default('requested');
-            $table->timestamp('start_at');
-            $table->timestamp('end_at');
+            // dateTime, not timestamp: MySQL without explicit_defaults_for_timestamp rejects a second
+            // NOT NULL timestamp column ("Invalid default value"), which broke the production deploy
+            $table->dateTime('start_at');
+            $table->dateTime('end_at');
             $table->string('duration_type', 10);                     // hours|days
             $table->unsignedSmallInteger('duration_value');
             $table->string('trip_type', 20);                         // city|out_of_town|airport
@@ -72,7 +75,7 @@ return new class extends Migration
             $table->string('cancel_reason')->nullable();
             $table->string('cancelled_by', 10)->nullable();          // customer|driver
             $table->string('payment_method', 20)->nullable();        // cash|momo
-            $table->timestamp('requested_at');
+            $table->dateTime('requested_at');
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('checked_in_at')->nullable();
@@ -85,7 +88,7 @@ return new class extends Migration
             $table->index('status');
         });
 
-        Schema::create('hire_ratings', function (Blueprint $table) {
+        if (!Schema::hasTable('hire_ratings')) Schema::create('hire_ratings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('driver_hire_id')->constrained()->cascadeOnDelete();
             $table->foreignId('from_user_id')->constrained('users')->cascadeOnDelete();
