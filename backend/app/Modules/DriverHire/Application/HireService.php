@@ -183,6 +183,68 @@ class HireService
         return $hire;
     }
 
+    /** S6.5: when a no-show can be reported (start + grace), or null when not applicable */
+    public function noShowFrom(DriverHire $hire): ?\Carbon\CarbonInterface
+    {
+        return $hire->status === DriverHire::ACCEPTED
+            ? $hire->start_at->copy()->addMinutes((int) $this->pricing->hireSettings()['no_show_grace_min'])
+            : null;
+    }
+
+    /**
+     * S6.5: the other side didn't show. The customer reporting ends the hire with no fee;
+     * the driver reporting ends it with the late-cancellation fee owed to the driver.
+     */
+    public function reportNoShow(DriverHire $hire, User $user): DriverHire
+    {
+        $from = $this->noShowFrom($hire);
+        if (!$from) {
+            throw new HttpException(409, 'A no-show can only be reported on an accepted hire that has not started.');
+        }
+        if (now()->lt($from)) {
+            throw new HttpException(409, sprintf('You can report a no-show from %s.', $from->copy()->setTimezone('Africa/Kigali')->format('H:i')));
+        }
+        $byCustomer = $hire->customer_id === $user->id;
+        $fee = $byCustomer ? 0 : (int) round($hire->driver_total * (int) $this->pricing->hireSettings()['late_cancel_pct'] / 100);
+
+        $hire = $this->transition($hire, $user, $byCustomer ? 'customer' : 'driver', [DriverHire::ACCEPTED], [
+            'status'        => $byCustomer ? DriverHire::NO_SHOW_DRIVER : DriverHire::NO_SHOW_CUSTOMER,
+            'cancelled_at'  => now(),
+            'cancelled_by'  => $byCustomer ? 'customer' : 'driver',
+            'cancel_reason' => 'no_show',
+            'cancel_fee'    => $fee,
+        ], 'This hire is no longer waiting to start.');
+
+        $other = $byCustomer ? $hire->driver : $hire->customer;
+        $this->push->send($other, 'No-show reported',
+            $byCustomer ? 'The customer reported that you did not come. Contact Jali support if this is wrong.'
+                : sprintf('Your driver reported that you did not show. A fee of %s RWF applies; contact Jali support if this is wrong.', number_format($fee)),
+            ['screen' => $byCustomer ? 'driver_hire' : 'hire', 'id' => $hire->id]);
+
+        return $hire;
+    }
+
+    /** S6.5: can this user dispute the recorded hours now? */
+    public function canDispute(DriverHire $hire, User $user): bool
+    {
+        return $hire->status === DriverHire::COMPLETED && $hire->checked_out_at
+            && $hire->checked_out_at->copy()->addDays((int) $this->pricing->hireSettings()['dispute_days'])->isFuture()
+            && !$hire->disputes()->where('user_id', $user->id)->where('status', \App\Models\HireDispute::OPEN)->exists();
+    }
+
+    public function dispute(DriverHire $hire, User $user, string $reason, ?string $claimedEnd): \App\Models\HireDispute
+    {
+        if (!$this->canDispute($hire, $user)) {
+            throw new HttpException(409, 'Hours can be disputed once, within a few days of a completed hire.');
+        }
+        $byCustomer = $hire->customer_id === $user->id;
+
+        return $hire->disputes()->create([
+            'user_id' => $user->id, 'role' => $byCustomer ? 'customer' : 'driver',
+            'reason' => $reason, 'claimed_end' => $claimedEnd, 'status' => \App\Models\HireDispute::OPEN,
+        ]);
+    }
+
     /** Cancel reasons the user may give for this hire: customer or driver list */
     public function cancelReasons(DriverHire $hire, User $user): array
     {

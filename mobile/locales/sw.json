@@ -1043,7 +1043,9 @@
       "declined": "{{name}} hatapatikana",
       "expired": "{{name}} hajajibu",
       "cancelled_by_customer": "Umeghairi",
-      "cancelled_by_driver": "{{name}} ameghairi"
+      "cancelled_by_driver": "{{name}} ameghairi",
+      "no_show_driver": "Dereva hakuja",
+      "no_show_customer": "Mteja hakuja"
     },
     "short": {
       "requested": "Inasubiri",

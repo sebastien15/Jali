@@ -16,6 +16,7 @@ import { ReasonSheet } from "@/components/shared/ReasonSheet";
 import { useFormatPrice } from "@/lib/fx";
 import { Linking } from "react-native";
 import { HelpTopicsCard } from "@/features/support";
+import { HireIssueActions } from "../components/HireIssueActions";
 
 /** Customer's hire screen: waiting → confirmed (driver + phone) → in progress → summary & rating (S6.3, S6.4) */
 export default function HireDetailScreen() {
@@ -72,7 +73,7 @@ export default function HireDetailScreen() {
   const name = hire.driver.name;
   const headline = t(`hire.status.${hire.status}`, { name });
   const canCancel = hire.status === "requested" || hire.status === "accepted";
-  const lost = ["declined", "expired", "cancelled_by_driver"].includes(hire.status);
+  const lost = ["declined", "expired", "cancelled_by_driver", "no_show_driver"].includes(hire.status);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -177,6 +178,7 @@ export default function HireDetailScreen() {
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("hire.detail.cancel")}</Text>
           </TouchableOpacity>
         ) : null}
+        <HireIssueActions hire={hire} />
         <View style={{ marginTop: 12 }}><HelpTopicsCard service="hire" subject={{ type: "hire", id: hire.id }} /></View>
       </ScrollView>
 

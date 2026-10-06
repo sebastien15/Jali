@@ -1043,7 +1043,9 @@
       "declined": "{{name}} ntiyaboneka",
       "expired": "{{name}} ntiyasubije",
       "cancelled_by_customer": "Wahagaritse",
-      "cancelled_by_driver": "{{name}} yahagaritse"
+      "cancelled_by_driver": "{{name}} yahagaritse",
+      "no_show_driver": "Umushoferi ntiyaje",
+      "no_show_customer": "Umukiriya ntiyaje"
     },
     "short": {
       "requested": "Birategerejwe",

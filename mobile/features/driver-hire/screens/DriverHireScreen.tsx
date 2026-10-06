@@ -13,6 +13,7 @@ import { callPhone, openNavigation } from "@/lib/platformActions";
 import { DriverHire, isActiveHire, formatWhen, DRIVER_CANCEL_REASONS, RATING_TAGS_FOR_HIRE_CUSTOMER } from "../hire";
 import { Stars } from "@/components/shared/Stars";
 import { ReasonSheet } from "@/components/shared/ReasonSheet";
+import { HireIssueActions } from "../components/HireIssueActions";
 
 /** Driver's hire screen: accept → navigate → check in → check out (cash/MoMo, overtime) → rate (S6.4) */
 export default function DriverHireScreen() {
@@ -171,6 +172,7 @@ export default function DriverHireScreen() {
           </Card>
         ) : null}
 
+        <HireIssueActions hire={hire} />
         {hire.status === "accepted" ? (
           <TouchableOpacity onPress={() => setCancelOpen(true)} accessibilityLabel={t("hire.detail.cancel")} style={{ marginTop: 6, alignItems: "center" }}>
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("hire.detail.cancel")}</Text>

@@ -23,6 +23,7 @@ class AdminHireController extends Controller
             'to'       => ['sometimes', 'date'],
             'customer' => ['sometimes', 'string', 'max:100'],
             'driver'   => ['sometimes', 'string', 'max:100'],
+            'disputed' => ['sometimes', 'boolean'],
         ]);
 
         return response()->json($this->hires->search($filters));
@@ -32,6 +33,14 @@ class AdminHireController extends Controller
     public function show(int $id)
     {
         return response()->json($this->hires->detail($this->hires->hire($id)));
+    }
+
+    /** POST /admin/hires/{id}/disputes/{disputeId}/resolve {resolution} — logged; both sides are told (S6.5) */
+    public function resolveDispute(Request $request, int $id, int $disputeId)
+    {
+        $data = $request->validate(['resolution' => 'required|string|min:5|max:1000']);
+
+        return response()->json($this->hires->resolveDispute($this->hires->hire($id), $disputeId, $request->user(), $data['resolution']));
     }
 
     /** POST /admin/hires/{id}/times {checked_in_at?, checked_out_at?, note} — logged */

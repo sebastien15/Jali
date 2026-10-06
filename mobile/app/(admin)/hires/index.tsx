@@ -14,7 +14,7 @@ import type { components } from "@/lib/apiSchema";
 type Hire = components["schemas"]["AdminHireSummary"];
 type Page = { data: Hire[]; next_page: number | null };
 
-const STATUSES = ["", "requested", "accepted", "started", "completed", "cancelled_by_customer", "cancelled_by_driver", "expired", "declined"];
+const STATUSES = ["", "disputed", "requested", "accepted", "started", "completed", "no_show_driver", "no_show_customer", "cancelled_by_customer", "cancelled_by_driver", "expired", "declined"];
 const HIRE_STATUS_COLOR: Record<string, string> = {
   requested: C.orange, accepted: C.blue, started: C.teal, completed: C.green,
   cancelled_by_customer: C.mid, cancelled_by_driver: C.mid, expired: C.muted, declined: C.muted,
@@ -25,7 +25,7 @@ export default function AdminHiresScreen() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [who, setWho] = useState<"customer" | "driver">("customer");
-  const filters = { ...(status ? { status } : {}), ...(search.trim().length >= 2 ? { [who]: search.trim() } : {}) };
+  const filters = { ...(status === "disputed" ? { disputed: 1 } : status ? { status } : {}), ...(search.trim().length >= 2 ? { [who]: search.trim() } : {}) };
 
   const q = useInfiniteQuery({
     queryKey: queryKeys.admin.hires(filters),
@@ -72,6 +72,7 @@ export default function AdminHiresScreen() {
             <View style={{ width: 4, alignSelf: "stretch", borderRadius: 2, backgroundColor: HIRE_STATUS_COLOR[h.status] ?? C.muted }} />
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontWeight: "800", color: C.dark }}>#{h.id} · {h.customer?.name ?? "—"} → {h.driver?.name ?? "—"}</Text>
+              {h.open_disputes ? <Text style={{ color: C.orange, fontWeight: "800", fontSize: 12 }}>{h.open_disputes} open dispute(s)</Text> : null}
               <Text style={{ color: C.mid, fontSize: 12 }}>
                 {new Date(h.start_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · {h.status.replace(/_/g, " ")}
               </Text>

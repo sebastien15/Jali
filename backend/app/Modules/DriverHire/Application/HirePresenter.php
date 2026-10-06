@@ -66,6 +66,13 @@ class HirePresenter
             'checked_in_at'  => $hire->checked_in_at?->toIso8601String(),
             'checked_out_at' => $hire->checked_out_at?->toIso8601String(),
             'cancelled_at'   => $hire->cancelled_at?->toIso8601String(),
+            // S6.5: no-show reporting and hour disputes
+            'no_show_from'   => $service->noShowFrom($hire)?->toIso8601String(),
+            'can_dispute'    => $service->canDispute($hire, $viewer),
+            'my_dispute'     => ($d = $hire->disputes()->where('user_id', $viewer->id)->latest('id')->first()) ? [
+                'status' => $d->status, 'reason' => $d->reason, 'resolution' => $d->resolution,
+                'created_at' => $d->created_at?->toIso8601String(),
+            ] : null,
         ];
     }
 }
