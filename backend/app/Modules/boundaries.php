@@ -10,6 +10,7 @@
  * reviewed architecture decision — record it in docs/migration/MIGRATION_LOG.md.
  */
 return [
+    'Bus'            => ['LegacyBookings', 'Locations'],   // implements LegacyBookings\Contracts\BookingTypeHandler (type=bus, trip) and Locations\Contracts\TerminalNetwork
     'DriverHire'     => ['Payments', 'Pricing', 'Providers'],   // MoneyRecorder, ReceiptMailer; PricingPolicy (hire limits/fees); ProviderReputation, ProviderDisplay
     'Identity'       => ['Notifications'],   // OTP codes are sent through Notifications\Contracts\SmsSender
     'LegacyBookings' => [],

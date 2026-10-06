@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\LegacyBookings\Infrastructure;
+namespace App\Modules\Bus\Infrastructure;
 
 use App\Models\Bus;
 use App\Modules\LegacyBookings\Contracts\BookableOffer;
@@ -9,7 +9,7 @@ use App\Modules\LegacyBookings\Contracts\BookingTypeHandler;
 
 /**
  * Generic booking rules for type `bus` (legacy bus listings, reference_id = buses.id).
- * Temporary home until Bus owns it (runbook M03-Bus).
+ * Owned by Bus; registered with the LegacyBookings dispatcher (M03-Bus).
  */
 class BusBookingHandler implements BookingTypeHandler
 {

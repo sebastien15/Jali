@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
 use App\Models\Booking;
+use App\Modules\LegacyBookings\Application\AdminBookingQueue;
 use App\Modules\LegacyBookings\Application\BookingDispatcher;
 use App\Modules\LegacyBookings\Application\BookingRejected;
+use App\Modules\LegacyBookings\Application\BookingTransitionRefused;
 use App\Modules\LegacyBookings\Contracts\BookingRequest;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
-    public function __construct(private BookingDispatcher $bookings)
-    {
+    public function __construct(
+        private BookingDispatcher $bookings,
+        private AdminBookingQueue $adminQueue,
+    ) {
     }
 
     /**
@@ -119,7 +122,7 @@ class BookingController extends Controller
      */
     public function claim(Request $request, $id)
     {
-        return $this->moveTo($request, $id, "taken", "booking_claimed");
+        return $this->moveTo($request, $id, "taken");
     }
 
     /**
@@ -131,7 +134,7 @@ class BookingController extends Controller
             "ticket_photo_url" => "required|url|max:2048",
         ]);
 
-        return $this->moveTo($request, $id, "ticket_ready", "ticket_uploaded", $validated);
+        return $this->moveTo($request, $id, "ticket_ready", $validated);
     }
 
     /**
@@ -139,33 +142,26 @@ class BookingController extends Controller
      */
     public function deliver(Request $request, $id)
     {
-        return $this->moveTo($request, $id, "delivered", "booking_delivered");
+        return $this->moveTo($request, $id, "delivered");
     }
 
-    private function moveTo(Request $request, $id, string $status, string $action, array $extra = [])
+    private function moveTo(Request $request, $id, string $status, array $extra = [])
     {
         $user = $request->user();
-        $booking = Booking::find($id);
+        $booking = $this->adminQueue->findManageableOrNull($user, $id);
 
-        if (!$booking || !$booking->isManageableBy($user)) {
+        if (!$booking) {
             return response()->json(["error" => "Booking not found"], 404);
         }
 
-        $from = $booking->status;
-        if (!$booking->transitionTo($status, $user, $extra)) {
+        try {
+            $this->adminQueue->transition($booking, $status, $user, $extra);
+        } catch (BookingTransitionRefused $e) {
             return response()->json(
-                ["error" => "Invalid status change", "message" => "Cannot change a {$booking->fresh()->status} booking to {$status}."],
+                ["error" => "Invalid status change", "message" => "Cannot change a {$e->current} booking to {$status}."],
                 422,
             );
         }
-
-        ActivityLog::create([
-            "admin_id" => $user->id,
-            "action" => $action,
-            "entity_type" => "booking",
-            "entity_id" => $booking->id,
-            "details" => ["title" => $booking->title, "from" => $from, "to" => $status],
-        ]);
 
         return response()->json([
             "status" => $status,

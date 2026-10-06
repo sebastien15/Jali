@@ -30,14 +30,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Modules\Providers\Contracts\ProviderEligibility::class, \App\Modules\Providers\Application\DriverEligibility::class);
         // Ride rates are owned by NearbyRides; Pricing asks it to re-check them after a guardrail change
         $this->app->bind(\App\Modules\Pricing\Contracts\ProviderRateRevalidator::class, \App\Modules\NearbyRides\Application\RateGuardrails::class);
+        // The bus network (Bus) enriches Locations' admin pickup-location list
+        $this->app->bind(\App\Modules\Locations\Contracts\TerminalNetwork::class, \App\Modules\Bus\Infrastructure\TerminalNetworkDirectory::class);
 
         // Generic /bookings: one dispatcher, one handler per booking type. Owning services
         // register their own handler here as they move into their module (runbook M03).
         $this->app->tag([
-            \App\Modules\LegacyBookings\Infrastructure\BusBookingHandler::class,
+            \App\Modules\Bus\Infrastructure\BusBookingHandler::class,
             \App\Modules\SharedJourneys\Infrastructure\PrivateSeatBookingHandler::class,
             \App\Modules\Rentals\Infrastructure\RentalBookingHandler::class,
-            \App\Modules\LegacyBookings\Infrastructure\TripDepartureBookingHandler::class,
+            \App\Modules\Bus\Infrastructure\TripDepartureBookingHandler::class,
         ], \App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
         $this->app->when(\App\Modules\LegacyBookings\Application\BookingDispatcher::class)
             ->needs('$handlers')

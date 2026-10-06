@@ -3,47 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
-use App\Models\Agency;
-use App\Models\AgencyRoute;
-use App\Models\TripDeparture;
+use App\Modules\Bus\Application\AgencyAdmin;
+use App\Modules\Bus\Application\BusRequestRejected;
+use App\Modules\Bus\Application\StationScope;
 use Illuminate\Http\Request;
 
+/** Transport adapter for Bus (runbook M03-Bus): validation + HTTP shape only. */
 class AgencyController extends Controller
 {
+    public function __construct(
+        private readonly AgencyAdmin $agencies,
+        private readonly StationScope $scope,
+    ) {
+    }
+
     /**
      * List all agencies with routes and average rating.
      */
     public function index()
     {
-        $agencies = Agency::with(['routes.fromStation', 'routes.toStation', 'ratings'])->get();
-
-        return response()->json($agencies->map(fn($a) => [
-            'id' => $a->id,
-            'name' => $a->name,
-            'operating_hours' => $a->operating_hours,
-            'average_rating' => $a->average_rating,
-            'ratings_count' => $a->ratings->count(),
-            'routes' => $a->routes->map(fn($r) => [
-                'id' => $r->id,
-                'from' => [
-                    'id' => $r->fromStation->id,
-                    'city' => $r->fromStation->city,
-                    'district' => $r->fromStation->district,
-                ],
-                'to' => [
-                    'id' => $r->toStation->id,
-                    'city' => $r->toStation->city,
-                    'district' => $r->toStation->district,
-                ],
-            ]),
-        ]));
+        return response()->json($this->agencies->list());
     }
 
     public function show($id)
     {
-        $agency = Agency::with(['routes.fromStation', 'routes.toStation', 'ratings'])->findOrFail($id);
-        return response()->json($this->formatAgency($agency));
+        return response()->json($this->agencies->show($id));
     }
 
     /**
@@ -51,26 +35,13 @@ class AgencyController extends Controller
      */
     public function store(Request $request)
     {
-        $this->abortUnlessSuperAdmin($request->user());
+        $this->scope->abortUnlessSuperAdmin($request->user());
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
         ]);
 
-        $agency = Agency::create([
-            ...$validated,
-            'created_by' => $request->user()->id,
-        ]);
-
-        ActivityLog::create([
-            'admin_id' => $request->user()->id,
-            'action' => 'agency_created',
-            'entity_type' => 'agency',
-            'entity_id' => $agency->id,
-            'details' => ['name' => $agency->name],
-        ]);
-
-        return response()->json($this->formatAgency($agency), 201);
+        return response()->json($this->agencies->create($request->user(), $validated), 201);
     }
 
     /**
@@ -78,7 +49,7 @@ class AgencyController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $agency = Agency::findOrFail($id);
+        $agency = $this->agencies->find($id);
         $user = $request->user();
         $isSuperAdmin = $user->hasRole('superadmin');
 
@@ -94,17 +65,7 @@ class AgencyController extends Controller
             ]);
         }
 
-        $agency->update($validated);
-
-        ActivityLog::create([
-            'admin_id' => $request->user()->id,
-            'action' => 'agency_updated',
-            'entity_type' => 'agency',
-            'entity_id' => $agency->id,
-            'details' => ['name' => $agency->name],
-        ]);
-
-        return response()->json($this->formatAgency($agency));
+        return response()->json($this->agencies->update($user, $agency, $validated));
     }
 
     /**
@@ -112,24 +73,11 @@ class AgencyController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $this->abortUnlessSuperAdmin($request->user());
-
-        $agency = Agency::findOrFail($id);
-        $departureIds = TripDeparture::whereIn('agency_route_id', AgencyRoute::where('agency_id', $agency->id)->select('id'))->pluck('id');
-        if ($this->hasActiveBookings($departureIds)) {
-            return response()->json(['error' => 'Cannot delete an agency with active bookings.', 'message' => 'Cannot delete an agency with active bookings.'], 409);
+        try {
+            $this->agencies->delete($request->user(), $id);
+        } catch (BusRequestRejected $e) {
+            return response()->json($e->body, $e->status);
         }
-
-        $name = $agency->name;
-        $agency->delete();
-
-        ActivityLog::create([
-            'admin_id' => $request->user()->id,
-            'action' => 'agency_deleted',
-            'entity_type' => 'agency',
-            'entity_id' => $id,
-            'details' => ['name' => $name],
-        ]);
 
         return response()->json(['message' => 'Agency deleted']);
     }
@@ -139,56 +87,19 @@ class AgencyController extends Controller
      */
     public function addRoute(Request $request, $id)
     {
-        $agency = Agency::findOrFail($id);
+        // 404 for an unknown agency wins over validation, as before.
+        $this->agencies->find($id);
 
         $validated = $request->validate([
             'from_station_id' => 'required|exists:admin_stations,id|different:to_station_id',
             'to_station_id' => 'required|exists:admin_stations,id',
         ]);
-        $this->abortUnlessManagesStation($request->user(), (int) $validated['from_station_id']);
 
-        // Prevent duplicate
-        $existing = AgencyRoute::where('agency_id', $id)
-            ->where('from_station_id', $validated['from_station_id'])
-            ->where('to_station_id', $validated['to_station_id'])
-            ->first();
-
-        if ($existing) {
-            return response()->json(['error' => 'Route already exists'], 409);
+        try {
+            return response()->json($this->agencies->addRoute($request->user(), $id, $validated), 201);
+        } catch (BusRequestRejected $e) {
+            return response()->json($e->body, $e->status);
         }
-
-        $route = AgencyRoute::create([
-            'agency_id' => $id,
-            'from_station_id' => $validated['from_station_id'],
-            'to_station_id' => $validated['to_station_id'],
-            // Not bookable until a price, seats and departures are set in Trips.
-            'active' => false,
-        ]);
-
-        ActivityLog::create([
-            'admin_id' => $request->user()->id,
-            'action' => 'agency_route_added',
-            'entity_type' => 'agency',
-            'entity_id' => $id,
-            'details' => [
-                'from' => $route->fromStation->city,
-                'to' => $route->toStation->city,
-            ],
-        ]);
-
-        return response()->json([
-            'id' => $route->id,
-            'from' => [
-                'id' => $route->fromStation->id,
-                'city' => $route->fromStation->city,
-                'district' => $route->fromStation->district,
-            ],
-            'to' => [
-                'id' => $route->toStation->id,
-                'city' => $route->toStation->city,
-                'district' => $route->toStation->district,
-            ],
-        ], 201);
     }
 
     /**
@@ -196,46 +107,12 @@ class AgencyController extends Controller
      */
     public function removeRoute(Request $request, $agencyId, $routeId)
     {
-        $route = AgencyRoute::where('agency_id', $agencyId)->findOrFail($routeId);
-        $this->abortUnlessManagesStation($request->user(), (int) $route->from_station_id);
-        if ($this->hasActiveBookings($route->departures()->pluck('id'))) {
-            return response()->json(['error' => 'Cannot delete route with active bookings.', 'message' => 'Cannot delete route with active bookings.'], 409);
+        try {
+            $this->agencies->removeRoute($request->user(), $agencyId, $routeId);
+        } catch (BusRequestRejected $e) {
+            return response()->json($e->body, $e->status);
         }
 
-        $route->delete();
-
-        ActivityLog::create([
-            'admin_id' => $request->user()->id,
-            'action' => 'agency_route_removed',
-            'entity_type' => 'agency',
-            'entity_id' => $agencyId,
-            'details' => ['route_id' => $routeId],
-        ]);
-
         return response()->json(['message' => 'Route removed']);
-    }
-
-    private function formatAgency(Agency $a): array
-    {
-        return [
-            'id' => $a->id,
-            'name' => $a->name,
-            'operating_hours' => $a->operating_hours,
-            'average_rating' => $a->average_rating,
-            'ratings_count' => $a->ratings->count(),
-            'routes' => $a->routes->map(fn($r) => [
-                'id' => $r->id,
-                'from' => [
-                    'id' => $r->fromStation->id,
-                    'city' => $r->fromStation->city,
-                    'district' => $r->fromStation->district,
-                ],
-                'to' => [
-                    'id' => $r->toStation->id,
-                    'city' => $r->toStation->city,
-                    'district' => $r->toStation->district,
-                ],
-            ]),
-        ];
     }
 }

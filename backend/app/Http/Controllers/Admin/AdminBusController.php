@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Bus;
+use App\Modules\Bus\Application\BusFleet;
 use Illuminate\Http\Request;
 
+/**
+ * Transport adapter for Bus (runbook M03-Bus): validation + HTTP shape only.
+ * Not referenced by routes/api.php (see docs/migration/routes-baseline.json).
+ */
 class AdminBusController extends Controller
 {
+    public function __construct(private readonly BusFleet $fleet)
+    {
+    }
+
     public function index(Request $request)
     {
-        $buses = Bus::orderBy('agency')->orderBy('dep')->get();
-        return response()->json($buses);
+        return response()->json($this->fleet->all());
     }
 
     public function store(Request $request)
@@ -27,13 +34,12 @@ class AdminBusController extends Controller
             'active'  => 'boolean',
         ]);
 
-        $bus = Bus::create(array_merge($data, ['active' => $data['active'] ?? true]));
-        return response()->json($bus, 201);
+        return response()->json($this->fleet->create($data), 201);
     }
 
     public function update(Request $request, $id)
     {
-        $bus = Bus::findOrFail($id);
+        $bus = $this->fleet->find($id);
 
         $data = $request->validate([
             'agency'  => 'sometimes|string|max:100',
@@ -46,14 +52,12 @@ class AdminBusController extends Controller
             'active'  => 'sometimes|boolean',
         ]);
 
-        $bus->update($data);
-        return response()->json($bus);
+        return response()->json($this->fleet->update($bus, $data));
     }
 
     public function destroy(Request $request, $id)
     {
-        $bus = Bus::findOrFail($id);
-        $bus->delete();
+        $this->fleet->delete($this->fleet->find($id));
         return response()->json(['message' => 'Deleted']);
     }
 }
