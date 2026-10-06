@@ -38,13 +38,14 @@ use App\Http\Controllers\Admin\PermissionsController;
 Route::post("/track-access", [AppAccessController::class, "store"]);
 
 // ── Auth Routes (no token required) ──
-Route::post("/auth/login", [AuthController::class, "login"]);
+// Rate limits (S21.7) are defined in AppServiceProvider::configureRateLimits()
+Route::post("/auth/login", [AuthController::class, "login"])->middleware("throttle:auth");
 Route::post("/auth/login/google", [
     AuthController::class,
     "loginWithGoogle",
-]);
-Route::post("/auth/otp/request", [AuthController::class, "requestOtp"]);
-Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"]);
+])->middleware("throttle:auth");
+Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
+Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
 
 // ── Protected Routes (Sanctum) ──
 Route::middleware("auth:sanctum")->group(function () {
@@ -90,7 +91,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
         Route::get("/nearby", [RideController::class, "nearby"]);
         Route::get("/", [RideController::class, "index"]);
-        Route::post("/", [RideController::class, "store"]);
+        Route::post("/", [RideController::class, "store"])->middleware("throttle:ride-requests");
         Route::get("/active", [RideController::class, "active"]);
         Route::get("/{id}", [RideController::class, "show"])->whereNumber("id");
         Route::post("/{id}/cancel", [RideController::class, "cancel"])->whereNumber("id");

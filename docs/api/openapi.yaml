@@ -16,7 +16,12 @@ info:
     - All amounts are integers in RWF.
     - Coordinates are WGS84 decimal degrees.
     - Timestamps are ISO-8601 strings.
-    - Errors: 401 `{error}`; 403 `{error}`; 409 `{message}`; 422 Laravel validation `{message, errors}`.
+    - Errors: 401 `{error}`; 403 `{error}`; 409 `{message}`; 422 Laravel validation `{message, errors}`;
+      429 `{message}` with `Retry-After` (seconds).
+    - Rate limits (S21.7): every route 120/min per user (per IP when signed out),
+      headers `X-RateLimit-Limit` / `X-RateLimit-Remaining`. Stricter: sign-in 10/min per IP
+      and 20/h per email; OTP request 5/h per phone; OTP verify 10/h per phone;
+      ride requests 6/min per rider.
 servers:
   - url: https://api.jali.rw/api
     description: Production
@@ -627,6 +632,7 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /rides/active:
     get:
@@ -1055,6 +1061,18 @@ components:
         application/json:
           schema:
             type: object
+            properties:
+              message: { type: string }
+    TooManyRequests:
+      description: Rate limit hit — retry after `Retry-After` seconds
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
             properties:
               message: { type: string }
     Conflict:
