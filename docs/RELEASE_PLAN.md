@@ -201,6 +201,7 @@ The dependency waves in the ride backlog describe implementation dependencies, n
 
 ## Related project references
 
+- [Architecture migration runbook](ARCHITECTURE_MIGRATION_RUNBOOK.md) — code-audited execution tasks, compatibility, verification and recovery; separate from this governing policy.
 - [Project context](../context.md) — technical reference and guards.
 - [CLAUDE.md](../CLAUDE.md) and [AGENTS.md](../AGENTS.md) — AI entry points.
 - [Ride-hailing architecture](../RIDE_HAILING_PLAN.md) — existing technical plan; verify against current code.
