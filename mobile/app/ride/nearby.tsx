@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, Modal, ActivityIndicator, StatusBar, RefreshControl, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, Modal, ActivityIndicator, StatusBar, RefreshControl, Alert, ScrollView, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,12 +10,14 @@ import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatRwf } from "@/lib/fare";
 import { parsePlace } from "@/lib/places";
-import type { components } from "@/lib/apiSchema";
+import type { components, operations } from "@/lib/apiSchema";
+import { DriversMap } from "@/components/rides/DriversMap";
 
 type NearbyDriver = components["schemas"]["NearbyDriver"];
 type VehicleClass = components["schemas"]["VehicleClass"];
 type NearbyResponse = { trip: { distance_km: number; est_minutes: number }; drivers: NearbyDriver[] };
 type Sort = "closest" | "cheapest" | "topRated";
+type Estimate = operations["estimateRide"]["responses"]["200"]["content"]["application/json"];
 
 const CLASSES: (VehicleClass | null)[] = [null, "moto", "car", "comfort", "van"];
 const CLASS_ICON: Record<VehicleClass, React.ComponentProps<typeof Ionicons>["name"]> = {
@@ -31,6 +33,8 @@ export default function NearbyDriversScreen() {
   const [sort, setSort] = useState<Sort>("closest");
   const [vehicleClass, setVehicleClass] = useState<VehicleClass | null>(null);
   const [selected, setSelected] = useState<NearbyDriver | null>(null);
+  const [view, setView] = useState<"list" | "map">("list");
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
 
   const query = pickup && destination ? {
     lat: pickup.lat, lng: pickup.lng, dest_lat: destination.lat, dest_lng: destination.lng,
@@ -41,8 +45,19 @@ export default function NearbyDriversScreen() {
     queryKey: queryKeys.rides.nearby(query),
     queryFn: () => api.get<NearbyResponse>("/rides/nearby", { params: query }).then(r => r.data),
     enabled: !!query,
-    refetchInterval: 15_000,
+    refetchInterval: 10_000,
   });
+
+  // Price range and nearest ETA per class (S3.6)
+  const estimate = useQuery({
+    queryKey: ["rides", "estimate", pickup?.lat, pickup?.lng, destination?.lat, destination?.lng],
+    queryFn: () => api.post<Estimate>("/rides/estimate", {
+      pickup: { lat: pickup!.lat, lng: pickup!.lng }, dropoff: { lat: destination!.lat, lng: destination!.lng },
+    }).then(r => r.data),
+    enabled: !!pickup && !!destination,
+    staleTime: 30_000,
+  });
+  const estimateFor = (c: VehicleClass) => estimate.data?.classes.find(x => x.class === c);
 
   const drivers = useMemo(() => {
     const list = [...(data?.drivers ?? [])];
@@ -76,14 +91,51 @@ export default function NearbyDriversScreen() {
             <Chip key={s} label={t(`ride.nearby.${s}`)} active={sort === s} onPress={() => setSort(s)} />
           ))}
         </View>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-          {CLASSES.map(c => (
-            <Chip key={c ?? "all"} label={t(`ride.nearby.${c ?? "all"}`)} icon={c ? CLASS_ICON[c] : undefined}
-              active={vehicleClass === c} onPress={() => setVehicleClass(c)} small />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 8 }}>
+          {CLASSES.map(c => {
+            const e = c ? estimateFor(c) : undefined;
+            const off = !!c && !!estimate.data && !e?.available;
+            const on = vehicleClass === c;
+            return (
+              <TouchableOpacity key={c ?? "all"} onPress={() => setVehicleClass(c)} disabled={off}
+                accessibilityLabel={t(`ride.nearby.${c ?? "all"}`)} accessibilityState={{ selected: on, disabled: off }}
+                style={{ minWidth: 82, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 14, backgroundColor: on ? C.dark : C.bg, opacity: off ? 0.45 : 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  {c ? <Ionicons name={CLASS_ICON[c]} size={14} color={on ? C.white : C.mid} /> : null}
+                  <Text style={{ color: on ? C.white : C.dark, fontWeight: "800", fontSize: 12 }}>{t(`ride.nearby.${c ?? "all"}`)}</Text>
+                </View>
+                {c && e ? (
+                  <Text style={{ color: on ? C.white : C.mid, fontSize: 11, marginTop: 1 }}>
+                    {e.available && e.min_quote != null && e.max_quote != null
+                      ? `${e.min_quote === e.max_quote ? formatRwf(e.min_quote) : `${formatRwf(e.min_quote)}–${formatRwf(e.max_quote)}`} · ${e.nearest_eta_min} min`
+                      : t("ride.nearby.noneNow")}
+                  </Text>
+                ) : null}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+        <View style={{ flexDirection: "row", marginTop: 10, backgroundColor: C.bg, borderRadius: 10, padding: 3 }}>
+          {(["list", "map"] as const).map(v => (
+            <TouchableOpacity key={v} onPress={() => setView(v)} accessibilityLabel={t(`ride.nearby.view_${v}`)} accessibilityState={{ selected: view === v }}
+              style={{ flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, paddingVertical: 7, borderRadius: 8, backgroundColor: view === v ? C.white : "transparent" }}>
+              <Ionicons name={v === "list" ? "list" : "map-outline"} size={15} color={C.dark} />
+              <Text style={{ fontWeight: "800", color: C.dark, fontSize: 12 }}>{t(`ride.nearby.view_${v}`)}</Text>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
 
+      {view === "map" ? (
+        <View style={{ flex: 1 }}>
+          <DriversMap
+            center={{ lat: pickup.lat, lng: pickup.lng }}
+            drivers={drivers.map(d => ({ id: d.driver_id, lat: d.approx_location.lat ?? pickup.lat, lng: d.approx_location.lng ?? pickup.lng,
+              vehicleClass: d.vehicle.class, label: formatRwf(d.quote) }))}
+            onSelect={id => setSelected(drivers.find(d => d.driver_id === id) ?? null)}
+          />
+        </View>
+      ) : (
       <FlatList
         data={drivers}
         keyExtractor={d => String(d.driver_id)}
@@ -129,6 +181,20 @@ export default function NearbyDriversScreen() {
           </TouchableOpacity>
         )}
       />
+      )}
+
+      {drivers.length > 1 ? (
+        <View style={{ backgroundColor: C.white, padding: 12, borderTopWidth: 1, borderTopColor: C.border }}>
+          <TouchableOpacity onPress={() => setBroadcastOpen(true)} accessibilityLabel={t("ride.broadcast.button")}
+            style={{ backgroundColor: C.teal, borderRadius: 14, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}>
+            <Ionicons name="flash" size={18} color={C.white} />
+            <Text style={{ color: C.white, fontWeight: "900", fontSize: 15 }}>{t("ride.broadcast.button")}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      <BroadcastSheet visible={broadcastOpen} onClose={() => setBroadcastOpen(false)} pickupParam={params.pickup} destinationParam={params.destination}
+        vehicleClass={vehicleClass} suggested={drivers.length ? Math.max(...drivers.map(d => d.quote)) : null} />
 
       <Modal visible={!!selected} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
         <TouchableOpacity activeOpacity={1} onPress={() => setSelected(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}>
@@ -158,6 +224,68 @@ export default function NearbyDriversScreen() {
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+/** Send to the nearest drivers under my maximum price; first to accept wins (story S3.5). */
+function BroadcastSheet({ visible, onClose, pickupParam, destinationParam, vehicleClass, suggested }: {
+  visible: boolean; onClose: () => void; pickupParam?: string; destinationParam?: string; vehicleClass: VehicleClass | null; suggested: number | null;
+}) {
+  const { t } = useTranslation();
+  const [max, setMax] = useState("");
+  const [payment, setPayment] = useState<"cash" | "momo">("cash");
+  const [sending, setSending] = useState(false);
+  useEffect(() => { if (visible && suggested && !max) setMax(String(suggested)); }, [visible, suggested]);
+
+  async function send() {
+    const pickup = parsePlace(pickupParam);
+    const destination = parsePlace(destinationParam);
+    if (!pickup || !destination) return;
+    setSending(true);
+    try {
+      const res = await api.post<{ id: number }>("/rides", {
+        mode: "broadcast", vehicle_class: vehicleClass, max_fare: max ? Number(max) : null, payment_method: payment,
+        pickup: { lat: pickup.lat, lng: pickup.lng, address: pickup.address || pickup.name },
+        dropoff: { lat: destination.lat, lng: destination.lng, address: destination.address || destination.name },
+      });
+      onClose();
+      router.push(`/ride/${res.data.id}` as any);
+    } catch (err: any) {
+      const errors = err?.response?.data?.errors;
+      Alert.alert(errors ? (Object.values(errors)[0] as string[])[0] : err?.response?.data?.message ?? "Error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}>
+        <View style={{ backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 34, gap: 10 }}>
+          <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark }}>{t("ride.broadcast.title")}</Text>
+          <Text style={{ color: C.mid }}>{t("ride.broadcast.sub")}</Text>
+          <Text style={{ color: C.mid, fontWeight: "700", fontSize: 12 }}>{t("ride.broadcast.max")}</Text>
+          <TextInput value={max} onChangeText={v => setMax(v.replace(/\D/g, ""))} keyboardType="number-pad" accessibilityLabel={t("ride.broadcast.max")}
+            placeholder={t("ride.broadcast.noMax")} placeholderTextColor={C.muted}
+            style={{ borderWidth: 1, borderColor: C.border, borderRadius: 12, padding: 12, fontSize: 18, fontWeight: "800", color: C.dark }} />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {(["cash", "momo"] as const).map(m => (
+              <TouchableOpacity key={m} onPress={() => setPayment(m)} accessibilityLabel={t(`ride.driverTrip.${m}`)} accessibilityState={{ selected: payment === m }}
+                style={{ flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center", backgroundColor: payment === m ? C.dark : C.bg }}>
+                <Text style={{ color: payment === m ? C.white : C.mid, fontWeight: "800" }}>{t(`ride.driverTrip.${m}`)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity onPress={send} disabled={sending} accessibilityLabel={t("ride.broadcast.send")}
+            style={{ backgroundColor: C.dark, borderRadius: 16, paddingVertical: 16, alignItems: "center", marginTop: 4 }}>
+            {sending ? <ActivityIndicator color={C.white} /> : <Text style={{ color: C.white, fontWeight: "900", fontSize: 16 }}>{t("ride.broadcast.send")}</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onClose} accessibilityLabel={t("common.close")} style={{ alignItems: "center", paddingVertical: 6 }}>
+            <Text style={{ color: C.mid, fontWeight: "700" }}>{t("common.close")}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 

@@ -371,11 +371,13 @@ PUT   /driver/rates
 # Rate limits (S21.7, AppServiceProvider::configureRateLimits): all API 120/min per user|IP;
 #   sign-in 10/min/IP + 20/h/email · OTP request 5/h/phone · OTP verify 10/h/phone · POST /rides 6/min → 429 {message} + Retry-After
 # perm: request-rides — rider side of on-demand rides
+POST  /rides/estimate              {pickup, dropoff} → {trip, classes:[{class, available, drivers, min_quote, max_quote, nearest_eta_min}]} (S3.6)
 GET   /rides/nearby?lat&lng&dest_lat&dest_lng[&class]   { trip:{distance_km,est_minutes}, drivers:[NearbyDriver] }
       verified + live drivers within nearby_radius_km, each priced with their own rates (FareService),
       closest first, max 50, positions rounded to ~100 m, no phone numbers
 
-POST  /rides                      {mode:"pick", driver_id, pickup{lat,lng,address}, dropoff{…}, payment_method}
+POST  /rides                      {mode:"pick", driver_id, …} or {mode:"broadcast", vehicle_class?, max_fare?, …} — broadcast goes to
+                                  the N nearest drivers (rides.broadcast_max_drivers) within max_fare; first accept wins at its own price (S3.5)
                                    → price computed server-side and locked (rate_snapshot); 409 if busy/unavailable
 GET   /rides                      my rides as rider (paginated)
 GET   /rides/active               current ride as rider or driver, or JSON null — poll during a trip

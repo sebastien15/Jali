@@ -200,7 +200,7 @@ class RideLifecycleTest extends TestCase
         $this->postJson('/api/rides', $this->request)->assertStatus(409);
         $this->postJson('/api/rides', ['driver_id' => 99999] + $this->request)->assertStatus(409);
 
-        $response = $this->postJson('/api/rides', ['mode' => 'broadcast'] + $this->request)->assertStatus(422);
+        $response = $this->postJson('/api/rides', ['mode' => 'broadcast'] + $this->request)->assertStatus(409);   // broadcast is supported (S3.5); nobody is online nearby
         OpenApiContract::assertResponse($response, 'post', '/rides');
     }
 

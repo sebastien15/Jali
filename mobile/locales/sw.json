@@ -776,7 +776,10 @@
       "retry": "Angalia tena",
       "request": "Omba {{name}}",
       "seats": "viti {{count}}",
-      "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba."
+      "priceNote": "Bei inajumuisha kukufuata na ada ya Jali. Inafungwa unapoomba.",
+      "noneNow": "hakuna sasa",
+      "view_list": "Orodha",
+      "view_map": "Ramani"
     },
     "trip": {
       "waiting": "Tunasubiri {{name}} akubali…",
@@ -875,6 +878,16 @@
       "status_expired": "Hakuna jibu",
       "status_cancelled_by_rider": "Imeghairiwa",
       "status_cancelled_by_driver": "Imeghairiwa na dereva"
+    },
+    "broadcast": {
+      "button": "Tuma kwa madereva wote walio karibu",
+      "title": "Tuma kwa madereva walio karibu",
+      "sub": "Ombi lako linaenda kwa madereva walio karibu zaidi kwa bei yako ya juu au chini. Wa kwanza kukubali ni wako, kwa bei yake.",
+      "max": "Bei ya juu (RWF)",
+      "noMax": "Hakuna kikomo",
+      "send": "Tuma ombi",
+      "finding": "Tunakutafutia dereva…",
+      "firstWins": "wa kwanza kukubali anashinda"
     }
   },
   "hire": {

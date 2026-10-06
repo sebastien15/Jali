@@ -776,7 +776,10 @@
       "retry": "Ongera urebe",
       "request": "Saba {{name}}",
       "seats": "imyanya {{count}}",
-      "priceNote": "Igiciro gikubiyemo kuza kugufata n'amafaranga ya Jali. Gihagarara iyo usabye."
+      "priceNote": "Igiciro gikubiyemo kuza kugufata n'amafaranga ya Jali. Gihagarara iyo usabye.",
+      "noneNow": "nta n'umwe",
+      "view_list": "Urutonde",
+      "view_map": "Ikarita"
     },
     "trip": {
       "waiting": "Dutegereje ko {{name}} yemera…",
@@ -875,6 +878,16 @@
       "status_expired": "Nta gisubizo",
       "status_cancelled_by_rider": "Yahagaritswe",
       "status_cancelled_by_driver": "Yahagaritswe n'umushoferi"
+    },
+    "broadcast": {
+      "button": "Ohereza ku bashoferi bose bari hafi",
+      "title": "Ohereza ku bashoferi bari hafi",
+      "sub": "Ubusabe bwawe bujya ku bashoferi bari hafi bafite igiciro kitarenze icyo wahisemo. Uwa mbere wemeye ni uwawe, ku giciro cye.",
+      "max": "Igiciro ntarengwa (RWF)",
+      "noMax": "Nta giciro ntarengwa",
+      "send": "Ohereza ubusabe",
+      "finding": "Turimo kugushakira umushoferi…",
+      "firstWins": "uwa mbere wemeye niwe utwara"
     }
   },
   "hire": {

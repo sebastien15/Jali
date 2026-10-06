@@ -57,6 +57,7 @@ class RidePresenter
             'est_distance_km' => $ride->est_distance_km,
             'est_minutes'     => $ride->est_minutes,
             'quoted_fare'     => $ride->quoted_fare,
+            'max_fare'        => $ride->max_fare,
             'driver_fare'     => $ride->driver_fare,
             'service_fee'     => $ride->service_fee,
             'final_fare'      => $ride->final_fare,
