@@ -46,11 +46,12 @@ export const PERSIST_SCHEMA_VERSION = "jali-query-v1";
 export function isSensitiveQueryKey(key: readonly unknown[]): boolean {
   const [root, second] = key;
   if (root === "rides") return true;
+  if (root === "support") return true;   // ticket text is personal (S16.3)
   // Rentals: phone numbers after acceptance, handover records, owner papers state
   if (root === "rentals") return second === "bookings" || second === "booking";
   if (root === "hire") return typeof second === "number";
   if (root === "driver") return second === "onboarding" || second === "profile" || second === "rentals" || second === "rental";
-  if (root === "admin") return second === "drivers" || second === "rentalCars" || second === "rentalCar" || second === "rentals" || second === "rental";
+  if (root === "admin") return second === "drivers" || second === "rentalCars" || second === "rentalCar" || second === "rentals" || second === "rental" || second === "support";
   return false;
 }
 

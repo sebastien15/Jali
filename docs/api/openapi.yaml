@@ -58,6 +58,8 @@ tags:
     description: Cities and zones where services are offered (S10.4)
   - name: Help
     description: Help centre topics in en/fr/rw/sw (S16.2)
+  - name: Support
+    description: Support tickets linked to a ride, hire or rental; staff inbox with SLA (S16.3)
   - name: Service access
     description: Which services an account can see, use and offer — one server answer for navigation and intake (S23.1)
 
@@ -2258,6 +2260,265 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  # ── Support tickets (S16.3) ─────────────────────────────────────────────
+  /support/tickets:
+    get:
+      tags: [Support]
+      operationId: listMyTickets
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: My tickets, latest activity first
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: "#/components/schemas/SupportTicket" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Support]
+      operationId: openTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Open a ticket, optionally about one of my rides/hires/rentals (safety = urgent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportTicketInput" }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+  /support/tickets/{id}:
+    get:
+      tags: [Support]
+      operationId: getMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: One of my tickets with its messages (staff names hidden)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /support/tickets/{id}/messages:
+    post:
+      tags: [Support]
+      operationId: replyToMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Reply (reopens the ticket)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 2000 } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+  /support/tickets/{id}/resolve:
+    post:
+      tags: [Support]
+      operationId: resolveMyTicket
+      x-jali-story: S16.3
+      x-jali-permission: use-support
+      summary: Mark my ticket solved
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/support/tickets:
+    get:
+      tags: [Support]
+      operationId: supportInbox
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: "Inbox — urgent first, then by first-response deadline"
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [open, answered, resolved], default: open } }
+        - { name: priority, in: query, schema: { type: string, enum: [urgent, high, normal] } }
+        - { name: mine, in: query, schema: { type: boolean } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportInbox" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}:
+    get:
+      tags: [Support]
+      operationId: supportTicket
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Ticket with customer, SLA and messages
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/support/tickets/{id}/messages:
+    post:
+      tags: [Support]
+      operationId: supportReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Reply as Jali support (pushes the customer; first reply stops the SLA timer)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 2000 } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}/assign:
+    post:
+      tags: [Support]
+      operationId: supportAssign
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Assign (omit admin_id = me, null = unassign; logged)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { admin_id: { type: [integer, "null"] } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/tickets/{id}/status:
+    post:
+      tags: [Support]
+      operationId: supportStatus
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Set status (resolved pushes the customer; logged)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [status], properties: { status: { type: string, enum: [open, answered, resolved] } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffSupportTicketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/canned-replies:
+    get:
+      tags: [Support]
+      operationId: listCannedReplies
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Saved replies
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: "#/components/schemas/CannedReply" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Support]
+      operationId: createCannedReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Save a reply
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [title, body], properties: { title: { type: string, maxLength: 80 }, body: { type: string, maxLength: 2000 } } }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CannedReply" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /admin/support/canned-replies/{id}:
+    delete:
+      tags: [Support]
+      operationId: deleteCannedReply
+      x-jali-story: S16.3
+      x-jali-permission: manage-support
+      summary: Delete a saved reply
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   # ── Service access (S23.1) ──────────────────────────────────────────────
   /me/service-access:
     get:
@@ -3405,6 +3666,104 @@ components:
                   items: { type: string }
 
   schemas:
+    SupportTicketInput:
+      type: object
+      required: [category, message]
+      properties:
+        category: { $ref: "#/components/schemas/HelpContext" }
+        subject_type: { type: [string, "null"], enum: [ride, hire, rental, null] }
+        subject_id: { type: [integer, "null"] }
+        message: { type: string, minLength: 5, maxLength: 2000 }
+    SupportMessage:
+      type: object
+      required: [id, is_staff, body, created_at, author]
+      properties:
+        id: { type: integer }
+        is_staff: { type: boolean }
+        body: { type: string }
+        created_at: { type: string, format: date-time }
+        author: { type: string, description: '"Jali support" for staff messages shown to customers' }
+    SupportTicket:
+      type: object
+      required: [id, category, priority, status, subject, preview, created_at, last_message_at, resolved_at]
+      properties:
+        id: { type: integer }
+        category: { $ref: "#/components/schemas/HelpContext" }
+        priority: { type: string, enum: [urgent, high, normal] }
+        status: { type: string, enum: [open, answered, resolved] }
+        subject:
+          type: [object, "null"]
+          required: [type, id, label]
+          properties:
+            type: { type: string, enum: [ride, hire, rental] }
+            id: { type: integer }
+            label: { type: string }
+        preview: { type: string }
+        created_at: { type: string, format: date-time }
+        last_message_at: { type: string, format: date-time }
+        resolved_at: { type: [string, "null"], format: date-time }
+    SupportTicketDetail:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicket" }
+        - type: object
+          required: [messages]
+          properties:
+            messages:
+              type: array
+              items: { $ref: "#/components/schemas/SupportMessage" }
+    StaffSupportFields:
+      type: object
+      required: [user, assignee, sla]
+      properties:
+        user:
+          type: object
+          required: [id, name, phone]
+          properties:
+            id: { type: integer }
+            name: { type: [string, "null"] }
+            phone: { type: [string, "null"] }
+        assignee:
+          type: [object, "null"]
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        sla:
+          type: object
+          required: [first_response_due_at, first_responded_at, overdue]
+          properties:
+            first_response_due_at: { type: string, format: date-time }
+            first_responded_at: { type: [string, "null"], format: date-time }
+            overdue: { type: boolean }
+    StaffSupportTicket:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicket" }
+        - { $ref: "#/components/schemas/StaffSupportFields" }
+    StaffSupportTicketDetail:
+      allOf:
+        - { $ref: "#/components/schemas/SupportTicketDetail" }
+        - { $ref: "#/components/schemas/StaffSupportFields" }
+    SupportInbox:
+      type: object
+      required: [data, counts]
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/StaffSupportTicket" }
+        counts:
+          type: object
+          required: [open, urgent, overdue]
+          properties:
+            open: { type: integer }
+            urgent: { type: integer }
+            overdue: { type: integer }
+    CannedReply:
+      type: object
+      required: [id, title, body]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
     Locale:
       type: string
       enum: [en, fr, rw, sw]
