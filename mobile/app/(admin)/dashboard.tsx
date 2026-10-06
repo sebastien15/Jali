@@ -84,6 +84,7 @@ export default function AdminDashboard() {
     // Ride operations — manage-rides
     ...(canManageRides ? [
       { label: "Rides", icon: "car-sport-outline" as const, route: "/(admin)/rides", color: C.blue },
+      { label: "Hires", icon: "person-outline" as const, route: "/(admin)/hires", color: C.purple },
       { label: "Settlements", icon: "cash-outline" as const, route: "/(admin)/settlements", color: C.green },
     ] : []),
     // Help centre — manage-support (S16.2)

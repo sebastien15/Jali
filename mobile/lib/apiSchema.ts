@@ -1591,6 +1591,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/hires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search hires by status, start date, customer or driver (name or phone) */
+        get: operations["adminListHires"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/hires/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hire with timeline, quote snapshot and ratings */
+        get: operations["adminGetHire"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/hires/{id}/times": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Correct check-in/check-out with a note; a completed hire's overtime, total and commission are recomputed (logged) */
+        post: operations["adminCorrectHireTimes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/service-access": {
         parameters: {
             query?: never;
@@ -2256,6 +2307,74 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminHirePerson: {
+            id: number;
+            name: string | null;
+            phone: string | null;
+        } | null;
+        AdminHireSummary: {
+            id: number;
+            status: string;
+            customer: components["schemas"]["AdminHirePerson"];
+            driver: components["schemas"]["AdminHirePerson"];
+            /** Format: date-time */
+            start_at: string;
+            /** Format: date-time */
+            end_at: string;
+            quoted_total: number;
+            final_total: number | null;
+            /** Format: date-time */
+            requested_at: string | null;
+        };
+        AdminHireDetail: components["schemas"]["AdminHireSummary"] & {
+            duration: {
+                /** @enum {string} */
+                type?: "hours" | "days";
+                value?: number;
+            };
+            trip_type: string;
+            transmission: string;
+            pickup: {
+                lat?: number;
+                lng?: number;
+                address?: string | null;
+            };
+            car_description?: string | null;
+            notes?: string | null;
+            payment_method?: string | null;
+            cancel_reason?: string | null;
+            cancelled_by?: string | null;
+            /** Format: date-time */
+            checked_in_at: string | null;
+            /** Format: date-time */
+            checked_out_at: string | null;
+            quote: {
+                rate: Record<string, never>;
+                driver_total: number;
+                service_fee: number;
+                quoted_total: number;
+                overtime_minutes: number;
+                overtime_amount: number;
+                final_total: number | null;
+                commission_pct: number;
+                commission: number | null;
+                cancel_fee: number;
+            };
+            timeline: {
+                type: string;
+                actor: string | null;
+                note: string | null;
+                /** Format: date-time */
+                at: string | null;
+            }[];
+            ratings: {
+                /** @enum {string} */
+                from?: "customer" | "driver";
+                stars?: number;
+                tags?: string[];
+                comment?: string | null;
+            }[];
+        };
         SupportTicketInput: {
             category: components["schemas"]["HelpContext"];
             /** @enum {string|null} */
@@ -6765,6 +6884,101 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminListHires: {
+        parameters: {
+            query?: {
+                status?: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver";
+                from?: string;
+                to?: string;
+                customer?: string;
+                driver?: string;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminHireSummary"][];
+                        next_page: number | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminGetHire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHireDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminCorrectHireTimes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: date-time */
+                    checked_in_at?: string;
+                    /** Format: date-time */
+                    checked_out_at?: string;
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Corrected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHireDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
         };
     };

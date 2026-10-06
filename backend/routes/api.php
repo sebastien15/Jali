@@ -18,6 +18,7 @@ use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\AdminHireController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
 use App\Http\Controllers\PushNotificationController;
@@ -211,6 +212,13 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/", [AdminRideController::class, "index"]);
         Route::get("/{id}", [AdminRideController::class, "show"])->whereNumber("id");
         Route::post("/{id}/adjust", [AdminRideController::class, "adjust"])->whereNumber("id");
+    });
+
+    // Hire operations (S6.6)
+    Route::middleware("permission:manage-rides")->prefix("admin/hires")->group(function () {
+        Route::get("/", [AdminHireController::class, "index"]);
+        Route::get("/{id}", [AdminHireController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/times", [AdminHireController::class, "times"])->whereNumber("id");
     });
 
     // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3

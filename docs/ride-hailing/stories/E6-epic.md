@@ -9,7 +9,7 @@ Customers find and book a verified private driver to drive *their own* car — b
 - S6.3 — Find and book a driver for my car (wave 1, ✅ built)
 - S6.4 — Hire lifecycle: accept, check-in, check-out, overtime (wave 1, ✅ built)
 - S6.5 — Hire cancellations, no-shows and disputes (wave 1, ⬜ todo)
-- S6.6 — Admin hire operations (wave 1, ⬜ todo)
+- S6.6 — Admin hire operations (wave 1, ✅ built)
 
 ## Done when
 - [ ] All stories in this epic are closed

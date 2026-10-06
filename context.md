@@ -499,6 +499,13 @@ GET|PUT|DELETE /admin/service-areas/{id}   (delete 409 while a city has zones). 
       is off there. City overrides (commission_pct, cancel_fee, free_wait_min, nearby_radius_km, broadcast_max_drivers,
       vehicle_classes) apply through NearbyRides\Application\AreaRideSettings. Admin UI: app/(admin)/service-areas.
 
+# Hire operations (S6.6) — Modules/DriverHire AdminHires, perm: manage-rides
+GET   /admin/hires                ?status&from&to&customer&driver&page → {data, next_page}
+GET   /admin/hires/{id}           + quote snapshot, timeline (timestamps + admin log entries), ratings
+POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} started/completed only; completed → overtime,
+                                  total and commission recomputed, ledger adjusted; logged hire.times_corrected
+      Admin UI: app/(admin)/hires.
+
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
 POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112
