@@ -560,7 +560,6 @@ paths:
     post:
       tags: [Rides]
       operationId: estimateRide
-      x-jali-status: planned
       x-jali-story: S3.6
       x-jali-permission: request-rides
       summary: Price range and nearest ETA per vehicle class
@@ -571,20 +570,34 @@ paths:
             schema: { $ref: "#/components/schemas/TripPoints" }
       responses:
         "200":
-          description: OK
+          description: Every class, in order moto → van; classes without drivers have available=false
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  required: [class, available]
-                  properties:
-                    class: { $ref: "#/components/schemas/VehicleClass" }
-                    available: { type: boolean }
-                    min_quote: { type: [integer, "null"] }
-                    max_quote: { type: [integer, "null"] }
-                    nearest_eta_min: { type: [integer, "null"] }
+                type: object
+                required: [trip, classes]
+                properties:
+                  trip:
+                    type: object
+                    required: [distance_km, est_minutes]
+                    properties:
+                      distance_km: { type: number }
+                      est_minutes: { type: integer }
+                  classes:
+                    type: array
+                    items:
+                      type: object
+                      required: [class, available, drivers, min_quote, max_quote, nearest_eta_min]
+                      properties:
+                        class: { $ref: "#/components/schemas/VehicleClass" }
+                        available: { type: boolean }
+                        drivers: { type: integer }
+                        min_quote: { type: [integer, "null"] }
+                        max_quote: { type: [integer, "null"] }
+                        nearest_eta_min: { type: [integer, "null"] }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
   /rides:
     get:
@@ -610,7 +623,7 @@ paths:
     post:
       tags: [Rides]
       operationId: requestRide
-      x-jali-story: S3.4
+      x-jali-story: S3.4, S3.5
       x-jali-permission: request-rides
       summary: Request a ride from one driver (pick) or all nearby (broadcast)
       requestBody:
@@ -621,10 +634,12 @@ paths:
               allOf:
                 - $ref: "#/components/schemas/TripPoints"
                 - type: object
-                  required: [mode, driver_id]
+                  required: [mode]
                   properties:
-                    mode: { type: string, enum: [pick], description: "broadcast arrives with S3.5" }
-                    driver_id: { type: integer, description: A driver from /rides/nearby }
+                    mode: { type: string, enum: [pick, broadcast], description: "pick: one driver (driver_id required). broadcast: the nearest drivers within max_fare; first to accept wins at their own price (S3.5)" }
+                    driver_id: { type: integer, description: "pick only: a driver from /rides/nearby" }
+                    vehicle_class: { oneOf: [{ $ref: "#/components/schemas/VehicleClass" }, { type: "null" }], description: broadcast only }
+                    max_fare: { type: [integer, "null"], minimum: 500, description: "broadcast only: only drivers whose total is at or under this" }
                     payment_method: { type: string, enum: [cash, momo], default: cash }
       responses:
         "201":
@@ -2188,7 +2203,8 @@ components:
         dropoff: { $ref: "#/components/schemas/Place" }
         est_distance_km: { type: number }
         est_minutes: { type: integer }
-        quoted_fare: { type: integer, description: "Locked total the rider pays (driver fare + Jali fee)" }
+        quoted_fare: { type: integer, description: "Locked total the rider pays (driver fare + Jali fee). Broadcast: lowest offer until a driver accepts, then the winner's price" }
+        max_fare: { type: [integer, "null"], description: "Broadcast: the rider's maximum" }
         driver_fare: { type: integer }
         service_fee: { type: integer }
         final_fare: { type: [integer, "null"] }
@@ -2259,6 +2275,7 @@ components:
         trip_km: { type: number }
         pickup_km: { type: number }
         earnings: { type: integer, description: "Driver's quote minus commission" }
+        broadcast: { type: boolean, description: "Sent to several drivers — first to accept wins (S3.5)" }
         rider_rating: { type: [number, "null"] }
         payment_method: { type: string, enum: [cash, momo] }
         expires_at: { type: string, format: date-time }
@@ -2286,6 +2303,7 @@ components:
         nearby_radius_km: { type: number, default: 5 }
         presence_ttl_sec: { type: integer, default: 60 }
         request_timeout_sec: { type: integer, default: 30 }
+        broadcast_max_drivers: { type: integer, default: 5, description: "S3.5: how many nearest drivers get a broadcast" }
         cancel_fee: { type: integer, default: 500 }
         free_wait_min: { type: integer, default: 5 }
         hire: { $ref: "#/components/schemas/HireSettingsLimits" }

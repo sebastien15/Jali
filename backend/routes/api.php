@@ -94,6 +94,7 @@ Route::middleware("auth:sanctum")->group(function () {
     // Rider: on-demand rides — RIDE_HAILING_PLAN.md §4–5
     Route::middleware("permission:request-rides")->prefix("rides")->group(function () {
         Route::get("/nearby", [RideController::class, "nearby"]);
+        Route::post("/estimate", [RideController::class, "estimate"]);
         Route::get("/", [RideController::class, "index"]);
         Route::post("/", [RideController::class, "store"])->middleware("throttle:ride-requests");
         Route::get("/active", [RideController::class, "active"]);

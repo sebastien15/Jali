@@ -776,7 +776,10 @@
       "retry": "Réessayer",
       "request": "Demander {{name}}",
       "seats": "{{count}} places",
-      "priceNote": "Le prix inclut l'approche et les frais Jali. Il est bloqué à la demande."
+      "priceNote": "Le prix inclut l'approche et les frais Jali. Il est bloqué à la demande.",
+      "noneNow": "aucun",
+      "view_list": "Liste",
+      "view_map": "Carte"
     },
     "trip": {
       "waiting": "En attente de la réponse de {{name}}…",
@@ -875,6 +878,16 @@
       "status_expired": "Sans réponse",
       "status_cancelled_by_rider": "Annulée",
       "status_cancelled_by_driver": "Annulée par le chauffeur"
+    },
+    "broadcast": {
+      "button": "Envoyer à tous les chauffeurs proches",
+      "title": "Envoyer aux chauffeurs proches",
+      "sub": "Votre demande part aux chauffeurs les plus proches à votre prix maximum ou moins. Le premier qui accepte est à vous, à son propre prix.",
+      "max": "Prix maximum (RWF)",
+      "noMax": "Pas de maximum",
+      "send": "Envoyer la demande",
+      "finding": "Recherche d'un chauffeur…",
+      "firstWins": "le premier qui accepte gagne"
     }
   },
   "hire": {

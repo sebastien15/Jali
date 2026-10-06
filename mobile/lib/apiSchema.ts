@@ -1463,8 +1463,10 @@ export interface components {
             dropoff: components["schemas"]["Place"];
             est_distance_km: number;
             est_minutes: number;
-            /** @description Locked total the rider pays (driver fare + Jali fee) */
+            /** @description Locked total the rider pays (driver fare + Jali fee). Broadcast: lowest offer until a driver accepts, then the winner's price */
             quoted_fare: number;
+            /** @description Broadcast: the rider's maximum */
+            max_fare?: number | null;
             driver_fare: number;
             service_fee: number;
             final_fare: number | null;
@@ -1533,6 +1535,8 @@ export interface components {
             pickup_km: number;
             /** @description Driver's quote minus commission */
             earnings: number;
+            /** @description Sent to several drivers — first to accept wins (S3.5) */
+            broadcast?: boolean;
             rider_rating?: number | null;
             /** @enum {string} */
             payment_method?: "cash" | "momo";
@@ -1562,6 +1566,11 @@ export interface components {
             presence_ttl_sec: number;
             /** @default 30 */
             request_timeout_sec: number;
+            /**
+             * @description S3.5: how many nearest drivers get a broadcast
+             * @default 5
+             */
+            broadcast_max_drivers: number;
             /** @default 500 */
             cancel_fee: number;
             /** @default 5 */
@@ -2346,21 +2355,31 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Every class, in order moto → van; classes without drivers have available=false */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        class: components["schemas"]["VehicleClass"];
-                        available: boolean;
-                        min_quote?: number | null;
-                        max_quote?: number | null;
-                        nearest_eta_min?: number | null;
-                    }[];
+                        trip: {
+                            distance_km: number;
+                            est_minutes: number;
+                        };
+                        classes: {
+                            class: components["schemas"]["VehicleClass"];
+                            available: boolean;
+                            drivers: number;
+                            min_quote: number | null;
+                            max_quote: number | null;
+                            nearest_eta_min: number | null;
+                        }[];
+                    };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listMyRides: {
@@ -2399,12 +2418,16 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["TripPoints"] & {
                     /**
-                     * @description broadcast arrives with S3.5
+                     * @description pick: one driver (driver_id required). broadcast: the nearest drivers within max_fare; first to accept wins at their own price (S3.5)
                      * @enum {string}
                      */
-                    mode: "pick";
-                    /** @description A driver from /rides/nearby */
-                    driver_id: number;
+                    mode: "pick" | "broadcast";
+                    /** @description pick only: a driver from /rides/nearby */
+                    driver_id?: number;
+                    /** @description broadcast only */
+                    vehicle_class?: components["schemas"]["VehicleClass"] | null;
+                    /** @description broadcast only: only drivers whose total is at or under this */
+                    max_fare?: number | null;
                     /**
                      * @default cash
                      * @enum {string}

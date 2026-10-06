@@ -776,7 +776,10 @@
       "retry": "Check again",
       "request": "Request {{name}}",
       "seats": "{{count}} seats",
-      "priceNote": "Price includes pickup and Jali fee. It's locked when you request."
+      "priceNote": "Price includes pickup and Jali fee. It's locked when you request.",
+      "noneNow": "none now",
+      "view_list": "List",
+      "view_map": "Map"
     },
     "trip": {
       "waiting": "Waiting for {{name}} to accept…",
@@ -875,6 +878,16 @@
       "status_expired": "No answer",
       "status_cancelled_by_rider": "Cancelled",
       "status_cancelled_by_driver": "Cancelled by driver"
+    },
+    "broadcast": {
+      "button": "Send to all nearby drivers",
+      "title": "Send to nearby drivers",
+      "sub": "Your request goes to the closest drivers at or under your maximum price. The first to accept is yours, at their own price.",
+      "max": "Maximum price (RWF)",
+      "noMax": "No maximum",
+      "send": "Send request",
+      "finding": "Finding you a driver…",
+      "firstWins": "first to accept wins"
     }
   },
   "hire": {
