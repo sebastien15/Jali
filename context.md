@@ -408,6 +408,7 @@ GET   /admin/rides/live           counters (online by class, on trip, by status,
 GET   /admin/rides?status&from&to&rider&driver&flagged&page   full names + phones; flagged = PIN-locked or rated ≤2★
 GET   /admin/rides/{id}           timeline (ride_events), fare breakdown with rate snapshot, ratings
 POST  /admin/rides/{id}/adjust    {final_fare?, commission?, note} completed only → ride_events 'adjusted' + activity_logs 'ride.adjusted'
+      Mobile: (admin)/rides (Live tab polls 10 s · All rides with filters) and (admin)/rides/[id]; dashboard tile "Rides"
 
 # perm: manage-ride-pricing (superadmin) — ride guardrails, stored in platform_settings['rides']
 GET   /admin/settings/rides
