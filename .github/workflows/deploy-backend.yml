@@ -87,33 +87,45 @@ jobs:
           MAIL_LOG_CHANNEL=stack
           EOF
 
-      - name: Deploy to production server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          port: 25552
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/*"
-          target: ${{ secrets.SSH_DEPLOY_PATH }}/backend
-          strip_components: 1
-          overwrite: true
+      # One SSH connection per attempt: the server drops bursts of new connections,
+      # which broke appleboy/scp-action (it opens a connection per step). The archive
+      # is streamed over stdin, extracted in place, then migrations and caches run in
+      # the same session. Re-running is safe (extract + migrate are idempotent).
+      - name: Package backend
+        run: tar -czf "$RUNNER_TEMP/backend.tgz" -C backend .
 
-      - name: Run remote post-deploy steps
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          port: 25552
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            cd ${{ secrets.SSH_DEPLOY_PATH }}/backend
+      - name: Upload, extract and migrate (single SSH session, retried)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_PATH: ${{ secrets.SSH_DEPLOY_PATH }}
+        run: |
+          set -u
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          SSH_OPTS="-i $HOME/.ssh/deploy_key -p 25552 -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o BatchMode=yes"
+          REMOTE="set -e
+            mkdir -p '$DEPLOY_PATH/backend'
+            cd '$DEPLOY_PATH/backend'
+            tar -xzf - --no-same-owner
             chmod -R 755 storage bootstrap/cache
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            echo \"Live release: ${GITHUB_SHA}\""
+          for attempt in 1 2 3 4 5; do
+            echo "Deploy attempt $attempt"
+            if ssh $SSH_OPTS "$SSH_USERNAME@$SSH_HOST" "$REMOTE" < "$RUNNER_TEMP/backend.tgz"; then
+              echo "Deployed ${GITHUB_SHA}"
+              exit 0
+            fi
+            sleep $((attempt * 30))
+          done
+          echo "All deploy attempts failed" >&2
+          exit 1
 
       - name: Deployment Status
         if: success()
