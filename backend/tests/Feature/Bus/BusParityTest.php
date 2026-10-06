@@ -205,10 +205,10 @@ class BusParityTest extends TestCase
         $this->deleteJson("/api/admin/trips/{$this->route->id}/departures/{$dep->json('id')}")->assertOk()
             ->assertExactJson(['message' => 'Departure removed.']);
 
-        // A station admin may only send operating_hours; name is ignored. (Known gap, not
-        // enshrined: operating_hours is not in Agency::$fillable, so it is not saved today.)
+        // A station admin may only send operating_hours; name is ignored. operating_hours is
+        // saved since M03-Remaining's authorized fix (see AgencyOperatingHoursTest).
         $this->patchJson("/api/admin/agencies/{$this->agency->id}", ['name' => 'Renamed', 'operating_hours' => '05:00-22:00'])->assertOk()
-            ->assertJsonPath('name', 'Alpha Express');
+            ->assertJsonPath('name', 'Alpha Express')->assertJsonPath('operating_hours', '05:00-22:00');
         $this->patchJson("/api/admin/agencies/{$this->agency->id}", ['name' => 'Renamed'])->assertStatus(422);
 
         $this->assertSame(
