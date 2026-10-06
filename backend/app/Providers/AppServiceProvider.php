@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->tag([
             \App\Modules\LegacyBookings\Infrastructure\BusBookingHandler::class,
             \App\Modules\LegacyBookings\Infrastructure\PrivateSeatBookingHandler::class,
-            \App\Modules\LegacyBookings\Infrastructure\RentalBookingHandler::class,
+            \App\Modules\Rentals\Infrastructure\RentalBookingHandler::class,
             \App\Modules\LegacyBookings\Infrastructure\TripDepartureBookingHandler::class,
         ], \App\Modules\LegacyBookings\Contracts\BookingTypeHandler::class);
         $this->app->when(\App\Modules\LegacyBookings\Application\BookingDispatcher::class)

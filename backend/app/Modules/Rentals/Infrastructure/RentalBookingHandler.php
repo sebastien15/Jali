@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\LegacyBookings\Infrastructure;
+namespace App\Modules\Rentals\Infrastructure;
 
 use App\Models\CarRental;
 use App\Modules\LegacyBookings\Contracts\BookableOffer;
@@ -9,7 +9,7 @@ use App\Modules\LegacyBookings\Contracts\BookingTypeHandler;
 
 /**
  * Generic booking rules for type `rental` (car rentals, reference_id = car_rentals.id).
- * Temporary home until Rentals owns it (runbook M03-Rental).
+ * Owned by Rentals; registered with the LegacyBookings dispatcher (M03-Rental).
  */
 class RentalBookingHandler implements BookingTypeHandler
 {

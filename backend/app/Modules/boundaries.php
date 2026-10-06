@@ -17,5 +17,6 @@ return [
     'Payments'       => ['Pricing'],         // commission debt limit from PricingPolicy
     'Pricing'        => [],
     'Providers'      => ['Payments'],        // go-online blocker via Payments\Contracts\ProviderDebtLimit
+    'Rentals'        => ['LegacyBookings'],  // implements LegacyBookings\Contracts\BookingTypeHandler (type=rental)
     'Safety'         => ['Notifications'],   // SOS texts via SmsSender
 ];
