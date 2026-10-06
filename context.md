@@ -509,6 +509,10 @@ GET   /admin/hires/{id}           + quote snapshot, timeline (timestamps + admin
 POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} started/completed only; completed → overtime,
                                   total and commission recomputed, ledger adjusted; logged hire.times_corrected
       Admin UI: app/(admin)/hires.
+      S6.5: POST /driver-hire/{id}/no-show (accepted, from start + hire.no_show_grace_min=30): customer → no_show_driver
+      (no fee), driver → no_show_customer (late_cancel_pct fee). POST /driver-hire/{id}/dispute {reason, claimed_end?}
+      (completed, within hire.dispute_days=7, one open per user) → hire_disputes; GET /admin/hires?disputed=1;
+      POST /admin/hires/{id}/disputes/{d}/resolve {resolution} (logged, pushes both). /driver-hire/available adds `policy`.
 
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}

@@ -53,11 +53,12 @@ export default function HireSearchScreen() {
   const durationValue = durationType === "hours" ? hours : days;
   const params = { start_at: kigaliIso(date, time), duration_type: durationType, duration_value: durationValue, trip_type: tripType, transmission };
 
-  const { data, isFetching, error } = useQuery({
+  const { data: result, isFetching, error } = useQuery({
     queryKey: queryKeys.hire.available(search),
-    queryFn: () => api.get<{ drivers: AvailableHireDriver[] }>("/driver-hire/available", { params: search! }).then(r => r.data.drivers),
+    queryFn: () => api.get<{ drivers: AvailableHireDriver[]; policy?: HirePolicy }>("/driver-hire/available", { params: search! }).then(r => r.data),
     enabled: !!search,
   });
+  const data = result?.drivers;
   const errorMessage = (error as any)?.response?.data?.errors
     ? Object.values((error as any).response.data.errors as Record<string, string[]>)[0]?.[0]
     : error ? t("hire.search.error") : null;
@@ -169,7 +170,7 @@ export default function HireSearchScreen() {
 
       <PickupSearch visible={pickupSearch} onClose={() => setPickupSearch(false)} onPick={p => { setPickup(p); setPickupSearch(false); }} />
       {chosen && search ? (
-        <ConfirmSheet driver={chosen} params={search} pickup={pickup} carDescription={carDescription} notes={notes} onClose={() => setChosen(null)} />
+        <ConfirmSheet driver={chosen} params={search} pickup={pickup} carDescription={carDescription} notes={notes} policy={result?.policy} onClose={() => setChosen(null)} />
       ) : null}
     </SafeAreaView>
   );
@@ -210,9 +211,12 @@ function DriverCard({ driver, onBook }: { driver: AvailableHireDriver; onBook: (
   );
 }
 
+type HirePolicy = { free_cancel_hours: number; late_cancel_pct: number; no_show_grace_min: number; overtime_grace_min: number };
+
 /** Price breakdown, terms and payment before booking */
-function ConfirmSheet({ driver, params, pickup, carDescription, notes, onClose }: {
-  driver: AvailableHireDriver; params: Record<string, string | number>; pickup: Place | null; carDescription: string; notes: string; onClose: () => void;
+function ConfirmSheet({ driver, params, pickup, carDescription, notes, policy, onClose }: {
+  driver: AvailableHireDriver; params: Record<string, string | number>; pickup: Place | null; carDescription: string; notes: string;
+  policy?: HirePolicy; onClose: () => void;
 }) {
   const { t } = useTranslation();
   const [terms, setTerms] = useState(false);
@@ -257,6 +261,19 @@ function ConfirmSheet({ driver, params, pickup, carDescription, notes, onClose }
           <Row label={t("ride.trip.jaliFee")} value={formatRwf(q.service_fee)} />
           <Row label={t("ride.trip.total")} value={formatRwf(q.total)} bold />
           <Text style={{ color: C.muted, fontSize: 12 }}>{t("hire.confirm.overtime", { rate: formatRwf(driver.rates.overtime_per_hour) })}</Text>
+          {policy ? (
+            // S6.5: the rules before booking — the driver's terms; Jali takes no fee
+            <View style={{ backgroundColor: C.bg, borderRadius: 12, padding: 10, gap: 3 }}>
+              <Text style={{ color: C.dark, fontSize: 12 }}>
+                {t("hire.policy.cancel", { hours: policy.free_cancel_hours, pct: policy.late_cancel_pct,
+                  defaultValue: `Free cancellation until ${policy.free_cancel_hours} h before the start; later, ${policy.late_cancel_pct}% of the driver's price.` })}
+              </Text>
+              <Text style={{ color: C.dark, fontSize: 12 }}>
+                {t("hire.policy.noShow", { min: policy.no_show_grace_min, pct: policy.late_cancel_pct,
+                  defaultValue: `No-show: ${policy.no_show_grace_min} min after the start either side can report it. If the driver doesn't come you pay nothing; if you don't show, ${policy.late_cancel_pct}% applies.` })}
+              </Text>
+            </View>
+          ) : null}
 
           <View style={{ flexDirection: "row", gap: 8 }}>
             {(["cash", "momo"] as const).map(m => <Chip key={m} label={t(`ride.driverTrip.${m}`)} on={payment === m} onPress={() => setPayment(m)} />)}

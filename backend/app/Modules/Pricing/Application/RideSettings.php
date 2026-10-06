@@ -69,6 +69,8 @@ class RideSettings implements PricingPolicy
                 'request_timeout_min' => 60,   // driver must answer within this, or before the start
                 'free_cancel_hours'   => 3,    // customer cancels free until this long before the start
                 'late_cancel_pct'     => 20,   // of the driver's price, paid to the driver when later
+                'no_show_grace_min'   => 30,   // S6.5: a no-show can be reported this long after the start
+                'dispute_days'        => 7,    // S6.5: hours can be disputed this long after check-out
                 'overtime_grace_min'  => 15,
                 'max_days'            => 14,
             ],
@@ -149,6 +151,8 @@ class RideSettings implements PricingPolicy
             'hire.free_cancel_hours'      => 'sometimes|integer|min:0|max:72',
             'hire.late_cancel_pct'        => 'sometimes|integer|min:0|max:100',
             'hire.overtime_grace_min'     => 'sometimes|integer|min:0|max:60',
+            'hire.no_show_grace_min'      => 'sometimes|integer|min:5|max:180',
+            'hire.dispute_days'           => 'sometimes|integer|min:1|max:60',
             'hire.max_days'               => 'sometimes|integer|min:1|max:60',
         ];
         foreach (array_keys(self::defaults()['vehicle_classes']) as $class) {

@@ -34,6 +34,17 @@ export default function AdminHireScreen() {
   const [checkOut, setCheckOut] = useState("");
   const [note, setNote] = useState("");
 
+  const [resolution, setResolution] = useState<Record<number, string>>({});
+  const resolve = useMutation({
+    mutationFn: (disputeId: number) => api.post<Hire>(`/admin/hires/${id}/disputes/${disputeId}/resolve`, { resolution: (resolution[disputeId] ?? "").trim() }).then(r => r.data),
+    onSuccess: saved => {
+      queryClient.setQueryData(queryKeys.admin.hire(id), saved);
+      queryClient.invalidateQueries({ queryKey: ["admin", "hires", "list"] });
+      Alert.alert("Resolved ✓", "Both sides were notified.");
+    },
+    onError: (err: any) => Alert.alert("Error", String(Object.values(err?.response?.data?.errors ?? {})[0] ?? err?.response?.data?.message ?? "Could not save.")),
+  });
+
   const correct = useMutation({
     mutationFn: () => {
       const body: Record<string, string> = { note: note.trim() };
@@ -115,6 +126,31 @@ export default function AdminHireScreen() {
             </View>
           )}
         </Card>
+        {(h.disputes ?? []).length > 0 && (
+          <Card title="Disputes">
+            {h.disputes!.map(d => (
+              <View key={d.id} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.border, gap: 4 }}>
+                <Text style={{ fontWeight: "800", color: d.status === "open" ? C.orange : C.green }}>
+                  {d.status === "open" ? "Open" : "Resolved"} · {d.role} {d.by ?? ""} · {when(d.created_at)}
+                </Text>
+                <Text style={{ color: C.dark }}>{d.reason}</Text>
+                {!!d.claimed_end && <Text style={{ color: C.mid, fontSize: 12 }}>Says it ended at {d.claimed_end}</Text>}
+                {d.status === "resolved" ? (
+                  <Text style={{ color: C.mid, fontSize: 12 }}>{d.resolved_by}: {d.resolution}</Text>
+                ) : (
+                  <>
+                    <Input label="Outcome (sent to both sides)" value={resolution[d.id] ?? ""} onChange={v => setResolution({ ...resolution, [d.id]: v })} multiline />
+                    <TouchableOpacity onPress={() => resolve.mutate(d.id)} disabled={(resolution[d.id] ?? "").trim().length < 5 || resolve.isPending}
+                      accessibilityLabel="Resolve dispute" style={{ backgroundColor: (resolution[d.id] ?? "").trim().length >= 5 ? C.teal : C.border, borderRadius: 10, paddingVertical: 10, alignItems: "center" }}>
+                      <Text style={{ color: C.white, fontWeight: "800" }}>Resolve</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            ))}
+            <Text style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>To change the hours, use “Correct times” above, then resolve.</Text>
+          </Card>
+        )}
         <Card title="Timeline">
           {h.timeline.map((e, i) => (
             <View key={i} style={{ paddingVertical: 4 }}>

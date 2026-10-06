@@ -4,8 +4,10 @@ namespace App\Modules\DriverHire\Application;
 
 use App\Models\ActivityLog;
 use App\Models\DriverHire;
+use App\Models\HireDispute;
 use App\Models\HireRating;
 use App\Models\User;
+use App\Modules\Notifications\Contracts\PushSender;
 use App\Modules\Payments\Contracts\MoneyRecorder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +23,10 @@ class AdminHires
     public const STATUSES = [
         DriverHire::REQUESTED, DriverHire::ACCEPTED, DriverHire::STARTED, DriverHire::COMPLETED,
         DriverHire::DECLINED, DriverHire::EXPIRED, DriverHire::CANCELLED_BY_CUSTOMER, DriverHire::CANCELLED_BY_DRIVER,
+        DriverHire::NO_SHOW_DRIVER, DriverHire::NO_SHOW_CUSTOMER,
     ];
 
-    public function __construct(private MoneyRecorder $money)
+    public function __construct(private MoneyRecorder $money, private PushSender $push)
     {
     }
 
@@ -44,6 +47,9 @@ class AdminHires
             if (!empty($filters[$param])) {
                 $query->whereIn($column, self::usersMatching($filters[$param]));
             }
+        }
+        if (!empty($filters['disputed'])) {
+            $query->whereHas('disputes', fn ($q) => $q->where('status', HireDispute::OPEN));
         }
         $page = $query->paginate(30);
 
@@ -73,6 +79,12 @@ class AdminHires
             ->map(fn (ActivityLog $l) => ['type' => $l->action, 'actor' => $l->admin?->name, 'note' => $l->details['note'] ?? null,
                 'at' => $l->created_at?->toIso8601String()]);
 
+        $disputes = $hire->disputes()->with('user:id,name', 'resolver:id,name')->orderBy('id')->get()->map(fn (HireDispute $d) => [
+            'id' => $d->id, 'role' => $d->role, 'by' => $d->user?->name, 'reason' => $d->reason, 'claimed_end' => $d->claimed_end,
+            'status' => $d->status, 'resolution' => $d->resolution, 'resolved_by' => $d->resolver?->name,
+            'created_at' => $d->created_at?->toIso8601String(), 'resolved_at' => $d->resolved_at?->toIso8601String(),
+        ]);
+
         return self::summary($hire) + [
             'duration'        => ['type' => $hire->duration_type, 'value' => $hire->duration_value],
             'trip_type'       => $hire->trip_type,
@@ -97,7 +109,10 @@ class AdminHires
                 'commission'       => $hire->commission,
                 'cancel_fee'       => $hire->cancel_fee,
             ],
-            'timeline' => $timeline->concat($admins)->sortBy('at')->values()->all(),
+            'timeline' => $timeline->concat($admins)->concat($disputes->map(fn ($d) => [
+                'type' => 'disputed', 'actor' => $d['by'], 'note' => $d['reason'], 'at' => $d['created_at'],
+            ]))->sortBy('at')->values()->all(),
+            'disputes' => $disputes->all(),
             'ratings'  => $hire->ratings()->get()->map(fn (HireRating $r) => [
                 'from' => $r->from_user_id == $hire->customer_id ? 'customer' : 'driver',
                 'stars' => $r->stars, 'tags' => $r->tags ?? [], 'comment' => $r->comment,
@@ -157,6 +172,25 @@ class AdminHires
         return $this->detail($hire->fresh(['customer', 'driver']));
     }
 
+    /** Close a dispute with the outcome; both sides get a push (S6.5) */
+    public function resolveDispute(DriverHire $hire, int $disputeId, User $admin, string $resolution): array
+    {
+        $dispute = $hire->disputes()->whereKey($disputeId)->firstOrFail();
+        if ($dispute->status !== HireDispute::OPEN) {
+            throw new HttpException(409, 'This dispute is already resolved.');
+        }
+        $dispute->forceFill(['status' => HireDispute::RESOLVED, 'resolution' => $resolution, 'resolved_by' => $admin->id, 'resolved_at' => now()])->save();
+        ActivityLog::create(['admin_id' => $admin->id, 'action' => 'hire.dispute_resolved', 'entity_type' => 'driver_hire', 'entity_id' => $hire->id,
+            'details' => ['dispute_id' => $dispute->id, 'note' => $resolution]]);
+        foreach ([[$hire->customer, 'hire'], [$hire->driver, 'driver_hire']] as [$user, $screen]) {
+            if ($user) {
+                $this->push->send($user, 'Hire dispute resolved', mb_strimwidth($resolution, 0, 120, '…'), ['screen' => $screen, 'id' => $hire->id]);
+            }
+        }
+
+        return $this->detail($hire->fresh(['customer', 'driver']));
+    }
+
     private static function times(DriverHire $h): array
     {
         return ['checked_in_at' => $h->checked_in_at?->toIso8601String(), 'checked_out_at' => $h->checked_out_at?->toIso8601String(),
@@ -183,6 +217,7 @@ class AdminHires
             'id'           => $h->id,
             'status'       => $h->status,
             'customer'     => self::person($h->customer),
+            'open_disputes' => $h->disputes()->where('status', HireDispute::OPEN)->count(),
             'driver'       => self::person($h->driver),
             'start_at'     => $h->start_at?->toIso8601String(),
             'end_at'       => $h->end_at?->toIso8601String(),

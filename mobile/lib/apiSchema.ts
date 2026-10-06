@@ -971,6 +971,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/driver-hire/{id}/no-show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The other side didn't come: customer → no_show_driver (no fee); driver → no_show_customer (late-cancel fee) */
+        post: operations["reportHireNoShow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/driver-hire/{id}/dispute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dispute the recorded hours of a completed hire (once, within hire.dispute_days); reaches admins */
+        post: operations["disputeHireHours"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/driver-hire/{id}/rate": {
         parameters: {
             query?: never;
@@ -1636,6 +1670,23 @@ export interface paths {
         put?: never;
         /** Correct check-in/check-out with a note; a completed hire's overtime, total and commission are recomputed (logged) */
         post: operations["adminCorrectHireTimes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/hires/{id}/disputes/{disputeId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a dispute with the outcome (logged; both sides get a push) */
+        post: operations["adminResolveHireDispute"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2316,6 +2367,7 @@ export interface components {
             id: number;
             status: string;
             customer: components["schemas"]["AdminHirePerson"];
+            open_disputes?: number;
             driver: components["schemas"]["AdminHirePerson"];
             /** Format: date-time */
             start_at: string;
@@ -2366,6 +2418,22 @@ export interface components {
                 note: string | null;
                 /** Format: date-time */
                 at: string | null;
+            }[];
+            disputes?: {
+                id: number;
+                /** @enum {string} */
+                role: "customer" | "driver";
+                by: string | null;
+                reason: string;
+                claimed_end?: string | null;
+                /** @enum {string} */
+                status: "open" | "resolved";
+                resolution?: string | null;
+                resolved_by?: string | null;
+                /** Format: date-time */
+                created_at?: string | null;
+                /** Format: date-time */
+                resolved_at?: string | null;
             }[];
             ratings: {
                 /** @enum {string} */
@@ -3339,7 +3407,7 @@ export interface components {
             quote: components["schemas"]["HireQuote"];
         };
         /** @enum {string} */
-        HireStatus: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver";
+        HireStatus: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver" | "no_show_driver" | "no_show_customer";
         DriverHire: {
             id: number;
             /**
@@ -3398,6 +3466,21 @@ export interface components {
                 phone: string | null;
             } | null;
             my_rating: number | null;
+            /**
+             * Format: date-time
+             * @description S6.5: from when either side may report a no-show (accepted hires)
+             */
+            no_show_from?: string | null;
+            /** @description S6.5: this viewer may dispute the recorded hours now */
+            can_dispute?: boolean;
+            my_dispute?: {
+                /** @enum {string} */
+                status?: "open" | "resolved";
+                reason?: string;
+                resolution?: string | null;
+                /** Format: date-time */
+                created_at?: string | null;
+            } | null;
             /** Format: date-time */
             requested_at?: string | null;
             /** Format: date-time */
@@ -3691,6 +3774,10 @@ export interface components {
             /** @description % of the driver's price charged on a late cancellation */
             late_cancel_pct?: number;
             overtime_grace_min?: number;
+            /** @description S6.5: a no-show can be reported this long after the start */
+            no_show_grace_min?: number;
+            /** @description S6.5: hours can be disputed this long after check-out */
+            dispute_days?: number;
             max_days?: number;
         };
         /** @description Any subset of RideSettings; a vehicle class must be sent complete */
@@ -5539,6 +5626,13 @@ export interface operations {
                 content: {
                     "application/json": {
                         drivers: components["schemas"]["AvailableHireDriver"][];
+                        /** @description S6.5: rules shown before booking (provider terms, no Jali fee) */
+                        policy?: {
+                            free_cancel_hours?: number;
+                            late_cancel_pct?: number;
+                            no_show_grace_min?: number;
+                            overtime_grace_min?: number;
+                        };
                     };
                 };
             };
@@ -5670,6 +5764,66 @@ export interface operations {
         responses: {
             /** @description Cancelled */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    reportHireNoShow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverHire"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    disputeHireHours: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    claimed_end?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Sent to Jali */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6890,11 +7044,13 @@ export interface operations {
     adminListHires: {
         parameters: {
             query?: {
-                status?: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver";
+                status?: components["schemas"]["HireStatus"];
                 from?: string;
                 to?: string;
                 customer?: string;
                 driver?: string;
+                /** @description Only hires with an open dispute (S6.5) */
+                disputed?: boolean;
                 page?: number;
             };
             header?: never;
@@ -6967,6 +7123,40 @@ export interface operations {
         };
         responses: {
             /** @description Corrected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHireDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminResolveHireDispute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                disputeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    resolution: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Resolved */
             200: {
                 headers: {
                     [name: string]: unknown;

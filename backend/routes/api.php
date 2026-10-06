@@ -179,6 +179,8 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{id}", [HireController::class, "show"])->whereNumber("id");
         Route::post("/{id}/cancel", [HireController::class, "cancel"])->whereNumber("id");
         Route::post("/{id}/rate", [HireController::class, "rate"])->whereNumber("id");
+        Route::post("/{id}/no-show", [HireController::class, "noShow"])->whereNumber("id");     // S6.5
+        Route::post("/{id}/dispute", [HireController::class, "dispute"])->whereNumber("id");   // S6.5
     });
     // Hire a Driver: driver side — stories S6.1, S6.2, S6.4
     Route::middleware("permission:offer-driver-hire")->group(function () {
@@ -219,6 +221,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/", [AdminHireController::class, "index"]);
         Route::get("/{id}", [AdminHireController::class, "show"])->whereNumber("id");
         Route::post("/{id}/times", [AdminHireController::class, "times"])->whereNumber("id");
+        Route::post("/{id}/disputes/{disputeId}/resolve", [AdminHireController::class, "resolveDispute"])->whereNumber(["id", "disputeId"]);
     });
 
     // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3
