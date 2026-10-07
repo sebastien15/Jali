@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PrivateSeat extends Model
 {
@@ -42,5 +43,21 @@ class PrivateSeat extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** S25.1: ordered stops; empty for a plain from → to listing */
+    public function stops(): HasMany
+    {
+        return $this->hasMany(JourneyStop::class)->orderBy('seq');
+    }
+
+    /** Fare per seat from stop `from` to stop `to` (seq), the sum of the segments ridden */
+    public function segmentFare(int $from, int $to): int
+    {
+        if ($this->stops->isEmpty()) {
+            return (int) $this->price;
+        }
+
+        return (int) $this->stops->filter(fn (JourneyStop $s) => $s->seq >= $from && $s->seq < $to)->sum('fare_to_next');
     }
 }

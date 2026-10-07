@@ -127,6 +127,15 @@ export interface DriverListing {
   group_discount_pct: number | null;
   allow_custom_pickup: boolean;
   custom_pickup_fee: number | null;
+  /** S25.1: ordered stops (first = from, last = to); empty for a plain listing */
+  stops?: JourneyStop[];
+}
+
+export interface JourneyStop {
+  seq?: number;
+  name: string;
+  time: string;
+  fare_to_next?: number | null;
 }
 
 /** Body for POST/PATCH /driver/listings. */
