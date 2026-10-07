@@ -131,12 +131,18 @@ export default function HireDetailScreen() {
             <Text style={{ flex: 1, color: C.dark }}>{hire.pickup.address ?? "—"}</Text>
           </View>
           {hire.car_description ? <Text style={{ color: C.mid, marginTop: 6 }}>{hire.car_description}</Text> : null}
+          {hire.with_car && hire.vehicle ? (
+            <Text style={{ color: C.dark, marginTop: 6, fontWeight: "700" }}>
+              🚗 {hire.vehicle.model}{hire.vehicle.color ? ` · ${hire.vehicle.color}` : ""}{hire.vehicle.plate ? ` · ${hire.vehicle.plate}` : ""} · {t("hire.detail.kmIncluded", { km: hire.km_allowance, defaultValue: `${hire.km_allowance} km included` })}
+            </Text>
+          ) : null}
         </Card>
 
         <Card>
           <Line label={t("hire.confirm.driverPrice")} value={formatRwf(hire.driver_total)} />
           <Line label={t("ride.trip.jaliFee")} value={formatRwf(hire.service_fee)} />
           {hire.overtime_amount ? <Line label={t("hire.detail.overtime", { min: hire.overtime_minutes })} value={formatRwf(hire.overtime_amount)} /> : null}
+          {hire.extra_km_amount ? <Line label={t("hire.detail.extraKm", { km: hire.extra_km, defaultValue: `Extra ${hire.extra_km} km` })} value={formatRwf(hire.extra_km_amount)} /> : null}
           {hire.cancel_fee ? <Line label={t("hire.detail.cancelFee")} value={formatRwf(hire.cancel_fee)} /> : null}
           <View style={{ height: 1, backgroundColor: C.border, marginVertical: 8 }} />
           <Line label={t("ride.trip.total")} value={fmt(hire.final_total ?? hire.quoted_total)} bold />

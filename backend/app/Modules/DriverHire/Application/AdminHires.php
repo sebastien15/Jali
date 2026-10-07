@@ -104,6 +104,12 @@ class AdminHires
                 'quoted_total'     => $hire->quoted_total,
                 'overtime_minutes' => $hire->overtime_minutes,
                 'overtime_amount'  => $hire->overtime_amount,
+                'with_car'         => (bool) $hire->with_car,
+                'km_allowance'     => (int) $hire->km_allowance,
+                'odometer_start'   => $hire->odometer_start,
+                'odometer_end'     => $hire->odometer_end,
+                'extra_km'         => (int) $hire->extra_km,
+                'extra_km_amount'  => (int) $hire->extra_km_amount,
                 'final_total'      => $hire->final_total,
                 'commission_pct'   => (float) $hire->commission_pct,
                 'commission'       => $hire->commission,
@@ -147,12 +153,17 @@ class AdminHires
         $before = self::times($hire);
         $changes = ['checked_in_at' => $in, 'checked_out_at' => $out];
         if ($hire->status === DriverHire::COMPLETED) {
-            $overtime = HireQuote::overtime($hire->rate_snapshot, $hire->start_at, $hire->end_at, $in ?? $hire->start_at, $out);
+            $rate = $hire->rate_snapshot;
+            if ($hire->with_car) {
+                $rate['overtime_per_hour'] = (int) ($rate['car_hourly_rate'] ?? $rate['overtime_per_hour']);   // S13.7
+            }
+            $overtime = HireQuote::overtime($rate, $hire->start_at, $hire->end_at, $in ?? $hire->start_at, $out);
+            $extra = (int) $hire->extra_km_amount;
             $changes += [
                 'overtime_minutes' => $overtime['minutes'],
                 'overtime_amount'  => $overtime['amount'],
-                'final_total'      => $hire->quoted_total + $overtime['amount'],
-                'commission'       => (int) round(($hire->driver_total + $overtime['amount']) * $hire->commission_pct / 100),
+                'final_total'      => $hire->quoted_total + $overtime['amount'] + $extra,
+                'commission'       => (int) round(($hire->driver_total + $overtime['amount'] + $extra) * $hire->commission_pct / 100),
             ];
         }
 
