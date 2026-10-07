@@ -29,6 +29,13 @@ return [
     'env' => env('APP_ENV', 'production'),
 
     /*
+    | Jali stage: dev | test | prod. Independent of APP_ENV (the server always
+    | runs Laravel in production mode). Only `dev` shows the one-tap demo
+    | accounts on the login screen. Unknown values count as prod.
+    */
+    'stage' => in_array(env('JALI_ENV', 'prod'), ['dev', 'test', 'prod'], true) ? env('JALI_ENV', 'prod') : 'prod',
+
+    /*
     |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------

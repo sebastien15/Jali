@@ -480,6 +480,13 @@ GET   /admin/support/tickets      ?status=open|answered|resolved&mine&priority �
       (4 h), else normal (24 h). Urgent tickets push every manage-support user; staff replies/resolution push the
       customer (screen support_ticket → /support/[id]). Assign/status changes are logged.
 
+# Stages and demo accounts
+      JALI_ENV = dev | test | prod (config app.stage; unknown → prod; tests default to prod). Deploy writes
+      JALI_ENV=${{ vars.JALI_ENV || 'dev' }} — set the repo variable JALI_ENV=prod before going live.
+      GET /auth/demo-accounts → {stage, enabled, accounts[]} (public); POST /auth/demo-login {key: customer|driver|
+      agent|superadmin} → normal login payload, 404 unless dev. Accounts are dedicated (+2507000000xx), created on first
+      use; the demo driver is verified with a car. App: DemoAccounts card on the login screen (dev only).
+
 # Service access (S23.1) — Modules/ServiceAccess (runbook M06)
 GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,
                                   can_use, can_offer, can_configure, reason_code, minimum_app_version, area}]}  any signed-in user
