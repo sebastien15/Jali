@@ -119,6 +119,10 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            echo '${GITHUB_SHA}' > public/release.txt
+            echo \"Deployed into: \$(pwd)\"
+            echo 'Laravel apps under HOME (path, release marker):'
+            for a in \$(find \"\$HOME\" -maxdepth 4 -name artisan -not -path '*/vendor/*' 2>/dev/null); do d=\$(dirname \"\$a\"); echo \"  \$d \$(cat \"\$d/public/release.txt\" 2>/dev/null || echo -) routes-cache: \$(ls -l --time-style=+%FT%T \"\$d/bootstrap/cache/routes-v7.php\" 2>/dev/null | awk '{print \$6}')\"; done
             echo \"Live release: ${GITHUB_SHA}\""
           for attempt in 1 2 3 4 5; do
             echo "Deploy attempt $attempt"
@@ -135,6 +139,9 @@ jobs:
       - name: Smoke check live API
         continue-on-error: true
         run: |
+          sleep 10
+          echo "release.txt: $(curl -sS -m 20 https://jali.stoka.rw/release.txt | head -c 80)"
+          echo "backend/public/release.txt: $(curl -sS -m 20 https://jali.stoka.rw/backend/public/release.txt | head -c 80)"
           curl -sS -m 20 https://jali.stoka.rw/api/auth/demo-accounts; echo
           curl -sS -m 20 -o /dev/null -w "otp/request -> HTTP %{http_code}\n" -X POST -H "Content-Type: application/json" \
             -d '{"phone":"+250700000009"}' https://jali.stoka.rw/api/auth/otp/request
