@@ -23,6 +23,7 @@ import * as Crypto from "expo-crypto";
 import { C } from "@/constants/theme";
 import api, { clearApiToken } from "@/lib/api";
 import { startSession } from "@/core/session/teardown";
+import { DemoAccounts } from "@/core/session/components/DemoAccounts";
 import { isDev } from "@/lib/env";
 
 /** Common countries for visitors; any number can also be typed with its own "+" code (S9.2) */
@@ -573,6 +574,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </>
         )}
+        <DemoAccounts />
       </View>
       </ScrollView>
       <Modal visible={codePicker} transparent animationType="slide" onRequestClose={() => setCodePicker(false)}>
