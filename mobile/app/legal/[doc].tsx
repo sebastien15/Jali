@@ -75,7 +75,11 @@ const CONTENT: Record<string, { title: string; sections: { heading: string; body
         body: "You can cancel free of charge while the request is waiting and until 3 hours before the start. Later cancellations cost a share of the driver's price, shown in the app before you confirm. Drivers who cancel are reviewed by Jali.",
       },
       {
-        heading: "8. Safety",
+        heading: "8. No-shows and disputes",
+        body: "If the other side has not come 30 minutes after the start, either of you can report a no-show in the app and the hire ends. If the driver does not come, you pay nothing. If you do not show, the late-cancellation share of the driver's price applies. If the recorded hours look wrong, either side can dispute them from the hire for 7 days; Jali reviews the timeline and tells you both the outcome. Jali takes no fee on hires.",
+      },
+      {
+        heading: "9. Safety",
         body: "Drivers are identity- and licence-checked before they can be hired. You can see the driver's name, photo, rating and phone number once they accept. Never hand over your car to someone whose name and photo do not match the app.",
       },
     ],

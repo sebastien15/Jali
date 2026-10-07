@@ -34,6 +34,10 @@ export const queryKeys = {
     bookings: (scope?: string) => ["rentals", "bookings", scope] as const,
     booking: (id: number) => ["rentals", "booking", id] as const,
   },
+  journeys: {
+    search: (from?: string, to?: string, date?: string) => ["journeys", "search", from ?? null, to ?? null, date ?? null] as const,
+    detail: (id: number, date: string) => ["journeys", "detail", id, date] as const,
+  },
   privateSeats: {
     all: () => ["privateSeats"] as const,
     search: (from?: string, to?: string, date?: string, near?: { lat: number; lng: number } | null) =>
@@ -114,6 +118,8 @@ export const queryKeys = {
     serviceAreas: () => ["admin", "serviceAreas"] as const,
     services: () => ["admin", "services"] as const,
     helpTopics: () => ["admin", "helpTopics"] as const,
+    hires: (filters?: object) => ["admin", "hires", "list", filters] as const,
+    hire: (id: number) => ["admin", "hires", id] as const,
     supportInbox: (filter: string) => ["admin", "support", "inbox", filter] as const,
     supportTicket: (id: number) => ["admin", "support", "ticket", id] as const,
     cannedReplies: () => ["admin", "support", "canned"] as const,

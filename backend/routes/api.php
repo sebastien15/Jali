@@ -18,8 +18,10 @@ use App\Http\Controllers\FxController;
 use App\Http\Controllers\DriverHireController;
 use App\Http\Controllers\DriverHireSettingsController;
 use App\Http\Controllers\Admin\RideSettingsController;
+use App\Http\Controllers\Admin\AdminHireController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\JourneyController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\SupportController;
@@ -178,6 +180,8 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{id}", [HireController::class, "show"])->whereNumber("id");
         Route::post("/{id}/cancel", [HireController::class, "cancel"])->whereNumber("id");
         Route::post("/{id}/rate", [HireController::class, "rate"])->whereNumber("id");
+        Route::post("/{id}/no-show", [HireController::class, "noShow"])->whereNumber("id");     // S6.5
+        Route::post("/{id}/dispute", [HireController::class, "dispute"])->whereNumber("id");   // S6.5
     });
     // Hire a Driver: driver side — stories S6.1, S6.2, S6.4
     Route::middleware("permission:offer-driver-hire")->group(function () {
@@ -211,6 +215,14 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/", [AdminRideController::class, "index"]);
         Route::get("/{id}", [AdminRideController::class, "show"])->whereNumber("id");
         Route::post("/{id}/adjust", [AdminRideController::class, "adjust"])->whereNumber("id");
+    });
+
+    // Hire operations (S6.6)
+    Route::middleware("permission:manage-rides")->prefix("admin/hires")->group(function () {
+        Route::get("/", [AdminHireController::class, "index"]);
+        Route::get("/{id}", [AdminHireController::class, "show"])->whereNumber("id");
+        Route::post("/{id}/times", [AdminHireController::class, "times"])->whereNumber("id");
+        Route::post("/{id}/disputes/{disputeId}/resolve", [AdminHireController::class, "resolveDispute"])->whereNumber(["id", "disputeId"]);
     });
 
     // Ride pricing guardrails (superadmin) — RIDE_HAILING_PLAN.md §3.3
@@ -266,6 +278,12 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Push delivery and open rates per type (S12.3)
     Route::middleware("permission:view-analytics")->get("/admin/notifications/stats", [PushNotificationController::class, "stats"]);
+
+    // Shared journeys for passengers (Batch 3)
+    Route::middleware("permission:request-rides")->prefix("journeys")->group(function () {
+        Route::get("/search", [JourneyController::class, "search"]);                       // S25.3
+        Route::get("/{id}", [JourneyController::class, "show"])->whereNumber("id");
+    });
 
     // Is a service available here? (S10.4)
     Route::middleware("permission:request-rides")->get("/service-areas/check", [ServiceAreaController::class, "check"]);

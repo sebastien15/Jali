@@ -1043,7 +1043,9 @@
       "declined": "{{name}} n'est pas disponible",
       "expired": "Pas de réponse de {{name}}",
       "cancelled_by_customer": "Vous avez annulé",
-      "cancelled_by_driver": "{{name}} a annulé"
+      "cancelled_by_driver": "{{name}} a annulé",
+      "no_show_driver": "Le chauffeur n'est pas venu",
+      "no_show_customer": "Le client ne s'est pas présenté"
     },
     "short": {
       "requested": "En attente",

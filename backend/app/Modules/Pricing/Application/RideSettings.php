@@ -64,11 +64,15 @@ class RideSettings implements PricingPolicy
                 'daily_max'           => 150000,
                 'overtime_max'        => 20000,
                 'out_of_town_max'     => 50000,
+                'car_hourly_max'      => 40000,   // S13.7: hourly rate with the driver's car
+                'extra_km_max'        => 2000,    // S13.7: per km beyond the package allowance
                 'commission_pct'      => 0,
                 'service_fee'         => 0,
                 'request_timeout_min' => 60,   // driver must answer within this, or before the start
                 'free_cancel_hours'   => 3,    // customer cancels free until this long before the start
                 'late_cancel_pct'     => 20,   // of the driver's price, paid to the driver when later
+                'no_show_grace_min'   => 30,   // S6.5: a no-show can be reported this long after the start
+                'dispute_days'        => 7,    // S6.5: hours can be disputed this long after check-out
                 'overtime_grace_min'  => 15,
                 'max_days'            => 14,
             ],
@@ -143,12 +147,16 @@ class RideSettings implements PricingPolicy
             'hire.daily_max'              => 'sometimes|integer|min:0',
             'hire.overtime_max'           => 'sometimes|integer|min:0',
             'hire.out_of_town_max'        => 'sometimes|integer|min:0',
+            'hire.car_hourly_max'         => 'sometimes|integer|min:0',
+            'hire.extra_km_max'           => 'sometimes|integer|min:0',
             'hire.commission_pct'         => 'sometimes|numeric|min:0|max:50',
             'hire.service_fee'            => 'sometimes|integer|min:0|max:10000',
             'hire.request_timeout_min'    => 'sometimes|integer|min:5|max:1440',
             'hire.free_cancel_hours'      => 'sometimes|integer|min:0|max:72',
             'hire.late_cancel_pct'        => 'sometimes|integer|min:0|max:100',
             'hire.overtime_grace_min'     => 'sometimes|integer|min:0|max:60',
+            'hire.no_show_grace_min'      => 'sometimes|integer|min:5|max:180',
+            'hire.dispute_days'           => 'sometimes|integer|min:1|max:60',
             'hire.max_days'               => 'sometimes|integer|min:1|max:60',
         ];
         foreach (array_keys(self::defaults()['vehicle_classes']) as $class) {

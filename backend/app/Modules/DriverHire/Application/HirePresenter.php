@@ -40,6 +40,18 @@ class HirePresenter
             'quoted_total'    => $hire->quoted_total,
             'overtime_minutes'=> $hire->overtime_minutes,
             'overtime_amount' => $hire->overtime_amount,
+            // S13.7: hire with the driver's car
+            'with_car'        => (bool) $hire->with_car,
+            'km_allowance'    => (int) $hire->km_allowance,
+            'odometer_start'  => $hire->odometer_start,
+            'odometer_end'    => $hire->odometer_end,
+            'extra_km'        => (int) $hire->extra_km,
+            'extra_km_amount' => (int) $hire->extra_km_amount,
+            'vehicle'         => $hire->with_car && $hire->vehicle ? [
+                'model' => trim(($hire->vehicle->make ? $hire->vehicle->make . ' ' : '') . $hire->vehicle->model),
+                'color' => $hire->vehicle->color,
+                'plate' => $isCustomer && !$booked && $hire->status !== DriverHire::COMPLETED ? null : $hire->vehicle->plate,
+            ] : null,
             'final_total'     => $hire->final_total,
             'driver_earnings' => $isCustomer ? null : $service->driverEarnings($hire),
             'cancel_fee'      => $hire->cancel_fee,
@@ -66,6 +78,13 @@ class HirePresenter
             'checked_in_at'  => $hire->checked_in_at?->toIso8601String(),
             'checked_out_at' => $hire->checked_out_at?->toIso8601String(),
             'cancelled_at'   => $hire->cancelled_at?->toIso8601String(),
+            // S6.5: no-show reporting and hour disputes
+            'no_show_from'   => $service->noShowFrom($hire)?->toIso8601String(),
+            'can_dispute'    => $service->canDispute($hire, $viewer),
+            'my_dispute'     => ($d = $hire->disputes()->where('user_id', $viewer->id)->latest('id')->first()) ? [
+                'status' => $d->status, 'reason' => $d->reason, 'resolution' => $d->resolution,
+                'created_at' => $d->created_at?->toIso8601String(),
+            ] : null,
         ];
     }
 }

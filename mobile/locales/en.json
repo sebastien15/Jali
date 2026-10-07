@@ -1043,7 +1043,9 @@
       "declined": "{{name}} can't make it",
       "expired": "No answer from {{name}}",
       "cancelled_by_customer": "You cancelled",
-      "cancelled_by_driver": "{{name}} cancelled"
+      "cancelled_by_driver": "{{name}} cancelled",
+      "no_show_driver": "Driver didn't come",
+      "no_show_customer": "Customer didn't show"
     },
     "short": {
       "requested": "Waiting",

@@ -51,7 +51,7 @@ export function isSensitiveQueryKey(key: readonly unknown[]): boolean {
   if (root === "rentals") return second === "bookings" || second === "booking";
   if (root === "hire") return typeof second === "number";
   if (root === "driver") return second === "onboarding" || second === "profile" || second === "rentals" || second === "rental";
-  if (root === "admin") return second === "drivers" || second === "rentalCars" || second === "rentalCar" || second === "rentals" || second === "rental" || second === "support";
+  if (root === "admin") return second === "drivers" || second === "rentalCars" || second === "rentalCar" || second === "rentals" || second === "rental" || second === "support" || second === "hires";
   return false;
 }
 

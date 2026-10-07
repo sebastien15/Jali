@@ -503,6 +503,30 @@ GET|PUT|DELETE /admin/service-areas/{id}   (delete 409 while a city has zones). 
       is off there. City overrides (commission_pct, cancel_fee, free_wait_min, nearby_radius_km, broadcast_max_drivers,
       vehicle_classes) apply through NearbyRides\Application\AreaRideSettings. Admin UI: app/(admin)/service-areas.
 
+# Hire operations (S6.6) — Modules/DriverHire AdminHires, perm: manage-rides
+GET   /admin/hires                ?status&from&to&customer&driver&page → {data, next_page}
+GET   /admin/hires/{id}           + quote snapshot, timeline (timestamps + admin log entries), ratings
+POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} started/completed only; completed → overtime,
+                                  total and commission recomputed, ledger adjusted; logged hire.times_corrected
+      Admin UI: app/(admin)/hires.
+      S6.5: POST /driver-hire/{id}/no-show (accepted, from start + hire.no_show_grace_min=30): customer → no_show_driver
+      (no fee), driver → no_show_customer (late_cancel_pct fee). POST /driver-hire/{id}/dispute {reason, claimed_end?}
+      (completed, within hire.dispute_days=7, one open per user) → hire_disputes; GET /admin/hires?disputed=1;
+      POST /admin/hires/{id}/disputes/{d}/resolve {resolution} (logged, pushes both). /driver-hire/available adds `policy`.
+      S13.7 with the driver's car: hire settings offers_car + car_vehicle_id (own active vehicle) + car_hourly_rate
+      (≤ hire.car_hourly_max) + km_per_hour + extra_km_rate (≤ hire.extra_km_max). /driver-hire/available?with_car=1
+      (duration hours 2|4|8; transmission not needed) → quote.km_allowance + vehicle (no plate). Check-in needs
+      {odometer}; check-out {payment_method, odometer} → extra_km × extra_km_rate + overtime at car_hourly_rate.
+
+# Shared journeys (Batch 3) — Modules/SharedJourneys
+      S25.1: POST/PATCH /driver/listings accept stops[] {name, lat?, lng?, time HH:MM, fare_to_next} (2–12, times in
+      order); from/to/pickup/dep/price are derived (price = full-route fare); stops [] clears them. Table journey_stops;
+      PrivateSeat::segmentFare(fromSeq, toSeq). Listings and /private-seats include `stops`.
+      S25.3: GET /journeys/search?from&to&date&seats (perm request-rides) → journeys whose stops reach from before to
+      (name match, case-insensitive; plain listings = one segment) with segment fare, seats_left (SegmentSeats), pickup
+      point; empty → nearby_dates. GET /journeys/{id}?date → stops + seats_left_per_segment. App: Home "private" tab uses
+      JourneyResults when from+to are set; /journey/[id].
+
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
 POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112

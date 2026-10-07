@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StatusBar } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StatusBar, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,7 @@ import { callPhone, openNavigation } from "@/lib/platformActions";
 import { DriverHire, isActiveHire, formatWhen, DRIVER_CANCEL_REASONS, RATING_TAGS_FOR_HIRE_CUSTOMER } from "../hire";
 import { Stars } from "@/components/shared/Stars";
 import { ReasonSheet } from "@/components/shared/ReasonSheet";
+import { HireIssueActions } from "../components/HireIssueActions";
 
 /** Driver's hire screen: accept → navigate → check in → check out (cash/MoMo, overtime) → rate (S6.4) */
 export default function DriverHireScreen() {
@@ -22,6 +23,7 @@ export default function DriverHireScreen() {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
+  const [odometer, setOdometer] = useState("");   // S13.7
   const [cancelOpen, setCancelOpen] = useState(false);
   const [stars, setStars] = useState(0);
   const [tags, setTags] = useState<string[]>([]);
@@ -134,14 +136,30 @@ export default function DriverHireScreen() {
             <Primary label={t("ride.driverTrip.accept")} onPress={() => act("accept")} loading={busy} flex />
           </View>
         ) : null}
-        {hire.status === "accepted" ? <Primary label={t("hire.driver.checkIn")} onPress={() => act("check-in")} loading={busy} /> : null}
+        {hire.status === "accepted" && hire.with_car ? (
+          <Card>
+            <Text style={{ fontWeight: "800", color: C.dark, marginBottom: 6 }}>{t("hire.driver.odometerStart", "Odometer now (km)")}</Text>
+            <TextInput value={odometer} onChangeText={v => setOdometer(v.replace(/\D/g, ""))} keyboardType="number-pad" accessibilityLabel={t("hire.driver.odometerStart", "Odometer now (km)")}
+              style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, color: C.dark, marginBottom: 8 }} />
+            <Primary label={t("hire.driver.checkIn")} onPress={async () => { if (await act("check-in", { odometer: Number(odometer) })) setOdometer(""); }} loading={busy} disabled={!odometer} />
+          </Card>
+        ) : hire.status === "accepted" ? <Primary label={t("hire.driver.checkIn")} onPress={() => act("check-in")} loading={busy} /> : null}
         {hire.status === "started" ? (
           payOpen ? (
             <Card>
+              {hire.with_car ? (
+                <>
+                  <Text style={{ fontWeight: "800", color: C.dark, marginBottom: 6 }}>
+                    {t("hire.driver.odometerEnd", { start: hire.odometer_start, allowance: hire.km_allowance, defaultValue: `Odometer now (km) — started at ${hire.odometer_start}, ${hire.km_allowance} km included` })}
+                  </Text>
+                  <TextInput value={odometer} onChangeText={v => setOdometer(v.replace(/\D/g, ""))} keyboardType="number-pad" accessibilityLabel={t("hire.driver.odometerEndShort", "Odometer now")}
+                    style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, color: C.dark, marginBottom: 10 }} />
+                </>
+              ) : null}
               <Text style={{ fontWeight: "800", color: C.dark, marginBottom: 8 }}>{t("ride.driverTrip.howPaid")}</Text>
               <View style={{ flexDirection: "row", gap: 10 }}>
                 {(["cash", "momo"] as const).map(m => (
-                  <TouchableOpacity key={m} onPress={() => { setPayOpen(false); act("check-out", { payment_method: m }); }} disabled={busy}
+                  <TouchableOpacity key={m} onPress={() => { if (hire.with_car && !odometer) return; setPayOpen(false); act("check-out", { payment_method: m, ...(hire.with_car ? { odometer: Number(odometer) } : {}) }); }} disabled={busy || (hire.with_car && !odometer)}
                     accessibilityLabel={t(`ride.driverTrip.${m}`)}
                     style={{ flex: 1, backgroundColor: C.dark, borderRadius: 14, paddingVertical: 14, alignItems: "center" }}>
                     <Text style={{ color: C.white, fontWeight: "900" }}>{t(`ride.driverTrip.${m}`)}</Text>
@@ -171,6 +189,7 @@ export default function DriverHireScreen() {
           </Card>
         ) : null}
 
+        <HireIssueActions hire={hire} />
         {hire.status === "accepted" ? (
           <TouchableOpacity onPress={() => setCancelOpen(true)} accessibilityLabel={t("hire.detail.cancel")} style={{ marginTop: 6, alignItems: "center" }}>
             <Text style={{ color: C.orange, fontWeight: "800" }}>{t("hire.detail.cancel")}</Text>

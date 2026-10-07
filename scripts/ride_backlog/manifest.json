@@ -956,7 +956,7 @@
   "epic": "E6",
   "issue": 185,
   "track": "B2",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -974,7 +974,7 @@
   "epic": "E6",
   "issue": 186,
   "track": "B2",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -1607,7 +1607,7 @@
   "epic": "E13",
   "issue": 92,
   "track": "B2",
-  "status": "todo"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3090,7 +3090,7 @@
   "epic": "E25",
   "issue": 204,
   "track": "B3",
-  "status": "partial"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3099,7 +3099,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-2",
+   "wave-1",
    "backend"
   ],
   "file": "docs/ride-hailing/stories/S25.2-seat-capacity-per-route-segment.md",
@@ -3115,7 +3115,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-2",
+   "wave-1",
    "mobile",
    "backend"
   ],
@@ -3123,7 +3123,7 @@
   "epic": "E25",
   "issue": 206,
   "track": "B3",
-  "status": "partial"
+  "status": "built"
  },
  {
   "kind": "story",
@@ -3132,7 +3132,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-3",
+   "wave-2",
    "mobile",
    "backend"
   ],
@@ -3149,7 +3149,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-4",
+   "wave-3",
    "mobile",
    "backend"
   ],
@@ -3166,7 +3166,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-4",
+   "wave-3",
    "mobile",
    "backend"
   ],
@@ -3183,7 +3183,7 @@
   "labels": [
    "user-story",
    "batch-3-shared-journeys",
-   "wave-4",
+   "wave-3",
    "admin",
    "backend",
    "mobile"

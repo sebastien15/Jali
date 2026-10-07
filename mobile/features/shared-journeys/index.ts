@@ -3,3 +3,4 @@
 export { PrivateResults } from "./components/PrivateResults";
 export { PrivateCard } from "./components/PrivateCard";
 export { PrivateListingsCard } from "./components/PrivateListingsCard";
+export { JourneyResults } from "./components/JourneyResults";

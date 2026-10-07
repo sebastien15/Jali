@@ -46,7 +46,8 @@ class HireService
         }
         $settings = $driver->hireSettings;
         $rate = $settings->snapshot();
-        $quote = HireQuote::quote($rate, $data['duration_type'], (int) $data['duration_value'], $data['trip_type']);
+        $withCar = !empty($data['with_car']);
+        $quote = HireQuote::quote($rate, $data['duration_type'], (int) $data['duration_value'], $data['trip_type'], $withCar);
         $end = HireQuote::endAt($start, $data['duration_type'], (int) $data['duration_value'], $settings->daily_hours);
         $hire = $this->pricing->hireSettings();
 
@@ -70,7 +71,10 @@ class HireService
             'duration_type'   => $data['duration_type'],
             'duration_value'  => (int) $data['duration_value'],
             'trip_type'       => $data['trip_type'],
-            'transmission'    => $data['transmission'],
+            'transmission'    => $withCar ? 'automatic' : $data['transmission'],   // with a car: not the customer's gearbox
+            'with_car'        => $withCar,
+            'vehicle_id'      => $withCar ? $settings->car_vehicle_id : null,
+            'km_allowance'    => $quote['km_allowance'],
             'pickup_lat'      => $data['pickup']['lat'],
             'pickup_lng'      => $data['pickup']['lng'],
             'pickup_address'  => $data['pickup']['address'] ?? null,
@@ -121,12 +125,16 @@ class HireService
     }
 
     /** Driver arrives and starts: allowed from 2 h before the start until the booked end */
-    public function checkIn(DriverHire $hire, User $driver): DriverHire
+    public function checkIn(DriverHire $hire, User $driver, ?int $odometer = null): DriverHire
     {
         if (now()->lt($hire->start_at->copy()->subHours(2)) || now()->gt($hire->end_at)) {
             throw new HttpException(409, 'You can check in from 2 hours before the start time.');
         }
-        $hire = $this->transition($hire, $driver, 'driver', [DriverHire::ACCEPTED], ['status' => DriverHire::STARTED, 'checked_in_at' => now()],
+        if ($hire->with_car && $odometer === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['odometer' => 'Enter the car\'s odometer (km) before you start.']);
+        }
+        $hire = $this->transition($hire, $driver, 'driver', [DriverHire::ACCEPTED],
+            ['status' => DriverHire::STARTED, 'checked_in_at' => now()] + ($hire->with_car ? ['odometer_start' => $odometer] : []),
             'This hire can\'t be started now.');
         $this->push->send($hire->customer, 'Your driver has started', 'Your hired driver checked in.', ['screen' => 'hire', 'id' => $hire->id]);
 
@@ -134,17 +142,30 @@ class HireService
     }
 
     /** Driver finishes: overtime is computed from the locked rate (S6.4) */
-    public function checkOut(DriverHire $hire, User $driver, string $paymentMethod): DriverHire
+    public function checkOut(DriverHire $hire, User $driver, string $paymentMethod, ?int $odometer = null): DriverHire
     {
         $now = now();
-        $overtime = HireQuote::overtime($hire->rate_snapshot, $hire->start_at, $hire->end_at, $hire->checked_in_at ?? $hire->start_at, $now);
-        $driverPart = $hire->driver_total + $overtime['amount'];
+        $rate = $hire->rate_snapshot;
+        $extra = ['km' => 0, 'amount' => 0];
+        if ($hire->with_car) {
+            // S13.7: overtime at the car rate; km beyond the allowance at the extra-km rate
+            if ($odometer === null || $odometer < (int) $hire->odometer_start) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['odometer' => 'Enter the odometer (km) at the end; it can\'t be less than at the start.']);
+            }
+            $rate['overtime_per_hour'] = (int) $rate['car_hourly_rate'];
+            $extra = HireQuote::extraKm($rate, (int) $hire->km_allowance, (int) $hire->odometer_start, $odometer);
+        }
+        $overtime = HireQuote::overtime($rate, $hire->start_at, $hire->end_at, $hire->checked_in_at ?? $hire->start_at, $now);
+        $driverPart = $hire->driver_total + $overtime['amount'] + $extra['amount'];
         $hire = $this->transition($hire, $driver, 'driver', [DriverHire::STARTED], [
             'status'           => DriverHire::COMPLETED,
             'checked_out_at'   => $now,
             'overtime_minutes' => $overtime['minutes'],
             'overtime_amount'  => $overtime['amount'],
-            'final_total'      => $hire->quoted_total + $overtime['amount'],
+            'odometer_end'     => $hire->with_car ? $odometer : null,
+            'extra_km'         => $extra['km'],
+            'extra_km_amount'  => $extra['amount'],
+            'final_total'      => $hire->quoted_total + $overtime['amount'] + $extra['amount'],
             'commission'       => (int) round($driverPart * $hire->commission_pct / 100),
             'payment_method'   => $paymentMethod,
         ], 'This hire is not in progress.');
@@ -153,8 +174,9 @@ class HireService
         $this->receipts->emailReceipt('hire', $hire);   // S9.6
 
         $this->push->send($hire->customer, 'Hire completed',
-            sprintf('Total %s RWF%s. Tap to rate your driver.', number_format($hire->final_total),
-                $hire->overtime_minutes ? sprintf(' (incl. %d min overtime)', $hire->overtime_minutes) : ''),
+            sprintf('Total %s RWF%s%s. Tap to rate your driver.', number_format($hire->final_total),
+                $hire->overtime_minutes ? sprintf(' (incl. %d min overtime)', $hire->overtime_minutes) : '',
+                $hire->extra_km ? sprintf(' (incl. %d extra km)', $hire->extra_km) : ''),
             ['screen' => 'hire', 'id' => $hire->id]);
 
         return $hire;
@@ -181,6 +203,68 @@ class HireService
             ['screen' => $isCustomer ? 'driver_hire' : 'hire', 'id' => $hire->id]);
 
         return $hire;
+    }
+
+    /** S6.5: when a no-show can be reported (start + grace), or null when not applicable */
+    public function noShowFrom(DriverHire $hire): ?\Carbon\CarbonInterface
+    {
+        return $hire->status === DriverHire::ACCEPTED
+            ? $hire->start_at->copy()->addMinutes((int) $this->pricing->hireSettings()['no_show_grace_min'])
+            : null;
+    }
+
+    /**
+     * S6.5: the other side didn't show. The customer reporting ends the hire with no fee;
+     * the driver reporting ends it with the late-cancellation fee owed to the driver.
+     */
+    public function reportNoShow(DriverHire $hire, User $user): DriverHire
+    {
+        $from = $this->noShowFrom($hire);
+        if (!$from) {
+            throw new HttpException(409, 'A no-show can only be reported on an accepted hire that has not started.');
+        }
+        if (now()->lt($from)) {
+            throw new HttpException(409, sprintf('You can report a no-show from %s.', $from->copy()->setTimezone('Africa/Kigali')->format('H:i')));
+        }
+        $byCustomer = $hire->customer_id === $user->id;
+        $fee = $byCustomer ? 0 : (int) round($hire->driver_total * (int) $this->pricing->hireSettings()['late_cancel_pct'] / 100);
+
+        $hire = $this->transition($hire, $user, $byCustomer ? 'customer' : 'driver', [DriverHire::ACCEPTED], [
+            'status'        => $byCustomer ? DriverHire::NO_SHOW_DRIVER : DriverHire::NO_SHOW_CUSTOMER,
+            'cancelled_at'  => now(),
+            'cancelled_by'  => $byCustomer ? 'customer' : 'driver',
+            'cancel_reason' => 'no_show',
+            'cancel_fee'    => $fee,
+        ], 'This hire is no longer waiting to start.');
+
+        $other = $byCustomer ? $hire->driver : $hire->customer;
+        $this->push->send($other, 'No-show reported',
+            $byCustomer ? 'The customer reported that you did not come. Contact Jali support if this is wrong.'
+                : sprintf('Your driver reported that you did not show. A fee of %s RWF applies; contact Jali support if this is wrong.', number_format($fee)),
+            ['screen' => $byCustomer ? 'driver_hire' : 'hire', 'id' => $hire->id]);
+
+        return $hire;
+    }
+
+    /** S6.5: can this user dispute the recorded hours now? */
+    public function canDispute(DriverHire $hire, User $user): bool
+    {
+        return $hire->status === DriverHire::COMPLETED && $hire->checked_out_at
+            && $hire->checked_out_at->copy()->addDays((int) $this->pricing->hireSettings()['dispute_days'])->isFuture()
+            && !$hire->disputes()->where('user_id', $user->id)->where('status', \App\Models\HireDispute::OPEN)->exists();
+    }
+
+    public function dispute(DriverHire $hire, User $user, string $reason, ?string $claimedEnd): \App\Models\HireDispute
+    {
+        if (!$this->canDispute($hire, $user)) {
+            throw new HttpException(409, 'Hours can be disputed once, within a few days of a completed hire.');
+        }
+        $byCustomer = $hire->customer_id === $user->id;
+
+        return $hire->disputes()->create([
+            'user_id' => $user->id, 'role' => $byCustomer ? 'customer' : 'driver',
+            'reason' => $reason, 'claimed_end' => $claimedEnd, 'status' => \App\Models\HireDispute::OPEN,
+        ]);
     }
 
     /** Cancel reasons the user may give for this hire: customer or driver list */
@@ -266,7 +350,7 @@ class HireService
 
     public function driverEarnings(DriverHire $hire): int
     {
-        $driverPart = $hire->driver_total + $hire->overtime_amount;
+        $driverPart = $hire->driver_total + $hire->overtime_amount + (int) $hire->extra_km_amount;
 
         return $driverPart - ($hire->commission ?? (int) round($driverPart * $hire->commission_pct / 100));
     }

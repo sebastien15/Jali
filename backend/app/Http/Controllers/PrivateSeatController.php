@@ -44,13 +44,20 @@ class PrivateSeatController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'from'                => 'required|string',
-            'to'                  => 'required|string',
-            'pickup_station'      => 'required|string',
+            'from'                => 'required_without:stops|string',
+            'to'                  => 'required_without:stops|string',
+            'pickup_station'      => 'required_without:stops|string',
             'drop_location'       => 'nullable|string',
-            'dep'                 => 'required|string',
+            'dep'                 => 'required_without:stops|string',
             'date'                => 'nullable|string',
-            'price'               => 'required|integer|min:0',
+            'price'               => 'required_without:stops|integer|min:0',
+            // S25.1: ordered stops with times and the fare to the next stop
+            'stops'                => 'sometimes|array|min:2|max:12',
+            'stops.*.name'         => 'required_with:stops|string|max:80',
+            'stops.*.lat'          => 'nullable|numeric|between:-90,90',
+            'stops.*.lng'          => 'nullable|numeric|between:-180,180',
+            'stops.*.time'         => ['required_with:stops', 'date_format:H:i'],
+            'stops.*.fare_to_next' => 'nullable|integer|min:0|max:500000',
             'seats'               => 'required|integer|min:1',
             'notes'               => 'nullable|string',
             'amenities'           => 'nullable|array',
@@ -95,6 +102,13 @@ class PrivateSeatController extends Controller
             'group_discount_pct'  => 'integer|min:1|max:100',
             'allow_custom_pickup' => 'boolean',
             'custom_pickup_fee'   => 'integer|min:0',
+            // S25.1: ordered stops with times and the fare to the next stop
+            'stops'                => 'sometimes|array|min:2|max:12',
+            'stops.*.name'         => 'required_with:stops|string|max:80',
+            'stops.*.lat'          => 'nullable|numeric|between:-90,90',
+            'stops.*.lng'          => 'nullable|numeric|between:-180,180',
+            'stops.*.time'         => ['required_with:stops', 'date_format:H:i'],
+            'stops.*.fare_to_next' => 'nullable|integer|min:0|max:500000',
         ]);
 
         try {

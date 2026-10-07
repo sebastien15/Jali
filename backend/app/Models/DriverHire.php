@@ -24,6 +24,9 @@ class DriverHire extends Model
     public const EXPIRED = 'expired';
     public const CANCELLED_BY_CUSTOMER = 'cancelled_by_customer';
     public const CANCELLED_BY_DRIVER = 'cancelled_by_driver';
+    /** S6.5: the driver didn't come (reported by the customer) / the customer didn't show (reported by the driver) */
+    public const NO_SHOW_DRIVER = 'no_show_driver';
+    public const NO_SHOW_CUSTOMER = 'no_show_customer';
 
     public const ACTIVE = [self::REQUESTED, self::ACCEPTED, self::STARTED];
     /** Statuses that hold the driver's time */
@@ -39,6 +42,7 @@ class DriverHire extends Model
         return [
             'start_at' => 'datetime', 'end_at' => 'datetime', 'requested_at' => 'datetime', 'expires_at' => 'datetime',
             'accepted_at' => 'datetime', 'checked_in_at' => 'datetime', 'checked_out_at' => 'datetime', 'cancelled_at' => 'datetime',
+            'with_car' => 'boolean',
             'pickup_lat' => 'float', 'pickup_lng' => 'float', 'commission_pct' => 'float', 'rate_snapshot' => 'array',
             'duration_value' => 'integer',
         ];
@@ -57,6 +61,17 @@ class DriverHire extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(HireRating::class);
+    }
+
+    /** S13.7: the driver's car, for hires with a car */
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(HireDispute::class);
     }
 
     public function involves(User $user): bool
