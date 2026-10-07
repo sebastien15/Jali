@@ -6,7 +6,7 @@ Batch 3. A driver going to Gisenyi offers spare seats with stops along the way; 
 ## Stories
 - S25.1 — Publish a journey with stops and segment fares (wave 1, ✅ built)
 - S25.2 — Seat capacity per route segment (wave 1, ⬜ todo)
-- S25.3 — Find journeys including part of a route (wave 1, 🟡 partial)
+- S25.3 — Find journeys including part of a route (wave 1, ✅ built)
 - S25.4 — Request a seat and get confirmed (wave 2, ⬜ todo)
 - S25.5 — Journey cancellation rules (wave 3, ⬜ todo)
 - S25.6 — Complete the journey and rate (wave 3, ⬜ todo)

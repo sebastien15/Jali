@@ -13,7 +13,7 @@ import { BookingSheet } from "@/components/BookingSheet";
 import { SearchHeader } from "@/components/home/SearchHeader";
 import { ModeTabs } from "@/components/home/ModeTabs";
 import { ActiveRideBanner } from "@/features/nearby-rides";
-import { PrivateResults } from "@/features/shared-journeys";
+import { PrivateResults, JourneyResults } from "@/features/shared-journeys";
 import { RentalSearchPanel } from "@/features/rentals";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -111,7 +111,7 @@ export default function HomeScreen() {
     staleTime: 10 * 60_000,
     gcTime: 20 * 60_000,
     placeholderData: keepPreviousData,
-    enabled: mode === "private",
+    enabled: mode === "private" && !(from?.city && to?.city),
   });
 
   const trips        = tripsQuery.data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
@@ -203,7 +203,12 @@ export default function HomeScreen() {
             isFetchingNextPage={tripsQuery.isFetchingNextPage}
           />
         )}
-        {mode === "private" && (
+        {/* S25.3: with origin and destination chosen, journeys passing through both (part of a route) */}
+        {mode === "private" && from?.city && to?.city && (
+          <JourneyResults from={from.city} to={to.city} date={dateParam}
+            onPickDate={ymd => { const d = new Date(`${ymd}T00:00:00`); setSelectedDate(d); }} />
+        )}
+        {mode === "private" && !(from?.city && to?.city) && (
           <PrivateResults
             items={privateSeats} loading={loading} error={error}
             from={from} to={to}

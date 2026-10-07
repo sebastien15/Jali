@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\RideSettingsController;
 use App\Http\Controllers\Admin\AdminHireController;
 use App\Http\Controllers\Admin\ServiceAreaController as AdminServiceAreaController;
 use App\Http\Controllers\ServiceAreaController;
+use App\Http\Controllers\JourneyController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\SupportController;
@@ -277,6 +278,12 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // Push delivery and open rates per type (S12.3)
     Route::middleware("permission:view-analytics")->get("/admin/notifications/stats", [PushNotificationController::class, "stats"]);
+
+    // Shared journeys for passengers (Batch 3)
+    Route::middleware("permission:request-rides")->prefix("journeys")->group(function () {
+        Route::get("/search", [JourneyController::class, "search"]);                       // S25.3
+        Route::get("/{id}", [JourneyController::class, "show"])->whereNumber("id");
+    });
 
     // Is a service available here? (S10.4)
     Route::middleware("permission:request-rides")->get("/service-areas/check", [ServiceAreaController::class, "check"]);

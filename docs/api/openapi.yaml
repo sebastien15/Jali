@@ -60,6 +60,8 @@ tags:
     description: Help centre topics in en/fr/rw/sw (S16.2)
   - name: Support
     description: Support tickets linked to a ride, hire or rental; staff inbox with SLA (S16.3)
+  - name: Journeys
+    description: Shared journeys with stops — search, seats per segment (Batch 3)
   - name: Service access
     description: Which services an account can see, use and offer — one server answer for navigation and intake (S23.1)
 
@@ -2739,6 +2741,64 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  # ── Shared journeys (Batch 3) ───────────────────────────────────────────
+  /journeys/search:
+    get:
+      tags: [Journeys]
+      operationId: searchJourneys
+      x-jali-story: S25.3
+      x-jali-permission: request-rides
+      summary: Journeys whose stops reach `from` before `to` on a date, with my segment fare; sorted by departure
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string } }
+        - { name: to, in: query, required: true, schema: { type: string } }
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+        - { name: seats, in: query, schema: { type: integer, minimum: 1, maximum: 6, default: 1 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, nearby_dates]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/JourneyMatch" }
+                  nearby_dates:
+                    type: array
+                    description: When nothing matches, the next days that have journeys
+                    items:
+                      type: object
+                      required: [date, journeys]
+                      properties:
+                        date: { type: string, format: date }
+                        journeys: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /journeys/{id}:
+    get:
+      tags: [Journeys]
+      operationId: getJourney
+      x-jali-story: S25.3
+      x-jali-permission: request-rides
+      summary: A journey's stops, fares and seats left on each segment for a date
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JourneyDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   # ── Service access (S23.1) ──────────────────────────────────────────────
   /me/service-access:
     get:
@@ -3886,6 +3946,60 @@ components:
                   items: { type: string }
 
   schemas:
+    JourneyStopRef:
+      type: object
+      required: [seq, name, time]
+      properties:
+        seq: { type: integer }
+        name: { type: string }
+        time: { type: [string, "null"], description: "HH:MM at this stop" }
+    JourneyMatch:
+      type: object
+      required: [listing_id, date, driver, from, to, route, fare, seats_left, pickup_point, allow_custom_pickup, custom_pickup_fee, amenities]
+      properties:
+        listing_id: { type: integer }
+        date: { type: string, format: date }
+        driver:
+          type: object
+          properties:
+            name: { type: string }
+            rating: { type: number }
+        from: { $ref: "#/components/schemas/JourneyStopRef" }
+        to: { $ref: "#/components/schemas/JourneyStopRef" }
+        route: { type: array, items: { type: string } }
+        fare: { type: integer, description: Per seat for my segment }
+        seats_left: { type: integer, description: Free on every segment I ride }
+        pickup_point: { type: string }
+        allow_custom_pickup: { type: boolean }
+        custom_pickup_fee: { type: integer }
+        amenities: { type: array, items: { type: string } }
+    JourneyDetail:
+      type: object
+      required: [id, date, seats, driver, stops, seats_left_per_segment]
+      properties:
+        id: { type: integer }
+        date: { type: string, format: date }
+        seats: { type: integer }
+        driver:
+          type: object
+          properties:
+            name: { type: string }
+            rating: { type: number }
+        stops:
+          type: array
+          items:
+            allOf:
+              - { $ref: "#/components/schemas/JourneyStopRef" }
+              - type: object
+                properties:
+                  fare_to_next: { type: [integer, "null"] }
+        seats_left_per_segment: { type: array, items: { type: integer } }
+        pickup_station: { type: [string, "null"] }
+        drop_location: { type: [string, "null"] }
+        allow_custom_pickup: { type: boolean }
+        custom_pickup_fee: { type: integer }
+        amenities: { type: array, items: { type: string } }
+        notes: { type: [string, "null"] }
     AdminHirePerson:
       type: [object, "null"]
       required: [id, name, phone]
