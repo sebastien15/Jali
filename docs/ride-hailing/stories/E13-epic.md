@@ -10,7 +10,7 @@ Every ride option people expect from Uber, Bolt, DiDi and inDrive: scheduled, fo
 - S13.4 — Change destination during the trip (wave 1, ⬜ todo)
 - S13.5 — Ride preferences (wave 1, ⬜ todo)
 - S13.6 — Women-only option (wave 1, ⬜ todo)
-- S13.7 — Hourly ride with driver's car (wave 1, ⬜ todo, track: Batch 2 — Scheduled private drivers)
+- S13.7 — Hourly ride with driver's car (wave 1, ✅ built, track: Batch 2 — Scheduled private drivers)
 - S13.8 — On-demand intercity rides (wave 2, ⬜ todo)
 - S13.9 — Child seat, wheelchair-friendly and pet-friendly vehicles (wave 1, ⬜ todo)
 - S13.10 — Wait & save / priority pickup (wave 1, ⬜ todo)
