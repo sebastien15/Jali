@@ -103,6 +103,22 @@ class AuthController extends Controller
         return $this->attempt(fn () => $this->auth->otpLogin($request->phone, (string) $request->otp));
     }
 
+    /** GET /auth/demo-accounts — the dev stage's one-tap accounts (empty and disabled elsewhere) */
+    public function demoAccounts(\App\Modules\Identity\Application\DemoAccounts $demo)
+    {
+        return response()->json($demo->list());
+    }
+
+    /** POST /auth/demo-login {key} — dev stage only; 404 in test and prod */
+    public function demoLogin(Request $request, \App\Modules\Identity\Application\DemoAccounts $demo)
+    {
+        $key = (string) $request->validate(['key' => 'required|string|max:20'])['key'];
+        $session = $demo->login($key);
+        abort_unless($session, 404, 'Demo accounts are not available.');
+
+        return response()->json($session);
+    }
+
     /**
      * Logout - revoke token
      */

@@ -71,6 +71,9 @@ Route::post("/auth/login/google", [
 Route::post("/auth/login/apple", [AuthController::class, "loginWithApple"])->middleware("throttle:auth");
 Route::post("/auth/otp/request", [AuthController::class, "requestOtp"])->middleware("throttle:otp");
 Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middleware("throttle:otp-verify");
+// One-tap demo accounts — only when JALI_ENV=dev (refused in test/prod)
+Route::get("/auth/demo-accounts", [AuthController::class, "demoAccounts"])->middleware("throttle:auth");
+Route::post("/auth/demo-login", [AuthController::class, "demoLogin"])->middleware("throttle:auth");
 
 // Share my trip (S8.1) — PUBLIC by design: the 40-character token is the secret, and it stops working when the ride ends
 Route::get("/share/{token}", [SafetyController::class, "publicShare"])->where("token", "[A-Za-z0-9]{40}")->middleware("throttle:60,1");
