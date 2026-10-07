@@ -74,6 +74,11 @@ Route::post("/auth/otp/verify", [AuthController::class, "verifyOtp"])->middlewar
 // One-tap demo accounts — only when JALI_ENV=dev (refused in test/prod)
 Route::get("/auth/demo-accounts", [AuthController::class, "demoAccounts"])->middleware("throttle:auth");
 Route::post("/auth/demo-login", [AuthController::class, "demoLogin"])->middleware("throttle:auth");
+// Which release the live server runs (written by the deploy) — the deploy fails unless this matches
+Route::get("/version", fn () => response()->json([
+    "release" => is_file(base_path("release.txt")) ? trim(file_get_contents(base_path("release.txt"))) : null,
+    "stage" => \App\Support\AppStage::current(),
+]))->middleware("throttle:60,1");
 
 // Share my trip (S8.1) — PUBLIC by design: the 40-character token is the secret, and it stops working when the ride ends
 Route::get("/share/{token}", [SafetyController::class, "publicShare"])->where("token", "[A-Za-z0-9]{40}")->middleware("throttle:60,1");
