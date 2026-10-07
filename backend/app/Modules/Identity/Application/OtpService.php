@@ -3,6 +3,7 @@
 namespace App\Modules\Identity\Application;
 
 use App\Modules\Notifications\Contracts\SmsSender;
+use App\Support\AppStage;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -12,12 +13,14 @@ use Illuminate\Support\Facades\Cache;
  * - At most MAX_ATTEMPTS wrong tries, then the code is burned.
  * - A code works once.
  * - The fixed development code (OTP_DEV_CODE) is honoured ONLY in the local
- *   and testing environments — never in production or staging.
+ *   and testing environments, or when the server's stage is dev (JALI_ENV=dev,
+ *   where it defaults to DEV_STAGE_CODE) — never in the test or prod stage.
  */
 class OtpService
 {
     public const TTL_MINUTES = 10;
     public const MAX_ATTEMPTS = 5;
+    public const DEV_STAGE_CODE = '123456';
 
     public function __construct(private SmsSender $sms)
     {
@@ -37,6 +40,9 @@ class OtpService
     public function devCode(): ?string
     {
         $code = (string) config('services.otp.dev_code');
+        if (AppStage::isDev()) {
+            return $code !== '' ? $code : self::DEV_STAGE_CODE;
+        }
 
         return $code !== '' && app()->environment('local', 'testing') ? $code : null;
     }

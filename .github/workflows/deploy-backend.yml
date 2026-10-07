@@ -131,6 +131,14 @@ jobs:
           echo "All deploy attempts failed" >&2
           exit 1
 
+      # Shows in the log what the live API answers (stage, demo accounts, phone sign-in)
+      - name: Smoke check live API
+        continue-on-error: true
+        run: |
+          curl -sS -m 20 https://jali.stoka.rw/api/auth/demo-accounts; echo
+          curl -sS -m 20 -o /dev/null -w "otp/request -> HTTP %{http_code}\n" -X POST -H "Content-Type: application/json" \
+            -d '{"phone":"+250700000009"}' https://jali.stoka.rw/api/auth/otp/request
+
       - name: Deployment Status
         if: success()
         run: echo "✅ Backend deployment successful! API available at https://jali.stoka.rw"

@@ -26,11 +26,11 @@ class DemoAccounts
             'description' => 'Everything, including pricing, services and service areas'],
     ];
 
-    public function __construct(private Authentication $auth)
+    public function __construct(private Authentication $auth, private OtpService $otp)
     {
     }
 
-    /** @return array{stage: string, enabled: bool, accounts: array} */
+    /** @return array{stage: string, enabled: bool, otp_code: ?string, accounts: array} */
     public function list(): array
     {
         $enabled = AppStage::isDev();
@@ -38,6 +38,8 @@ class DemoAccounts
         return [
             'stage'    => AppStage::current(),
             'enabled'  => $enabled,
+            // dev stage: the fixed sign-in code, so phone login and sign-up work without SMS
+            'otp_code' => $enabled ? $this->otp->devCode() : null,
             'accounts' => $enabled ? array_map(
                 fn (string $key, array $a) => ['key' => $key, 'name' => $a['name'], 'role' => $a['role'], 'description' => $a['description']],
                 array_keys(self::ACCOUNTS), self::ACCOUNTS,
