@@ -486,6 +486,8 @@ GET   /admin/support/tickets      ?status=open|answered|resolved&mine&priority �
       GET /auth/demo-accounts → {stage, enabled, accounts[]} (public); POST /auth/demo-login {key: customer|driver|
       agent|superadmin} → normal login payload, 404 unless dev. Accounts are dedicated (+2507000000xx), created on first
       use; the demo driver is verified with a car. App: DemoAccounts card on the login screen (dev only).
+      Dev stage also signs in / registers any phone with a fixed OTP (OTP_DEV_CODE, default 123456; no SMS needed),
+      returned as otp_code by /auth/demo-accounts and shown on the card. Deploy logs a smoke check of both endpoints.
 
 # Service access (S23.1) — Modules/ServiceAccess (runbook M06)
 GET   /me/service-access          ?lat&lng&app_version → {version:1, services:[{id, label, discoverable, accepting_new_requests,

@@ -8,7 +8,7 @@ import api from "@/lib/api";
 import { isAdminRole } from "@/constants/roles";
 import { startSession } from "@/core/session/teardown";
 
-type Demo = { stage: string; enabled: boolean; accounts: { key: string; name: string; role: string; description: string }[] };
+type Demo = { stage: string; enabled: boolean; otp_code?: string | null; accounts: { key: string; name: string; role: string; description: string }[] };
 
 const ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   customer: "person-outline", driver: "car-sport-outline", agent: "briefcase-outline", superadmin: "shield-checkmark-outline",
@@ -20,12 +20,21 @@ const ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
  */
 export function DemoAccounts() {
   const [busy, setBusy] = useState<string | null>(null);
-  const { data } = useQuery({
+  const { data, isError, error, refetch, isFetching } = useQuery<Demo, any>({
     queryKey: ["auth", "demoAccounts"],
     queryFn: () => api.get<Demo>("/auth/demo-accounts").then(r => r.data),
     staleTime: 5 * 60_000,
-    retry: false,
+    retry: 1,
   });
+  // A failed load is shown (not hidden) so a broken server or URL is visible
+  if (isError) {
+    const detail = error?.response ? `HTTP ${error.response.status}` : error?.message ?? "network error";
+    return (
+      <TouchableOpacity onPress={() => refetch()} disabled={isFetching} style={{ marginTop: 24, alignItems: "center" }}>
+        <Text style={{ color: C.muted, fontSize: 12 }}>Could not reach the server ({detail}). Tap to retry.</Text>
+      </TouchableOpacity>
+    );
+  }
   if (!data?.enabled || !data.accounts.length) return null;
 
   async function login(key: string) {
@@ -46,6 +55,11 @@ export function DemoAccounts() {
       <Text style={{ fontWeight: "800", color: C.mid, fontSize: 12, textTransform: "uppercase" }}>
         Demo accounts · {data.stage}
       </Text>
+      {data.otp_code ? (
+        <Text style={{ color: C.mid, fontSize: 12 }}>
+          Phone sign-in / sign-up code: <Text style={{ fontWeight: "800", color: C.dark }}>{data.otp_code}</Text>
+        </Text>
+      ) : null}
       {data.accounts.map(a => (
         <TouchableOpacity key={a.key} onPress={() => login(a.key)} disabled={!!busy} accessibilityLabel={`Sign in as ${a.name}`}
           style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.bg, borderRadius: 12, padding: 12 }}>
