@@ -18,13 +18,17 @@ import {
 
 type DurationType = "hours" | "days";
 
-/** Hire a driver for my own car — story S6.3 */
+/** S13.7: hour packages when the driver brings their car */
+const CAR_PACKAGES = [2, 4, 8];
+
+/** Hire a driver for my own car — story S6.3 — or with their car (S13.7) */
 export default function HireSearchScreen() {
   const { t, i18n } = useTranslation();
   const dates = useRef(nextDates(14)).current;
   const [date, setDate] = useState(dates[1]);
   const [time, setTime] = useState("09:00");
   const [durationType, setDurationType] = useState<DurationType>("hours");
+  const [withCar, setWithCar] = useState(false);   // S13.7: the driver brings their car
   const [hours, setHours] = useState(4);
   const [days, setDays] = useState(1);
   const [tripType, setTripType] = useState<HireTripType>("city");
@@ -50,8 +54,10 @@ export default function HireSearchScreen() {
     })();
   }, []);
 
-  const durationValue = durationType === "hours" ? hours : days;
-  const params = { start_at: kigaliIso(date, time), duration_type: durationType, duration_value: durationValue, trip_type: tripType, transmission };
+  const durationValue = withCar ? (CAR_PACKAGES.includes(hours) ? hours : 4) : durationType === "hours" ? hours : days;
+  const params: Record<string, string | number> = withCar
+    ? { start_at: kigaliIso(date, time), duration_type: "hours", duration_value: durationValue, trip_type: tripType, with_car: 1 }
+    : { start_at: kigaliIso(date, time), duration_type: durationType, duration_value: durationValue, trip_type: tripType, transmission };
 
   const { data: result, isFetching, error } = useQuery({
     queryKey: queryKeys.hire.available(search),
@@ -102,6 +108,23 @@ export default function HireSearchScreen() {
           </ScrollView>
         </Section>
 
+        <Section title={t("hire.search.whose", "Whose car?")}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Chip label={t("hire.search.myCar", "My car")} on={!withCar} onPress={() => setWithCar(false)} />
+            <Chip label={t("hire.search.driverCar", "Driver's car")} on={withCar} onPress={() => { setWithCar(true); setHours(h => (CAR_PACKAGES.includes(h) ? h : 4)); }} />
+          </View>
+          {withCar ? <Text style={{ color: C.mid, fontSize: 12, marginTop: 6 }}>
+            {t("hire.search.driverCarHint", "Errands, business days and tours: the driver comes with their car. Packages include km; extra time and km are charged at the driver's rates.")}
+          </Text> : null}
+        </Section>
+
+        {withCar ? (
+        <Section title={t("hire.search.package", "Package")}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {CAR_PACKAGES.map(h => <Chip key={h} label={t("hire.hours", { count: h })} on={durationValue === h} onPress={() => setHours(h)} />)}
+          </View>
+        </Section>
+        ) : (
         <Section title={t("hire.search.howLong")}>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
             <Chip label={t("hire.search.byHour")} on={durationType === "hours"} onPress={() => setDurationType("hours")} />
@@ -113,6 +136,7 @@ export default function HireSearchScreen() {
             onChange={v => (durationType === "hours" ? setHours(Math.min(16, Math.max(1, v))) : setDays(Math.min(14, Math.max(1, v))))}
           />
         </Section>
+        )}
 
         <Section title={t("hire.search.tripType")}>
           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
@@ -120,11 +144,13 @@ export default function HireSearchScreen() {
           </View>
         </Section>
 
+        {!withCar ? (
         <Section title={t("hire.search.transmission")} hint={t("hire.search.transmissionHint")}>
           <View style={{ flexDirection: "row", gap: 8 }}>
             {TRANSMISSIONS.map(tr => <Chip key={tr} label={t(`hire.tr_${tr}`)} on={transmission === tr} onPress={() => setTransmission(tr)} />)}
           </View>
         </Section>
+        ) : null}
 
         <Section title={t("hire.search.pickup")}>
           <TouchableOpacity onPress={() => setPickupSearch(true)} accessibilityLabel={t("hire.search.pickup")}
@@ -135,10 +161,10 @@ export default function HireSearchScreen() {
           </TouchableOpacity>
         </Section>
 
-        <Section title={t("hire.search.yourCar")}>
-          <TextInput value={carDescription} onChangeText={setCarDescription} maxLength={200} placeholder={t("hire.search.carPlaceholder")}
+        <Section title={withCar ? t("hire.search.notes") : t("hire.search.yourCar")}>
+          {!withCar ? <TextInput value={carDescription} onChangeText={setCarDescription} maxLength={200} placeholder={t("hire.search.carPlaceholder")}
             placeholderTextColor={C.muted} accessibilityLabel={t("hire.search.yourCar")}
-            style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, color: C.dark }} />
+            style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, color: C.dark }} /> : null}
           <TextInput value={notes} onChangeText={setNotes} maxLength={500} multiline placeholder={t("hire.search.notesPlaceholder")}
             placeholderTextColor={C.muted} accessibilityLabel={t("hire.search.notes")}
             style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, color: C.dark, marginTop: 8, minHeight: 60, textAlignVertical: "top" }} />
@@ -233,6 +259,7 @@ function ConfirmSheet({ driver, params, pickup, carDescription, notes, policy, o
     try {
       const res = await api.post<DriverHire>("/driver-hire", {
         ...params, driver_id: driver.driver_id, payment_method: payment, accept_terms: terms,
+        ...(params.with_car ? { with_car: true } : {}),
         pickup: { lat: pickup.lat, lng: pickup.lng, address: pickup.address || pickup.name },
         car_description: carDescription || null, notes: notes || null,
       });
@@ -253,9 +280,17 @@ function ConfirmSheet({ driver, params, pickup, carDescription, notes, policy, o
           <Text style={{ fontWeight: "900", fontSize: 18, color: C.dark }}>{t("hire.confirm.title", { name: driver.name })}</Text>
           <Row label={params.duration_type === "days"
             ? t("hire.confirm.days", { count: q.days, rate: formatRwf(driver.rates.daily_rate) })
-            : t("hire.confirm.hours", { count: q.billable_hours, rate: formatRwf(driver.rates.hourly_rate) })} value="" />
+            : t("hire.confirm.hours", { count: q.billable_hours, rate: formatRwf(driver.vehicle ? (driver.rates.car_hourly_rate ?? 0) : driver.rates.hourly_rate) })} value="" />
           {params.trip_type === "out_of_town" && driver.rates.out_of_town_fee ? (
             <Row label={t("hire.confirm.outOfTown", { count: q.days })} value={formatRwf((driver.rates.out_of_town_fee ?? 0) * q.days)} />
+          ) : null}
+          {driver.vehicle ? (
+            <Row label={t("hire.confirm.car", { model: driver.vehicle.model, km: q.km_allowance ?? 0,
+              defaultValue: `${driver.vehicle.model} · ${q.km_allowance ?? 0} km included` })} value="" />
+          ) : null}
+          {driver.vehicle && driver.rates.extra_km_rate ? (
+            <Text style={{ color: C.muted, fontSize: 12 }}>{t("hire.confirm.extraKm", { rate: formatRwf(driver.rates.extra_km_rate),
+              defaultValue: `Extra km: ${formatRwf(driver.rates.extra_km_rate)} each` })}</Text>
           ) : null}
           <Row label={t("hire.confirm.driverPrice")} value={formatRwf(q.driver_total)} />
           <Row label={t("ride.trip.jaliFee")} value={formatRwf(q.service_fee)} />

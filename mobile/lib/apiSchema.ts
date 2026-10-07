@@ -2487,6 +2487,12 @@ export interface components {
                 quoted_total: number;
                 overtime_minutes: number;
                 overtime_amount: number;
+                with_car?: boolean;
+                km_allowance?: number;
+                odometer_start?: number | null;
+                odometer_end?: number | null;
+                extra_km?: number;
+                extra_km_amount?: number;
                 final_total: number | null;
                 commission_pct: number;
                 commission: number | null;
@@ -3415,10 +3421,19 @@ export interface components {
             overtime_per_hour: number;
             /** @description RWF per day when the trip leaves Kigali */
             out_of_town_fee?: number;
+            /** @description S13.7: RWF per hour with the driver's own car */
+            car_hourly_rate?: number | null;
+            /** @description S13.7: km included per package hour */
+            km_per_hour?: number | null;
+            /** @description S13.7: RWF per km beyond the allowance */
+            extra_km_rate?: number | null;
         };
         HireSettingsPayload: {
             settings: null | (components["schemas"]["HireRates"] & {
                 is_active: boolean;
+                /** @description S13.7: also hireable with their own car */
+                offers_car?: boolean;
+                car_vehicle_id?: number | null;
             });
             skills: {
                 transmissions: components["schemas"]["Transmission"][];
@@ -3437,6 +3452,8 @@ export interface components {
                 out_of_town_max?: number;
                 commission_pct?: number;
                 service_fee?: number;
+                car_hourly_max?: number;
+                extra_km_max?: number;
             };
         };
         WeeklyHours: {
@@ -3468,6 +3485,8 @@ export interface components {
             /** @description Hours: max(asked, min_hours). Days: days × daily_hours */
             billable_hours: number;
             days: number;
+            /** @description S13.7: km included (0 without a car) */
+            km_allowance?: number;
         };
         AvailableHireDriver: {
             driver_id: number;
@@ -3485,6 +3504,14 @@ export interface components {
             /** Format: date-time */
             end_at: string;
             quote: components["schemas"]["HireQuote"];
+            /** @description S13.7: the car they bring (no plate before acceptance) */
+            vehicle?: {
+                model?: string;
+                color?: string | null;
+                class?: string | null;
+                seats?: number | null;
+                photo?: string | null;
+            } | null;
         };
         /** @enum {string} */
         HireStatus: "requested" | "accepted" | "started" | "completed" | "declined" | "expired" | "cancelled_by_customer" | "cancelled_by_driver" | "no_show_driver" | "no_show_customer";
@@ -3546,6 +3573,19 @@ export interface components {
                 phone: string | null;
             } | null;
             my_rating: number | null;
+            /** @description S13.7: the driver brings their car */
+            with_car?: boolean;
+            km_allowance?: number;
+            odometer_start?: number | null;
+            odometer_end?: number | null;
+            extra_km?: number;
+            extra_km_amount?: number;
+            vehicle?: {
+                model?: string;
+                color?: string | null;
+                /** @description Shown once the hire is accepted */
+                plate?: string | null;
+            } | null;
             /**
              * Format: date-time
              * @description S6.5: from when either side may report a no-show (accepted hires)
@@ -3854,6 +3894,10 @@ export interface components {
             /** @description % of the driver's price charged on a late cancellation */
             late_cancel_pct?: number;
             overtime_grace_min?: number;
+            /** @description S13.7: max hourly rate with the driver's car */
+            car_hourly_max?: number;
+            /** @description S13.7: max RWF per extra km */
+            extra_km_max?: number;
             /** @description S6.5: a no-show can be reported this long after the start */
             no_show_grace_min?: number;
             /** @description S6.5: hours can be disputed this long after check-out */
@@ -4950,6 +4994,8 @@ export interface operations {
                 "application/json": {
                     /** @enum {string} */
                     payment_method: "cash" | "momo";
+                    /** @description S13.7: end odometer, required with a car; extra km beyond the allowance are charged */
+                    odometer?: number;
                 };
             };
         };
@@ -5584,6 +5630,9 @@ export interface operations {
                 "application/json": components["schemas"]["HireRates"] & {
                     is_active?: boolean;
                     transmissions: components["schemas"]["Transmission"][];
+                    offers_car?: boolean;
+                    /** @description One of my active vehicles (required when offers_car) */
+                    car_vehicle_id?: number | null;
                     languages: components["schemas"]["HireLanguage"][];
                     years_experience: number;
                 };
@@ -5690,7 +5739,10 @@ export interface operations {
                 /** @description Hours (max 16) or days (max hire.max_days) */
                 duration_value: number;
                 trip_type: components["schemas"]["HireTripType"];
-                transmission: components["schemas"]["Transmission"];
+                /** @description Required unless with_car */
+                transmission?: components["schemas"]["Transmission"];
+                /** @description S13.7: driver brings their car — duration_type=hours, duration_value 2, 4 or 8 */
+                with_car?: boolean;
             };
             header?: never;
             path?: never;
@@ -6006,7 +6058,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description S13.7: required for hires with the driver's car */
+                    odometer?: number;
+                };
+            };
+        };
         responses: {
             /** @description OK */
             200: {
