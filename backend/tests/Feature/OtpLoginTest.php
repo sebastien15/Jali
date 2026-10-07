@@ -19,6 +19,7 @@ class OtpLoginTest extends TestCase
         parent::setUp();
         $this->seed(RolesAndPermissionsSeeder::class);
         config([
+            'app.stage' => 'prod',
             'services.otp.dev_code' => null,
             'services.sms.driver' => 'africastalking',
             'services.sms.africastalking' => ['username' => 'jali', 'api_key' => 'secret', 'sender_id' => 'JALI'],
@@ -133,5 +134,23 @@ class OtpLoginTest extends TestCase
 
         $this->app['env'] = 'staging';
         $this->postJson('/api/auth/otp/request', ['phone' => '0788123456'])->assertStatus(503);   // log driver refused outside local
+    }
+
+    /** @test */
+    public function the_dev_stage_signs_in_and_registers_with_the_fixed_code_without_sms()
+    {
+        $this->app['env'] = 'production';
+        config(['app.stage' => 'dev', 'services.sms.driver' => 'log']);
+        Http::fake();
+
+        $this->getJson('/api/auth/demo-accounts')->assertOk()->assertJsonPath('otp_code', '123456');
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788999111'])->assertOk();
+        $this->postJson('/api/auth/otp/verify', ['phone' => '0788999111', 'otp' => '123456'])->assertOk()->assertJsonStructure(['token']);
+        $this->assertDatabaseHas('users', ['phone' => '+250788999111']);
+        Http::assertNothingSent();
+
+        config(['app.stage' => 'test']);
+        $this->getJson('/api/auth/demo-accounts')->assertOk()->assertJsonPath('otp_code', null);
+        $this->postJson('/api/auth/otp/request', ['phone' => '0788999111'])->assertStatus(503);
     }
 }
