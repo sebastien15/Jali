@@ -83,6 +83,10 @@ export default function ListingScreen() {
 
   // Notes
   const [notes, setNotes] = useState("");
+  // S25.1: stops along the way — each with its time; one fare per segment
+  const [via, setVia] = useState<{ name: string; time: string }[]>([]);
+  const [segFares, setSegFares] = useState<string[]>([]);
+  const [arrival, setArrival] = useState("");
   const [saving, setSaving] = useState(false);
 
   const queryClient = useQueryClient();
@@ -122,6 +126,14 @@ export default function ListingScreen() {
     setAllowCustomPickup(!!listing.allow_custom_pickup);
     setCustomPickupFee(listing.custom_pickup_fee ? String(listing.custom_pickup_fee) : "");
     setNotes(listing.notes ?? "");
+    const stops = listing.stops ?? [];
+    if (stops.length > 2) {
+      setVia(stops.slice(1, -1).map(st => ({ name: st.name, time: st.time })));
+      setSegFares(stops.slice(0, -1).map(st => String(st.fare_to_next ?? "")));
+      setArrival(stops[stops.length - 1].time);
+    } else if (stops.length === 2) {
+      setArrival(stops[1].time);
+    }
   }, [listing, hydratedId]);
 
   const stations = BUS_STATIONS[from] ?? [];
@@ -144,8 +156,15 @@ export default function ListingScreen() {
       Alert.alert(t("listing.required"), t("listing.selectDestinationAndPickup"));
       return;
     }
-    const priceNum = parseInt(price, 10);
-    if (!price || isNaN(priceNum)) {
+    const withStops = via.length > 0;
+    const fares = segFares.slice(0, via.length + 1).map(f => parseInt(f, 10));
+    if (withStops && (via.some(v => !v.name.trim() || !/^\d{2}:\d{2}$/.test(v.time)) || !/^\d{2}:\d{2}$/.test(arrival)
+      || fares.length < via.length + 1 || fares.some(f => isNaN(f)))) {
+      Alert.alert(t("listing.required"), t("listing.stopsIncomplete", "Give every stop a name and time (HH:MM), the arrival time, and a fare for each part of the route."));
+      return;
+    }
+    const priceNum = withStops ? fares.reduce((a, b) => a + b, 0) : parseInt(price, 10);
+    if (!withStops && (!price || isNaN(priceNum))) {
       Alert.alert(t("listing.required"), t("listing.enterPrice"));
       return;
     }
@@ -168,6 +187,12 @@ export default function ListingScreen() {
         group_discount_pct: groupDiscountPct,
         allow_custom_pickup: allowCustomPickup,
         custom_pickup_fee: allowCustomPickup ? parseInt(customPickupFee, 10) || 0 : 0,
+        // With stops the server derives from/to/dep/price from them; [] clears them
+        stops: withStops ? [
+          { name: from, time: dep, fare_to_next: fares[0] },
+          ...via.map((v, i) => ({ name: v.name.trim(), time: v.time, fare_to_next: fares[i + 1] })),
+          { name: to, time: arrival },
+        ] : [],
       };
       if (editId) await api.patch(`/driver/listings/${editId}`, payload);
       else await api.post("/driver/listings", payload);
@@ -367,6 +392,40 @@ export default function ListingScreen() {
           <Text style={{ color: C.teal, fontSize: 12, fontWeight: "700" }}>{t("listing.change")}</Text>
         </TouchableOpacity>
 
+        {/* ── STOPS ALONG THE WAY (S25.1) ─────────────────── */}
+        <SectionHeader label={t("listing.stops", "Stops along the way")} icon="git-commit-outline" />
+        <Text style={{ color: C.mid, fontSize: 12, marginBottom: 8 }}>
+          {t("listing.stopsHint", "Add towns you pass through. Passengers can ride part of the route and pay only for their part.")}
+        </Text>
+        {via.map((v, i) => (
+          <View key={i} style={{ flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 }}>
+            <TextInput value={v.name} onChangeText={name => setVia(via.map((x, j) => (j === i ? { ...x, name } : x)))}
+              placeholder={t("listing.stopName", "Town")} placeholderTextColor={C.muted} style={[inputStyle, { flex: 1, marginBottom: 0 }]}
+              accessibilityLabel={t("listing.stopName", "Town")} />
+            <TextInput value={v.time} onChangeText={time => setVia(via.map((x, j) => (j === i ? { ...x, time } : x)))}
+              placeholder="08:30" placeholderTextColor={C.muted} keyboardType="numbers-and-punctuation" style={[inputStyle, { width: 76, marginBottom: 0 }]}
+              accessibilityLabel={t("listing.stopTime", "Time at this stop")} />
+            <TouchableOpacity accessibilityLabel={t("listing.removeStop", "Remove stop")} hitSlop={8}
+              onPress={() => { setVia(via.filter((_, j) => j !== i)); setSegFares(segFares.filter((_, j) => j !== i + 1)); }}>
+              <Ionicons name="close-circle" size={22} color={C.muted} />
+            </TouchableOpacity>
+          </View>
+        ))}
+        {via.length < 10 && (
+          <TouchableOpacity onPress={() => setVia([...via, { name: "", time: "" }])} accessibilityLabel={t("listing.addStop", "Add a stop")}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 }}>
+            <Ionicons name="add-circle-outline" size={20} color={C.teal} />
+            <Text style={{ color: C.teal, fontWeight: "700" }}>{t("listing.addStop", "Add a stop")}</Text>
+          </TouchableOpacity>
+        )}
+        {via.length > 0 && (
+          <>
+            <Label>{t("listing.arrival", "Arrival time at {{to}}", { to: to || "…" })}</Label>
+            <TextInput value={arrival} onChangeText={setArrival} placeholder="10:00" placeholderTextColor={C.muted}
+              keyboardType="numbers-and-punctuation" style={inputStyle} accessibilityLabel={t("listing.arrivalShort", "Arrival time")} />
+          </>
+        )}
+
         {/* ── CAPACITY & PRICING ────────────────────────── */}
         <SectionHeader label={t("listing.capacityPricing")} icon="cash-outline" />
 
@@ -375,12 +434,33 @@ export default function ListingScreen() {
           <Stepper value={parseInt(seats)} min={1} max={6} onChange={v => setSeats(String(v))} />
         </View>
 
-        <Label>{t("listing.pricePerSeat")}</Label>
-        <TextInput
-          value={price} onChangeText={setPrice}
-          placeholder="e.g. 8000" keyboardType="number-pad"
-          style={inputStyle}
-        />
+        {via.length === 0 ? (
+          <>
+            <Label>{t("listing.pricePerSeat")}</Label>
+            <TextInput
+              value={price} onChangeText={setPrice}
+              placeholder="e.g. 8000" keyboardType="number-pad"
+              style={inputStyle}
+            />
+          </>
+        ) : (
+          <>
+            {[from, ...via.map(v => v.name || "…")].map((name, i) => {
+              const next = i < via.length ? (via[i].name || "…") : (to || "…");
+              return (
+                <View key={i}>
+                  <Label>{t("listing.segmentFare", "Fare {{from}} → {{to}}", { from: name, to: next })}</Label>
+                  <TextInput value={segFares[i] ?? ""} keyboardType="number-pad" placeholder="e.g. 2000" placeholderTextColor={C.muted}
+                    onChangeText={v => { const n = [...segFares]; n[i] = v.replace(/\D/g, ""); setSegFares(n); }} style={inputStyle}
+                    accessibilityLabel={t("listing.segmentFare", "Fare {{from}} → {{to}}", { from: name, to: next })} />
+                </View>
+              );
+            })}
+            <Text style={{ color: C.mid, fontSize: 12, marginBottom: 10 }}>
+              {t("listing.fullRoute", "Whole route: {{price}} RWF", { price: segFares.slice(0, via.length + 1).reduce((a, f) => a + (parseInt(f, 10) || 0), 0).toLocaleString() })}
+            </Text>
+          </>
+        )}
 
         {/* ── CAR AMENITIES ─────────────────────────────── */}
         <SectionHeader label={t("listing.available")} icon="sparkles-outline" />

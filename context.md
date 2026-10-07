@@ -518,6 +518,11 @@ POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} starte
       (duration hours 2|4|8; transmission not needed) → quote.km_allowance + vehicle (no plate). Check-in needs
       {odometer}; check-out {payment_method, odometer} → extra_km × extra_km_rate + overtime at car_hourly_rate.
 
+# Shared journeys (Batch 3) — Modules/SharedJourneys
+      S25.1: POST/PATCH /driver/listings accept stops[] {name, lat?, lng?, time HH:MM, fare_to_next} (2–12, times in
+      order); from/to/pickup/dep/price are derived (price = full-route fare); stops [] clears them. Table journey_stops;
+      PrivateSeat::segmentFare(fromSeq, toSeq). Listings and /private-seats include `stops`.
+
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}
 POST  /rides/{id}/sos {lat?,lng?} flags ride, pushes manage-rides admins (screen admin_ride), SMS to emergency contact; app dials 112

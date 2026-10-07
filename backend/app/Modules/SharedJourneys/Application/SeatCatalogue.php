@@ -15,7 +15,7 @@ class SeatCatalogue
      */
     public function search(mixed $from = null, mixed $to = null, mixed $date = null): LengthAwarePaginator
     {
-        $query = PrivateSeat::query()->where('seats', '>', 0)->where('active', true);
+        $query = PrivateSeat::query()->with('stops')->where('seats', '>', 0)->where('active', true);
 
         if ($from !== null) {
             $query->where('from', $from);

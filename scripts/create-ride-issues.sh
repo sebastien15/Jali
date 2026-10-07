@@ -519,22 +519,22 @@ tmp=$(mktemp); { cat "$DIR/S25.1-publish-a-journey-with-stops-and-segment-fares.
 n=$(create "S25.1 Publish a journey with stops and segment fares" "user-story,batch-3-shared-journeys,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.1 Publish a journey with stops and segment fares"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.1" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.2-seat-capacity-per-route-segment.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.2 Seat capacity per route segment" "user-story,batch-3-shared-journeys,wave-2,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.2 Seat capacity per route segment"
+n=$(create "S25.2 Seat capacity per route segment" "user-story,batch-3-shared-journeys,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.2 Seat capacity per route segment"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.2" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.3-find-journeys-including-part-of-a-route.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.3 Find journeys including part of a route" "user-story,batch-3-shared-journeys,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.3 Find journeys including part of a route"
+n=$(create "S25.3 Find journeys including part of a route" "user-story,batch-3-shared-journeys,wave-1,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.3 Find journeys including part of a route"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.3" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.4-request-a-seat-and-get-confirmed.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.4 Request a seat and get confirmed" "user-story,batch-3-shared-journeys,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.4 Request a seat and get confirmed"
+n=$(create "S25.4 Request a seat and get confirmed" "user-story,batch-3-shared-journeys,wave-2,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.4 Request a seat and get confirmed"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.4" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.5-journey-cancellation-rules.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.5 Journey cancellation rules" "user-story,batch-3-shared-journeys,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.5 Journey cancellation rules"
+n=$(create "S25.5 Journey cancellation rules" "user-story,batch-3-shared-journeys,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.5 Journey cancellation rules"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.5" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.6-complete-the-journey-and-rate.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.6 Complete the journey and rate" "user-story,batch-3-shared-journeys,wave-4,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.6 Complete the journey and rate"
+n=$(create "S25.6 Complete the journey and rate" "user-story,batch-3-shared-journeys,wave-3,mobile,backend" "$tmp"); rm -f "$tmp"; echo "#$n S25.6 Complete the journey and rate"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.6" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S25.7-admin-journey-oversight.md"; echo; echo "Part of #${EPIC_NUM[E25]}"; } > "$tmp"
-n=$(create "S25.7 Admin journey oversight" "user-story,batch-3-shared-journeys,wave-4,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S25.7 Admin journey oversight"
+n=$(create "S25.7 Admin journey oversight" "user-story,batch-3-shared-journeys,wave-3,admin,backend,mobile" "$tmp"); rm -f "$tmp"; echo "#$n S25.7 Admin journey oversight"
 gh issue comment "${EPIC_NUM[E25]}" --repo "$REPO" --body "- [ ] #$n S25.7" >/dev/null
 tmp=$(mktemp); { cat "$DIR/S26.1-dated-departures-with-seat-inventory.md"; echo; echo "Part of #${EPIC_NUM[E26]}"; } > "$tmp"
 n=$(create "S26.1 Dated departures with seat inventory" "user-story,batch-5-bus,wave-1,backend" "$tmp"); rm -f "$tmp"; echo "#$n S26.1 Dated departures with seat inventory"
