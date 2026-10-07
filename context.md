@@ -522,6 +522,10 @@ POST  /admin/hires/{id}/times     {checked_in_at?, checked_out_at?, note} starte
       S25.1: POST/PATCH /driver/listings accept stops[] {name, lat?, lng?, time HH:MM, fare_to_next} (2–12, times in
       order); from/to/pickup/dep/price are derived (price = full-route fare); stops [] clears them. Table journey_stops;
       PrivateSeat::segmentFare(fromSeq, toSeq). Listings and /private-seats include `stops`.
+      S25.3: GET /journeys/search?from&to&date&seats (perm request-rides) → journeys whose stops reach from before to
+      (name match, case-insensitive; plain listings = one segment) with segment fare, seats_left (SegmentSeats), pickup
+      point; empty → nearby_dates. GET /journeys/{id}?date → stops + seats_left_per_segment. App: Home "private" tab uses
+      JourneyResults when from+to are set; /journey/[id].
 
 # Safety (E8) — perm: request-rides (rider or driver of the ride)
 POST  /rides/{id}/share           → {url: APP_URL/t/{token}} live while active · PUBLIC GET /api/share/{token} (410 after) + web page /t/{token}

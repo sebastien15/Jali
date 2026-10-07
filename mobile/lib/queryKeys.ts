@@ -34,6 +34,10 @@ export const queryKeys = {
     bookings: (scope?: string) => ["rentals", "bookings", scope] as const,
     booking: (id: number) => ["rentals", "booking", id] as const,
   },
+  journeys: {
+    search: (from?: string, to?: string, date?: string) => ["journeys", "search", from ?? null, to ?? null, date ?? null] as const,
+    detail: (id: number, date: string) => ["journeys", "detail", id, date] as const,
+  },
   privateSeats: {
     all: () => ["privateSeats"] as const,
     search: (from?: string, to?: string, date?: string, near?: { lat: number; lng: number } | null) =>

@@ -1693,6 +1693,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Journeys whose stops reach `from` before `to` on a date, with my segment fare; sorted by departure */
+        get: operations["searchJourneys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A journey's stops, fares and seats left on each segment for a date */
+        get: operations["getJourney"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/service-access": {
         parameters: {
             query?: never;
@@ -2358,6 +2392,52 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        JourneyStopRef: {
+            seq: number;
+            name: string;
+            /** @description HH:MM at this stop */
+            time: string | null;
+        };
+        JourneyMatch: {
+            listing_id: number;
+            /** Format: date */
+            date: string;
+            driver: {
+                name?: string;
+                rating?: number;
+            };
+            from: components["schemas"]["JourneyStopRef"];
+            to: components["schemas"]["JourneyStopRef"];
+            route: string[];
+            /** @description Per seat for my segment */
+            fare: number;
+            /** @description Free on every segment I ride */
+            seats_left: number;
+            pickup_point: string;
+            allow_custom_pickup: boolean;
+            custom_pickup_fee: number;
+            amenities: string[];
+        };
+        JourneyDetail: {
+            id: number;
+            /** Format: date */
+            date: string;
+            seats: number;
+            driver: {
+                name?: string;
+                rating?: number;
+            };
+            stops: (components["schemas"]["JourneyStopRef"] & {
+                fare_to_next?: number | null;
+            })[];
+            seats_left_per_segment: number[];
+            pickup_station?: string | null;
+            drop_location?: string | null;
+            allow_custom_pickup?: boolean;
+            custom_pickup_fee?: number;
+            amenities?: string[];
+            notes?: string | null;
+        };
         AdminHirePerson: {
             id: number;
             name: string | null;
@@ -7228,6 +7308,70 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    searchJourneys: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                date: string;
+                seats?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["JourneyMatch"][];
+                        /** @description When nothing matches, the next days that have journeys */
+                        nearby_dates: {
+                            /** Format: date */
+                            date: string;
+                            journeys: number;
+                        }[];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getJourney: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };
     };
